@@ -1,0 +1,51 @@
+export interface HomeContent {
+  home_title: string;
+  home_services_subtitle: string;
+  home_about_subtitle: string;
+  home_about_image: string;
+}
+
+export interface CarouselItem {
+  id: number;
+  image_url: string;
+  position: number;
+}
+
+export interface Service {
+  id: number;
+  name: string;
+  category: string;
+  description: string;
+  junior_price: number;
+  master_price: number;
+  duration: string;
+  image: string;
+}
+
+export interface Faq {
+  id: number;
+  question: string;
+  answer: string;
+}
+
+export interface AboutContent {
+  about_description: string;
+  about_image: string;
+  about_location: string;
+  contact_location_url?: string;
+  // Business hours (dynamic keys)
+  [key: string]: string | undefined;
+}
+
+export type TeamContent = {
+  team_description: string;
+};
+
+export type Nailist = {
+  id: number;
+  name: string;
+  position: string;
+  specialty: string;
+  bio: string;
+  image: string;
+};

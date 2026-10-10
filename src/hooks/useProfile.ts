@@ -1,0 +1,529 @@
+import React, { useMemo, useState, useEffect } from "react";
+import { useUser, useAuth } from "@clerk/nextjs";
+import { useNavigate, useLocation, useSearchParams } from "@/lib/router";
+import { fetchProfile, updateProfile, fetchUserAppointments, redeemUserReward, cancelAppointment, type UserProfile } from "../services/userService";
+import { type Appointment } from "../utils/profile";
+import type { ChangeEvent, MouseEvent } from "react";
+import { isActiveAppointmentStatus } from "../services/proofState";
+import { startPolling } from "./usePolling";
+import { PROFILE_FIELDS } from "../data/profile";
+import { useToast } from "../components/ui/ToastProvider";
+
+export function useProfile() {
+  const { isLoaded, isSignedIn, user: clerkUser } = useUser();
+  const { getToken } = useAuth();
+  const navigate = useNavigate();
+  const toast = useToast();
+
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  // After paying, Xendit sends the client to /profile?appointment_id=<id>.
+  const highlightedAppointmentId = useMemo(() => {
+    const raw = searchParams.get("appointment_id");
+    const id = raw ? Number(raw) : NaN;
+    return Number.isInteger(id) && id > 0 ? id : null;
+  }, [searchParams]);
+
+  const [activeTab, setActiveTab] = useState<
+    "details" | "schedule" | "loyalty"
+  >(
+    (location.state as any)?.activeTab ||
+      (highlightedAppointmentId ? "schedule" : "details"),
+  );
+  const [dbUser, setDbUser] = useState<UserProfile | null>(null);
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState<UserProfile | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [stamps, setStamps] = useState(0);
+  const [isGenderOpen, setIsGenderOpen] = useState(false);
+  const [showRewardModal, setShowRewardModal] = useState(false);
+
+  const [selectedAppt, setSelectedAppt] = useState<Appointment | null>(null);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(Date.now());
+  const [showAllHistory, setShowAllHistory] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+
+  const [historySortBy, setHistorySortBy] = useState("appointmentDateDesc");
+  const [historyFilter, setHistoryFilter] = useState("all");
+
+  const processedPastAppointments = useMemo(() => {
+    const filtered = appointments.filter((a) => {
+      const s = a.status.toLowerCase();
+      const isPastType = ["completed", "cancelled", "refunded"].includes(s);
+      if (!isPastType) return false;
+      if (historyFilter !== "all" && s !== historyFilter) return false;
+      return true;
+    });
+
+    return filtered.sort((a, b) => {
+      if (historySortBy === "bookingDateDesc") {
+        const timeA = a.created_at ? new Date(a.created_at).getTime() : a.id;
+        const timeB = b.created_at ? new Date(b.created_at).getTime() : b.id;
+        return timeB - timeA;
+      } else if (historySortBy === "appointmentDateDesc") {
+        const dateA = new Date(
+          `${a.appointment_date}T${a.appointment_time.split("-")[0]}`,
+        );
+        const dateB = new Date(
+          `${b.appointment_date}T${b.appointment_time.split("-")[0]}`,
+        );
+        return dateB.getTime() - dateA.getTime();
+      } else if (historySortBy === "appointmentDateAsc") {
+        const dateA = new Date(
+          `${a.appointment_date}T${a.appointment_time.split("-")[0]}`,
+        );
+        const dateB = new Date(
+          `${b.appointment_date}T${b.appointment_time.split("-")[0]}`,
+        );
+        return dateA.getTime() - dateB.getTime();
+      }
+      return 0;
+    });
+  }, [appointments, historySortBy, historyFilter]);
+
+  const todayFormatted = new Date().toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  const formatDisplayDate = (dateString: string) => {
+    if (!dateString) return "";
+
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  useEffect(() => {
+    if (isLoaded && clerkUser?.publicMetadata?.role === "admin") {
+      navigate("/AS_AdminDirectory", { replace: true });
+      return;
+    }
+
+    if (isLoaded && clerkUser?.publicMetadata?.role !== "admin") {
+      if (!isSignedIn) {
+        navigate("/login");
+        return;
+      }
+
+      if (!clerkUser?.id) return;
+
+      const loadData = async () => {
+        try {
+          const token = await getToken();
+          const data = await fetchProfile(clerkUser.id, token);
+
+          setDbUser(data);
+          setStamps(data.stamps || 0);
+
+          const appts = await fetchUserAppointments(clerkUser.id, token);
+          setAppointments(appts || []);
+        } catch (err) {
+          console.error(
+            "Error fetching data:",
+            err,
+          );
+        }
+      };
+
+      loadData();
+
+      // Refresh every 30 seconds, only while this tab is on screen
+      return startPolling(loadData, { intervalMs: 30000, immediate: false });
+    }
+  }, [isLoaded, isSignedIn, clerkUser, navigate, getToken]);
+
+  const handleEditClick = () => {
+    setFormData(dbUser);
+    setIsEditing(true);
+  };
+
+  const genderOptions = [
+    { value: "female", label: "Female" },
+    { value: "male", label: "Male" },
+    { value: "other", label: "Other" },
+    { value: "prefer not to say", label: "Prefer not to say" },
+  ];
+
+  const handleGenderSelect = (value: string) => {
+    if (formData) {
+      setFormData({ ...formData, gender: value });
+    }
+    setIsGenderOpen(false);
+  };
+
+  const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = () => setOpenDropdownId(null);
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => setCurrentTime(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Scroll to the just-paid appointment's card once the appointments load.
+  useEffect(() => {
+    if (!highlightedAppointmentId || activeTab !== "schedule") return;
+    document
+      .getElementById(`proof-${highlightedAppointmentId}`)
+      ?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+  }, [highlightedAppointmentId, activeTab, appointments.length]);
+
+  const formatTime = (ms: number) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    if (formData) {
+      const { name, value } = e.target;
+
+      if (name === "phone") {
+        let val = value.replace(/[^\d+]/g, "");
+
+        if (val.indexOf("+") > 0) {
+          val = val.replace(/\+/g, "");
+        }
+
+        if (val.startsWith("+63")) {
+          val = val.slice(0, 13);
+        } else if (val.startsWith("09")) {
+          val = val.slice(0, 11);
+        } else if (val.startsWith("+")) {
+          val = val.slice(0, 13);
+        } else {
+          val = val.slice(0, 11);
+        }
+
+        setFormData({ ...formData, [name]: val });
+        return;
+      }
+
+      setFormData({ ...formData, [name]: value });
+    }
+  };
+
+  const handleSave = async () => {
+    if (formData && clerkUser?.id) {
+      const currentFirstName = formData.first_name || "";
+      const currentLastName = formData.last_name || "";
+      const currentPhone = formData.phone || "";
+      const currentDob = formData.dob || "";
+
+      if (currentFirstName.trim() === "") {
+        setError("Please enter your first name.");
+        return;
+      }
+      if (currentLastName.trim() === "") {
+        setError("Please enter your last name.");
+        return;
+      }
+      if (currentPhone.trim() === "") {
+        setError("Please enter your phone number.");
+        return;
+      }
+
+      const isValid09 =
+        currentPhone.startsWith("09") && currentPhone.length === 11;
+      const isValid63 =
+        currentPhone.startsWith("+639") && currentPhone.length === 13;
+
+      if (!isValid09 && !isValid63) {
+        setError(
+          "Please enter a valid Philippine phone number (e.g., 09xxxxxxxxx or +639xxxxxxxxx).",
+        );
+        return;
+      }
+
+      if (currentDob.trim() === "") {
+        setError("Please select your date of birth.");
+        return;
+      }
+
+      setError(null);
+
+      try {
+        const token = await getToken();
+
+        const formattedPayload = {
+          first_name: currentFirstName,
+          last_name: currentLastName,
+          email: clerkUser.primaryEmailAddress?.emailAddress || formData.email,
+          phone: currentPhone,
+          dob: currentDob,
+          gender: formData.gender || "female",
+        };
+
+        await updateProfile(clerkUser.id, formattedPayload, token);
+
+        setDbUser({
+          ...dbUser,
+          ...formData,
+          first_name: formattedPayload.first_name,
+          last_name: formattedPayload.last_name,
+        } as UserProfile);
+
+        setIsEditing(false);
+        toast.show("success", "Profile updated", "Your new details were saved and are now showing on your profile.");
+      } catch {
+        setError(
+          "We couldn't save your changes. Your edits are still on screen, so nothing is lost. Please check your connection and press Save again.",
+        );
+      }
+    }
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setFormData(null);
+    setError(null);
+  };
+
+  const handleClientRedeem = async () => {
+    if (stamps >= 10 && clerkUser?.id) {
+      try {
+        setShowRewardModal(true);
+        setStamps(0);
+        const token = await getToken();
+        // Use the new authorized client redemption endpoint
+        await redeemUserReward(clerkUser.id, token);
+      } catch (error) {
+        console.error("Failed to self-redeem reward:", error);
+        toast.show(
+          "error",
+          "We couldn't record your reward",
+          "Your stamps are safe. Please show this screen to our staff on your next visit so they can apply your discount, or try again later.",
+        );
+      }
+    }
+  };
+
+  const handleCancelAppointment = async () => {
+    if (!selectedAppt || !clerkUser?.id) return;
+    setActionError(null);
+
+    setIsCancelling(true);
+
+    try {
+      const token = await getToken();
+      if (!token) throw new Error("No auth token");
+
+      await cancelAppointment(selectedAppt.id, token);
+
+      setAppointments((prev) =>
+        prev.map((appt) =>
+          appt.id === selectedAppt.id ? { ...appt, status: "Cancelled" } : appt,
+        ),
+      );
+      setIsCancelModalOpen(false);
+      toast.show(
+        "success",
+        "Appointment cancelled",
+        `Your ${selectedAppt.service_name} appointment was cancelled and the time slot was released. You can find it under Past & Cancelled Appointments.`,
+      );
+      setSelectedAppt(null);
+    } catch (err: any) {
+      setActionError(
+        err.message ||
+          "We couldn't cancel this appointment, so it is still active. Please try again, or contact us if this keeps happening.",
+      );
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
+  const isEligibleForChanges = (dateStr: string, timeStr: string) => {
+    try {
+      const startTime = timeStr.includes("-")
+        ? timeStr.split("-")[0].trim()
+        : timeStr.trim();
+      // FORCE +08:00 for Philippines to ensure consistent calculation regardless of user's browser timezone
+      const aptDate = new Date(`${dateStr}T${startTime}:00+08:00`);
+      const now = new Date();
+
+      const diffInMs = aptDate.getTime() - now.getTime();
+      const seventyTwoHoursInMs = 72 * 60 * 60 * 1000;
+
+      return diffInMs >= seventyTwoHoursInMs;
+    } catch {
+      return false;
+    }
+  };
+
+  const formatSlot = (slot: string) => {
+    const [start, end] = slot.split("-");
+    const format = (t: string) => {
+      const [h24, m] = t.split(":").map(Number);
+      const ampm = h24 >= 12 ? "PM" : "AM";
+      const h = h24 % 12 || 12;
+      return `${h}:${m.toString().padStart(2, "0")} ${ampm}`;
+    };
+    return `${format(start)} - ${format(end)}`;
+  };
+
+  const getStatusDotColor = (status: string) => {
+    const s = status.toLowerCase();
+    if (s === "pending") return "bg-warning";
+    if (s === "awaiting_proof") return "bg-warning";
+    if (s === "confirmed") return "bg-info";
+    if (s === "completed") return "bg-success";
+    if (s === "cancelled") return "bg-danger";
+    if (s === "refunded") return "bg-crimson-light";
+    return "bg-gray-red/50";
+  };
+
+
+  const todayIso = new Date().toISOString().split("T")[0];
+
+  // Active appointments together with everything the list needs to show each one.
+  const currentAppointments = appointments
+    .filter((a) => isActiveAppointmentStatus(a.status))
+    .map((appt) => {
+      let displayStatus = appt.status;
+      let remainingTime = 0;
+      let isExpired = false;
+
+      if (appt.status.toLowerCase() === "pending" && appt.expires_at) {
+        remainingTime = new Date(appt.expires_at).getTime() - currentTime;
+
+        if (remainingTime <= 0) {
+          displayStatus = "Cancelled";
+          isExpired = true;
+        }
+      }
+
+      const isEligible = isEligibleForChanges(appt.appointment_date, appt.appointment_time);
+      const canReschedule = displayStatus.toLowerCase() === "confirmed" && isEligible;
+      const canCancel = ["pending", "awaiting_proof", "confirmed"].includes(displayStatus.toLowerCase());
+
+      return {
+        appt,
+        displayStatus,
+        remainingTime,
+        isExpired,
+        canReschedule,
+        canCancel,
+        // What the card shows, so the page only lays it out
+        statusLabel: displayStatus.replace(/_/g, " "),
+        statusDot: getStatusDotColor(displayStatus),
+        dateLabel: formatDisplayDate(appt.appointment_date),
+        timeLabel: formatSlot(appt.appointment_time),
+        canPay: displayStatus.toLowerCase() === "pending" && !isExpired,
+        payLabel: formatTime(remainingTime),
+        isLocked: !canReschedule && displayStatus.toLowerCase() === "confirmed",
+      };
+    });
+
+  const toggleAppointmentMenu = (e: MouseEvent, id: number) => {
+    e.stopPropagation();
+    setOpenDropdownId(openDropdownId === id ? null : id);
+  };
+
+  const payForAppointment = (appt: Appointment) => {
+    if (appt.invoice_url) {
+      window.location.href = appt.invoice_url;
+    } else {
+      navigate("/payment", {
+        state: {
+          appointment_id: appt.id,
+          service_name: appt.service_name,
+          nailist_name: appt.nailist_name,
+          appointment_date: appt.appointment_date,
+          appointment_time: appt.appointment_time,
+          expires_at: appt.expires_at,
+          service_price: appt.service_price,
+        },
+      });
+    }
+    setOpenDropdownId(null);
+  };
+
+  const rescheduleAppointment = (appt: Appointment) => {
+    navigate("/reschedule", { state: { appointment: appt } });
+    setOpenDropdownId(null);
+  };
+
+  const startCancel = (appt: Appointment) => {
+    setSelectedAppt(appt);
+    setIsCancelModalOpen(true);
+    setOpenDropdownId(null);
+  };
+
+  const closeCancelModal = () => {
+    setIsCancelModalOpen(false);
+    setActionError(null);
+  };
+
+  const handleProofUploaded = (appointmentId: number, proof: Appointment["latest_proof"]) =>
+    setAppointments((prev) => prev.map((a) => (a.id === appointmentId ? { ...a, latest_proof: proof } : a)));
+
+  const handleHistoryFilterChange = (e: ChangeEvent<HTMLSelectElement>) => setHistoryFilter(e.target.value);
+  const handleHistorySortChange = (e: ChangeEvent<HTMLSelectElement>) => setHistorySortBy(e.target.value);
+
+  // The details shown in the "My Details" tab: plain text until Edit is pressed, then inputs
+  const profileFields = PROFILE_FIELDS.map((field) => ({
+    id: field.id,
+    name: field.key,
+    label: field.label,
+    type: field.type,
+    autoComplete: field.autoComplete,
+    editing: isEditing,
+    displayValue: field.key === "dob" ? formatDisplayDate(dbUser?.dob || "") : dbUser?.[field.key],
+    value: formData?.[field.key] || "",
+    onChange: handleChange,
+    disabled: field.locked,
+    readOnly: field.locked,
+    max: field.key === "dob" ? todayIso : undefined,
+  }));
+
+  const isBusy = !isLoaded || clerkUser?.publicMetadata?.role === "admin" || !dbUser;
+  const genderLabel = genderOptions.find((option) => option.value === formData?.gender)?.label ?? "";
+
+  // Past appointments as the history list shows them: five at first, all after "View full history"
+  const history = processedPastAppointments
+    .slice(0, showAllHistory ? undefined : 5)
+    .map((appt) => ({
+      appt,
+      dateLabel: formatDisplayDate(appt.appointment_date),
+      timeLabel: formatSlot(appt.appointment_time.replace(" (Cancelled)", "")),
+      statusDot: getStatusDotColor(appt.status),
+    }));
+  const hasMoreHistory = processedPastAppointments.length > 5;
+  const noHistory = processedPastAppointments.length === 0;
+
+  // The ten stamp boxes of the loyalty card
+  const stampCells = Array.from({ length: 10 }, (_, index) => ({ number: index + 1, isEarned: index + 1 <= stamps }));
+
+  // Cancelling a confirmed appointment less than 3 days ahead is not refundable
+  const isLateCancellation =
+    !!selectedAppt &&
+    selectedAppt.status.toLowerCase() === "confirmed" &&
+    !isEligibleForChanges(selectedAppt.appointment_date, selectedAppt.appointment_time);
+  const selectedApptDateLabel = selectedAppt ? formatDisplayDate(selectedAppt.appointment_date) : "";
+
+  const loyaltyCardNumber = `CLAWHOLICS-2026-${String(dbUser?.id || 0).padStart(4, "0")}`;
+
+  const toggleGender = () => setIsGenderOpen(!isGenderOpen);
+  const toggleHistory = () => setShowAllHistory(!showAllHistory);
+  const closeRewardModal = () => setShowRewardModal(false);
+
+  return { toggleGender, toggleHistory, closeRewardModal, loyaltyCardNumber, isBusy, genderLabel, history, hasMoreHistory, noHistory, stampCells, isLateCancellation, selectedApptDateLabel, profileFields, isLoaded, clerkUser, getToken, navigate, highlightedAppointmentId, activeTab, setActiveTab, dbUser, isEditing, formData, error, appointments, setAppointments, stamps, isGenderOpen, setIsGenderOpen, showRewardModal, setShowRewardModal, selectedAppt, setSelectedAppt, isCancelModalOpen, setIsCancelModalOpen, actionError, setActionError, currentTime, showAllHistory, setShowAllHistory, isCancelling, historySortBy, setHistorySortBy, historyFilter, setHistoryFilter, processedPastAppointments, todayFormatted, formatDisplayDate, handleEditClick, genderOptions, handleGenderSelect, openDropdownId, setOpenDropdownId, formatTime, handleChange, handleSave, handleCancel, handleClientRedeem, handleCancelAppointment, isEligibleForChanges, formatSlot, getStatusDotColor, todayIso, currentAppointments, toggleAppointmentMenu, payForAppointment, rescheduleAppointment, startCancel, closeCancelModal, handleProofUploaded, handleHistoryFilterChange, handleHistorySortChange };
+}

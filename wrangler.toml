@@ -1,0 +1,22 @@
+# The Cloudflare Worker (clawholics-api-staging) that still serves the live API until the
+# Supabase cutover. Its source was removed from this repo (see git history before the move to a
+# single Next.js app); this file is kept for its D1/R2 bindings, which `npm run db:export` uses
+# to read the live D1 data. `main` points at the removed source, so `wrangler deploy` won't work.
+
+name = "clawholics-api-staging"
+main = "src/index.ts"
+compatibility_date = "2026-05-16"
+
+[vars]
+R2_PUBLIC_URL = "https://images.clawholicsbymax.com"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "clawholics-staging-db"
+database_id = "38afd3db-90f5-44e0-961a-9720caf55821"
+migrations_dir = "schema/migrations"
+
+[[r2_buckets]]
+binding = "IMAGES"
+bucket_name = "clawholics-images"
+
