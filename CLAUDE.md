@@ -52,6 +52,3 @@ The Worker's endpoints are ported to route handlers in `src/app/api/` on Supabas
 - **Response parity:** responses must match the Worker's exactly (columns, order, number types; cast `count(*)` to `int`).
 - **Schema and seed:** the schema is in `supabase/migrations/` and is the D1 schema translated: same columns, 0/1 integer flags, text dates and times, RLS on with no policies. Schema changes are new files in `supabase/migrations/`. `supabase/seed.sql` is dev/test data, edited by hand (its old generator read the removed `database/init.sql`); never load it into production.
 - **Tests:** `npm run test:db` runs `src/tests/db` against a throwaway Docker Postgres. The files run one at a time, since each rebuilds the schema through `testDatabase.ts`. Plain `npm test` skips those tests.
-
-## Repo notes
-- On every push to `main`, `.github/workflows/sync-to-personal.yml` force-pushes to a personal deploy repo (`John-Benedict-Pereda/clawholics-deploy`).
