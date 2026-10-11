@@ -8,7 +8,7 @@ Clawholics: a nail salon appointment system (booking, Xendit payments, loyalty s
 
 ## Commands
 
-- `npm run dev` — `next dev` on :5173 (needs `.env.local`, see `.env.example`)
+- `npm run dev` — `next dev` on :5174 (needs `.env.local`, see `.env.example`)
 - `npm run build` — `next build` (includes the type-check); `npm run lint` — ESLint (`eslint-config-next`)
 - `npm test` — Vitest (jsdom, `@` alias → `src/`); one pass: `npm test -- --run`; single file: `npx vitest run src/tests/contactUs.test.tsx`
 - `npm run test:db` — Postgres integration tests in `src/tests/db` against a throwaway Docker Postgres

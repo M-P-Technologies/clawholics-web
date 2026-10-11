@@ -4,9 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "next dev -p 5173",
+    "dev": "next dev -p 5174",
     "build": "next build",
-    "start": "next start -p 5173",
+    "start": "next start -p 5174",
     "lint": "eslint .",
     "test": "vitest run",
     "test:db": "node scripts/test-db.mjs",

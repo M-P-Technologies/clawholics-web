@@ -9,7 +9,7 @@ One Next.js 16 (App Router) app, deployed to Vercel. Clerk for auth, Supabase Po
 ```bash
 npm install
 cp .env.example .env.local   # then fill in the values
-npm run dev                  # http://localhost:5173
+npm run dev                  # http://localhost:5174
 ```
 
 ## Scripts
