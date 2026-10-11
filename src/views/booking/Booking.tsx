@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { CalendarDays, Clock, MapPin, User, Wallet } from "lucide-react";
 import AlertModal from "../../components/ui/AlertModal";
 import BookingOptions from "../../components/booking/BookingOptions";
 import Button from "../../components/ui/Button";
@@ -135,21 +134,11 @@ export default function Booking() {
             </div>
 
             <dl className="border-t border-crimson-light/80 pt-4 md:pt-8">
-              <SummaryRow
-                label="Preferred artist"
-                icon={<User size={16} />}
-                value={
-                  selectedNailist
-                    ? selectedNailist.category_id === 1
-                      ? `★ ${selectedNailist.name}`
-                      : selectedNailist.name
-                    : "-"
-                }
-              />
-              <SummaryRow label="Date" icon={<CalendarDays size={16} />} value={selectedDate || "-"} />
-              <SummaryRow label="Time" icon={<Clock size={16} />} value={selectedTime ? formatSlot(selectedTime) : "-"} />
-              <SummaryRow label="Price" icon={<Wallet size={16} />} value={priceLabel} />
-              <SummaryRow label="Location" icon={<MapPin size={16} />} value={
+              <SummaryRow label="Preferred artist" value={selectedNailist ? selectedNailist.name : "-"} />
+              <SummaryRow label="Date" value={selectedDate || "-"} />
+              <SummaryRow label="Time" value={selectedTime ? formatSlot(selectedTime) : "-"} />
+              <SummaryRow label="Price" value={priceLabel} />
+              <SummaryRow label="Location" value={
                   locationUrl && locationText ? (
                     <a href={locationUrl} target="_blank" rel="noopener noreferrer" className="font-bold text-crimson underline underline-offset-4 hover:text-gray-red">
                       {locationText}
