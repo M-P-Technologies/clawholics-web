@@ -45,7 +45,7 @@ export default function PaymentConfirmation() {
             <Button to="/">
               Back to home
             </Button>
-            <Button variant="secondary" to="/contact-us">
+            <Button variant="secondary" to="/contact">
               Contact us
             </Button>
           </div>
@@ -71,7 +71,7 @@ export default function PaymentConfirmation() {
               <Button variant="secondary" to="/profile" state={{ activeTab: "schedule" }}>
                 Go to My Schedule
               </Button>
-              <Button variant="secondary" to="/contact-us">
+              <Button variant="secondary" to="/contact">
                 Contact us
               </Button>
             </StatePanel>
@@ -80,15 +80,13 @@ export default function PaymentConfirmation() {
       );
     }
 
+    // Not inside a Section: its entrance animation uses `translate`, which makes a fixed child
+    // position itself inside the section instead of covering the screen.
     return (
-      <PageShell>
-        <Section innerClassName="min-h-[70vh] items-center justify-center gap-4 text-center md:gap-8">
-          <LoadingBar
-            label="Confirming your payment"
-            hint="This page updates by itself. Please keep it open and don't pay again."
-          />
-        </Section>
-      </PageShell>
+      <LoadingBar
+        label="Confirming your payment"
+        hint="This page updates by itself. Please keep it open and don't pay again."
+      />
     );
   }
 

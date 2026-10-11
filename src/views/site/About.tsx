@@ -51,10 +51,10 @@ export default function About() {
               onClick={handleCopyLocation}
               aria-label="Copy salon address"
               title="Click to copy address."
-              className="flex cursor-pointer items-center gap-2 rounded-md text-left text-gray-red transition-colors hover:text-crimson focus-visible:outline-2 focus-visible:outline-crimson"
+              className="flex w-full cursor-pointer items-start gap-2 whitespace-normal rounded-md text-left text-gray-red transition-colors hover:text-crimson focus-visible:outline-2 focus-visible:outline-crimson"
             >
               <MapPin aria-hidden="true" focusable="false" size={24} className="shrink-0 text-crimson" />
-              <span>{data.about_location}</span>
+              <span className="min-w-0 flex-1">{data.about_location}</span>
             </Button>
             {copied && (
               <p role="status" aria-live="polite" className="text-sm text-crimson">
