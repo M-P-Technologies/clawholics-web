@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { Clock } from "lucide-react";
 import { FACEBOOK_URL } from "../../data/home";
 import CtaBand from "../../components/home/CtaBand";
@@ -10,12 +11,22 @@ import LoadError from "../../components/ui/LoadError";
 import PageHeader from "../../components/layout/PageHeader";
 import PageShell from "../../components/layout/PageShell";
 import Section from "../../components/layout/Section";
+import Pagination from "../../components/ui/Pagination";
 import StatePanel from "../../components/ui/StatePanel";
 import { chipClass,inputClass } from "../../components/ui/styles";
+import { usePagination } from "../../hooks/usePagination";
+import { servicePath } from "../../utils/slug";
 import { useServices } from "../../hooks/useServices";
 
 export default function Services() {
   const { resetFilters, cards, error, reload, content, category, setCategory, search, categoryNames, handleSearchChange } = useServices();
+  // 9 services a page; a new category or search starts again from the first page
+  const { page, setPage, totalPages, pageItems } = usePagination(cards, `${category}|${search}`);
+  const listRef = useRef<HTMLElement>(null);
+  const goToPage = (next: number) => {
+    setPage(next);
+    listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   if (error && !content) return <LoadError what="services" onRetry={reload} />;
   if (!content) return <LoadingBar label="Loading services" />;
@@ -57,8 +68,9 @@ export default function Services() {
         </PageHeader>
 
         <section
+          ref={listRef}
           aria-label="Available nail services"
-          className="flex min-h-[30vh] items-start justify-center"
+          className="flex min-h-[30vh] scroll-mt-24 flex-col items-center justify-start gap-4 md:gap-8"
         >
           {cards.length === 0 ? (
             <StatePanel
@@ -81,7 +93,7 @@ export default function Services() {
             </StatePanel>
           ) : (
             <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
-              {cards.map((s) => (
+              {pageItems.map((s) => (
                 <ImageCard
                   key={s.id}
                   image={s.image}
@@ -99,7 +111,7 @@ export default function Services() {
                   }
                   description={s.description}
                   footer={
-                    <Button to={`/appointment/${s.id}`} aria-label={`View details for ${s.name}`}>
+                    <Button to={servicePath(s)} aria-label={`View details for ${s.name}`}>
                       Learn more
                     </Button>
                   }
@@ -107,6 +119,8 @@ export default function Services() {
               ))}
             </div>
           )}
+
+          <Pagination page={page} totalPages={totalPages} onPageChange={goToPage} />
         </section>
       </Section>
 

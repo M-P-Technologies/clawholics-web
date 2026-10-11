@@ -65,7 +65,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
           {title}
         </h2>
 
-        <p className="text-lg leading-relaxed text-gray-red/80">{message}</p>
+        <p className="copy-lead">{message}</p>
 
         <Button onClick={onClose} >
           Continue

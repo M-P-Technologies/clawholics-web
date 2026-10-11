@@ -58,7 +58,7 @@ export default function ImageCard({
           <div className="text-sm font-bold text-crimson">{subtitle}</div>
         </div>
 
-        <p className={clsx("whitespace-pre-line text-sm leading-relaxed text-gray-red/80", DESCRIPTION_LINES[mobileLines])}>
+        <p className={clsx("whitespace-pre-line copy-body", DESCRIPTION_LINES[mobileLines])}>
           {description}
         </p>
 

@@ -32,7 +32,7 @@ export default function Reschedule() {
             />
 
             <div className="flex flex-col gap-4">
-            <p className="text-sm font-bold uppercase tracking-widest text-gray-red">
+            <p className="label-caps">
               Pick date &amp; time
             </p>
 
@@ -69,7 +69,7 @@ export default function Reschedule() {
               <p className="font-display text-2xl uppercase tracking-widest text-gray-red">
                 {appointment.service_name}
               </p>
-              <p className="text-sm leading-relaxed text-gray-red/80">
+              <p className="copy-note">
                 {appointment.service_description}
               </p>
               <dl>

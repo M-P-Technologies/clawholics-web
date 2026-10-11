@@ -33,11 +33,11 @@ export default function PaymentConfirmation() {
       <PageShell>
         <Section innerClassName="min-h-[70vh] items-center justify-center gap-4 text-center md:gap-8">
           <PageHeader align="center" title="Payment failed" />
-          <p className="mx-auto max-w-2xl text-lg leading-relaxed text-gray-red/80">
+          <p className="mx-auto max-w-2xl copy-lead">
             Your payment session was <b>not completed</b> or may have <b>expired during payment</b>.
             No booking was confirmed and your selected timeslot has been released for other customers.
           </p>
-          <p className="mx-auto max-w-2xl text-lg leading-relaxed text-gray-red/80">
+          <p className="mx-auto max-w-2xl copy-lead">
             If your account was charged or if you have any other concerns, please don't hesitate to
             contact us. We're here to help!
           </p>
@@ -97,7 +97,7 @@ export default function PaymentConfirmation() {
 
         <PageHeader align="center" title="Payment successful" />
 
-        <p className="mx-auto max-w-xl text-lg leading-relaxed text-gray-red/80">
+        <p className="mx-auto max-w-xl copy-lead">
           Thank you, {payment?.first_name}! Your downpayment of{" "}
           <b>₱500 via {payment?.payment_method ?? "N/A"}</b> has been received. Please check your
           email <b>({payment?.email ?? "your email"})</b> to view your complete appointment details

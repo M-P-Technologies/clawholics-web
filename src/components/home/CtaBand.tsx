@@ -29,7 +29,7 @@ export default function CtaBand({ title, text, primary, secondary }: CtaBandProp
       <h2 className="mx-auto max-w-xl font-display text-3xl font-normal not-italic uppercase leading-tight tracking-widest text-gray-red md:text-5xl">
         {title}
       </h2>
-      <p className="mx-auto max-w-lg text-base leading-relaxed text-gray-red/80 md:text-lg">{text}</p>
+      <p className="mx-auto max-w-lg copy-lead">{text}</p>
       <div className="flex flex-wrap items-center justify-center gap-4">
         <Button to={primary.to} href={primary.href}>
           {primary.label}

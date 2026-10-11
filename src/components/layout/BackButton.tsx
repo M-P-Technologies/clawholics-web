@@ -1,4 +1,7 @@
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { ArrowLeft } from "lucide-react";
+import clsx from "clsx";
 import { useNavigate } from "@/lib/router";
 import Button from "../ui/Button";
 
@@ -8,18 +11,42 @@ interface BackButtonProps {
   to?: string;
 }
 
+// Where the phone top bar keeps the back button, on the right of the logo (see NavBar)
+export const BACK_SLOT_ID = "mobile-back-slot";
+
 export default function BackButton({ label = "Back", to }: BackButtonProps) {
   const navigate = useNavigate();
+  // The slot exists only on pages under the site's top bar; elsewhere the button stays inline
+  const [slot, setSlot] = useState<HTMLElement | null>(null);
 
-  return (
+  useEffect(() => {
+    setSlot(document.getElementById(BACK_SLOT_ID));
+  }, []);
+
+  const button = (className?: string) => (
     <Button
       variant="bare"
       type="button"
       onClick={() => (to ? navigate(to) : navigate(-1))}
-      className="inline-flex w-fit items-center gap-2 text-sm font-bold uppercase tracking-extrawide text-gray-red transition-colors hover:text-crimson focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-crimson"
+      className={clsx(
+        "inline-flex w-fit items-center gap-2 text-sm font-bold uppercase tracking-extrawide text-gray-red transition-colors hover:text-crimson focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-crimson",
+        className,
+      )}
     >
       <ArrowLeft size={16} aria-hidden="true" />
       {label}
     </Button>
   );
+
+  // Below `lg` the top bar holds the button, level with the logo; from `lg` up it stays in the page
+  if (slot) {
+    return (
+      <>
+        <span className="hidden lg:inline-flex">{button()}</span>
+        {createPortal(button(), slot)}
+      </>
+    );
+  }
+
+  return button();
 }

@@ -1,13 +1,15 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useUser, useAuth } from "@clerk/nextjs";
-import { useNavigate, useLocation, useSearchParams } from "@/lib/router";
+import { useNavigate, useSearchParams } from "@/lib/router";
 import { fetchProfile, isMissingProfile, updateProfile, fetchUserAppointments, redeemUserReward, cancelAppointment, type UserProfile } from "../services/userService";
 import { type Appointment } from "../utils/profile";
-import type { ChangeEvent, MouseEvent } from "react";
+import type { ChangeEvent } from "react";
 import { isActiveAppointmentStatus } from "../services/proofState";
 import { startPolling } from "./usePolling";
 import { PROFILE_FIELDS } from "../data/profile";
 import { useToast } from "../components/ui/ToastProvider";
+import { pickNext, sortSoonest } from "../utils/profileView";
+import type { AppointmentView } from "../components/profile/types";
 
 export function useProfile() {
   const { isLoaded, isSignedIn, user: clerkUser } = useUser();
@@ -15,7 +17,6 @@ export function useProfile() {
   const navigate = useNavigate();
   const toast = useToast();
 
-  const location = useLocation();
   const [searchParams] = useSearchParams();
 
   // After paying, Xendit sends the client to /profile?appointment_id=<id>.
@@ -25,12 +26,6 @@ export function useProfile() {
     return Number.isInteger(id) && id > 0 ? id : null;
   }, [searchParams]);
 
-  const [activeTab, setActiveTab] = useState<
-    "details" | "schedule" | "loyalty"
-  >(
-    (location.state as any)?.activeTab ||
-      (highlightedAppointmentId ? "schedule" : "details"),
-  );
   const [dbUser, setDbUser] = useState<UserProfile | null>(null);
 
   const [isEditing, setIsEditing] = useState(false);
@@ -165,32 +160,10 @@ export function useProfile() {
     setIsGenderOpen(false);
   };
 
-  const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
-
-  useEffect(() => {
-    // A click inside an appointment menu (its three dots, or its items) is not "outside". The
-    // button's own stopPropagation can't be relied on: React listens on the document itself in
-    // this app, so this listener still runs and would close the menu the moment it opens.
-    const handleClickOutside = (e: Event) => {
-      if (e.target instanceof Element && e.target.closest("[data-appointment-menu]")) return;
-      setOpenDropdownId(null);
-    };
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, []);
-
   useEffect(() => {
     const interval = setInterval(() => setCurrentTime(Date.now()), 1000);
     return () => clearInterval(interval);
   }, []);
-
-  // Scroll to the just-paid appointment's card once the appointments load.
-  useEffect(() => {
-    if (!highlightedAppointmentId || activeTab !== "schedule") return;
-    document
-      .getElementById(`proof-${highlightedAppointmentId}`)
-      ?.scrollIntoView?.({ behavior: "smooth", block: "center" });
-  }, [highlightedAppointmentId, activeTab, appointments.length]);
 
   const formatTime = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
@@ -441,11 +414,6 @@ export function useProfile() {
       };
     });
 
-  const toggleAppointmentMenu = (e: MouseEvent, id: number) => {
-    e.stopPropagation();
-    setOpenDropdownId(openDropdownId === id ? null : id);
-  };
-
   const payForAppointment = (appt: Appointment) => {
     if (appt.invoice_url) {
       window.location.href = appt.invoice_url;
@@ -462,18 +430,15 @@ export function useProfile() {
         },
       });
     }
-    setOpenDropdownId(null);
   };
 
   const rescheduleAppointment = (appt: Appointment) => {
     navigate("/reschedule", { state: { appointment: appt } });
-    setOpenDropdownId(null);
   };
 
   const startCancel = (appt: Appointment) => {
     setSelectedAppt(appt);
     setIsCancelModalOpen(true);
-    setOpenDropdownId(null);
   };
 
   const closeCancelModal = () => {
@@ -518,6 +483,25 @@ export function useProfile() {
   const hasMoreHistory = processedPastAppointments.length > 5;
   const noHistory = processedPastAppointments.length === 0;
 
+  // Same shape as the upcoming list, so one card component shows both
+  const pastViews: AppointmentView[] = history.map(({ appt, dateLabel, timeLabel, statusDot }) => ({
+    appt,
+    displayStatus: appt.status,
+    remainingTime: 0,
+    isExpired: false,
+    canReschedule: false,
+    canCancel: false,
+    statusLabel: appt.status.replace(/_/g, " "),
+    statusDot,
+    dateLabel,
+    timeLabel,
+    canPay: false,
+    payLabel: "",
+    isLocked: false,
+  }));
+  const upcoming: AppointmentView[] = sortSoonest(currentAppointments);
+  const nextAppointment = pickNext(upcoming);
+
   // The ten stamp boxes of the loyalty card
   const stampCells = Array.from({ length: 10 }, (_, index) => ({ number: index + 1, isEarned: index + 1 <= stamps }));
 
@@ -534,5 +518,5 @@ export function useProfile() {
   const toggleHistory = () => setShowAllHistory(!showAllHistory);
   const closeRewardModal = () => setShowRewardModal(false);
 
-  return { toggleGender, toggleHistory, closeRewardModal, loyaltyCardNumber, isBusy, genderLabel, history, hasMoreHistory, noHistory, stampCells, isLateCancellation, selectedApptDateLabel, profileFields, isLoaded, clerkUser, getToken, navigate, highlightedAppointmentId, activeTab, setActiveTab, dbUser, isEditing, formData, error, appointments, setAppointments, stamps, isGenderOpen, setIsGenderOpen, showRewardModal, setShowRewardModal, selectedAppt, setSelectedAppt, isCancelModalOpen, setIsCancelModalOpen, actionError, setActionError, currentTime, showAllHistory, setShowAllHistory, isCancelling, historySortBy, setHistorySortBy, historyFilter, setHistoryFilter, processedPastAppointments, todayFormatted, formatDisplayDate, handleEditClick, genderOptions, handleGenderSelect, openDropdownId, setOpenDropdownId, formatTime, handleChange, handleSave, handleCancel, handleClientRedeem, handleCancelAppointment, isEligibleForChanges, formatSlot, getStatusDotColor, todayIso, currentAppointments, toggleAppointmentMenu, payForAppointment, rescheduleAppointment, startCancel, closeCancelModal, handleProofUploaded, handleHistoryFilterChange, handleHistorySortChange };
+  return { toggleGender, toggleHistory, closeRewardModal, loyaltyCardNumber, isBusy, genderLabel, history, hasMoreHistory, noHistory, stampCells, isLateCancellation, selectedApptDateLabel, profileFields, isLoaded, clerkUser, getToken, navigate, highlightedAppointmentId, upcoming, nextAppointment, pastViews, dbUser, isEditing, formData, error, appointments, setAppointments, stamps, isGenderOpen, setIsGenderOpen, showRewardModal, setShowRewardModal, selectedAppt, setSelectedAppt, isCancelModalOpen, setIsCancelModalOpen, actionError, setActionError, currentTime, showAllHistory, setShowAllHistory, isCancelling, historySortBy, setHistorySortBy, historyFilter, setHistoryFilter, processedPastAppointments, todayFormatted, formatDisplayDate, handleEditClick, genderOptions, handleGenderSelect, formatTime, handleChange, handleSave, handleCancel, handleClientRedeem, handleCancelAppointment, isEligibleForChanges, formatSlot, getStatusDotColor, todayIso, currentAppointments, payForAppointment, rescheduleAppointment, startCancel, closeCancelModal, handleProofUploaded, handleHistoryFilterChange, handleHistorySortChange };
 }

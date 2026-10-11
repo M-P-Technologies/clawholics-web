@@ -33,7 +33,7 @@ function FaqItem({ faq }: { faq: Faq }) {
           open ? "grid-rows-[1fr] pb-4 opacity-100" : "grid-rows-[0fr] opacity-0"
         }`}
       >
-        <p className="overflow-hidden whitespace-pre-line text-base leading-relaxed text-gray-red/80">
+        <p className="overflow-hidden whitespace-pre-line copy-body">
           {faq.answer}
         </p>
       </div>

@@ -21,13 +21,13 @@ export default function PageHeader({
 }: PageHeaderProps) {
   return (
     <div className={clsx("flex flex-col gap-4 md:gap-8", align === "center" && "text-center", className)}>
-      <h1 className="font-display text-4xl font-normal uppercase leading-tight tracking-widest text-gray-red md:text-5xl lg:text-6xl">
+      <h1 className="font-display text-4xl lg:text-5xl 2xl:text-6xl font-normal uppercase leading-tight tracking-widest text-gray-red">
         {title}
       </h1>
       {subtitle && (
         <p
           className={clsx(
-            "max-w-2xl text-base leading-relaxed text-gray-red/80 md:text-lg",
+            "max-w-2xl copy-lead",
             align === "center" && "mx-auto",
           )}
         >

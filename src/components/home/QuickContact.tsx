@@ -17,7 +17,7 @@ export default function QuickContact({ about }: { about: AboutContent }) {
 
   return (
     <div className="flex flex-col gap-4 md:gap-8">
-      <p className="text-sm text-gray-red/80">Visit us</p>
+      <p className="copy-note">Visit us</p>
       <h2 className="font-display text-4xl font-normal uppercase leading-tight tracking-widest text-gray-red md:text-5xl">
         Quick contact
       </h2>
@@ -39,7 +39,7 @@ export default function QuickContact({ about }: { about: AboutContent }) {
             </p>
           )}
           <div className="flex w-full items-center justify-between gap-4">
-            <p className="min-w-0 text-sm leading-relaxed text-gray-red/80">{about.about_location}</p>
+            <p className="min-w-0 copy-body">{about.about_location}</p>
             <Button href={directionsUrl} variant="bare" arrow className="text-sm font-bold uppercase tracking-extrawide text-gray-red hover:text-crimson gap-4 shrink-0 whitespace-nowrap">
               Directions
             </Button>
@@ -75,7 +75,7 @@ export default function QuickContact({ about }: { about: AboutContent }) {
           </h3>
           <ul className="flex flex-col gap-4">
             {GOOD_TO_KNOW.map((item) => (
-              <li key={item} className="flex items-start gap-4 text-sm leading-relaxed text-gray-red/80">
+              <li key={item} className="flex items-start gap-4 copy-body">
                 <Check size={16} className="mt-0.5 shrink-0 text-crimson" aria-hidden="true" />
                 {item}
               </li>

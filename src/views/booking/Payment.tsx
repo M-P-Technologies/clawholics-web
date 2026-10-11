@@ -1,6 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { Link } from "@/lib/router";
+import qrPhLogo from "../../assets/logo/qr_ph.png";
 import AlertModal from "../../components/ui/AlertModal";
 import Button from "../../components/ui/Button";
 import ChoiceRow from "../../components/ui/ChoiceRow";
@@ -64,9 +66,18 @@ export default function Payment() {
             <div className="flex flex-col gap-4" role="radiogroup" aria-label="Payment method">
               <p className={sectionLabel}>Payment method</p>
               <div className="grid gap-4">
-                {methods.map(({ code, label }) => (
-                  <ChoiceRow key={code} selected={method === code} onClick={() => setMethod(code)}>
-                    <span className="font-bold">{label}</span>
+                {methods.map(({ code, label, hint }) => (
+                  <ChoiceRow key={code} align="center" selected={method === code} onClick={() => setMethod(code)}>
+                    <span className="flex min-w-0 items-center gap-4">
+                      {/* Decorative: the name is written next to it */}
+                      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-crimson-light bg-white p-2">
+                        <Image src={qrPhLogo} alt="" width={40} height={40} className="h-full w-full object-contain" />
+                      </span>
+                      <span className="flex min-w-0 flex-col">
+                        <span className="font-bold">{label}</span>
+                        {hint && <span className="copy-note">{hint}</span>}
+                      </span>
+                    </span>
                   </ChoiceRow>
                 ))}
               </div>
@@ -89,7 +100,7 @@ export default function Payment() {
             </div>
 
             <Panel>
-              <p className="text-sm font-bold uppercase tracking-widest text-gray-red">
+              <p className="label-caps">
                 Reservation expires in
               </p>
               <p className="font-display text-4xl text-crimson">{timeLeft}</p>

@@ -67,7 +67,12 @@ export default function Booking() {
             />
 
             <div className="flex flex-col gap-2">
-              <p className={sectionLabel}>Preferred artist</p>
+              <div className="flex items-center justify-between gap-4">
+                <p className={sectionLabel}>Preferred artist</p>
+                <Button variant="bare" to="/artists" className="text-sm font-bold text-crimson underline underline-offset-4 hover:text-gray-red">
+                  Meet our artists
+                </Button>
+              </div>
               {nailists.length === 0 ? (
                 <p className="rounded-md border border-crimson-light bg-light-orange px-4 py-4 text-gray-red">
                   No available artists for this service.
@@ -79,8 +84,6 @@ export default function Booking() {
                   onSelect={handleArtistChange}
                 />
               )}
-
-              <p className="text-sm text-gray-red/80">★ = Master technician</p>
             </div>
 
             <div className="flex flex-col gap-4">
@@ -111,25 +114,6 @@ export default function Booking() {
               </div>
               </div>
             </div>
-
-            {/* LOCATION */}
-            <div className="flex flex-col gap-4">
-              <p className={sectionLabel}>Location</p>
-
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <p className="text-gray-red">{locationText || "No location available"}</p>
-
-                <Button
-                  variant="secondary"
-                  href={locationUrl || "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  
-                >
-                  Get directions
-                </Button>
-              </div>
-            </div>
           </div>
 
           {/* SUMMARY */}
@@ -140,30 +124,30 @@ export default function Booking() {
               </div>
             )}
             <div className="flex flex-col gap-4">
-              <p className="w-fit rounded-md border border-crimson-light px-4 py-1 text-sm font-bold uppercase tracking-widest text-crimson">
+              <p className="w-fit rounded-md border border-crimson-light px-4 py-1 label-caps text-crimson">
                 {service_category}
               </p>
               <p className="font-display text-2xl uppercase tracking-widest text-gray-red">
                 {service_name}
               </p>
-              <p className="text-sm leading-relaxed text-gray-red/80">{service_description}</p>
+              <p className="copy-body">{service_description}</p>
             </div>
 
             <dl className="border-t border-crimson-light/80 pt-4 md:pt-8">
-              <SummaryRow
-                label="Preferred artist"
-                value={
-                  selectedNailist
-                    ? selectedNailist.category_id === 1
-                      ? `★ ${selectedNailist.name}`
-                      : selectedNailist.name
-                    : "-"
-                }
-              />
+              <SummaryRow label="Preferred artist" value={selectedNailist ? selectedNailist.name : "-"} />
               <SummaryRow label="Date" value={selectedDate || "-"} />
               <SummaryRow label="Time" value={selectedTime ? formatSlot(selectedTime) : "-"} />
               <SummaryRow label="Price" value={priceLabel} />
-              <SummaryRow label="Location" value={locationText || "No location available"} />
+              <SummaryRow label="Location" value={
+                  locationUrl && locationText ? (
+                    <a href={locationUrl} target="_blank" rel="noopener noreferrer" className="font-bold text-crimson underline underline-offset-4 hover:text-gray-red">
+                      {locationText}
+                    </a>
+                  ) : (
+                    locationText || "No location available"
+                  )
+                }
+              />
             </dl>
           </Panel>
         </div>
@@ -173,7 +157,7 @@ export default function Booking() {
             onClick={handleContinue}
             disabled={isSubmitting}
             aria-busy={isSubmitting}
-            className="px-8 sm:px-16 disabled:cursor-wait disabled:opacity-60"
+            className="w-full px-8 sm:w-auto sm:px-16 disabled:cursor-wait disabled:opacity-60"
           >
             {isSubmitting ? "Reserving your slot..." : "Continue to payment"}
           </Button>
