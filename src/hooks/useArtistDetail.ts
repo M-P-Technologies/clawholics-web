@@ -1,17 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "@/lib/router";
+import { useNavigate, useParams } from "@/lib/router";
 import {
+  fetchNailists,
   fetchNailistById,
   fetchNailistGallery,
   type Nailist,
   type NailistGalleryImage,
 } from "../services/nailistService";
 import { fetchServices, type NailService } from "../services/serviceService";
+import { artistPath, findBySlugOrId } from "../utils/slug";
 import { useStartBooking } from "./useStartBooking";
 
 // One artist's page: their details, a gallery of their work, and the way into booking them.
 export function useArtistDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [nailist, setNailist] = useState<Nailist | null>(null);
   const [gallery, setGallery] = useState<NailistGalleryImage[]>([]);
@@ -39,7 +42,7 @@ export function useArtistDetail() {
   const startBooking = useStartBooking(showModal);
 
   useEffect(() => {
-    if (!id || !/^\d+$/.test(id)) {
+    if (!id) {
       setNotFound(true);
       setLoading(false);
       return;
@@ -50,20 +53,50 @@ export function useArtistDetail() {
     setNotFound(false);
     setError(false);
 
-    // The gallery and the service list are extras: if either fails, the page still shows the artist
-    Promise.allSettled([fetchNailistById(Number(id)), fetchNailistGallery(Number(id)), fetchServices()]).then(
-      ([artistRes, galleryRes, servicesRes]) => {
-        if (cancelled) return;
-
-        if (artistRes.status === "rejected") setError(true);
-        else if (artistRes.value === null) setNotFound(true);
-        else setNailist(artistRes.value);
-
-        setGallery(galleryRes.status === "fulfilled" ? galleryRes.value : []);
-        setServices(servicesRes.status === "fulfilled" && Array.isArray(servicesRes.value) ? servicesRes.value : []);
+    (async () => {
+      // The address names the artist (/artists/miss-max); older ones carry the id
+      let artistId = /^\d+$/.test(id) ? Number(id) : null;
+      try {
+        const list = await fetchNailists();
+        const match = Array.isArray(list) ? findBySlugOrId(list, id) : null;
+        if (match) artistId = match.id;
+      } catch {
+        // Without the list, only an id in the address can still be followed
+        if (artistId === null) {
+          if (!cancelled) {
+            setError(true);
+            setLoading(false);
+          }
+          return;
+        }
+      }
+      if (cancelled) return;
+      if (artistId === null) {
+        setNotFound(true);
         setLoading(false);
-      },
-    );
+        return;
+      }
+
+      // The gallery and the service list are extras: if either fails, the page still shows the artist
+      const [artistRes, galleryRes, servicesRes] = await Promise.allSettled([
+        fetchNailistById(artistId),
+        fetchNailistGallery(artistId),
+        fetchServices(),
+      ]);
+      if (cancelled) return;
+
+      if (artistRes.status === "rejected") setError(true);
+      else if (artistRes.value === null) setNotFound(true);
+      else {
+        setNailist(artistRes.value);
+        // An id in the address is swapped for the artist's name
+        if (/^\d+$/.test(id)) navigate(artistPath(artistRes.value), { replace: true });
+      }
+
+      setGallery(galleryRes.status === "fulfilled" ? galleryRes.value : []);
+      setServices(servicesRes.status === "fulfilled" && Array.isArray(servicesRes.value) ? servicesRes.value : []);
+      setLoading(false);
+    })();
 
     return () => {
       cancelled = true;

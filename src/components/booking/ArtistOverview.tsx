@@ -1,0 +1,69 @@
+import type { ReactNode } from "react";
+import { Award, Images, Sparkles } from "lucide-react";
+
+interface ArtistOverviewProps {
+  nailist: {
+    name: string;
+    position: string;
+    bio: string;
+    specialty: string;
+    offered_services?: string[];
+  };
+  /** How many photos of their work there are */
+  workCount: number;
+}
+
+const Stat = ({ icon, value, label }: { icon: ReactNode; value: string; label: string }) => (
+  <div className="flex min-w-0 flex-col items-center gap-1 text-center">
+    <span className="text-crimson">{icon}</span>
+    <span className="text-base font-bold leading-tight text-gray-red">{value}</span>
+    <span className="text-xs text-gray-red/70">{label}</span>
+  </div>
+);
+
+// The phone layout of an artist's details, like a service's: the name, three quick facts, then
+// "About" with the bio, their specialties and the services they offer. (From `lg` up the details
+// page uses its two-column layout instead.)
+export default function ArtistOverview({ nailist, workCount }: ArtistOverviewProps) {
+  const [role, ...rest] = nailist.position.split(" ");
+  const services = nailist.offered_services ?? [];
+
+  return (
+    <div className="flex flex-col gap-4">
+      <h1 className="font-display text-2xl font-normal uppercase leading-tight tracking-wider text-gray-red sm:text-3xl sm:tracking-widest">
+        {nailist.name}
+      </h1>
+
+      <div className="flex justify-around gap-2 border-y border-crimson-light/80 py-4">
+        <Stat icon={<Award size={28} strokeWidth={1.5} aria-hidden="true" />} value={role} label={rest.join(" ") || "Artist"} />
+        {services.length > 0 && <Stat icon={<Sparkles size={28} strokeWidth={1.5} aria-hidden="true" />} value={String(services.length)} label="Services" />}
+        {workCount > 0 && <Stat icon={<Images size={28} strokeWidth={1.5} aria-hidden="true" />} value={String(workCount)} label="Photos of work" />}
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <h2 className="label-caps">About</h2>
+        <p className="whitespace-pre-line copy-body">{nailist.bio}</p>
+      </div>
+
+      {nailist.specialty && (
+        <div className="flex flex-col gap-1">
+          <h2 className="label-caps">Specialties</h2>
+          <p className="whitespace-pre-line copy-body">{nailist.specialty}</p>
+        </div>
+      )}
+
+      {services.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <h2 className="label-caps">Services</h2>
+          <div className="flex flex-wrap gap-2">
+            {services.map((name) => (
+              <span key={name} className="rounded-md border border-crimson-light px-4 py-1 text-sm text-crimson">
+                {name}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

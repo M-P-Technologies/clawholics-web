@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import PhotoRow from "../../components/home/PhotoRow";
 import ImageCard from "../../components/home/ImageCard";
 import Button from "../../components/ui/Button";
@@ -8,11 +9,21 @@ import LoadError from "../../components/ui/LoadError";
 import PageHeader from "../../components/layout/PageHeader";
 import PageShell from "../../components/layout/PageShell";
 import Section from "../../components/layout/Section";
+import Pagination from "../../components/ui/Pagination";
 import StatePanel from "../../components/ui/StatePanel";
+import { usePagination } from "../../hooks/usePagination";
+import { artistPath } from "../../utils/slug";
 import { useTeam } from "../../hooks/useTeam";
 
 export default function Team() {
   const { photos, instagram, error, reload, nailists, teamContent, loading } = useTeam();
+  // 9 artists a page
+  const { page, setPage, totalPages, pageItems } = usePagination(nailists);
+  const listRef = useRef<HTMLDivElement>(null);
+  const goToPage = (next: number) => {
+    setPage(next);
+    listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   if (error && !teamContent) return <LoadError what="artists" onRetry={reload} />;
   if (loading || !teamContent) return <LoadingBar label="Loading our artists" />;
@@ -30,8 +41,9 @@ export default function Team() {
           />
         )}
 
+        <div ref={listRef} className="flex scroll-mt-24 flex-col gap-4 md:gap-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
-          {nailists.map((n) => (
+          {pageItems.map((n) => (
             <ImageCard
               key={n.id}
               image={n.image}
@@ -44,7 +56,7 @@ export default function Team() {
               mobileLines={3}
               footer={
                 <Button
-                  to={`/artists/${n.id}`}
+                  to={artistPath(n)}
                   aria-label={`Learn more about ${n.name}`}
                   className="w-fit"
                 >
@@ -53,6 +65,9 @@ export default function Team() {
               }
             />
           ))}
+        </div>
+
+        <Pagination page={page} totalPages={totalPages} onPageChange={goToPage} />
         </div>
 
         <PhotoRow title="Their art" photos={photos} instagram={instagram} />
