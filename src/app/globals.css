@@ -1,4 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Gloock&family=Luxurious+Script&family=Noto+Sans:ital,wght@0,400;0,500;0,700;1,400;1,700&display=swap");
 @import "tailwindcss";
 
 /*
@@ -37,10 +36,13 @@ gray-red} and font-{script, display, sans}.
   --color-warning: #e3a94f;
   --color-info: #7fa6d6;
 
-  /* Brand fonts */
-  --font-script: "Luxurious Script", cursive;
-  --font-display: "Gloock", serif;
-  --font-sans: "Noto Sans", sans-serif;
+}
+
+/* Brand fonts: the variables are set on <html> by next/font in layout.tsx */
+@theme inline {
+  --font-script: var(--font-luxurious-script), cursive;
+  --font-display: var(--font-gloock), serif;
+  --font-sans: var(--font-noto-sans), sans-serif;
 }
 
 /* Calendar pickers: the library's default blue becomes our crimson */
@@ -174,54 +176,70 @@ html {
   }
 }
 
-/* Custom loading styles */
-/* From Uiverse.io by dovatgabriel */ 
-.line-wobble {
- --uib-size: 80px;
- --uib-speed: 1.55s;
- --uib-color: var(--color-crimson);
- --uib-line-weight: 5px;
- position: relative;
- display: flex;
- align-items: center;
- justify-content: center;
- height: var(--uib-line-weight);
- width: var(--uib-size);
- border-radius: calc(var(--uib-line-weight) / 2);
- overflow: hidden;
- transform: translate3d(0, 0, 0);
+/* Loader: the bow being tied (see components/ui/TyingBow.tsx). One cycle is --tie-duration.
+   The strokes sit inside a mask over the bow, so the base styles below are the finished bow
+   (what reduced-motion users see) and the keyframes only play the tying on top of that. */
+/* The strokes live in the <mask>, outside .tie-bow, so each animated part sets the duration itself */
+.tie-bow,
+.tie-stroke,
+.tie-knot {
+  --tie-duration: 3.6s;
 }
 
-.line-wobble::before {
- content: '';
- position: absolute;
- top: 0;
- left: 0;
- height: 100%;
- width: 100%;
- background-color: var(--uib-color);
- opacity: 0.1;
+.tie-stroke {
+  stroke-dasharray: 1 3;
+  stroke-dashoffset: 0;
 }
 
-.line-wobble::after {
- content: '';
- height: 100%;
- width: 100%;
- border-radius: calc(var(--uib-line-weight) / 2);
- animation: wobble var(--uib-speed) ease-in-out infinite;
- transform: translateX(-90%);
- background-color: var(--uib-color);
+.tie-knot {
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
-@keyframes wobble {
- 0%,
-  100% {
-  transform: translateX(-90%);
- }
+@media (prefers-reduced-motion: no-preference) {
+  .tie-bow {
+    animation: tie-fade var(--tie-duration) linear infinite;
+  }
+  .tie-tail-left { animation: tie-tail-left var(--tie-duration) infinite; }
+  .tie-tail-right { animation: tie-tail-right var(--tie-duration) infinite; }
+  .tie-knot { animation: tie-knot var(--tie-duration) infinite; }
+  .tie-loop-left { animation: tie-loop-left var(--tie-duration) infinite; }
+  .tie-loop-right { animation: tie-loop-right var(--tie-duration) infinite; }
+}
 
- 50% {
-  transform: translateX(90%);
- }
+/* 1.1 (not 1) leaves the stroke fully undrawn, with no round-cap dot at its start. Every stroke
+   starts at the knot, so the bow grows from the middle outward. */
+@keyframes tie-knot {
+  0%, 2% { transform: scale(0); animation-timing-function: ease-out; }
+  9% { transform: scale(1.25); animation-timing-function: ease-in-out; }
+  13%, 100% { transform: scale(1); }
+}
+
+@keyframes tie-loop-left {
+  0%, 10% { stroke-dashoffset: 1.1; animation-timing-function: ease-in-out; }
+  38%, 100% { stroke-dashoffset: 0; }
+}
+
+@keyframes tie-loop-right {
+  0%, 14% { stroke-dashoffset: 1.1; animation-timing-function: ease-in-out; }
+  42%, 100% { stroke-dashoffset: 0; }
+}
+
+@keyframes tie-tail-left {
+  0%, 12% { stroke-dashoffset: 1.1; animation-timing-function: ease-in-out; }
+  46%, 100% { stroke-dashoffset: 0; }
+}
+
+@keyframes tie-tail-right {
+  0%, 16% { stroke-dashoffset: 1.1; animation-timing-function: ease-in-out; }
+  50%, 100% { stroke-dashoffset: 0; }
+}
+
+/* Fade in on an empty mask, hold the finished bow, fade out before the next cycle restarts */
+@keyframes tie-fade {
+  0% { opacity: 0; }
+  3%, 88% { opacity: 1; }
+  97%, 100% { opacity: 0; }
 }
 
 /* Modals fade and settle in on larger screens; on phones they rise up as bottom drawers. */

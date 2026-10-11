@@ -9,7 +9,6 @@ import { usePhotoStrip } from "./usePhotoStrip";
 export function useTeam() {
   const [nailists, setNailists] = useState<Nailist[]>(() => lastSeen("nailists") ?? []);
   const [teamContent, setTeamContent] = useState<TeamContent | null>(() => lastSeen("team") ?? null);
-  const [selected, setSelected] = useState<Nailist | null>(null);
   const [error, setError] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [loading, setLoading] = useState(() => !(lastSeen("nailists") && lastSeen("team")));
@@ -34,7 +33,5 @@ export function useTeam() {
 
   const { photos, instagram } = usePhotoStrip();
 
-  const closeNailist = () => setSelected(null);
-
-  return { photos, instagram, error, reload, nailists, teamContent, selected, setSelected, loading, closeNailist };
+  return { photos, instagram, error, reload, nailists, teamContent, loading };
 }

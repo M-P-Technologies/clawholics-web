@@ -5,6 +5,7 @@ import "react-day-picker/dist/style.css";
 import { fetchAppointments } from "../../services/appointmentService";
 
 import AS_ImagePreviewModal from "./AS_ImagePreviewModal";
+import AS_NailArtistGallery from "./AS_NailArtistGallery";
 
 import {
   createNailist,
@@ -1175,6 +1176,14 @@ const AS_NailArtistDropdown: React.FC<AS_NailArtistDropdownProps> = ({
                 onTimeSlotsLoaded={handleTimeSlotsLoaded}
               />
             )}
+
+            <AS_NailArtistGallery
+              nailistId={isCreateMode ? null : (nailist?.id ?? null)}
+              isEditing={isEditing}
+              tokenFetcher={tokenFetcher}
+              clerkId={clerkId}
+              onPreview={setPreviewImageUrl}
+            />
 
             <EditActions
               isEditing={isEditing}

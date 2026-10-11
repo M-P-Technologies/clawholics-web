@@ -1,18 +1,19 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import clsx from "clsx";
+import SharpenFilter, { SHARPEN_FILTER } from "../ui/SharpenFilter";
 
 export interface GalleryPhoto {
   id: number | string;
   url: string;
 }
 
-// How the photos sit, by how far they are from the one in front: the front photo is full size on
-// the right, and the next two peek out behind it on the left, smaller each time.
+// How the photos sit, by how far they are from the one in front: the front photo is full size in
+// the middle, and the next two peek out behind it, one on each side, smaller.
 const SLOTS = [
-  { left: "25%", scale: 1, opacity: 1 },
-  { left: "12%", scale: 0.88, opacity: 0.85 },
-  { left: "0%", scale: 0.76, opacity: 0.6 },
+  { left: "12.5%", scale: 1, opacity: 1 },
+  { left: "0%", scale: 0.88, opacity: 0.85 },
+  { left: "25%", scale: 0.88, opacity: 0.6 },
 ];
 
 // Photo stack with arrows and dots: moving on brings the next photo to the front and tucks
@@ -27,6 +28,7 @@ export default function StackedGallery({ photos, label = "Photo gallery" }: { ph
 
   return (
     <div role="region" aria-roledescription="carousel" aria-label={label} className="flex flex-col gap-4 md:gap-8">
+      <SharpenFilter />
       {/* The front photo is 3/4 of this box wide and as tall as the box: square photos need a box of 4:3 (phones), 16:9 photos a box of 64:27 */}
       <div className="relative z-10 aspect-4/3 w-full sm:aspect-64/27">
         {/* A dark band across the whole screen: it starts halfway down the photos and runs past the
@@ -51,10 +53,11 @@ export default function StackedGallery({ photos, label = "Photo gallery" }: { ph
                 !slot && "pointer-events-none",
               )}
               style={{
-                left: slot ? slot.left : "25%",
+                left: slot ? slot.left : "12.5%",
                 transform: `scale(${slot ? slot.scale : 1.05})`,
                 opacity: slot ? slot.opacity : 0,
                 zIndex: slot ? count - depth : 0,
+                filter: SHARPEN_FILTER,
               }}
             />
           );

@@ -28,7 +28,6 @@ export function useHome() {
   const [contentAttempt, setContentAttempt] = useState(0);
   const [profileCheckFailed, setProfileCheckFailed] = useState(false);
   const [profileRetry, setProfileRetry] = useState(0);
-  const skipOnboarding = Boolean(location.state?.skipOnboarding);
 
   useEffect(() => {
     if (isLoaded && user) {
@@ -39,8 +38,10 @@ export function useHome() {
         return;
       }
 
-      // Check onboarding for customers
-      const checkOnboarding = async () => {
+      // Customers aren't sent to /onboarding from here: an incomplete profile only matters
+      // once they try to book, and OnboardingGate / the booking screens ask for it then.
+      // The profile is still fetched, for the admin fallback below.
+      const checkProfile = async () => {
         try {
           const token = await getToken();
           const profile = await fetchProfile(user.id, token);
@@ -52,24 +53,20 @@ export function useHome() {
           }
 
           setProfileCheckFailed(false);
-          if ((!profile || !profile.onboarded) && !skipOnboarding) {
-            navigate("/onboarding", { replace: true });
-          }
         } catch (err) {
-          console.error("Home Onboarding Check Error:", err);
-          // Only a missing profile means onboarding; any other failure
-          // (401, 500, backend down) must not trap the user in /onboarding.
+          // A missing profile is expected for a new account, so it is neither logged nor an error
           if (isMissingProfile(err)) {
-            if (!skipOnboarding) navigate("/onboarding", { replace: true });
+            setProfileCheckFailed(false);
           } else {
+            console.error("Home Onboarding Check Error:", err);
             setProfileCheckFailed(true);
           }
         }
       };
 
-      checkOnboarding();
+      checkProfile();
     }
-  }, [isLoaded, user, navigate, getToken, skipOnboarding, profileRetry]);
+  }, [isLoaded, user, navigate, getToken, profileRetry]);
 
   useEffect(() => {
     if (location.state?.scrollTo === "faq" && faqs.length > 0) {

@@ -17,7 +17,7 @@ export default function TimeSlotList({
   emptyText,
 }: TimeSlotListProps) {
   return (
-    <div className="flex w-full flex-col gap-4 rounded-sm border border-crimson-light/80 bg-light-orange px-4 py-4">
+    <div className="flex w-full min-w-0 flex-col gap-4 rounded-sm border border-crimson-light/80 bg-light-orange px-4 py-4">
       <p className="text-center text-sm font-bold uppercase tracking-widest text-gray-red">
         Time
       </p>

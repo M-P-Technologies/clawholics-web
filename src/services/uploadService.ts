@@ -21,6 +21,11 @@ export type UploadOptions = {
   maxSizeKB?: number;
 };
 
+// For photos the site shows big (carousel and gallery, hero, about, service gallery). The 130KB
+// default squeezes a photo down to a few hundred pixels, which looks blurry once stretched; this
+// keeps 1600px, well under the server's 500KB limit.
+export const PHOTO_UPLOAD_OPTIONS: UploadOptions = { maxWidthOrHeight: 1600, maxSizeKB: 400 };
+
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 const getWebpFileName = (fileName: string) => {

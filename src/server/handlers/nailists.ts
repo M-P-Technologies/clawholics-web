@@ -1,6 +1,6 @@
 import "server-only";
 import { requireAdmin } from "../auth";
-import { getNailist, getNailistRow } from "../catalog";
+import { getNailist, getNailistGallery, getNailistRow } from "../catalog";
 import { getSql } from "../db";
 import { orNull, pgErrorCode, readJson, routeNotFound, toId } from "../http";
 import { ported } from "../worker";
@@ -193,4 +193,50 @@ export const setNailistDayOffs = ported<IdContext>(async (req, { params }) => {
     throw error;
   }
   return Response.json({ regularDays, customDates });
+});
+
+// --- ARTIST GALLERY --------------------------------------------------------------------------
+// Photos of an artist's work (new: the Worker has no such routes). Reading is public; adding and
+// removing photos needs an admin.
+
+const MAX_GALLERY_PHOTOS = 10;
+
+export const getGallery = ported<IdContext>(async (_req, { params }) => {
+  const id = toId((await params).id);
+  return Response.json(id === null ? [] : await getNailistGallery(id));
+});
+
+export const addGalleryImage = ported<IdContext>(async (req, { params }) => {
+  const admin = await requireAdmin();
+  if (admin instanceof Response) return admin;
+  const nailistId = toId((await params).id);
+  if (nailistId === null) return Response.json({ message: "Nailist not found" }, { status: 404 });
+  const body = await readJson<Body>(req);
+  if (typeof body.image_url !== "string" || !body.image_url) return badRequest("image_url is required.");
+
+  const sql = getSql();
+  const [nailist] = await sql`select 1 from nailists where id = ${nailistId}`;
+  if (!nailist) return Response.json({ message: "Nailist not found" }, { status: 404 });
+  const [{ count }] = await sql<{ count: number }[]>`select count(*)::int as count from nailist_gallery where nailist_id = ${nailistId}`;
+  if (count >= MAX_GALLERY_PHOTOS) return badRequest("An artist can only have up to 10 photos.");
+
+  try {
+    const [created] = await sql`
+      insert into nailist_gallery (nailist_id, image_url, position)
+      values (${nailistId}, ${body.image_url}, ${body.position ?? count + 1})
+      returning id
+    `;
+    return Response.json(created, { status: 201 });
+  } catch (error) {
+    if (pgErrorCode(error) === "23505") return Response.json({ message: "This photo is already in the gallery." }, { status: 409 });
+    throw error;
+  }
+});
+
+export const deleteGalleryImage = ported<IdContext>(async (_req, { params }) => {
+  const admin = await requireAdmin();
+  if (admin instanceof Response) return admin;
+  const id = toId((await params).id);
+  if (id !== null) await getSql()`delete from nailist_gallery where id = ${id}`;
+  return Response.json({ message: "Image deleted" });
 });

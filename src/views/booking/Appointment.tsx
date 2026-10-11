@@ -48,7 +48,7 @@ export default function Appointment() {
               <PageHeader title={service.name} subtitle={service.description} />
             </div>
 
-            <dl className="grid grid-cols-[110px_1fr] md:grid-cols-[140px_1fr] gap-4 border-t border-crimson-light/80 pt-4 md:pt-8 text-gray-red">
+            <dl className="grid grid-cols-1 gap-x-4 gap-y-1 border-t border-crimson-light/80 pt-4 text-gray-red sm:grid-cols-[140px_1fr] sm:gap-y-4 md:pt-8 [&>dd:not(:last-child)]:mb-3 sm:[&>dd:not(:last-child)]:mb-0">
               <dt className={infoLabelClass}>Duration</dt>
               <dd>{service.duration}</dd>
 

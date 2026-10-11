@@ -63,12 +63,13 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ children }) => {
           setChecking(false);
         }
       } catch (err) {
-        console.error("Onboarding Gate Error:", err);
-        // Only a missing profile means onboarding. Any other failure shows a
-        // retry screen instead of bouncing the user into /onboarding.
+        // Only a missing profile means onboarding (expected for a new account, so not
+        // logged). Any other failure shows a retry screen instead of bouncing the user
+        // into /onboarding.
         if (isMissingProfile(err)) {
           navigate("/onboarding", { replace: true });
         } else {
+          console.error("Onboarding Gate Error:", err);
           setFailed(true);
           setChecking(false);
         }

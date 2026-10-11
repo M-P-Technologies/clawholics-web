@@ -1,5 +1,6 @@
 import { useState, type UIEvent } from "react";
 import clsx from "clsx";
+import SharpenFilter, { SHARPEN_FILTER } from "../ui/SharpenFilter";
 import { InstagramIcon } from "../ui/SocialIcons";
 
 export interface RowPhoto {
@@ -16,7 +17,8 @@ interface PhotoRowProps {
 }
 
 // A strip of square photos across the whole screen with thin gaps between them.
-// From `sm` up all five sit side by side and the Instagram tag floats over the middle photo.
+// From `sm` up all five sit side by side and the Instagram tag floats over the middle photo. The
+// photos are shown as they are, with no dimming over them.
 // On phones the photos scroll sideways, one at a time, with dots, under a "Follow us" line.
 // From `sm` up the negative bottom margin cancels the section's bottom padding, so the strip sits
 // against the footer. On phones the dots keep the normal space below them.
@@ -33,6 +35,7 @@ export default function PhotoRow({ photos, title, instagram }: PhotoRowProps) {
 
   return (
     <div className="flex flex-col gap-4 sm:-mb-16 md:gap-8 lg:-mb-24">
+      <SharpenFilter />
       {title && (
         <h2 className="font-display text-2xl font-normal uppercase tracking-widest text-gray-red md:text-4xl">
           {title}
@@ -61,11 +64,7 @@ export default function PhotoRow({ photos, title, instagram }: PhotoRowProps) {
         >
           {shown.map((photo, index) => (
             <div key={`${photo.id}-${index}`} className="relative w-4/5 shrink-0 snap-center sm:w-full">
-              <img src={photo.url} alt="" loading="lazy" className="aspect-square w-full object-cover" />
-              {/* Darkens every photo a little, so the Instagram tag stands out against them */}
-              {instagram && (
-                <div aria-hidden="true" className="absolute inset-0 hidden bg-gray-red/40 sm:block" />
-              )}
+              <img src={photo.url} alt="" loading="lazy" className="aspect-square w-full object-cover" style={{ filter: SHARPEN_FILTER }} />
             </div>
           ))}
         </div>

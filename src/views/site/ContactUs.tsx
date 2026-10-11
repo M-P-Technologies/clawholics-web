@@ -10,7 +10,7 @@ import PageShell from "../../components/layout/PageShell";
 import Panel from "../../components/layout/Panel";
 import ContactGroup from "../../components/ui/ContactGroup";
 import ImageBanner from "../../components/home/ImageBanner";
-import bannerImage from "../../assets/images/hero-softgel-extensions.webp";
+import { DEFAULT_HERO_IMAGE } from "../../data/home";
 import Section from "../../components/layout/Section";
 import { FacebookIcon,InstagramIcon,TikTokIcon } from "../../components/ui/SocialIcons";
 import { contactLinkLightClass, inputClass, labelClass } from "../../components/ui/styles";
@@ -90,7 +90,7 @@ export default function ContactUs() {
           </div>
         </Panel>
 
-        <ImageBanner image={bannerImage.src} alt="Hands with freshly done soft gel nails" focus="50% 45%">
+        <ImageBanner image={pageData.home_hero_image || DEFAULT_HERO_IMAGE} alt="Hands with freshly done soft gel nails" focus="50% 45%">
         <ContactGroup title="Connect with us on social media!">
           <a
             href={pageData.social_facebook_url}

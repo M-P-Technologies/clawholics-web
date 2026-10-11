@@ -6,7 +6,7 @@ import { useUser, useAuth } from "@clerk/nextjs";
 import { fetchNailists, fetchBookedSlotsDetailed, createBooking } from "../services/bookingService";
 import { fetchNailistDayOffs, fetchNailistTimeSlots } from "../services/nailistService";
 import { fetchHomeContent } from "../services/contentService";
-import { fetchProfile } from "../services/userService";
+import { fetchProfileIfExists } from "../services/userService";
 import { fetchCategories, type ServiceCategory } from "../services/catalogService";
 import { estimateTotal } from "../services/pricing";
 import { type Nailist, type BookingState, parseTimeRange } from "../utils/booking";
@@ -48,6 +48,7 @@ export function useBooking() {
   const service_id = state?.service_id ?? 0;
   const service_description = state?.service_description ?? "";
   const service_name = state?.service_name ?? "";
+  const service_image = state?.service_image ?? "";
   const junior_price = state?.junior_price ?? 0;
   const master_price = state?.master_price ?? 0;
   const pricing_type: "tiered" | "flat" = state?.pricing_type ?? "tiered";
@@ -162,7 +163,8 @@ export function useBooking() {
 
     fetchNailists(service_id).then((data) => {
       setNailists(data);
-      setSelectedNailist(null);
+      // Coming from an artist's page: that artist is already chosen, if they offer this service
+      setSelectedNailist(data.find((n: Nailist) => n.id === state?.nailist_id) ?? null);
       setSelectedDate("");
       setSelectedTime("");
       setBookedSlots([]);
@@ -341,7 +343,7 @@ export function useBooking() {
     }
 
     const token = await getToken();
-    const profile = await fetchProfile(user.id, token);
+    const profile = await fetchProfileIfExists(user.id, token);
 
     // Safety check in case they bypassed the /appointment page
     if (!profile || !profile.onboarded) {
@@ -478,5 +480,5 @@ export function useBooking() {
   const closeModal = () => setModalOpen(false);
   const reloadPage = () => window.location.reload();
 
-  return { priceLabel, pageData, isPageLoading, pageError, nailists, selectedNailist, setSelectedNailist, selectedDate, setSelectedDate, selectedTime, setSelectedTime, timeSlots, setTimeSlots, setBookedSlots, fullyBookedDates, setFullyBookedDates, month, setMonth, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, pricing_type, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, selectedPrice, locationUrl, locationText, isDayFullyBooked, isDisabledDate, toLocalDate, toLocalDateString, isTimeBlocked, isPastTimeToday, formatSlot, showModal, handleContinue, isSubmitting, sectionLabel, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage };
+  return { priceLabel, pageData, isPageLoading, pageError, nailists, selectedNailist, setSelectedNailist, selectedDate, setSelectedDate, selectedTime, setSelectedTime, timeSlots, setTimeSlots, setBookedSlots, fullyBookedDates, setFullyBookedDates, month, setMonth, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, pricing_type, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, selectedPrice, locationUrl, locationText, isDayFullyBooked, isDisabledDate, toLocalDate, toLocalDateString, isTimeBlocked, isPastTimeToday, formatSlot, showModal, handleContinue, isSubmitting, sectionLabel, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage };
 }

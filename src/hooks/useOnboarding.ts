@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { useNavigate } from "@/lib/router";
-import { updateProfile, fetchProfile } from "../services/userService";
+import { updateProfile, fetchProfile, isEmailTaken, isMissingProfile } from "../services/userService";
 import type { ChangeEvent } from "react";
 import { ONBOARDING_CONTACT_FIELDS, ONBOARDING_NAME_FIELDS } from "../data/onboarding";
 import { useToast } from "../components/ui/ToastProvider";
@@ -16,6 +16,10 @@ export function useOnboarding() {
   const [submitError, setSubmitError] = useState("");
   const [isChecking, setIsChecking] = useState(true);
   const [isGenderOpen, setIsGenderOpen] = useState(false);
+  // Set once the form is on screen, and once it is saved; leaving in between earns a reminder
+  const formShown = useRef(false);
+  const saved = useRef(false);
+  const toastRef = useRef(toast);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -60,7 +64,8 @@ export function useOnboarding() {
           setIsChecking(false);
         }
       } catch (error) {
-        console.error("Onboarding verification failed:", error);
+        // A missing profile is expected for a new account, so it isn't logged
+        if (!isMissingProfile(error)) console.error("Onboarding verification failed:", error);
         // On error, only show form if we are sure they aren't an admin
         if (clerkRole !== "admin") {
           setIsChecking(false);
@@ -70,6 +75,30 @@ export function useOnboarding() {
 
     verifyNewUser();
   }, [isLoaded, user, navigate, getToken]);
+
+  useEffect(() => {
+    toastRef.current = toast;
+  }, [toast]);
+
+  useEffect(() => {
+    formShown.current = !isChecking;
+  }, [isChecking]);
+
+  useEffect(() => {
+    return () => {
+      if (!formShown.current || saved.current) return;
+      // In development React unmounts and remounts once on its own while still on this page, so
+      // only warn when the user has really moved on to another one
+      setTimeout(() => {
+        if (window.location.pathname === "/onboarding") return;
+        toastRef.current.show(
+          "info",
+          "Your profile isn't complete yet",
+          "You can browse freely, but you'll need to finish it before you can book. You can do it any time from your profile.",
+        );
+      }, 0);
+    };
+  }, []);
 
   const genderOptions = [
     { value: "female", label: "Female" },
@@ -160,11 +189,17 @@ export function useOnboarding() {
 
       const token = await getToken();
       await updateProfile(user.id, completeUserData, token);
+      saved.current = true;
       toast.show("success", "Profile saved", "Thank you! You can now book appointments. You can change these details any time from your profile.");
       navigate("/profile");
     } catch (error) {
-      console.error("Failed to save profile", error);
-      setSubmitError("We couldn't save your profile, so nothing was changed. Your answers are still in the form. Please check your connection and press the button again.");
+      if (isEmailTaken(error)) {
+        // Not a connection problem, so retrying won't help
+        setSubmitError("This email is already used by another account, so your profile couldn't be saved. Please sign in with the account you registered with, or contact the studio.");
+      } else {
+        console.error("Failed to save profile", error);
+        setSubmitError("We couldn't save your profile, so nothing was changed. Your answers are still in the form. Please check your connection and press the button again.");
+      }
     } finally {
       setIsSubmitting(false);
     }

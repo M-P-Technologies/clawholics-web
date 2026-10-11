@@ -8,7 +8,7 @@ type Image = {
   image_url: string;
 };
 
-export default function ServiceGallery({ images }: { images: Image[] }) {
+export default function ServiceGallery({ images, label = "Service image gallery" }: { images: Image[]; label?: string }) {
   const [open, setOpen] = useState(false);
   const [current, setCurrent] = useState(0);
 
@@ -55,7 +55,7 @@ export default function ServiceGallery({ images }: { images: Image[] }) {
           <div
             role="dialog"
             aria-modal="true"
-            aria-label="Service image gallery"
+            aria-label={label}
             className="fixed inset-0 z-50 flex flex-col bg-gray-red/90"
           >
             <div className="relative flex flex-1 items-center justify-center overflow-hidden">

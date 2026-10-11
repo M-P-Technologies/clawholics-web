@@ -52,6 +52,28 @@ export const fetchProfile = async (clerkId: string, token?: string | null): Prom
   return res.json();
 };
 
+// Carries the HTTP status and the server's message, so a save that is refused can say why.
+export class ProfileSaveError extends Error {
+  status: number;
+  constructor(status: number, message = "Failed to update profile") {
+    super(message);
+    this.status = status;
+  }
+}
+
+/** Saving was refused because another account already uses this email (409). */
+export const isEmailTaken = (err: unknown): boolean => err instanceof ProfileSaveError && err.status === 409;
+
+/** Like fetchProfile, but a missing profile (404) comes back as null instead of throwing. */
+export const fetchProfileIfExists = async (clerkId: string, token?: string | null): Promise<UserProfile | null> => {
+  try {
+    return await fetchProfile(clerkId, token);
+  } catch (err) {
+    if (isMissingProfile(err)) return null;
+    throw err;
+  }
+};
+
 export const updateProfile = async (
   clerkId: string,
   profileData: Partial<UserProfile>,
@@ -65,7 +87,8 @@ export const updateProfile = async (
 
   if (!res.ok) {
     if (res.status === 403) window.location.href = "/";
-    throw new Error("Failed to update profile");
+    const body = await res.json().catch(() => null);
+    throw new ProfileSaveError(res.status, body?.message || body?.error || undefined);
   }
 };
 

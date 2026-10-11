@@ -36,7 +36,10 @@ export default function Reschedule() {
               Pick date &amp; time
             </p>
 
-            <div className="flex flex-col gap-4 lg:flex-row">
+            {/* Side by side only when this column itself is wide enough (the two blocks need about 565px);
+                a screen-width breakpoint is wrong here, since beside the summary panel the column is narrower. */}
+            <div className="@container">
+            <div className="flex flex-col gap-4 @xl:flex-row">
               <div className="flex items-center justify-center rounded-sm border border-crimson-light/80 bg-light-orange px-4 py-4">
                 <DayCalendar
                   month={month}
@@ -56,6 +59,7 @@ export default function Reschedule() {
                 format={formatSlot}
                 emptyText="Select a date to view available times."
               />
+            </div>
             </div>
             </div>
           </div>

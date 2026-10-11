@@ -1,6 +1,6 @@
 import { Link, useLocation } from "@/lib/router";
 import { useRef, useEffect, useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, User, X } from "lucide-react";
 import { Show, UserButton, useClerk } from "@clerk/nextjs";
 import { useNavIndicator } from "../../hooks/useNavIndicator";
 import { useScrolled } from "../../hooks/useScrolled";
@@ -12,9 +12,9 @@ import Button from "../ui/Button";
 const NAV_LINKS = [
   { to: "/", label: "Home" },
   { to: "/services", label: "Services" },
-  { to: "/team", label: "Artists" },
+  { to: "/artists", label: "Artists" },
   { to: "/about", label: "About Us" },
-  { to: "/contact-us", label: "Contact Us" },
+  { to: "/contact", label: "Contact Us" },
 ];
 
 export default function Navbar() {
@@ -102,10 +102,12 @@ export default function Navbar() {
         <div className="flex items-center justify-end gap-4">
           <Show when="signed-out">
             <Link
-              className="whitespace-nowrap text-sm font-medium tracking-wide text-gray-red transition-colors hover:text-crimson"
+              aria-label="Log in"
+              title="Log in"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-crimson text-crimson transition-colors hover:bg-crimson hover:text-light-orange focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson"
               to="/login"
             >
-              Log in
+              <User size={18} aria-hidden="true" />
             </Link>
           </Show>
           <Show when="signed-in">
@@ -120,7 +122,7 @@ export default function Navbar() {
             </div>
           </Show>
           <Button to="/services" variant={solid ? "secondary" : "primary"}>
-            Appointment
+            Book now
           </Button>
         </div>
       </div>

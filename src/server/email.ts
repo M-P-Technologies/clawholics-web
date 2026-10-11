@@ -75,7 +75,7 @@ function baseEmailTemplate(title: string, hiName: string, messageHtml: string, t
         ${remindersSection}
         <div style="margin-top:40px; padding-top: 24px; border-top: 1px solid #eee;">
           <p style="margin-bottom: 8px;">Thank you for choosing Clawholics 💖</p>
-          <p style="margin-bottom: 8px;">For any further questions, you may reach us <a href="https://clawholicsbymax.com/contact-us" style="color: #CC798B; text-decoration: none;">here</a>.</p>
+          <p style="margin-bottom: 8px;">For any further questions, you may reach us <a href="https://clawholicsbymax.com/contact" style="color: #CC798B; text-decoration: none;">here</a>.</p>
           <p>Location: <a href="https://maps.app.goo.gl/HoFQm1ncohKwWHc9A" target="_blank" style="color:#CC798B; text-decoration:none; font-weight:bold;">7th 3rd Street, Nazareth, Cagayan de Oro</a></p>
         </div>
       </div>

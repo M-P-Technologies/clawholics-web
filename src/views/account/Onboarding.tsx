@@ -136,7 +136,6 @@ export default function Onboarding() {
 
             <Link
               to="/"
-              state={{ skipOnboarding: true }}
               className="text-center text-sm text-gray-red underline transition-colors hover:text-crimson"
             >
               Back to home

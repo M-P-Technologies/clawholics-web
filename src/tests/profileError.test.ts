@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { fetchProfile, isMissingProfile, ProfileError } from "../services/userService";
+import { fetchProfile, isEmailTaken, isMissingProfile, ProfileError, ProfileSaveError, updateProfile } from "../services/userService";
 
 describe("fetchProfile errors", () => {
   afterEach(() => vi.unstubAllGlobals());
@@ -16,5 +16,21 @@ describe("fetchProfile errors", () => {
 
   it("does not treat a network failure as a missing profile", () => {
     expect(isMissingProfile(new TypeError("Failed to fetch"))).toBe(false);
+  });
+
+  it("keeps the server's message when saving a profile is refused, and spots a taken email (409)", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: false, status: 409, json: async () => ({ message: "This email is already used by another account." }) }),
+    );
+    const err = await updateProfile("user_1", {}, "tok").catch((e) => e);
+    expect(err).toBeInstanceOf(ProfileSaveError);
+    expect(err.message).toBe("This email is already used by another account.");
+    expect(isEmailTaken(err)).toBe(true);
+
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 500, json: async () => { throw new Error("no body"); } }));
+    const other = await updateProfile("user_1", {}, "tok").catch((e) => e);
+    expect(other.message).toBe("Failed to update profile");
+    expect(isEmailTaken(other)).toBe(false);
   });
 });

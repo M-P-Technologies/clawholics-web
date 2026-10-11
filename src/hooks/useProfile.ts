@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { useNavigate, useLocation, useSearchParams } from "@/lib/router";
-import { fetchProfile, updateProfile, fetchUserAppointments, redeemUserReward, cancelAppointment, type UserProfile } from "../services/userService";
+import { fetchProfile, isMissingProfile, updateProfile, fetchUserAppointments, redeemUserReward, cancelAppointment, type UserProfile } from "../services/userService";
 import { type Appointment } from "../utils/profile";
 import type { ChangeEvent, MouseEvent } from "react";
 import { isActiveAppointmentStatus } from "../services/proofState";
@@ -129,10 +129,13 @@ export function useProfile() {
           const appts = await fetchUserAppointments(clerkUser.id, token);
           setAppointments(appts || []);
         } catch (err) {
-          console.error(
-            "Error fetching data:",
-            err,
-          );
+          // A missing profile is expected for a new account, so it isn't logged
+          if (!isMissingProfile(err)) {
+            console.error(
+              "Error fetching data:",
+              err,
+            );
+          }
         }
       };
 
@@ -165,7 +168,13 @@ export function useProfile() {
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
 
   useEffect(() => {
-    const handleClickOutside = () => setOpenDropdownId(null);
+    // A click inside an appointment menu (its three dots, or its items) is not "outside". The
+    // button's own stopPropagation can't be relied on: React listens on the document itself in
+    // this app, so this listener still runs and would close the menu the moment it opens.
+    const handleClickOutside = (e: Event) => {
+      if (e.target instanceof Element && e.target.closest("[data-appointment-menu]")) return;
+      setOpenDropdownId(null);
+    };
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
