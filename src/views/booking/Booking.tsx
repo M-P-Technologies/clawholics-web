@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { CalendarDays, Clock, MapPin, User, Wallet } from "lucide-react";
 import AlertModal from "../../components/ui/AlertModal";
 import BookingOptions from "../../components/booking/BookingOptions";
 import Button from "../../components/ui/Button";
@@ -80,7 +81,7 @@ export default function Booking() {
                 />
               )}
 
-              <p className="text-sm text-gray-red/80">★ = Master technician</p>
+              <p className="copy-note">★ = Master technician</p>
             </div>
 
             <div className="flex flex-col gap-4">
@@ -140,18 +141,19 @@ export default function Booking() {
               </div>
             )}
             <div className="flex flex-col gap-4">
-              <p className="w-fit rounded-md border border-crimson-light px-4 py-1 text-sm font-bold uppercase tracking-widest text-crimson">
+              <p className="w-fit rounded-md border border-crimson-light px-4 py-1 label-caps text-crimson">
                 {service_category}
               </p>
               <p className="font-display text-2xl uppercase tracking-widest text-gray-red">
                 {service_name}
               </p>
-              <p className="text-sm leading-relaxed text-gray-red/80">{service_description}</p>
+              <p className="copy-body">{service_description}</p>
             </div>
 
             <dl className="border-t border-crimson-light/80 pt-4 md:pt-8">
               <SummaryRow
                 label="Preferred artist"
+                icon={<User size={16} />}
                 value={
                   selectedNailist
                     ? selectedNailist.category_id === 1
@@ -160,10 +162,10 @@ export default function Booking() {
                     : "-"
                 }
               />
-              <SummaryRow label="Date" value={selectedDate || "-"} />
-              <SummaryRow label="Time" value={selectedTime ? formatSlot(selectedTime) : "-"} />
-              <SummaryRow label="Price" value={priceLabel} />
-              <SummaryRow label="Location" value={locationText || "No location available"} />
+              <SummaryRow label="Date" icon={<CalendarDays size={16} />} value={selectedDate || "-"} />
+              <SummaryRow label="Time" icon={<Clock size={16} />} value={selectedTime ? formatSlot(selectedTime) : "-"} />
+              <SummaryRow label="Price" icon={<Wallet size={16} />} value={priceLabel} />
+              <SummaryRow label="Location" icon={<MapPin size={16} />} value={locationText || "No location available"} />
             </dl>
           </Panel>
         </div>
@@ -173,7 +175,7 @@ export default function Booking() {
             onClick={handleContinue}
             disabled={isSubmitting}
             aria-busy={isSubmitting}
-            className="px-8 sm:px-16 disabled:cursor-wait disabled:opacity-60"
+            className="w-full px-8 sm:w-auto sm:px-16 disabled:cursor-wait disabled:opacity-60"
           >
             {isSubmitting ? "Reserving your slot..." : "Continue to payment"}
           </Button>

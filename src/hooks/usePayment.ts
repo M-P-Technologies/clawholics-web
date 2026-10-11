@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "@/lib/router";
 import { useAuth } from "@clerk/nextjs";
 import { createPayment, fetchPaymentSettings } from "../services/paymentService";
-import { FALLBACK_PAYMENT_METHODS, PAYMENT_METHOD_LABELS } from "../data/payment";
+import { FALLBACK_PAYMENT_METHODS, OFFERED_PAYMENT_METHODS, PAYMENT_METHOD_HINTS, PAYMENT_METHOD_LABELS } from "../data/payment";
 import { fetchAppointmentById } from "../services/appointmentService";
 import { type AppointmentState, explainPaymentFailure, explainStatusChange } from "../utils/payment";
 
@@ -11,7 +11,8 @@ export function usePayment() {
   const location = useLocation();
   const { getToken } = useAuth();
 
-  const [method, setMethod] = useState("");
+  // With a single way to pay, it is already chosen
+  const [method, setMethod] = useState(OFFERED_PAYMENT_METHODS[0] ?? "");
   const [enabledMethods, setEnabledMethods] = useState<string[]>(FALLBACK_PAYMENT_METHODS);
   const [agree, setAgree] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -75,10 +76,10 @@ export function usePayment() {
   useEffect(() => {
     fetchPaymentSettings()
       .then((settings) => {
-        const online = settings.payment_methods.filter((m) => Object.hasOwn(PAYMENT_METHOD_LABELS, m));
+        const online = settings.payment_methods.filter((m) => OFFERED_PAYMENT_METHODS.includes(m) && Object.hasOwn(PAYMENT_METHOD_LABELS, m));
         if (online.length === 0) return;
         setEnabledMethods(online);
-        setMethod((current) => (online.includes(current) ? current : ""));
+        setMethod((current) => (online.includes(current) ? current : online.length === 1 ? online[0] : ""));
       })
       .catch((err) => console.error("Failed to load payment methods:", err));
   }, []);
@@ -212,7 +213,7 @@ export function usePayment() {
     }
   };
 
-  const sectionLabel = "text-sm font-bold uppercase tracking-widest text-gray-red";
+  const sectionLabel = "label-caps";
 
   // Closing the dialog also runs its follow-up action, so it cannot be dismissed without it.
   const handleModalClose = () => {
@@ -222,7 +223,7 @@ export function usePayment() {
 
   const toggleAgree = () => setAgree(!agree);
 
-  const methods = enabledMethods.map((code) => ({ code, label: PAYMENT_METHOD_LABELS[code] }));
+  const methods = enabledMethods.map((code) => ({ code, label: PAYMENT_METHOD_LABELS[code], hint: PAYMENT_METHOD_HINTS[code] }));
 
   return { methods, toggleAgree, navigate, method, setMethod, agree, setAgree, loading, isInvalid, timeLeft, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, modalDismissible, appointment, handlePay, sectionLabel, handleModalClose };
 }
