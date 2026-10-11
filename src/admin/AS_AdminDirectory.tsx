@@ -313,7 +313,7 @@ export default function AS_AdminDirectory() {
             <div className="bg-light-orange border border-crimson flex flex-col gap-4 rounded-sm p-4 md:gap-8 md:p-8 max-w-md w-full text-gray-red shadow-xl transition-all drawer-panel max-sm:max-h-[90vh] max-sm:min-h-[40vh] max-sm:w-full max-sm:max-w-none max-sm:overflow-y-auto max-sm:rounded-t-md max-sm:rounded-b-none">
               {isSaving ? (
                 <div className="flex flex-col items-center justify-center py-12">
-                  <LoadingBar />
+                  <LoadingBar inline />
                 </div>
               ) : (
                 <>

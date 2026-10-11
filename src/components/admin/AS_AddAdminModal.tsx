@@ -41,7 +41,7 @@ const AddAdminModal: React.FC<AddAdminModalProps> = ({
       >
         {isSaving ? (
           <div className="flex flex-col items-center justify-center py-12">
-            <LoadingBar />
+            <LoadingBar inline />
           </div>
         ) : (
           <>

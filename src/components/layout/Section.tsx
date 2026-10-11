@@ -1,17 +1,21 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import clsx from "clsx";
 
-// Returns a ref and a flag that flips to true the first time the element's top
-// edge scrolls into view. Content is shown immediately where scroll observing
-// is unavailable, so nothing stays hidden.
+// Returns a ref and a flag that is true once the element may be shown. The server and the first
+// render in the browser both start as shown, so they match (starting from what the browser
+// supports would not: the server has no IntersectionObserver). After that, a section that is
+// below the fold is hidden and shown again the first time its top edge scrolls into view; one
+// already in view, or any browser without scroll observing, just stays shown.
 function useReveal<T extends HTMLElement>() {
   const ref = useRef<T>(null);
-  const [revealed, setRevealed] = useState(() => typeof IntersectionObserver === "undefined");
+  const [revealed, setRevealed] = useState(true);
 
   useEffect(() => {
     const el = ref.current;
-    if (revealed || !el) return;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    if (el.getBoundingClientRect().top < window.innerHeight * 0.9) return;
 
+    setRevealed(false);
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -26,7 +30,7 @@ function useReveal<T extends HTMLElement>() {
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, [revealed]);
+  }, []);
 
   return { ref, revealed };
 }
