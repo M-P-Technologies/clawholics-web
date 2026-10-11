@@ -49,7 +49,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <div
         aria-live="polite"
-        className="pointer-events-none fixed inset-x-4 bottom-4 z-[200] flex flex-col items-end gap-2 sm:left-auto sm:right-4 sm:w-96"
+        className="pointer-events-none fixed inset-x-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-[200] lg:bottom-4 flex flex-col items-end gap-2 sm:left-auto sm:right-4 sm:w-96"
       >
         {toasts.map((t) => {
           const Icon = ICONS[t.kind];
@@ -62,7 +62,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               <Icon size={24} aria-hidden="true" className={clsx("shrink-0", COLORS[t.kind])} />
               <div className="flex min-w-0 flex-1 flex-col gap-1">
                 <p className="text-sm font-bold text-gray-red">{t.title}</p>
-                {t.message && <p className="text-sm leading-relaxed text-gray-red/80">{t.message}</p>}
+                {t.message && <p className="copy-note">{t.message}</p>}
               </div>
               <Button
                 variant="bare"

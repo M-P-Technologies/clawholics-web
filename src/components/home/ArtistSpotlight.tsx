@@ -43,7 +43,7 @@ export default function ArtistSpotlight({ artists }: { artists: Nailist[] }) {
 
   return (
     <div
-      className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16"
+      className="grid grid-cols-1 items-start lg:grid-cols-2 lg:grid-rows-[auto_1fr] lg:gap-x-16 lg:gap-y-8"
       onTouchStart={(e) => (touchStartX.current = e.touches[0].clientX)}
       onTouchEnd={(e) => {
         if (touchStartX.current === null) return;
@@ -52,7 +52,9 @@ export default function ArtistSpotlight({ artists }: { artists: Nailist[] }) {
         if (Math.abs(diff) > 50) show(index + (diff > 0 ? 1 : -1));
       }}
     >
-      <div className={`relative mx-auto w-full max-w-sm lg:max-w-md ${fade}`}>
+      {/* The photo, then the controls right under it, then the text. From lg up the photo and its
+          controls are the left column and the text is the right column. */}
+      <div className={`relative order-1 mx-auto w-full max-w-sm lg:col-start-1 lg:row-start-1 lg:max-w-md ${fade}`}>
         <Bow
           aria-hidden="true"
           focusable="false"
@@ -67,27 +69,26 @@ export default function ArtistSpotlight({ artists }: { artists: Nailist[] }) {
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 md:gap-8">
-        <div className={`flex flex-col gap-4 md:gap-8 lg:min-h-72 ${fade}`}>
-          <p className="text-sm text-gray-red/80">The Artist</p>
+        <div className={`order-3 mt-12 flex flex-col gap-4 md:gap-8 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:min-h-72 ${fade}`}>
+          <p className="copy-note">The Artist</p>
           <div className="flex flex-col gap-2">
             <h3 className="font-display text-3xl font-normal uppercase tracking-widest text-gray-red md:text-5xl">
               {artist.name}
             </h3>
             <p className="text-sm font-bold text-crimson">{artist.position}</p>
           </div>
-          <p className="whitespace-pre-line text-base md:text-lg leading-relaxed text-gray-red/80">
+          <p className="whitespace-pre-line copy-lead">
             {artist.bio}
           </p>
           {artist.specialty && (
-            <p className="whitespace-pre-line text-base leading-relaxed text-gray-red/80">
+            <p className="whitespace-pre-line copy-body">
               <span className="font-bold text-gray-red">Specialties: </span>
               {artist.specialty}
             </p>
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="order-2 mx-auto mt-6 flex w-full max-w-sm flex-wrap items-center justify-center gap-4 lg:col-start-1 lg:row-start-2 lg:mt-0 lg:max-w-md lg:justify-start">
           {count > 1 && (
             <>
               <Button variant="bare" type="button" aria-label="Previous artist" onClick={() => show(index - 1)} className={ROUND_BUTTON}>
@@ -113,11 +114,10 @@ export default function ArtistSpotlight({ artists }: { artists: Nailist[] }) {
               </Button>
             </>
           )}
-          <Button to="/artists" aria-label="Meet all of our artists" className="sm:ml-auto">
+          <Button to="/artists" aria-label="Meet all of our artists" className="lg:ml-auto">
             Meet the team
           </Button>
         </div>
-      </div>
     </div>
   );
 }

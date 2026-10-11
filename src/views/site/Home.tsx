@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import { Link } from "@/lib/router";
 import Bow from "../../assets/bow.svg";
 import emblem from "../../assets/logo/emblem-pink.png";
@@ -24,6 +24,12 @@ export default function Home() {
   const { retryProfile, contentError, reloadContent, isBusy, content, faqs, nailists, about, profileCheckFailed, stripItems } = useHome();
   // A broken or deleted hero photo leaves the soft background instead of a broken-image icon
   const [heroFailed, setHeroFailed] = useState(false);
+
+  // The phone hero's "Explore": scroll to the first section below it
+  const exploreMore = () => {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    document.getElementById("why-choose-us")?.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
+  };
 
   if (isBusy) return <LoadingBar label="Loading" />;
 
@@ -77,10 +83,37 @@ export default function Home() {
             <h1 className="font-display font-normal text-6xl md:text-8xl text-crimson">
               {content.home_title}
             </h1>
-            <p className="max-w-lg text-base md:text-lg leading-relaxed text-gray-red/80">
+            <p className="max-w-lg copy-lead">
               {HERO_TEXT}
             </p>
-            <div className="flex gap-4">
+            {/* Phones: one wide button, and a small Explore that scrolls to the next section */}
+            <div className="flex flex-col items-center gap-4 md:hidden">
+              <Button
+                to="/services"
+                aria-label="Go to our nail services page to book an appointment"
+                className="relative w-full justify-center rounded-full py-4 pl-6 pr-16"
+              >
+                Book appointment
+                <span
+                  aria-hidden="true"
+                  className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-light-orange text-crimson"
+                >
+                  <ArrowRight size={18} />
+                </span>
+              </Button>
+              <Button
+                variant="bare"
+                type="button"
+                onClick={exploreMore}
+                aria-label="Explore: scroll down to see more"
+                className="flex-col gap-1 text-sm text-gray-red transition-colors hover:text-crimson"
+              >
+                Explore
+                <ChevronDown size={20} aria-hidden="true" className="animate-bounce motion-reduce:animate-none" />
+              </Button>
+            </div>
+
+            <div className="hidden gap-4 md:flex">
               <Button
                 to="/services"
                 aria-label="Go to our nail services page to book an appointment"
@@ -95,7 +128,7 @@ export default function Home() {
         </div>
       </header>
 
-      <Section innerClassName="gap-4 md:gap-8">
+      <Section id="why-choose-us" innerClassName="gap-4 md:gap-8">
         <Blush tone="crimson" className="-right-32 top-10 h-80 w-80" />
         <h2 className={sectionTitleClass}>Why choose us?</h2>
         <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-l border-t border-crimson-light/80">
@@ -122,7 +155,7 @@ export default function Home() {
                     {title}
                   </h3>
                 </div>
-                <p className="text-sm leading-relaxed text-gray-red/80">{text}</p>
+                <p className="copy-body">{text}</p>
               </Link>
             </li>
           ))}
@@ -133,7 +166,7 @@ export default function Home() {
         <Blush className="-left-40 top-1/2 h-96 w-96" />
         <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] items-center gap-4 md:gap-8">
           <div className="flex flex-col gap-4 md:gap-8">
-            <p className="text-sm text-gray-red/80">Clawholics by Max</p>
+            <p className="copy-note">Clawholics by Max</p>
             <p className="whitespace-pre-line bg-linear-to-b from-gray-red to-gray-red/50 bg-clip-text font-display text-2xl leading-snug tracking-wide text-transparent md:text-3xl">
               {OFFER_TEXT}
             </p>
@@ -171,13 +204,13 @@ export default function Home() {
         <Blush tone="crimson" className="-right-32 top-1/4 h-80 w-80" />
         <div className="flex flex-col lg:flex-row lg:items-center gap-4 md:gap-8">
           <div className="lg:w-2/3 flex flex-col gap-8">
-            <p className="text-sm text-gray-red/80">About us</p>
+            <p className="copy-note">About us</p>
             <h2 className="font-display text-4xl font-normal uppercase leading-tight tracking-widest text-gray-red md:text-5xl">
               Where every set is made with care
             </h2>
           </div>
           <div className="lg:w-1/3 flex flex-col gap-4 md:gap-8">
-            <p className="text-base md:text-lg leading-relaxed text-gray-red/80">{ABOUT_TEXT}</p>
+            <p className="copy-lead">{ABOUT_TEXT}</p>
             <Button to="/about" variant="secondary" className="self-start">
               Read our story
             </Button>
