@@ -68,7 +68,12 @@ export default function Booking() {
             />
 
             <div className="flex flex-col gap-2">
-              <p className={sectionLabel}>Preferred artist</p>
+              <div className="flex items-center justify-between gap-4">
+                <p className={sectionLabel}>Preferred artist</p>
+                <Button variant="bare" to="/artists" className="text-sm font-bold text-crimson underline underline-offset-4 hover:text-gray-red">
+                  Meet our artists
+                </Button>
+              </div>
               {nailists.length === 0 ? (
                 <p className="rounded-md border border-crimson-light bg-light-orange px-4 py-4 text-gray-red">
                   No available artists for this service.
@@ -80,8 +85,6 @@ export default function Booking() {
                   onSelect={handleArtistChange}
                 />
               )}
-
-              <p className="copy-note">★ = Master technician</p>
             </div>
 
             <div className="flex flex-col gap-4">
@@ -110,25 +113,6 @@ export default function Booking() {
                   emptyText="No schedule available"
                 />
               </div>
-              </div>
-            </div>
-
-            {/* LOCATION */}
-            <div className="flex flex-col gap-4">
-              <p className={sectionLabel}>Location</p>
-
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <p className="text-gray-red">{locationText || "No location available"}</p>
-
-                <Button
-                  variant="secondary"
-                  href={locationUrl || "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  
-                >
-                  Get directions
-                </Button>
               </div>
             </div>
           </div>
@@ -165,7 +149,16 @@ export default function Booking() {
               <SummaryRow label="Date" icon={<CalendarDays size={16} />} value={selectedDate || "-"} />
               <SummaryRow label="Time" icon={<Clock size={16} />} value={selectedTime ? formatSlot(selectedTime) : "-"} />
               <SummaryRow label="Price" icon={<Wallet size={16} />} value={priceLabel} />
-              <SummaryRow label="Location" icon={<MapPin size={16} />} value={locationText || "No location available"} />
+              <SummaryRow label="Location" icon={<MapPin size={16} />} value={
+                  locationUrl && locationText ? (
+                    <a href={locationUrl} target="_blank" rel="noopener noreferrer" className="font-bold text-crimson underline underline-offset-4 hover:text-gray-red">
+                      {locationText}
+                    </a>
+                  ) : (
+                    locationText || "No location available"
+                  )
+                }
+              />
             </dl>
           </Panel>
         </div>
