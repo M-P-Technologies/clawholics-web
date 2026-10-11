@@ -42,7 +42,7 @@ export default function FormField({
   if (!editing) {
     return (
       <div className="flex flex-col gap-1">
-        <p className="text-sm font-bold uppercase tracking-widest text-gray-red">{label}</p>
+        <p className="label-caps">{label}</p>
         <p className="wrap-break-words opacity-80">{displayValue}</p>
       </div>
     );

@@ -42,13 +42,13 @@ export default function ServicePickerModal({ open, artistName, services, onPick,
           <h2 id="service-picker-title" className="font-display text-2xl font-normal uppercase tracking-widest text-gray-red">
             Book {artistName}
           </h2>
-          <p className="text-sm leading-relaxed text-gray-red/80">
+          <p className="copy-note">
             Choose a service. Next you pick a date and time, with {artistName} already selected.
           </p>
         </div>
 
         {services.length === 0 ? (
-          <p className="text-sm text-gray-red/80">
+          <p className="copy-note">
             {artistName} has no services set up for booking yet. Please check back soon, or contact us and we will gladly help.
           </p>
         ) : (

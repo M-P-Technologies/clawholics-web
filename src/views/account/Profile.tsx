@@ -116,7 +116,7 @@ export default function Profile() {
               ))}
 
               <div className="flex flex-col gap-1">
-                <p className="text-sm font-bold uppercase tracking-widest text-gray-red">Gender:</p>
+                <p className="label-caps">Gender:</p>
                 {!isEditing ? (
                   <p className="opacity-80 capitalize">{dbUser.gender}</p>
                 ) : (
@@ -168,13 +168,13 @@ export default function Profile() {
           <div className="flex flex-col gap-4 rounded-sm border border-crimson-light/80 bg-light-orange p-4 shadow-xl shadow-crimson/10 md:gap-8 md:p-8">
             {/* SECTION 1: CURRENT APPOINTMENTS */}
             <div className="flex flex-col gap-4 md:gap-8">
-              <h3 className="border-b border-crimson-light/80 pb-2 text-sm font-bold uppercase tracking-widest text-gray-red">
+              <h3 className="border-b border-crimson-light/80 pb-2 label-caps">
                 Current Appointments
               </h3>
 
               <div className="flex flex-col gap-4">
                 {currentAppointments.length === 0 ? (
-                  <p className="rounded-sm border border-crimson-light/80 bg-light-orange p-4 text-sm text-gray-red/80 md:text-base">
+                  <p className="rounded-sm border border-crimson-light/80 bg-light-orange p-4 copy-body">
                     You have no upcoming appointments.
                   </p>
                 ) : (
@@ -349,7 +349,7 @@ export default function Profile() {
             {/* SECTION 2: PAST / OTHER APPOINTMENTS */}
             <div className="flex flex-col gap-4 md:gap-8">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-crimson-light/80 pb-4">
-                <h3 className="m-0 text-sm font-bold uppercase tracking-widest text-gray-red">
+                <h3 className="m-0 label-caps">
                   Past & Cancelled Appointments
                 </h3>
 
@@ -381,7 +381,7 @@ export default function Profile() {
 
               <div className="flex flex-col gap-4">
                 {noHistory ? (
-                  <p className="rounded-sm border border-crimson-light/80 bg-light-orange p-4 text-sm text-gray-red/80 md:text-base">
+                  <p className="rounded-sm border border-crimson-light/80 bg-light-orange p-4 copy-body">
                     No history matches your filters.
                   </p>
                 ) : (
@@ -471,7 +471,7 @@ export default function Profile() {
                     You have 10 stamps! Tap this card to redeem!
                   </p>
                 ) : (
-                  <p className="text-sm text-gray-red/80 text-center">
+                  <p className="text-center copy-note">
                     {10 - stamps} more visit{10 - stamps !== 1 ? "s" : ""} to
                     earn a reward!
                   </p>

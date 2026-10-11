@@ -16,7 +16,7 @@ export default function BookingOptions({ variants, addons, variantId, addonIds, 
     <div className="flex flex-col gap-4 md:gap-8">
       {variants.length > 0 && (
         <fieldset>
-          <legend className="mb-4 text-sm font-bold uppercase tracking-widest text-gray-red">CHOOSE AN OPTION</legend>
+          <legend className="mb-4 label-caps">CHOOSE AN OPTION</legend>
           <div className="flex flex-col gap-2">
             {variants.map((variant) => (
               <ChoiceRow
@@ -34,7 +34,7 @@ export default function BookingOptions({ variants, addons, variantId, addonIds, 
 
       {addons.length > 0 && (
         <fieldset>
-          <legend className="mb-4 text-sm font-bold uppercase tracking-widest text-gray-red">ADD-ONS</legend>
+          <legend className="mb-4 label-caps">ADD-ONS</legend>
           <div className="flex flex-col gap-2">
             {addons.map((addon) => {
               const checked = addonIds.includes(addon.id);

@@ -39,7 +39,7 @@ export default function DayCalendar({
         root: "relative w-fit",
         month: "w-full",
         month_caption:
-          "flex items-center justify-center h-8 text-sm font-bold uppercase tracking-widest text-gray-red",
+          "flex items-center justify-center h-8 label-caps",
         caption_label: "text-sm font-bold uppercase",
         nav: "absolute left-0 right-0 top-0 flex items-center justify-between",
         button_previous:

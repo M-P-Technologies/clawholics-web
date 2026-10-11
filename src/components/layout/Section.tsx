@@ -59,7 +59,7 @@ export default function Section({ id, children, className, innerClassName, bleed
         className={clsx(
           !/(^|\s)gap-/.test(innerClassName ?? "") && "gap-12 md:gap-24",
           "flex flex-col",
-          bleed ? "w-full py-4 lg:py-8" : "mx-auto w-full max-w-6xl px-4 py-16 md:px-8 lg:py-24",
+          bleed ? "w-full py-4 lg:py-8" : "mx-auto w-full max-w-6xl px-4 py-12 md:px-8 lg:py-24",
           "transition-[opacity,translate] duration-1000 ease-out motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:transition-none",
           revealed ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0",
           innerClassName,

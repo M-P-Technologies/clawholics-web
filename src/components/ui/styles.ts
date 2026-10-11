@@ -2,7 +2,7 @@
 // like the landing page.
 
 export const labelClass =
-  "mb-1.5 block text-sm font-bold uppercase tracking-widest text-gray-red";
+  "mb-1.5 block label-caps";
 
 export const inputClass =
   "w-full rounded-md border border-crimson-light bg-light-orange/70 px-4 py-2 text-base text-gray-red placeholder:text-gray-red/50 transition-colors focus:border-crimson focus:outline-none focus:ring-2 focus:ring-crimson/30 disabled:cursor-not-allowed disabled:opacity-60";
@@ -16,7 +16,7 @@ export const chipClass = (active: boolean) =>
       : "border-crimson-light text-crimson hover:border-crimson"
   }`;
 
-export const infoLabelClass = "text-sm font-bold uppercase tracking-widest text-gray-red";
+export const infoLabelClass = "label-caps";
 // The same contact links, for use on a dark photo
 export const contactLinkLightClass =
   "flex items-start gap-4 text-light-orange transition-colors hover:text-crimson-light";

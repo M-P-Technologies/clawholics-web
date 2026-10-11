@@ -36,7 +36,7 @@ export default function Terms() {
                   <h3 className="font-display text-lg font-normal uppercase tracking-widest text-gray-red md:text-xl">
                     {tac.section}
                   </h3>
-                  <p className="whitespace-pre-line leading-relaxed text-gray-red/80 md:text-lg">
+                  <p className="whitespace-pre-line copy-lead">
                     {tac.content}
                   </p>
                 </div>

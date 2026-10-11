@@ -11,7 +11,7 @@ interface LoadingBarProps {
 
 const message = (label: string, hint?: string) => (
   <>
-    <p className="text-sm text-gray-red/80">{label}…</p>
+    <p className="copy-note">{label}…</p>
     {hint && <p className="max-w-xs text-center text-sm text-gray-red/60">{hint}</p>}
   </>
 );

@@ -46,7 +46,7 @@ export default function StatePanel({ kind, title, message, children, className }
       <h2 className="font-display text-xl font-normal uppercase tracking-widest text-gray-red md:text-2xl">
         {title}
       </h2>
-      {message && <p className="text-base leading-relaxed text-gray-red/80">{message}</p>}
+      {message && <p className="copy-body">{message}</p>}
       {children && <div className="flex flex-wrap items-center justify-center gap-4">{children}</div>}
     </div>
   );

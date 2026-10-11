@@ -113,7 +113,7 @@ html {
      Pastel Crimson is reserved for headings, buttons and accents. */
   p {
     font-family: var(--font-sans);
-    font-size: large;
+    font-size: 1rem;
     line-height: 1.5;
     color: var(--color-gray-red);
   }
@@ -173,6 +173,28 @@ html {
 @layer components {
   .link-underline{
     @apply hover:underline transition duration-100;
+  }
+
+  /* Description text, in three sizes. lead: the intro under a page title and other hero text.
+     body: the standard description (cards, details, FAQ answers, dialogs). note: small print such
+     as helper text and captions. Use these instead of picking text sizes by hand. */
+  .copy-lead {
+    @apply text-base leading-relaxed text-gray-red/80 md:text-lg;
+  }
+  .copy-body {
+    @apply text-base leading-relaxed text-gray-red/80;
+  }
+  .copy-note {
+    @apply text-sm leading-relaxed text-gray-red/80;
+  }
+
+  /* The small uppercase label used for form labels, section labels and table headings, e.g.
+     "ABOUT THIS SERVICE". The font is set here too, because the base styles give every h2 the
+     script font. Layout bits (margin, alignment) stay as utilities next to it. */
+  .label-caps {
+    @apply text-sm font-semibold uppercase tracking-widest text-gray-red;
+    font-family: var(--font-sans);
+    font-style: normal;
   }
 }
 
