@@ -1,9 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { Link } from "@/lib/router";
 import Bow from "../../assets/bow.svg";
-import heroImage from "../../assets/images/hero-softgel-extensions.webp";
 import emblem from "../../assets/logo/emblem-pink.png";
 import Button from "../../components/ui/Button";
 import { LoadingBar } from "../../components/ui/LoadingBar";
@@ -16,12 +16,14 @@ import Blush from "../../components/ui/Blush";
 import LoadError from "../../components/ui/LoadError";
 import CtaBand from "../../components/home/CtaBand";
 import Section from "../../components/layout/Section";
-import { ABOUT_TEXT,FACEBOOK_URL,FEATURES,HERO_TEXT,OFFER_TEXT } from "../../data/home";
+import { ABOUT_TEXT,DEFAULT_HERO_IMAGE,FACEBOOK_URL,FEATURES,HERO_TEXT,OFFER_TEXT } from "../../data/home";
 import { sectionTitleClass } from "../../components/ui/styles";
 import { useHome } from "../../hooks/useHome";
 
 export default function Home() {
   const { retryProfile, contentError, reloadContent, isBusy, content, faqs, nailists, about, profileCheckFailed, stripItems } = useHome();
+  // A broken or deleted hero photo leaves the soft background instead of a broken-image icon
+  const [heroFailed, setHeroFailed] = useState(false);
 
   if (isBusy) return <LoadingBar label="Loading" />;
 
@@ -55,11 +57,14 @@ export default function Home() {
             The hero is as tall as the screen under the nav, up to 44rem on big screens, so on a
             laptop its content is centered in view instead of pushed below the fold. */}
         <div className="relative h-100 lg:absolute lg:inset-y-0 lg:right-0 lg:h-auto lg:w-1/2">
-          <img
-            src={heroImage.src}
-            alt="Soft gel extensions by Clawholics by Max"
-            className="absolute inset-0 h-full w-full rounded-bl-4xl object-cover mask-[linear-gradient(to_bottom,black_35%,rgba(0,0,0,0.9)_48%,rgba(0,0,0,0.72)_60%,rgba(0,0,0,0.5)_72%,rgba(0,0,0,0.28)_83%,rgba(0,0,0,0.1)_92%,transparent)] lg:mask-[linear-gradient(to_right,transparent,rgba(0,0,0,0.12)_8%,rgba(0,0,0,0.4)_16%,rgba(0,0,0,0.72)_26%,rgba(0,0,0,0.92)_36%,black_46%),linear-gradient(to_bottom,black_35%,rgba(0,0,0,0.9)_48%,rgba(0,0,0,0.72)_60%,rgba(0,0,0,0.5)_72%,rgba(0,0,0,0.28)_83%,rgba(0,0,0,0.1)_92%,transparent)] lg:mask-intersect object-[50%_50%] lg:object-[50%_48%]"
-          />
+          {!heroFailed && (
+            <img
+              src={content.home_hero_image || DEFAULT_HERO_IMAGE}
+              alt="Soft gel extensions by Clawholics by Max"
+              onError={() => setHeroFailed(true)}
+              className="absolute inset-0 h-full w-full rounded-bl-4xl object-cover mask-[linear-gradient(to_bottom,black_35%,rgba(0,0,0,0.9)_48%,rgba(0,0,0,0.72)_60%,rgba(0,0,0,0.5)_72%,rgba(0,0,0,0.28)_83%,rgba(0,0,0,0.1)_92%,transparent)] lg:mask-[linear-gradient(to_right,transparent,rgba(0,0,0,0.12)_8%,rgba(0,0,0,0.4)_16%,rgba(0,0,0,0.72)_26%,rgba(0,0,0,0.92)_36%,black_46%),linear-gradient(to_bottom,black_35%,rgba(0,0,0,0.9)_48%,rgba(0,0,0,0.72)_60%,rgba(0,0,0,0.5)_72%,rgba(0,0,0,0.28)_83%,rgba(0,0,0,0.1)_92%,transparent)] lg:mask-intersect object-[50%_50%] lg:object-[50%_48%]"
+            />
+          )}
         </div>
 
         <div className="relative mx-auto grid w-full grid-cols-1 max-w-6xl items-center px-4 md:px-8 lg:min-h-[min(44rem,calc(100svh-4rem))] lg:grid-cols-2">
@@ -206,7 +211,7 @@ export default function Home() {
         title="Ready for your next set?"
         text="Pick a service and a time. We handle the rest."
         primary={{ to: "/services", label: "Book now" }}
-        secondary={{ to: "/contact-us", label: "Contact us" }}
+        secondary={{ to: "/contact", label: "Contact us" }}
       />
       <FloatingFacebookButton href={FACEBOOK_URL} />
     </>

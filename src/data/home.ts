@@ -1,6 +1,11 @@
 import { Heart, Mail, Sparkles, Users } from "lucide-react";
 import { type Feature } from "../types/home";
 
+// The hero photo used until an admin sets one (Homepage > Home Hero Image). It lives in R2, not in
+// the bundle, so the live site still has a photo while content comes from a backend that doesn't
+// have the home_hero_image key yet.
+export const DEFAULT_HERO_IMAGE = "https://images.clawholicsbymax.com/content/hero-softgel-extensions.webp";
+
 export const FEATURES: Feature[] = [
   {
     icon: Sparkles,
@@ -12,7 +17,7 @@ export const FEATURES: Feature[] = [
     icon: Users,
     title: "Pick your artist",
     text: "Choose a master or junior technician and book the one whose work you love.",
-    to: "/team",
+    to: "/artists",
   },
   {
     icon: Heart,
@@ -24,7 +29,7 @@ export const FEATURES: Feature[] = [
     icon: Mail,
     title: "Easy to reach",
     text: "Message us, call, or find us on social media, and we will get back to you soon.",
-    to: "/contact-us",
+    to: "/contact",
   },
 ];
 

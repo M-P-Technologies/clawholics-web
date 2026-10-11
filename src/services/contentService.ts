@@ -23,6 +23,7 @@ export type HomeCMSContent = {
   home_services_subtitle: string;
   home_about_subtitle: string;
   home_about_image: string;
+  home_hero_image: string;
 };
 
 export const fetchHomeContent = async () => {

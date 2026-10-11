@@ -19,7 +19,8 @@ import {
   type CarouselItem,
 } from "../services/carouselService";
 
-import { uploadImage } from "../services/uploadService";
+import { PHOTO_UPLOAD_OPTIONS, uploadImage } from "../services/uploadService";
+import { DEFAULT_HERO_IMAGE } from "../data/home";
 import { useToast } from "../components/ui/ToastProvider";
 import EditActions from "../components/admin/EditActions";
 import Button from "../components/ui/Button";
@@ -37,6 +38,7 @@ const emptyHomeContent: HomeCMSContent = {
   home_services_subtitle: "",
   home_about_subtitle: "",
   home_about_image: "",
+  home_hero_image: "",
 };
 
 const MAX_CAROUSEL_IMAGES = 10;
@@ -106,6 +108,99 @@ const getFileName = (url: string) => {
   return url.split("/").pop() || url;
 };
 
+type ImageFieldProps = {
+  title: string;
+  value: string;
+  isEditing: boolean;
+  isUploading: boolean;
+  onUploadingChange: (uploading: boolean) => void;
+  onChange: (url: string) => void;
+  onPreview: (url: string) => void;
+};
+
+// One photo: shows its file name (click to preview), and while editing lets you remove it or
+// upload another.
+const ImageField = ({ title, value, isEditing, isUploading, onUploadingChange, onChange, onPreview }: ImageFieldProps) => {
+  const toast = useToast();
+
+  return (
+    <div className="flex flex-col gap-4 bg-light-orange rounded-sm sm:rounded-sm px-4 sm:px-4 py-2">
+      <CardTitle label={title} />
+
+      {value && (
+        <div className="flex items-center justify-between w-full min-h-[36px] bg-light-orange rounded-md px-4 py-1 overflow-visible border border-crimson-light/80">
+          <Button
+            variant="bare"
+            type="button"
+            onClick={() => onPreview(value)}
+            className="min-w-0 flex-1 cursor-pointer text-left text-[16px] leading-none truncate text-gray-red hover:underline"
+          >
+            {getFileName(value)}
+          </Button>
+
+          {isEditing && (
+            <Button
+              variant="bare"
+              type="button"
+              onClick={() => onChange("")}
+              disabled={isUploading}
+              className="flex items-center justify-center w-7 h-7 shrink-0"
+            >
+              <XIcon size={28} className="text-crimson" />
+            </Button>
+          )}
+        </div>
+      )}
+
+      {isEditing && !value && (
+        <label
+          className={`flex flex-col items-center justify-center w-full ${
+            !isUploading ? "cursor-pointer" : "cursor-not-allowed"
+          }`}
+        >
+          <div className="flex items-center justify-center w-10.5 h-10.5 rounded-sm bg-crimson/15 text-gray-red">
+            <UploadIcon size={28} className="text-crimson" />
+          </div>
+
+          <p className="text-[13px] text-gray-red">
+            {isUploading ? "Uploading photo..." : "Click here to upload a photo"}
+          </p>
+
+          <input
+            type="file"
+            accept="image/png, image/jpeg, image/webp"
+            disabled={isUploading}
+            className="border border-crimson-light focus:border-crimson hidden"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+
+              try {
+                onUploadingChange(true);
+
+                const data = await uploadImage(file, "content", null, null, PHOTO_UPLOAD_OPTIONS);
+                const imageUrl = data?.imageUrl;
+
+                if (!imageUrl) {
+                  throw new Error("No image URL returned.");
+                }
+
+                onChange(imageUrl);
+              } catch (error) {
+                console.error("Failed to upload image:", error);
+                toast.show("error", "Photo not uploaded", "We couldn't upload that photo. Please check that it is an image file and try again.");
+              } finally {
+                onUploadingChange(false);
+                e.target.value = "";
+              }
+            }}
+          />
+        </label>
+      )}
+    </div>
+  );
+};
+
 export default function AS_Homepage() {
   const toast = useToast();
   const { getToken } = useAuth();
@@ -126,6 +221,7 @@ export default function AS_Homepage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isUploadingCarousel, setIsUploadingCarousel] = useState(false);
   const [isUploadingAboutImage, setIsUploadingAboutImage] = useState(false);
+  const [isUploadingHeroImage, setIsUploadingHeroImage] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -142,6 +238,8 @@ export default function AS_Homepage() {
           home_services_subtitle: contentData.home_services_subtitle || "",
           home_about_subtitle: contentData.home_about_subtitle || "",
           home_about_image: contentData.home_about_image || "",
+          // Prefilled so a backend without the key can still be saved (every field is required)
+          home_hero_image: contentData.home_hero_image || DEFAULT_HERO_IMAGE,
         };
 
         const normalizedCarousel: CarouselItem[] = carouselData
@@ -237,6 +335,7 @@ export default function AS_Homepage() {
         home_services_subtitle: refreshedContent.home_services_subtitle || "",
         home_about_subtitle: refreshedContent.home_about_subtitle || "",
         home_about_image: refreshedContent.home_about_image || "",
+        home_hero_image: refreshedContent.home_hero_image || DEFAULT_HERO_IMAGE,
       };
 
       const normalizedRefreshedCarousel: CarouselItem[] = refreshedCarousel
@@ -297,6 +396,16 @@ export default function AS_Homepage() {
                   value={homeContent.home_title}
                   onChange={(e) => updateField("home_title", e.target.value)}
                   isEditing={isEditing}
+                />
+
+                <ImageField
+                  title="Home Hero Image"
+                  value={homeContent.home_hero_image}
+                  isEditing={isEditing}
+                  isUploading={isUploadingHeroImage}
+                  onUploadingChange={setIsUploadingHeroImage}
+                  onChange={(url) => updateField("home_hero_image", url)}
+                  onPreview={setPreviewImageUrl}
                 />
 
                 <div className="flex flex-col gap-4 bg-light-orange rounded-sm sm:rounded-sm px-4 sm:px-4 py-2">
@@ -364,7 +473,7 @@ export default function AS_Homepage() {
                           try {
                             setIsUploadingCarousel(true);
 
-                            const data = await uploadImage(file, "carousel");
+                            const data = await uploadImage(file, "carousel", null, null, PHOTO_UPLOAD_OPTIONS);
                             const imageUrl = data?.imageUrl;
 
                             if (!imageUrl) {
@@ -424,91 +533,20 @@ export default function AS_Homepage() {
                   isEditing={isEditing}
                 />
 
-                <div className="flex flex-col gap-4 bg-light-orange rounded-sm sm:rounded-sm px-4 sm:px-4 py-2">
-                  <CardTitle label="Home About Image" />
-
-                  {homeContent.home_about_image && (
-                    <div className="flex items-center justify-between w-full min-h-[36px] bg-light-orange rounded-md px-4 py-1 overflow-visible border border-crimson-light/80">
-                      <Button
-                        variant="bare"
-                        type="button"
-                        onClick={() =>
-                          setPreviewImageUrl(homeContent.home_about_image)
-                        }
-                        className="min-w-0 flex-1 cursor-pointer text-left text-[16px] leading-none truncate text-gray-red hover:underline"
-                      >
-                        {getFileName(homeContent.home_about_image)}
-                      </Button>
-
-                      {isEditing && (
-                        <Button
-                          variant="bare"
-                          type="button"
-                          onClick={() => updateField("home_about_image", "")}
-                          disabled={isUploadingAboutImage}
-                          className="flex items-center justify-center w-7 h-7 shrink-0"
-                        >
-                          <XIcon size={28} className="text-crimson" />
-                        </Button>
-                      )}
-                    </div>
-                  )}
-
-                  {isEditing && !homeContent.home_about_image && (
-                    <label
-                      className={`flex flex-col items-center justify-center w-full ${
-                        !isUploadingAboutImage
-                          ? "cursor-pointer"
-                          : "cursor-not-allowed"
-                      }`}
-                    >
-                      <div className="flex items-center justify-center w-10.5 h-10.5 rounded-sm bg-crimson/15 text-gray-red">
-                        <UploadIcon size={28} className="text-crimson" />
-                      </div>
-
-                      <p className="text-[13px] text-gray-red">
-                        {isUploadingAboutImage
-                          ? "Uploading photo..."
-                          : "Click here to upload a photo"}
-                      </p>
-
-                      <input
-                        type="file"
-                        accept="image/png, image/jpeg, image/webp"
-                        disabled={isUploadingAboutImage}
-                        className="border border-crimson-light focus:border-crimson hidden"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-
-                          try {
-                            setIsUploadingAboutImage(true);
-
-                            const data = await uploadImage(file, "content");
-                            const imageUrl = data?.imageUrl;
-
-                            if (!imageUrl) {
-                              throw new Error("No image URL returned.");
-                            }
-
-                            updateField("home_about_image", imageUrl);
-                          } catch (error) {
-                            console.error("Failed to upload image:", error);
-                            toast.show("error", "Photo not uploaded", "We couldn't upload that photo. Please check that it is an image file and try again.");
-                          } finally {
-                            setIsUploadingAboutImage(false);
-                            e.target.value = "";
-                          }
-                        }}
-                      />
-                    </label>
-                  )}
-                </div>
+                <ImageField
+                  title="Home About Image"
+                  value={homeContent.home_about_image}
+                  isEditing={isEditing}
+                  isUploading={isUploadingAboutImage}
+                  onUploadingChange={setIsUploadingAboutImage}
+                  onChange={(url) => updateField("home_about_image", url)}
+                  onPreview={setPreviewImageUrl}
+                />
 
                 <EditActions
                   isEditing={isEditing}
                   isSaving={isSaving}
-                  busy={isUploadingCarousel || isUploadingAboutImage}
+                  busy={isUploadingCarousel || isUploadingAboutImage || isUploadingHeroImage}
                   onEdit={() => setIsEditing(true)}
                   onCancel={handleCancel}
                   onSave={handleSave}
