@@ -1,6 +1,7 @@
-import { ChevronDown as DropdownIcon, Plus as PlusIcon, Upload as UploadIcon, X as XIcon } from "lucide-react";
+import { ChevronDown as DropdownIcon, Plus as PlusIcon, Star as StarIcon, Upload as UploadIcon, X as XIcon } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import AS_ImagePreviewModal from "./AS_ImagePreviewModal";
+import { pickMainPhoto } from "../../utils/mainPhoto";
 
 import {
   addServiceGalleryImage,
@@ -21,7 +22,7 @@ import ServicePricingFields, {
   type PricingDraft,
 } from "./ServicePricingFields";
 
-import { uploadImage } from "../../services/uploadService";
+import { PHOTO_UPLOAD_OPTIONS, uploadImage } from "../../services/uploadService";
 import { useToast } from "../ui/ToastProvider";
 import EditActions from "./EditActions";
 import Button from "../ui/Button";
@@ -129,6 +130,8 @@ const AS_NailServiceDropdown: React.FC<AS_NailServiceDropdownProps> = ({
   const [originalPricing, setOriginalPricing] = useState<PricingDraft>(() => draftFromService(service));
   const [duration, setDuration] = useState(service?.duration ?? "");
   const [gallery, setGallery] = useState<ServiceGalleryImage[]>([]);
+  // The photo that stands for the service on the site; null means "the first one"
+  const [starredUrl, setStarredUrl] = useState<string | null>(service?.image ?? null);
 
   const [originalName, setOriginalName] = useState(service?.name ?? "");
   const [originalDescription, setOriginalDescription] = useState(
@@ -179,6 +182,7 @@ const AS_NailServiceDropdown: React.FC<AS_NailServiceDropdownProps> = ({
     setDescription("");
     setDuration("");
     setGallery([]);
+    setStarredUrl(null);
     setPricing(emptyDraft());
     setOriginalPricing(emptyDraft());
 
@@ -202,6 +206,7 @@ const AS_NailServiceDropdown: React.FC<AS_NailServiceDropdownProps> = ({
     setPricing(originalPricing);
     setDuration(originalDuration);
     setGallery(originalGallery);
+    setStarredUrl(service?.image ?? null);
     setIsEditing(false);
   };
 
@@ -224,7 +229,7 @@ const AS_NailServiceDropdown: React.FC<AS_NailServiceDropdownProps> = ({
 
       const uploadedImages = await Promise.all(
         selectedFiles.map(async (file, index) => {
-          const data = await uploadImage(file, "service-gallery", token, clerkId);
+          const data = await uploadImage(file, "service-gallery", token, clerkId, PHOTO_UPLOAD_OPTIONS);
           return {
             id: Date.now() + index,
             service_id: service?.id ?? 0,
@@ -266,6 +271,9 @@ const AS_NailServiceDropdown: React.FC<AS_NailServiceDropdownProps> = ({
     );
   };
 
+  const mainPhotoUrl = pickMainPhoto(gallery.map((image) => image.image_url), starredUrl);
+  const isMain = (image: ServiceGalleryImage) => image.image_url === mainPhotoUrl;
+
   const handleSave = async () => {
     const trimmedName = name.trim();
     const trimmedDescription = description.trim();
@@ -286,7 +294,7 @@ const AS_NailServiceDropdown: React.FC<AS_NailServiceDropdownProps> = ({
       setIsSaving(true);
       const token = tokenFetcher ? await tokenFetcher() : null;
 
-      const mainImage = gallery[0].image_url;
+      const mainImage = pickMainPhoto(gallery.map((image) => image.image_url), starredUrl)!;
 
       if (isCreateMode) {
         const createdService = await createService(
@@ -356,6 +364,7 @@ const AS_NailServiceDropdown: React.FC<AS_NailServiceDropdownProps> = ({
       setDescription(updatedService.description);
       setDuration(updatedService.duration);
       setGallery(sortedGallery);
+      setStarredUrl(updatedService.image ?? null);
       setPricing(draftFromService(updatedService));
       setOriginalPricing(draftFromService(updatedService));
 
@@ -470,6 +479,9 @@ const AS_NailServiceDropdown: React.FC<AS_NailServiceDropdownProps> = ({
 
             <div className="bg-light-orange rounded-sm sm:rounded-sm px-4 sm:px-4 py-2">
               <CardTitle label={`Photos (${gallery.length}/${MAX_IMAGES})`} />
+              {gallery.length > 0 && (
+                <p className="mb-2 text-[13px] text-gray-red/80">The starred photo is the one shown for this service on the website.</p>
+              )}
 
               <div className="flex flex-col gap-2">
                 {gallery.map((image) => (
@@ -484,6 +496,19 @@ const AS_NailServiceDropdown: React.FC<AS_NailServiceDropdownProps> = ({
                       className="min-w-0 flex-1 cursor-pointer text-left text-[16px] leading-none truncate text-gray-red hover:underline"
                     >
                       {image.image_url.split("/").pop()}
+                    </Button>
+
+                    <Button
+                      variant="bare"
+                      type="button"
+                      aria-label={isMain(image) ? "Main photo of this service" : "Make this the main photo"}
+                      aria-pressed={isMain(image)}
+                      title={isMain(image) ? "Main photo: shown for this service on the website" : "Make this the main photo"}
+                      disabled={!isEditing || isUploading}
+                      onClick={() => setStarredUrl(image.image_url)}
+                      className="flex items-center justify-center w-7 h-7 shrink-0 disabled:cursor-default disabled:opacity-100"
+                    >
+                      <StarIcon size={22} className={isMain(image) ? "fill-crimson text-crimson" : "text-crimson/40"} />
                     </Button>
 
                     {isEditing && (

@@ -2,15 +2,12 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "@/lib/router";
 import { fetchServiceById, fetchServiceGallery, type ServiceGalleryImage, type NailService } from "../services/serviceService";
 import { fetchTacs, type Tac } from "../services/tacService";
-import { useUser, useAuth } from "@clerk/nextjs";
 import { startingPrice } from "../services/pricing";
-import { fetchProfile } from "../services/userService";
+import { useStartBooking } from "./useStartBooking";
 
 export function useAppointment() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { isSignedIn, user } = useUser();
-  const { getToken } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [service, setService] = useState<NailService | null>(null);
@@ -84,47 +81,11 @@ export function useAppointment() {
     loadData();
   }, [id]);
 
+  const startBooking = useStartBooking(showModal);
+
   const handleContinue = async () => {
     if (!service) return;
-
-    if (!isSignedIn || !user) {
-      showModal(
-        "Login Required",
-        "Please log in to book. Once you are signed in, you can pick your artist, date and time.",
-        () => navigate("/login"),
-        "Go to Login",
-      );
-
-      return;
-    }
-
-    const token = await getToken();
-    const profile = await fetchProfile(user.id, token);
-
-    if (!profile || !profile.onboarded) {
-      showModal(
-        "Onboarding Required",
-        "We need a few details, like your phone number and date of birth, so our team can reach you about your appointment. It only takes a minute.",
-        () => navigate("/onboarding"),
-        "Go to Onboarding",
-      );
-      return;
-    }
-
-    navigate("/booking", {
-      state: {
-        service_id: service.id,
-        service_name: service.name,
-        junior_price: service.junior_price,
-        master_price: service.master_price,
-        service_description: service.description,
-        service_category: service.category,
-        service_category_id: service.category_id,
-        pricing_type: service.pricing_type,
-        price: service.price,
-        variants: service.variants,
-      },
-    });
+    await startBooking(service);
   };
 
   const closeModal = () => setModalOpen(false);

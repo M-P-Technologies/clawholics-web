@@ -51,3 +51,17 @@ describe("uploadImage compression options", () => {
     );
   });
 });
+
+describe("PHOTO_UPLOAD_OPTIONS", () => {
+  it("keeps 1600px and up to 400KB for photos shown large, within the server's 500KB limit", async () => {
+    const { PHOTO_UPLOAD_OPTIONS } = await import("../services/uploadService");
+    expect(PHOTO_UPLOAD_OPTIONS).toEqual({ maxWidthOrHeight: 1600, maxSizeKB: 400 });
+
+    vi.mocked(imageCompression).mockResolvedValue(blobOfKB(300));
+    await uploadImage(png(), "carousel", null, null, PHOTO_UPLOAD_OPTIONS);
+    expect(imageCompression).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ maxWidthOrHeight: 1600, maxSizeMB: 400 / 1024 }),
+    );
+  });
+});

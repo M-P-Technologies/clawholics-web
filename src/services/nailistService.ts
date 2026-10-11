@@ -10,6 +10,13 @@ export type Nailist = {
   offered_services?: string[];
 };
 
+export type NailistGalleryImage = {
+  id: number;
+  nailist_id: number;
+  image_url: string;
+  position: number;
+};
+
 export type NailistDayOffs = {
   regularDays: number[];
   customDates: string[];
@@ -220,4 +227,47 @@ export const updateNailistDayOffs = async (
   }
 
   return data;
+};
+
+/** One artist, or null when there is no such artist. */
+export const fetchNailistById = async (id: number): Promise<Nailist | null> => {
+  const res = await fetch(`${API_BASE_URL}/nailists/${id}?t=${Date.now()}`, {
+    headers: { "x-clawholics-origin": "frontend" },
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error("Failed to fetch artist");
+  return res.json();
+};
+
+export const fetchNailistGallery = async (id: number): Promise<NailistGalleryImage[]> => {
+  const res = await fetch(`${API_BASE_URL}/nailists/${id}/gallery?t=${Date.now()}`, {
+    headers: { "x-clawholics-origin": "frontend" },
+  });
+  if (!res.ok) throw new Error("Failed to fetch artist gallery");
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
+};
+
+export const addNailistGalleryImage = async (
+  nailistId: number,
+  imageUrl: string,
+  token?: string | null,
+  clerkId?: string | null,
+): Promise<{ id: number }> => {
+  const res = await fetch(`${API_BASE_URL}/nailists/${nailistId}/gallery`, {
+    method: "POST",
+    headers: getHeaders(token, clerkId),
+    body: JSON.stringify({ image_url: imageUrl }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || data.error || "Failed to add artist gallery image");
+  return data;
+};
+
+export const deleteNailistGalleryImage = async (id: number, token?: string | null, clerkId?: string | null) => {
+  const res = await fetch(`${API_BASE_URL}/nailist-gallery/${id}`, {
+    method: "DELETE",
+    headers: getHeaders(token, clerkId),
+  });
+  if (!res.ok) throw new Error("Failed to delete artist gallery image");
 };

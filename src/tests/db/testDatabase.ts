@@ -1,7 +1,7 @@
 // Shared setup for the Postgres integration tests in this folder. They drop and rebuild the
 // public schema, so they only ever run against a localhost database (see scripts/test-db.mjs,
 // which runs the files one at a time).
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import postgres from "postgres";
 
@@ -15,14 +15,19 @@ if (process.env.TEST_DATABASE_URL && !TEST_DATABASE_URL) {
 }
 
 const supabaseDir = path.resolve(__dirname, "../../../supabase");
-const migration = readFileSync(path.join(supabaseDir, "migrations/20261010000000_init.sql"), "utf8");
+// Every migration, oldest first, like `supabase db reset` applies them
+const migrationsDir = path.join(supabaseDir, "migrations");
+const migrations = readdirSync(migrationsDir)
+  .filter((file) => file.endsWith(".sql"))
+  .sort()
+  .map((file) => readFileSync(path.join(migrationsDir, file), "utf8"));
 const seed = readFileSync(path.join(supabaseDir, "seed.sql"), "utf8");
 
 /** A fresh schema with the migration and dev seed, and the app pointed at it in `next` mode. */
 export async function resetTestDatabase() {
   const admin = postgres(TEST_DATABASE_URL!, { max: 1, onnotice: () => {} });
   await admin.unsafe("drop schema public cascade; create schema public;");
-  await admin.unsafe(migration);
+  for (const migration of migrations) await admin.unsafe(migration);
   await admin.unsafe(seed);
   process.env.DATABASE_URL = TEST_DATABASE_URL;
   process.env.API_BACKEND = "next";

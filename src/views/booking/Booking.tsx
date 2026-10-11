@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import AlertModal from "../../components/ui/AlertModal";
 import BookingOptions from "../../components/booking/BookingOptions";
 import Button from "../../components/ui/Button";
@@ -17,7 +18,7 @@ import { LoadingBar } from "../../components/ui/LoadingBar";
 import { useBooking } from "../../hooks/useBooking";
 
 export default function Booking() {
-  const { priceLabel, pageData, isPageLoading, pageError, nailists, selectedNailist, selectedDate, selectedTime, setSelectedTime, timeSlots, month, setMonth, modalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, locationUrl, locationText, isDisabledDate, formatSlot, handleContinue, isSubmitting, sectionLabel, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage } = useBooking();
+  const { priceLabel, pageData, isPageLoading, pageError, nailists, selectedNailist, selectedDate, selectedTime, setSelectedTime, timeSlots, month, setMonth, modalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, locationUrl, locationText, isDisabledDate, formatSlot, handleContinue, isSubmitting, sectionLabel, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage } = useBooking();
 
   if (isPageLoading) {
     return <LoadingBar label="Loading booking details" />;
@@ -84,7 +85,10 @@ export default function Booking() {
 
             <div className="flex flex-col gap-4">
               <p className={sectionLabel}>Pick date &amp; time</p>
-              <div className="flex flex-col gap-4 lg:flex-row">
+              {/* Side by side only when this column itself is wide enough (the two blocks need about 565px);
+                  a screen-width breakpoint is wrong here, since beside the summary panel the column is narrower. */}
+              <div className="@container">
+              <div className="flex flex-col gap-4 @xl:flex-row">
                 <div className="flex items-center justify-center rounded-sm border border-crimson-light/80 bg-light-orange px-4 py-4">
                   <DayCalendar
                     month={month}
@@ -104,6 +108,7 @@ export default function Booking() {
                   format={formatSlot}
                   emptyText="No schedule available"
                 />
+              </div>
               </div>
             </div>
 
@@ -129,6 +134,11 @@ export default function Booking() {
 
           {/* SUMMARY */}
           <Panel title="Booking summary">
+            {service_image && (
+              <div className="relative aspect-4/3 w-full overflow-hidden rounded-sm bg-sand/50">
+                <Image src={service_image} alt={service_name} fill sizes="(max-width: 1024px) 100vw, 560px" className="object-cover" />
+              </div>
+            )}
             <div className="flex flex-col gap-4">
               <p className="w-fit rounded-md border border-crimson-light px-4 py-1 text-sm font-bold uppercase tracking-widest text-crimson">
                 {service_category}

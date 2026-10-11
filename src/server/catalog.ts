@@ -94,6 +94,10 @@ export const getServiceGallery = (serviceId: number) => getSql()`
   select * from service_gallery where service_id = ${serviceId} order by position asc limit 10
 `;
 
+export const getNailistGallery = (nailistId: number) => getSql()`
+  select * from nailist_gallery where nailist_id = ${nailistId} order by position asc limit 10
+`;
+
 // One query instead of the Worker's two extra queries per artist.
 const nailistsWithServices = (id: number | null) => {
   const sql = getSql();
