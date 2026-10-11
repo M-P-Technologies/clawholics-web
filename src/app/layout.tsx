@@ -36,7 +36,7 @@ const localization = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body>
+      <body suppressHydrationWarning>
         <ClerkProvider localization={localization} signInUrl="/login" signUpUrl="/signup" afterSignOutUrl="/">
           <ToastProvider>
             <ScrollToTop />
