@@ -113,7 +113,7 @@ export default function ArtistSpotlight({ artists }: { artists: Nailist[] }) {
               </Button>
             </>
           )}
-          <Button to="/team" aria-label="Meet all of our artists" className="sm:ml-auto">
+          <Button to="/artists" aria-label="Meet all of our artists" className="sm:ml-auto">
             Meet the team
           </Button>
         </div>

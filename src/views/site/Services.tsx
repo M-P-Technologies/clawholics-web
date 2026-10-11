@@ -114,7 +114,7 @@ export default function Services() {
         title="Not sure what to get?"
         text="Talk to our support or ask one of our artists. They will help you pick the right set."
         primary={{ href: FACEBOOK_URL, label: "Talk to support" }}
-        secondary={{ to: "/team", label: "Meet our artists" }}
+        secondary={{ to: "/artists", label: "Meet our artists" }}
       />
     </PageShell>
   );

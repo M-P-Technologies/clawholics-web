@@ -27,7 +27,8 @@ export default function Footer() {
   };
 
   useEffect(() => {
-    fetchHomeContent().then(setData);
+    // The footer works without the social links, so a failed request just leaves them out
+    fetchHomeContent().then(setData).catch(() => {});
   }, []);
 
   const socials = data
@@ -48,7 +49,7 @@ export default function Footer() {
             <p className={columnTitle}>Explore</p>
             <Link to="/" className={linkClass}>Home</Link>
             <Link to="/services" className={linkClass}>Services</Link>
-            <Link to="/team" className={linkClass}>Artists</Link>
+            <Link to="/artists" className={linkClass}>Artists</Link>
           </nav>
 
           <nav aria-label="Help" className="flex flex-col gap-2">
@@ -63,7 +64,7 @@ export default function Footer() {
             >
               FAQ
             </Button>
-            <Link to="/contact-us" className={linkClass}>Contact us</Link>
+            <Link to="/contact" className={linkClass}>Contact us</Link>
           </nav>
 
           <div className="flex flex-col gap-2">
