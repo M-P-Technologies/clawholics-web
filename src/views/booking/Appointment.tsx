@@ -9,7 +9,9 @@ import Panel from "../../components/layout/Panel";
 import Section from "../../components/layout/Section";
 import { infoLabelClass } from "../../components/ui/styles";
 import { LoadingBar } from "../../components/ui/LoadingBar";
+import PhotoCarousel from "../../components/booking/PhotoCarousel";
 import ServiceGallery from "../../components/booking/ServiceGallery";
+import ServiceOverview from "../../components/booking/ServiceOverview";
 import { useAppointment } from "../../hooks/useAppointment";
 
 export default function Appointment() {
@@ -41,14 +43,29 @@ export default function Appointment() {
           {/* SERVICE DETAILS */}
           <div className="flex flex-col gap-4 md:gap-8">
             <BackButton />
-            <div className="flex flex-col gap-4">
-              <p className="w-fit rounded-md border border-crimson-light px-4 py-1 text-sm font-bold uppercase tracking-widest text-crimson">
+            {/* Phones and tablets: the category pill, then the photos as a carousel (the main photo
+                first). From `lg` up the photos stay in the gallery at the bottom. */}
+            <p className="w-fit rounded-md border border-crimson-light px-4 py-1 label-caps text-crimson lg:hidden">
+              {service.category}
+            </p>
+            <div className="lg:hidden">
+              <PhotoCarousel
+                label={service.name}
+                photos={[...gallery].sort((a, b) => Number(b.image_url === service.image) - Number(a.image_url === service.image))}
+              />
+            </div>
+            {/* Phones and tablets get the compact overview; the table below is for `lg` and up */}
+            <div className="lg:hidden">
+              <ServiceOverview service={service} priceLines={priceLines} />
+            </div>
+            <div className="hidden flex-col gap-4 lg:flex">
+              <p className="w-fit rounded-md border border-crimson-light px-4 py-1 label-caps text-crimson">
                 {service.category}
               </p>
               <PageHeader title={service.name} subtitle={service.description} />
             </div>
 
-            <dl className="grid grid-cols-1 gap-x-4 gap-y-1 border-t border-crimson-light/80 pt-4 text-gray-red sm:grid-cols-[140px_1fr] sm:gap-y-4 md:pt-8 [&>dd:not(:last-child)]:mb-3 sm:[&>dd:not(:last-child)]:mb-0">
+            <dl className="hidden grid-cols-1 gap-x-4 gap-y-1 border-t border-crimson-light/80 pt-4 text-gray-red lg:grid sm:grid-cols-[140px_1fr] sm:gap-y-4 md:pt-8 [&>dd:not(:last-child)]:mb-3 sm:[&>dd:not(:last-child)]:mb-0">
               <dt className={infoLabelClass}>Duration</dt>
               <dd>{service.duration}</dd>
 
@@ -60,7 +77,7 @@ export default function Appointment() {
                   </p>
                 ))}
 
-                <p className="text-sm text-gray-red/80">
+                <p className="copy-note">
                   Final fees vary depending on the complexity of your design. The rest of
                   the payment is settled after your session.
                 </p>
@@ -84,10 +101,10 @@ export default function Appointment() {
             <div className="flex flex-col gap-4 md:gap-8">
               {terms.map((term) => (
                 <div key={term.id} className="flex flex-col gap-1">
-                  <h3 className="text-sm font-bold uppercase tracking-widest text-gray-red">
+                  <h3 className="label-caps">
                     {term.section}
                   </h3>
-                  <p className="whitespace-pre-line text-sm leading-relaxed text-gray-red/80">
+                  <p className="whitespace-pre-line copy-note">
                     {term.content}
                   </p>
                 </div>
@@ -97,7 +114,7 @@ export default function Appointment() {
         </div>
 
         {gallery.length > 0 && (
-          <div className="flex flex-col gap-4">
+          <div className="hidden flex-col gap-4 lg:flex">
             <h2 className="font-display font-normal not-italic uppercase tracking-widest text-gray-red text-xl md:text-2xl">
               {service.name} gallery
             </h2>
@@ -106,7 +123,7 @@ export default function Appointment() {
         )}
 
         <div className="flex justify-center">
-          <Button onClick={handleContinue} className="px-8 sm:px-16">
+          <Button onClick={handleContinue} className="w-full px-8 sm:w-auto sm:px-16">
             Book now
           </Button>
         </div>

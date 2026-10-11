@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, type CSSProperties } from "react";
 import { Link } from "@/lib/router";
 import { ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import { type StripItem } from "../../types/home";
+import { servicePath } from "../../utils/slug";
 import Button from "../ui/Button";
 
 interface PhotoStripProps {
@@ -38,7 +39,7 @@ function StripCaption({ item, visible = true }: { item: StripItem; visible?: boo
         </p>
       </div>
       <Link
-        to={`/appointment/${item.id}`}
+        to={servicePath(item)}
         aria-label={`Book ${item.name}`}
         tabIndex={visible ? 0 : -1}
         className={`${visible ? "pointer-events-auto" : "pointer-events-none"} shrink-0 rounded-md bg-crimson px-8 py-4 text-sm font-bold uppercase tracking-extrawide text-light-orange shadow-md shadow-crimson/30 transition-colors hover:bg-gray-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-orange`}

@@ -345,7 +345,7 @@ export function useBooking() {
     const token = await getToken();
     const profile = await fetchProfileIfExists(user.id, token);
 
-    // Safety check in case they bypassed the /appointment page
+    // Safety check in case they bypassed the service page
     if (!profile || !profile.onboarded) {
       showModal(
         "Onboarding Required",
@@ -422,7 +422,7 @@ export function useBooking() {
     });
   };
 
-  const sectionLabel = "text-sm font-bold uppercase tracking-widest text-gray-red";
+  const sectionLabel = "label-caps";
 
   // Holding the slot takes a moment, so the button shows progress and ignores a second click
   const handleContinue = async () => {

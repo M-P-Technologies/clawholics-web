@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "@/lib/router";
-import { fetchServiceById, fetchServiceGallery, type ServiceGalleryImage, type NailService } from "../services/serviceService";
+import { fetchServiceById, fetchServiceGallery, fetchServices, type ServiceGalleryImage, type NailService } from "../services/serviceService";
 import { fetchTacs, type Tac } from "../services/tacService";
 import { startingPrice } from "../services/pricing";
+import { findServiceByParam, servicePath } from "../utils/slug";
 import { useStartBooking } from "./useStartBooking";
 
 export function useAppointment() {
@@ -42,15 +43,31 @@ export function useAppointment() {
         setLoading(true);
         setNotFound(false);
 
+        // The address names the service (/services/hard-gel); older ones carry its id
+        let serviceId = /^\d+$/.test(id) ? Number(id) : null;
+        try {
+          const match = findServiceByParam(await fetchServices(), id);
+          if (match) serviceId = match.id;
+        } catch (err) {
+          // Without the list, only an id in the address can still be followed
+          if (serviceId === null) throw err;
+        }
+        if (serviceId === null) {
+          setNotFound(true);
+          return;
+        }
+
         const [serviceRes, galleryRes, tacsRes] = await Promise.allSettled([
-          fetchServiceById(Number(id)),
-          fetchServiceGallery(Number(id)),
+          fetchServiceById(serviceId),
+          fetchServiceGallery(serviceId),
           fetchTacs(),
         ]);
 
         // SERVICE
         if (serviceRes.status === "fulfilled") {
           setService(serviceRes.value as any);
+          // An id in the address is swapped for the service's name
+          if (/^\d+$/.test(id)) navigate(servicePath(serviceRes.value), { replace: true });
         } else {
           if (serviceRes.reason?.message === "Service not found") {
             setNotFound(true);

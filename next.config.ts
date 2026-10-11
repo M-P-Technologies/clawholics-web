@@ -38,6 +38,8 @@ const nextConfig: NextConfig = {
     return [
       { source: "/team", destination: "/artists", permanent: true },
       { source: "/contact-us", destination: "/contact", permanent: true },
+      // The service page used to live at /appointment/<id>
+      { source: "/appointment/:id", destination: "/services/:id", permanent: true },
     ];
   },
   async rewrites() {
