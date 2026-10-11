@@ -264,9 +264,12 @@ export default function Profile() {
                               {statusLabel}
                             </span>
 
-                            <div className="relative">
+                            <div className="relative" data-appointment-menu>
                               <Button
                                 variant="bare"
+                                aria-label="Appointment options"
+                                aria-haspopup="menu"
+                                aria-expanded={openDropdownId === appt.id}
                                 onClick={(e) => toggleAppointmentMenu(e, appt.id)}
                                 className="p-2 text-gray-red hover:bg-light-orange/40 rounded-full transition-colors flex items-center justify-center"
                               >

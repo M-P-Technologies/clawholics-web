@@ -1,0 +1,112 @@
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { useOnboarding } from "@/hooks/useOnboarding";
+
+const show = vi.fn();
+const navigate = vi.fn();
+const fetchProfile = vi.fn();
+const updateProfile = vi.fn();
+
+vi.mock("@clerk/nextjs", () => {
+  // Stable references, like Clerk's: the hook's effect depends on both
+  const user = { id: "user_1", firstName: "Ana", lastName: "Cruz", publicMetadata: {}, primaryEmailAddress: null };
+  const getToken = async () => "tok";
+  return {
+    useUser: () => ({ user, isLoaded: true }),
+    useAuth: () => ({ getToken }),
+  };
+});
+vi.mock("@/lib/router", () => ({ useNavigate: () => navigate }));
+vi.mock("@/components/ui/ToastProvider", () => ({ useToast: () => ({ show }) }));
+vi.mock("@/services/userService", async () => ({
+  ...(await vi.importActual<typeof import("@/services/userService")>("@/services/userService")),
+  fetchProfile: (...args: unknown[]) => fetchProfile(...args),
+  updateProfile: (...args: unknown[]) => updateProfile(...args),
+}));
+
+const { ProfileError, ProfileSaveError } = await import("@/services/userService");
+
+// The warning is sent on a timer, once the browser has moved off /onboarding
+const settle = () => act(() => new Promise((resolve) => setTimeout(resolve, 10)));
+const warnings = () => show.mock.calls.filter(([kind, title]) => kind === "info" && /profile/i.test(title));
+
+describe("leaving /onboarding without saving", () => {
+  beforeEach(() => {
+    show.mockReset();
+    navigate.mockReset();
+    updateProfile.mockReset();
+    fetchProfile.mockReset();
+    // A new account has no profile yet
+    fetchProfile.mockRejectedValue(new ProfileError(404));
+    window.history.pushState({}, "", "/onboarding");
+  });
+  afterEach(() => window.history.pushState({}, "", "/"));
+
+  it("reminds the user that the profile is still incomplete", async () => {
+    const { result, unmount } = renderHook(() => useOnboarding());
+    await waitFor(() => expect(result.current.isChecking).toBe(false));
+
+    window.history.pushState({}, "", "/services");
+    unmount();
+    await settle();
+
+    expect(warnings()).toHaveLength(1);
+  });
+
+  it("stays quiet when React only remounts the page in development", async () => {
+    const { result, unmount } = renderHook(() => useOnboarding());
+    await waitFor(() => expect(result.current.isChecking).toBe(false));
+
+    unmount(); // still on /onboarding
+    await settle();
+
+    expect(warnings()).toHaveLength(0);
+  });
+
+  it("stays quiet when the user is sent away before the form was ever shown", async () => {
+    // A finished profile is redirected to /profile, so there is nothing to remind them about
+    fetchProfile.mockResolvedValue({ role: "customer", onboarded: true });
+    const { unmount } = renderHook(() => useOnboarding());
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith("/profile", { replace: true }));
+
+    window.history.pushState({}, "", "/profile");
+    unmount();
+    await settle();
+
+    expect(warnings()).toHaveLength(0);
+  });
+
+  it("stays quiet after the profile was saved", async () => {
+    updateProfile.mockResolvedValue(undefined);
+    const { result, unmount } = renderHook(() => useOnboarding());
+    await waitFor(() => expect(result.current.isChecking).toBe(false));
+
+    act(() => result.current.setFormData({ firstName: "Ana", lastName: "Cruz", phone: "09171234567", dob: "01/02/1995", gender: "female" }));
+    await act(async () => {
+      await result.current.handleSubmit({ preventDefault() {} } as React.SyntheticEvent<HTMLFormElement>);
+    });
+    expect(updateProfile).toHaveBeenCalled();
+    expect(navigate).toHaveBeenCalledWith("/profile");
+
+    window.history.pushState({}, "", "/profile");
+    unmount();
+    await settle();
+
+    expect(warnings()).toHaveLength(0);
+  });
+
+  it("tells the user when the email is already taken, instead of blaming the connection", async () => {
+    updateProfile.mockRejectedValue(new ProfileSaveError(409, "This email is already used by another account."));
+    const { result } = renderHook(() => useOnboarding());
+    await waitFor(() => expect(result.current.isChecking).toBe(false));
+
+    act(() => result.current.setFormData({ firstName: "Ana", lastName: "Cruz", phone: "09171234567", dob: "01/02/1995", gender: "female" }));
+    await act(async () => {
+      await result.current.handleSubmit({ preventDefault() {} } as React.SyntheticEvent<HTMLFormElement>);
+    });
+
+    expect(result.current.submitError).toMatch(/already used by another account/i);
+    expect(result.current.submitError).not.toMatch(/connection/i);
+    expect(navigate).not.toHaveBeenCalledWith("/profile");
+  });
+});
