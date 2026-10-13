@@ -3,9 +3,9 @@
 import CarouselEditor, { MAX_CAROUSEL_IMAGES } from "../../components/admin/cms/CarouselEditor";
 import CmsEditor, { CmsLoadError } from "../../components/admin/cms/CmsEditor";
 import { ImageField, PanelSection, SaveBar, TextField } from "../../components/admin/cms/fields";
-import { LoadingBar } from "../../components/ui/LoadingBar";
 import { useAboutEditor } from "../../hooks/admin/useAboutEditor";
 import { ABOUT_DAYS, ABOUT_PREVIEW_PAGES } from "../../lib/admin/aboutEditor";
+import { CmsEditorSkeleton } from "../../components/admin/skeletons";
 
 // The About page's story, photo, studio gallery, location and opening hours, edited beside a live
 // preview. Its state and saving are in hooks/admin/useAboutEditor.
@@ -13,13 +13,7 @@ export default function AboutUs() {
   const editor = useAboutEditor();
   const { content, set, gallery } = editor;
 
-  if (editor.isLoading) {
-    return (
-      <div className="fixed inset-0 z-9999 flex items-center justify-center bg-light-orange">
-        <LoadingBar label="Loading About us" />
-      </div>
-    );
-  }
+  if (editor.isLoading) return <CmsEditorSkeleton title="About Us" />;
 
   if (editor.loadFailed) return <CmsLoadError title="About Us" what="About us" onRetry={editor.retry} />;
 

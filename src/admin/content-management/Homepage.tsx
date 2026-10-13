@@ -4,13 +4,13 @@ import CmsEditor, { CmsLoadError } from "../../components/admin/cms/CmsEditor";
 import { ElsewhereNote, IconPicker, ImageField, LinkField, PanelSection, SaveBar, SelectField, SubCard, TextField } from "../../components/admin/cms/fields";
 import StripEditor from "../../components/admin/cms/StripEditor";
 import { FontPicker, PalettePicker } from "../../components/admin/cms/ThemePickers";
-import { LoadingBar } from "../../components/ui/LoadingBar";
 import emblem from "../../assets/logo/emblem-pink.png";
 import footerLogo from "../../assets/logo/logo-pink-transparent.png";
 import { useHomeEditor } from "../../hooks/admin/useHomeEditor";
 import { HOME_PREVIEW_PAGES } from "../../lib/admin/cmsPages";
 import { FEATURE_ICONS, MAX_STRIP_SLIDES, SITE_LINK_OPTIONS } from "../../lib/homeSections";
 import { BODY_FONTS, DISPLAY_FONTS, SCRIPT_FONTS } from "../../lib/siteTheme";
+import { CmsEditorSkeleton } from "../../components/admin/skeletons";
 
 // Everything on the home page that isn't edited elsewhere, top to bottom, and the footer of every
 // page, beside a live preview. (The studio gallery's photos are edited in About Us.) The blocks
@@ -21,13 +21,7 @@ export default function Homepage() {
   const { content, sections, services, set, setText, setFeature, setStrip, upload, uploadTo, uploading } = editor;
   const t = sections.text;
 
-  if (editor.isLoading) {
-    return (
-      <div className="fixed inset-0 z-9999 flex items-center justify-center bg-light-orange">
-        <LoadingBar label="Loading the homepage" />
-      </div>
-    );
-  }
+  if (editor.isLoading) return <CmsEditorSkeleton title="Homepage" />;
 
   if (editor.loadFailed) return <CmsLoadError title="Homepage" what="the homepage" onRetry={editor.retry} />;
 

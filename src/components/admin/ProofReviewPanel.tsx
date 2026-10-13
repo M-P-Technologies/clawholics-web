@@ -12,6 +12,7 @@ import { getProofState } from "../../services/proofState";
 import { parseServerTime } from "../../services/serverTime";
 import ImagePreviewModal from "./ImagePreviewModal";
 import Button from "../ui/Button";
+import { SectionSkeleton } from "./skeletons";
 
 interface Props {
   appointmentId: number;
@@ -109,7 +110,7 @@ export default function ProofReviewPanel({
     <section aria-label="Payment proof review" className="rounded-xl bg-crimson-light/15 px-4 py-4 text-gray-red sm:px-5">
       <p className="mb-2 text-[14px] font-bold uppercase">Payment proof</p>
 
-      {loading && <p className="text-[13px]">Loading proof...</p>}
+      {loading && <SectionSkeleton label="Loading the payment proof" lines={2} />}
 
       {!loading && unavailable && <p className="text-[13px]">Proof review isn't available yet.</p>}
 

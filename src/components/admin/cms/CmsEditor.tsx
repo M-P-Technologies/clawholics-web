@@ -5,6 +5,7 @@ import AdminShell from "../AdminShell";
 import Button from "../../ui/Button";
 import Select from "../../ui/Select";
 import { PREVIEW_FRAME_NAME, type PreviewDrafts, type PreviewMessage } from "../../../lib/cmsPreview";
+import { PageSkeleton } from "../skeletons";
 
 interface PreviewPage {
   label: string;
@@ -167,11 +168,13 @@ interface PreviewStageProps {
 function PreviewStage({ frameRef, src, device, reloadKey, title }: PreviewStageProps) {
   const stageRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
-  // Which page and reload has finished loading: until it's the current one, show the spinner.
-  // A jump to a section of the same page (/#faq) doesn't load the page again, so it's ignored.
+  // Which page and reload has finished loading: until it's the current one, show that it's
+  // loading (a page outline the first time, a faded overlay after that). A jump to a section of
+  // the same page (/#faq) doesn't load the page again, so it's ignored.
   const frameKey = `${src.split("#")[0]}|${reloadKey}`;
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const loading = loadedKey !== frameKey;
+  const everLoaded = loadedKey !== null;
 
   useLayoutEffect(() => {
     const stage = stageRef.current;
@@ -215,8 +218,22 @@ function PreviewStage({ frameRef, src, device, reloadKey, title }: PreviewStageP
           style={device === "mobile" ? { borderRadius: PHONE.screenRadius, clipPath: `inset(0 round ${PHONE.screenRadius}px)` } : undefined}
           className="h-full w-full border-0 bg-light-orange"
         />
+        {/* The first load: a page outline on the screen itself (inside the phone's bezel), as
+            there's no page to show yet */}
+        {loading && !everLoaded && (
+          <div
+            role="status"
+            aria-label="Loading preview"
+            style={device === "mobile" ? { borderRadius: PHONE.screenRadius } : undefined}
+            className="absolute inset-0 overflow-hidden bg-light-orange"
+          >
+            <span className="sr-only">Loading preview…</span>
+            <PageSkeleton className="h-full" />
+          </div>
+        )}
       </div>
-      {loading && (
+      {/* A reload or another page: the current page stays in view, faded, until the new one loads */}
+      {loading && everLoaded && (
         <div role="status" className="absolute inset-0 flex items-center justify-center bg-milk/60 text-[13px] font-bold text-gray-red">
           Loading preview…
         </div>

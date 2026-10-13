@@ -4,10 +4,10 @@ import CmsEditor from "../../components/admin/cms/CmsEditor";
 import { ItemsNote, LinkField, PanelSection, SaveBar, SubCard, TextField } from "../../components/admin/cms/fields";
 import Dropdown from "../../components/admin/FAQDropdown";
 import SortableList from "../../components/admin/SortableList";
-import { LoadingBar } from "../../components/ui/LoadingBar";
 import { useFaqsEditor } from "../../hooks/admin/useFaqsEditor";
 import { FAQ_PREVIEW_PAGES } from "../../lib/admin/cmsPages";
 import { SITE_LINK_OPTIONS } from "../../lib/homeSections";
+import { CmsEditorSkeleton } from "../../components/admin/skeletons";
 
 // The FAQs: the FAQ page's words and every question, edited beside a live preview. Its state and
 // saving are in hooks/admin/useFaqsEditor.
@@ -16,13 +16,7 @@ export default function FAQs() {
   const { words } = page;
   const faqs = list.items;
 
-  if (list.loading) {
-    return (
-      <div className="fixed inset-0 z-9999 flex items-center justify-center bg-light-orange">
-        <LoadingBar label="Loading FAQs" />
-      </div>
-    );
-  }
+  if (list.loading) return <CmsEditorSkeleton title="FAQs" />;
 
   return (
     <CmsEditor

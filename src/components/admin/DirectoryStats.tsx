@@ -7,6 +7,8 @@ export interface DirectoryStat {
   value: number | null;
   hint: string;
   icon: LucideIcon;
+  /** Still loading: the card shows a placeholder instead of the dash */
+  loading?: boolean;
 }
 
 // The four totals above a directory, drawn like the dashboard's stat cards
@@ -14,7 +16,14 @@ export default function DirectoryStats({ label, stats }: { label: string; stats:
   return (
     <section aria-label={label} className="grid grid-cols-2 gap-4 md:gap-6 lg:grid-cols-4">
       {stats.map((stat) => (
-        <KpiCard key={stat.label} label={stat.label} value={stat.value === null ? "–" : String(stat.value)} hint={stat.hint} icon={stat.icon} />
+        <KpiCard
+          key={stat.label}
+          label={stat.label}
+          value={stat.value === null ? "–" : String(stat.value)}
+          hint={stat.hint}
+          icon={stat.icon}
+          loading={stat.loading}
+        />
       ))}
     </section>
   );

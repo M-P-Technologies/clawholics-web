@@ -9,25 +9,19 @@ import ScheduleMonthGrid from "../../components/admin/schedule/ScheduleMonthGrid
 import ScheduleAgenda from "../../components/admin/ScheduleAgenda";
 import ScheduleWeekGrid from "../../components/admin/ScheduleWeekGrid";
 import Button from "../../components/ui/Button";
-import { LoadingBar } from "../../components/ui/LoadingBar";
 import Select from "../../components/ui/Select";
 import Sheet from "../../components/ui/Sheet";
 import { useSchedule } from "../../hooks/admin/useSchedule";
 import type { Appointment } from "../../services/appointmentService";
 import { toDateKey } from "../../services/scheduleAgenda";
+import { ScheduleSkeleton } from "../../components/admin/skeletons";
 
 // The Schedule: a week grid on a computer (artists down the side, days across), a day agenda and
 // a month grid on a phone. Its data and state are in hooks/admin/useSchedule.
 export default function Schedule() {
   const s = useSchedule();
 
-  if (s.isLoading) {
-    return (
-      <div className="fixed inset-0 z-9999 flex items-center justify-center bg-light-orange">
-        <LoadingBar label="Loading the schedule" />
-      </div>
-    );
-  }
+  if (s.isLoading) return <ScheduleSkeleton />;
 
   const artistOptions = s.artistNames.map((artist) => (
     <option key={artist.id} value={artist.name}>

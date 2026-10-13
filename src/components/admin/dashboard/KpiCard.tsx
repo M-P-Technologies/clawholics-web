@@ -2,6 +2,7 @@ import { ArrowDownRight, ArrowUpRight, Minus, Sparkles, type LucideIcon } from "
 import type { ReactNode } from "react";
 import clsx from "clsx";
 import type { ChangeView } from "../../../lib/dashboardFormat";
+import Skeleton from "../../ui/Skeleton";
 
 interface KpiCardProps {
   label: string;
@@ -19,6 +20,8 @@ interface KpiCardProps {
   icon?: LucideIcon;
   /** A small line along the bottom of the card, e.g. a Sparkline */
   sparkline?: ReactNode;
+  /** While the figure loads: a placeholder bar in place of the value */
+  loading?: boolean;
   className?: string;
 }
 
@@ -33,7 +36,7 @@ const WORDS = {
 // A headline number. The change is a soft pill with an arrow, a figure and (for screen readers)
 // words, so it never relies on color alone.
 export default function KpiCard({
-  label, value, change, hint, lowerIsBetter = false, size = "normal", variant = "card", icon: CardIcon, sparkline, className,
+  label, value, change, hint, lowerIsBetter = false, size = "normal", variant = "card", icon: CardIcon, sparkline, loading = false, className,
 }: KpiCardProps) {
   const Icon = change?.kind === "up" ? ArrowUpRight : change?.kind === "down" ? ArrowDownRight : change?.kind === "new" ? Sparkles : Minus;
   const good = change?.kind === "up" || change?.kind === "new" ? !lowerIsBetter : change?.kind === "down" ? lowerIsBetter : null;
@@ -59,14 +62,24 @@ export default function KpiCard({
         </span>
       )}
       <p className={clsx("text-[13px] font-medium text-gray-red/80", CardIcon && "pr-10")}>{label}</p>
-      <p
-        className={clsx(
-          "break-words font-display leading-none text-berry",
-          size === "hero" ? "text-4xl sm:text-5xl" : "text-3xl sm:text-4xl lg:text-3xl xl:text-4xl",
-        )}
-      >
-        {value}
-      </p>
+      {loading ? (
+        // As tall as the figure it stands in for, so the card doesn't change size when it arrives.
+        // Read as part of the card ("New clients, Loading"), not as a live region: a row of cards
+        // would otherwise announce "Loading" once per card.
+        <p className={size === "hero" ? "h-9 sm:h-12" : "h-[30px] sm:h-9 lg:h-[30px] xl:h-9"}>
+          <span className="sr-only">Loading</span>
+          <Skeleton className="h-full w-16" />
+        </p>
+      ) : (
+        <p
+          className={clsx(
+            "break-words font-display leading-none text-berry",
+            size === "hero" ? "text-4xl sm:text-5xl" : "text-3xl sm:text-4xl lg:text-3xl xl:text-4xl",
+          )}
+        >
+          {value}
+        </p>
+      )}
       {change && (
         <p
           className={clsx(

@@ -6,21 +6,15 @@ import AdminShell from "../../components/admin/AdminShell";
 import { initialsOf } from "../../components/admin/DirectoryProfileCard";
 import CardTitle from "../../components/admin/scanner/CardTitle";
 import Button from "../../components/ui/Button";
-import { LoadingBar } from "../../components/ui/LoadingBar";
 import { useAdminScanner } from "../../hooks/admin/useAdminScanner";
+import { ScannerSkeleton } from "../../components/admin/skeletons";
 
 // The loyalty QR scanner: the camera, the scanned client's card with its stamps, and the recent
 // scans. Its state and actions are in hooks/admin/useAdminScanner.
 export default function AdminScanner() {
   const { loading, isProcessing, isScanning, lastScan, history, cameraError, resultRef, handleResult, handleScanError, recordAction, startScanner, stopScanner, scanAgain } = useAdminScanner();
 
-  if (loading) {
-    return (
-      <div className="fixed inset-0 z-9999 flex items-center justify-center bg-light-orange">
-        <LoadingBar label="Loading the scanner" />
-      </div>
-    );
-  }
+  if (loading) return <ScannerSkeleton />;
 
   return (
     <AdminShell title="Loyalty QR Scanner">

@@ -5,9 +5,9 @@ import CmsEditor, { CmsLoadError } from "../../components/admin/cms/CmsEditor";
 import { PanelSection, SaveBar } from "../../components/admin/cms/fields";
 import RichTextField from "../../components/admin/cms/RichTextField";
 import Button from "../../components/ui/Button";
-import { LoadingBar } from "../../components/ui/LoadingBar";
 import { usePrivacyEditor } from "../../hooks/admin/usePrivacyEditor";
 import { PRIVACY_KEY, PRIVACY_PREVIEW_PAGES } from "../../lib/admin/cmsPages";
+import { CmsEditorSkeleton } from "../../components/admin/skeletons";
 
 // The privacy policy page (/privacy), edited as formatted text beside a live preview. Until it's
 // saved here the site shows the original, generated policy. Its state and saving are in
@@ -15,13 +15,7 @@ import { PRIVACY_KEY, PRIVACY_PREVIEW_PAGES } from "../../lib/admin/cmsPages";
 export default function PrivacyPolicy() {
   const editor = usePrivacyEditor();
 
-  if (editor.isLoading) {
-    return (
-      <div className="fixed inset-0 z-9999 flex items-center justify-center bg-light-orange">
-        <LoadingBar label="Loading the privacy policy" />
-      </div>
-    );
-  }
+  if (editor.isLoading) return <CmsEditorSkeleton title="Privacy Policy" />;
 
   if (editor.loadFailed) return <CmsLoadError title="Privacy Policy" what="the privacy policy" onRetry={editor.retry} />;
 
