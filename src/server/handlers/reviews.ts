@@ -4,7 +4,7 @@ import { getSql } from "../db";
 import { pgErrorCode, readJson, toId } from "../http";
 import { MAX_PROOF_SIZE, PROOF_EXTENSIONS } from "../payments";
 import { publicBaseUrl, putObject } from "../r2";
-import { changesCatalog, publicReads } from "../publicCache";
+import { getPublicReviews } from "../catalog";
 import { ported } from "../worker";
 
 // Clients' reviews of their completed visits: a 1-5 rating, a comment and an optional photo, one
@@ -83,12 +83,13 @@ export const createReview = ported(async (req) => {
   }
 });
 
-// GET /reviews/public (anyone): the reviews an admin approved for the home page (cached, see
-// publicCache)
-export const listPublicReviews = ported(async () => Response.json(await publicReads.reviews()));
+// GET /reviews/public (anyone): the reviews an admin approved for the home page. Read fresh, not
+// cached: they show clients' names, which change outside the catalog writes (a renamed or deleted
+// account must leave the home page at once).
+export const listPublicReviews = ported(async () => Response.json(await getPublicReviews()));
 
 // PUT /reviews/:id/approval { approved } (admin): show a review on the home page, or take it off
-export const setReviewApproval = changesCatalog(ported<IdContext>(async (req, { params }) => {
+export const setReviewApproval = ported<IdContext>(async (req, { params }) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const id = toId((await params).id);
@@ -107,4 +108,4 @@ export const setReviewApproval = changesCatalog(ported<IdContext>(async (req, { 
         where id = ${id} returning id, appointment_id, approved`;
   if (!row) return errorBody("Review not found.", 404);
   return Response.json(row);
-}));
+});

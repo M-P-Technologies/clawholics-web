@@ -8,7 +8,6 @@ import {
   getNailist,
   getNailistGallery,
   getNailists,
-  getPublicReviews,
   getService,
   getServiceGallery,
   getServices,
@@ -19,7 +18,8 @@ import {
 // The public site's reads, cached on the server: every visitor gets the same rows, which change
 // only when an admin edits them, so most visits are answered without asking the database.
 // - Only what anyone may see is cached. Admins (who also see hidden services and categories)
-//   always read the database.
+//   always read the database. The public reviews aren't cached: they show clients' names, which
+//   change outside these writes (see handlers/reviews).
 // - Every admin write to these tables is wrapped in `changesCatalog`, which drops the whole
 //   cache: the reads join across tables (services, categories, artists), so one tag for all of
 //   them can't miss a dependency, and writes are rare.
@@ -51,7 +51,6 @@ export const publicReads = {
   nailists: cached("nailists", getNailists),
   nailist: cached("nailist", getNailist),
   nailistGallery: cached("nailistGallery", getNailistGallery),
-  reviews: cached("reviews", getPublicReviews),
 };
 
 /** Drops every cached public read, so the next request reads the database again. */

@@ -18,7 +18,6 @@ vi.mock("@/server/catalog", () => ({
   getNailists: vi.fn(),
   getNailist: vi.fn(),
   getNailistGallery: vi.fn(),
-  getPublicReviews: vi.fn(),
 }));
 
 beforeEach(() => {

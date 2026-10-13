@@ -14,6 +14,12 @@ const MAX_PHOTOS = 24;
 
 const NO_ITEMS: NailistGalleryImage[] = [];
 
+// The strip waits for every gallery, so the photos don't reshuffle as each one arrives. At module
+// scope so TanStack can keep its result between renders.
+function combineGalleries(results: { isPending: boolean; data?: NailistGalleryImage[] }[]) {
+  return results.some((r) => r.isPending) ? NO_ITEMS : interleave(results.map((r) => (Array.isArray(r.data) ? r.data : [])));
+}
+
 /** Every artist's photos, taken in turns (each artist's first, then each one's second, ...), so
  *  every artist is near the start rather than the first one filling the strip */
 export function interleave(galleries: NailistGalleryImage[][], max = MAX_PHOTOS): NailistGalleryImage[] {
@@ -29,11 +35,9 @@ export function interleave(galleries: NailistGalleryImage[][], max = MAX_PHOTOS)
 // galleries (Admin > Artists) and our Instagram handle. The strip is a bonus, so a failed request
 // just leaves its part empty; an artist whose gallery can't load is left out.
 export function usePhotoStrip(nailistIds: number[]): { photos: RowPhoto[]; instagram: InstagramLink | null } {
-  // The strip waits for every gallery, so the photos don't reshuffle as each one arrives
   const items = useQueries({
     queries: nailistIds.map((id) => publicQueries.nailistGallery(id)),
-    combine: (results) =>
-      results.some((r) => r.isPending) ? NO_ITEMS : interleave(results.map((r) => (Array.isArray(r.data) ? r.data : []))),
+    combine: combineGalleries,
   });
 
   const content = useQuery(publicQueries.home()).data;
