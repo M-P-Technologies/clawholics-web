@@ -85,7 +85,7 @@ export default function CmsEditor({ title, pages, drafts, refreshKey = 0, header
           <aside
             aria-label={`${title} settings`}
             className={clsx(
-              "min-h-0 w-full shrink-0 flex-col overflow-hidden rounded-2xl border border-crimson-light/40 bg-milk shadow-petal lg:flex lg:w-[380px] xl:w-[420px]",
+              "min-h-0 w-full shrink-0 flex-col overflow-clip rounded-2xl border border-crimson-light/40 bg-milk shadow-petal lg:flex lg:w-[380px] xl:w-[420px]",
               pane === "edit" ? "flex" : "hidden",
             )}
           >
@@ -96,7 +96,7 @@ export default function CmsEditor({ title, pages, drafts, refreshKey = 0, header
           <section
             aria-label="Preview"
             className={clsx(
-              "h-[78vh] min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-crimson-light/40 bg-milk shadow-petal lg:flex lg:h-auto",
+              "h-[78vh] min-w-0 flex-1 flex-col overflow-clip rounded-2xl border border-crimson-light/40 bg-milk shadow-petal lg:flex lg:h-auto",
               pane === "preview" ? "flex" : "hidden",
             )}
           >
@@ -194,12 +194,12 @@ function PreviewStage({ frameRef, src, device, reloadKey, title }: PreviewStageP
       : { width: phoneOuter.width, height: phoneOuter.height, top: 16, transform: `translateX(-50%) scale(${phoneScale})` };
 
   return (
-    <div ref={stageRef} className="relative min-h-0 flex-1 overflow-hidden bg-crimson-light/20">
+    <div ref={stageRef} className="relative min-h-0 flex-1 overflow-clip bg-crimson-light/20">
       <div
         data-device={device}
         style={frameStyle}
         className={clsx(
-          "absolute left-1/2 origin-top overflow-hidden bg-light-orange",
+          "absolute left-1/2 origin-top overflow-clip bg-light-orange",
           device === "mobile" && "rounded-[2.25rem] border-[10px] border-gray-red shadow-xl",
         )}
       >

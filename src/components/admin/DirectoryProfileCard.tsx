@@ -134,7 +134,7 @@ export default function DirectoryProfileCard({
   return (
     <section
       aria-label={name}
-      className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-crimson-light/40 bg-milk text-center shadow-petal lg:h-full"
+      className="flex min-w-0 flex-col overflow-clip rounded-2xl border border-crimson-light/40 bg-milk text-center shadow-petal lg:h-full"
     >
       {/* The banner the round photo sits on. On desktop it takes the room the card has left, so the
           card matches the table's height beside it */}

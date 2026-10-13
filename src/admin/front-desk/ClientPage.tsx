@@ -62,7 +62,7 @@ export default function ClientPage() {
         <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
           <ClientProfilePanel name={name} details={details} nextAppointment={page.nextAppointment} />
 
-          <section aria-label="Client details" className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-crimson-light/40 bg-milk shadow-petal lg:h-[80vh]">
+          <section aria-label="Client details" className="flex min-w-0 flex-col overflow-clip rounded-2xl border border-crimson-light/40 bg-milk shadow-petal lg:h-[80vh]">
             <div role="tablist" aria-label="Client sections" className="flex shrink-0 overflow-x-auto overflow-y-hidden border-b border-crimson-light/50 px-2 scrollbar-none [&::-webkit-scrollbar]:hidden">
               {CLIENT_TABS.map((t) => (
                 <button

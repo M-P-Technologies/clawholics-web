@@ -42,7 +42,7 @@ export default function ReportPage({ title, children }: { title: string; childre
   }
 
   return (
-    <AdminShell title={title} actions={<div className="min-w-0 lg:w-auto"><PeriodSwitch value={range} onChange={setRange} /></div>}>
+    <AdminShell title={title} actions={<div className="min-w-0"><PeriodSwitch value={range} onChange={setRange} /></div>}>
       {children({ data, loading, failed })}
     </AdminShell>
   );

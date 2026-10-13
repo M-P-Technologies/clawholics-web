@@ -15,10 +15,11 @@ interface PeriodSwitchProps {
   onChange: (range: DashboardRange) => void;
 }
 
-// A scrollable row of chips, like the status chips on the Appointments screen
+// A row of chips that scrolls sideways when it does not fit (in the top bar it gives way to the
+// rest of the bar); its slim scrollbar shows only while the row is hovered
 export default function PeriodSwitch({ value, onChange }: PeriodSwitchProps) {
   return (
-    <div role="group" aria-label="Period" className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:px-0">
+    <div role="group" aria-label="Period" className="hover-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:min-w-0 lg:px-0">
       {DASHBOARD_RANGES.map((range) => (
         <Button
           key={range}

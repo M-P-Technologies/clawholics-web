@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useEffectEvent } from "react";
+import { inCmsPreview } from "@/lib/cmsPreview";
 import { useLocation } from "@/lib/router";
 
 export default function ScrollToTop() {
@@ -18,9 +19,11 @@ export default function ScrollToTop() {
     if (hash) {
       setTimeout(() => {
         const element = document.querySelector(hash);
-        if (element) {
-          element.scrollIntoView({ behavior: "smooth" });
-        }
+        if (!element) return;
+        // In the admin's preview frame, scroll this page only: scrollIntoView would also scroll
+        // the editor around the frame
+        if (inCmsPreview()) window.scrollTo({ top: element.getBoundingClientRect().top + window.scrollY, behavior: "smooth" });
+        else element.scrollIntoView({ behavior: "smooth" });
       }, 100);
     } else {
       window.scrollTo({

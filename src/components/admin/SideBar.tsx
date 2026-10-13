@@ -97,7 +97,7 @@ const SideBar = () => {
         <aside
           data-collapsed={collapsed}
           className={clsx(
-            "flex h-full flex-col overflow-hidden rounded-2xl bg-milk py-6 shadow-petal transition-[width] duration-300",
+            "flex h-full flex-col overflow-clip rounded-2xl bg-milk py-6 shadow-petal transition-[width] duration-300",
             collapsed ? "w-[76px]" : "w-64",
           )}
         >

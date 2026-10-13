@@ -445,3 +445,14 @@ input[type="search"]::-webkit-search-cancel-button {
 .sidebar-scroll::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* A sideways scroller whose slim scrollbar only shows while the area is hovered or focused.
+   The bar keeps its room either way, so nothing jumps when it appears. */
+.hover-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+.hover-scrollbar:hover,
+.hover-scrollbar:focus-within {
+  scrollbar-color: var(--color-crimson-light) transparent;
+}

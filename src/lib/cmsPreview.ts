@@ -67,7 +67,8 @@ function start() {
     let tries = 0;
     const timer = setInterval(() => {
       const target = document.getElementById(id);
-      if (target) target.scrollIntoView();
+      // Scroll this page only: scrollIntoView would also scroll the editor around the frame
+      if (target) window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY });
       if (target || ++tries > 30) clearInterval(timer);
     }, 100);
   }

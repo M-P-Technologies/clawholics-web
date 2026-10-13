@@ -24,10 +24,20 @@ describe("AdminShell", () => {
     expect(screen.getByText("Welcome, Admin!").className).toContain("lg:block");
   });
 
+  it("has a top bar with a link to the public site and who is signed in", () => {
+    render(<AdminShell title="Schedule"><p>x</p></AdminShell>);
+    const bar = screen.getByRole("banner");
+    expect(bar).toContainElement(screen.getByRole("heading", { name: "Schedule" }));
+    const link = screen.getByRole("link", { name: /View site/ });
+    expect(link).toHaveAttribute("href", "/");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(screen.getAllByRole("img", { name: "Admin" }).length).toBeGreaterThan(0);
+  });
+
   it("does not scroll by itself on desktop: only the screen's own content area does", () => {
     // overflow-x-hidden alone makes the frame scrollable vertically too, so with the decorative glows
     // hanging off its edge it grew a second scrollbar next to the content area's
     const { container } = render(<AdminShell title="Schedule"><p>x</p></AdminShell>);
-    expect((container.firstChild as HTMLElement).className).toContain("lg:overflow-hidden");
+    expect((container.firstChild as HTMLElement).className).toContain("lg:overflow-clip");
   });
 });
