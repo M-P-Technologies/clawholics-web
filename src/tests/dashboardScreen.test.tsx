@@ -1,6 +1,9 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { StrictMode } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Dashboard from "@/admin/overview/Dashboard";
+import Sales from "@/admin/overview/Sales";
 import type { DashboardResponse } from "@/services/dashboardTypes";
 
 const fetchDashboard = vi.fn();
@@ -21,11 +24,15 @@ vi.mock("@/lib/router", () => ({
   Link: ({ to, children, ...rest }: { to: string; children: React.ReactNode }) => <a href={to} {...rest}>{children}</a>,
   useLocation: () => ({ pathname: "/dashboard" }),
 }));
-// A stable getToken, as the real Clerk hook has
+// A stable getToken, as the real Clerk hook has; `clerk.loaded` stands for Clerk still starting up
+// and `clerk.userId` for the user arriving after the session
+const clerk = vi.hoisted(() => ({ loaded: true, userId: "admin_1" as string | undefined }));
 vi.mock("@clerk/nextjs", () => {
-  const auth = { getToken: async () => "tok" };
-  const user = { user: { id: "admin_1" } };
-  return { useAuth: () => auth, useUser: () => user };
+  const getToken = async () => "tok";
+  return {
+    useAuth: () => ({ getToken, isLoaded: clerk.loaded }),
+    useUser: () => ({ user: clerk.userId ? { id: clerk.userId } : null }),
+  };
 });
 
 const base = (over: Partial<DashboardResponse> = {}): DashboardResponse => ({
@@ -62,7 +69,11 @@ const base = (over: Partial<DashboardResponse> = {}): DashboardResponse => ({
   ...over,
 });
 
-beforeEach(() => fetchDashboard.mockReset());
+beforeEach(() => {
+  fetchDashboard.mockReset();
+  clerk.loaded = true;
+  clerk.userId = "admin_1";
+});
 
 describe("Dashboard", () => {
   it("shows the headline numbers with how they moved", async () => {
@@ -77,6 +88,60 @@ describe("Dashboard", () => {
     // the written summary of the period sits above the numbers
     expect(screen.getByRole("region", { name: "Salon notes" })).toBeInTheDocument();
     expect(fetchDashboard).toHaveBeenCalledWith("month", "tok", "admin_1");
+  });
+
+  it("asks for the numbers once, even under React's dev double-mount", async () => {
+    fetchDashboard.mockResolvedValue(base());
+    render(
+      <StrictMode>
+        <Dashboard />
+      </StrictMode>,
+    );
+    await screen.findByRole("group", { name: "Collected" });
+    expect(fetchDashboard).toHaveBeenCalledTimes(1);
+  });
+
+  it("doesn't ask again when the user's details arrive after the session", async () => {
+    fetchDashboard.mockResolvedValue(base());
+    clerk.userId = undefined;
+    const { rerender } = render(<Dashboard />);
+    await screen.findByRole("group", { name: "Collected" });
+    clerk.userId = "admin_1";
+    rerender(<Dashboard />);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(fetchDashboard).toHaveBeenCalledTimes(1);
+  });
+
+  it("waits for the sign-in to load before asking", async () => {
+    fetchDashboard.mockResolvedValue(base());
+    clerk.loaded = false;
+    const { rerender } = render(<Dashboard />);
+    expect(screen.getByRole("status", { name: "Loading the dashboard" })).toBeInTheDocument();
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(fetchDashboard).not.toHaveBeenCalled();
+
+    clerk.loaded = true;
+    rerender(<Dashboard />);
+    await screen.findByRole("group", { name: "Collected" });
+    expect(fetchDashboard).toHaveBeenCalledTimes(1);
+  });
+
+  it("shares the numbers with Sales and Performance instead of asking again", async () => {
+    fetchDashboard.mockResolvedValue(base());
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 60_000 } } });
+    const { rerender } = render(
+      <QueryClientProvider client={client}>
+        <Dashboard />
+      </QueryClientProvider>,
+    );
+    await screen.findByRole("group", { name: "Collected" });
+    rerender(
+      <QueryClientProvider client={client}>
+        <Sales />
+      </QueryClientProvider>,
+    );
+    expect(await screen.findByRole("heading", { name: "Sales" })).toBeInTheDocument();
+    expect(fetchDashboard).toHaveBeenCalledTimes(1);
   });
 
   it("asks again when the period changes", async () => {
