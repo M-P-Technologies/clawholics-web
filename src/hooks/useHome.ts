@@ -1,17 +1,15 @@
-import { inCmsPreview, usePreviewVersion } from "@/lib/cmsPreview";
-import { lastSeen } from "../utils/lastSeen";
+import { inCmsPreview } from "@/lib/cmsPreview";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { publicQueries } from "@/lib/publicQueries";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { useNavigate, useLocation, clearLocationState } from "@/lib/router";
-import { fetchHomeContent } from "../services/contentService";
-import { fetchServices } from "../services/serviceService";
-import { fetchFaqs } from "../services/faqService";
-import { fetchNailists } from "../services/nailistService";
-import { fetchAboutContent, type AboutContent } from "../services/aboutService";
 import { fetchProfile, isMissingProfile } from "../services/userService";
-import type { HomeContent, Service, Faq, Nailist } from "../types";
 import { type StripItem } from "../types/home";
 import { buildStripItems, readHomeSections } from "../lib/homeSections";
+
+// The same empty list each render, so the scroll-to-FAQ effect doesn't run again for nothing
+const NO_FAQS: never[] = [];
 
 export function useHome() {
   const { user, isLoaded } = useUser();
@@ -19,17 +17,17 @@ export function useHome() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [content, setContent] = useState<HomeContent | null>(() => lastSeen("home") ?? null);
-  const [services, setServices] = useState<Service[]>(() => lastSeen("services") ?? []);
-  const [faqs, setFaqs] = useState<Faq[]>([]);
-  const [nailists, setNailists] = useState<Nailist[]>(() => lastSeen("nailists") ?? []);
-  const [about, setAbout] = useState<AboutContent | null>(() => lastSeen("about") ?? null);
-  const [contentError, setContentError] = useState(false);
-  const [contentAttempt, setContentAttempt] = useState(0);
+  // The headline content is required. The other sections just stay hidden if they fail to load.
+  const contentQuery = useQuery(publicQueries.home());
+  const content = contentQuery.data ?? null;
+  const services = useQuery(publicQueries.services()).data ?? [];
+  const faqs = useQuery(publicQueries.faqs()).data ?? NO_FAQS;
+  const nailists = useQuery(publicQueries.nailists()).data ?? [];
+  const about = useQuery(publicQueries.about()).data ?? null;
+  // A failed refresh keeps showing the copy already loaded
+  const contentError = contentQuery.isError && !content;
   const [profileCheckFailed, setProfileCheckFailed] = useState(false);
   const [profileRetry, setProfileRetry] = useState(0);
-  // In the admin editor's preview, fetch again when the unsaved changes do
-  const previewVersion = usePreviewVersion();
 
   useEffect(() => {
     // The editor's preview shows the page as visitors see it, so an admin stays on it there
@@ -85,17 +83,9 @@ export function useHome() {
     }
   }, [location.state, location.pathname, faqs]);
 
-  useEffect(() => {
-    setContentError(false);
-    // The headline content is required. The other sections just stay hidden if they fail to load.
-    fetchHomeContent().then(setContent).catch(() => setContentError(true));
-    fetchServices().then(setServices).catch(() => setServices([]));
-    fetchFaqs().then(setFaqs).catch(() => setFaqs([]));
-    fetchNailists().then(setNailists).catch(() => setNailists([]));
-    fetchAboutContent().then(setAbout).catch(() => setAbout(null));
-  }, [contentAttempt, previewVersion]);
-
-  const reloadContent = () => setContentAttempt((n) => n + 1);
+  const reloadContent = () => {
+    void contentQuery.refetch();
+  };
 
   // The strip shows the services chosen in Admin > Homepage, or each service that has a photo,
   // with its price and hours

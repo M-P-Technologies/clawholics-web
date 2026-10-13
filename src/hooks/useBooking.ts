@@ -1,15 +1,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { publicQueries } from "@/lib/publicQueries";
 import { useLocation, useNavigate } from "@/lib/router";
 import { useUser, useAuth } from "@clerk/nextjs";
-import { fetchNailists, fetchBookedSlotsDetailed, createBooking } from "../services/bookingService";
+import { fetchNailists, fetchBookedSlotsDetailed, fetchBookedSlotsRange, createBooking } from "../services/bookingService";
 import { fetchNailistDayOffs, fetchNailistTimeSlots } from "../services/nailistService";
-import { fetchHomeContent } from "../services/contentService";
-import { fetchAboutContent } from "../services/aboutService";
 import { withSalonLocation } from "../lib/homeSections";
 import { fetchProfileIfExists } from "../services/userService";
-import { fetchCategories, type ServiceCategory } from "../services/catalogService";
 import { estimateTotal } from "../services/pricing";
 import { type Nailist, type BookingState, parseTimeRange } from "../utils/booking";
 
@@ -20,10 +19,20 @@ export function useBooking() {
   const { getToken } = useAuth();
   const state = location.state as BookingState | null;
 
-  const [pageData, setPageData] = useState<Record<string, string> | null>(null);
-  const [isPageLoading, setIsPageLoading] = useState(true);
+  const homeQuery = useQuery(publicQueries.home());
+  const aboutQuery = useQuery(publicQueries.about());
+  const home = homeQuery.data;
+  const about = aboutQuery.data;
+  // The address and map link are edited in About Us; the page waits for them, but works without
+  const aboutSettled = !aboutQuery.isPending;
+  const pageData = useMemo(
+    () => (home && aboutSettled ? withSalonLocation(home, about ?? null) : null),
+    [home, about, aboutSettled],
+  );
+  // A failed refresh keeps showing the copy already loaded
+  const pageError = homeQuery.isError && !home ? "Failed to load location." : "";
+  const isPageLoading = !pageData && !pageError;
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [pageError, setPageError] = useState("");
 
   const [nailists, setNailists] = useState<Nailist[]>([]);
   const [selectedNailist, setSelectedNailist] = useState<Nailist | null>(null);
@@ -58,13 +67,10 @@ export function useBooking() {
   const variants: { id: number; name: string; price: number }[] = state?.variants ?? [];
   const service_category_id: number | null = state?.service_category_id ?? null;
 
-  const [categories, setCategories] = useState<ServiceCategory[]>([]);
+  // The category's add-ons; without the categories, there are none to offer
+  const categories = useQuery(publicQueries.categories()).data ?? [];
   const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null);
   const [selectedAddonIds, setSelectedAddonIds] = useState<number[]>([]);
-
-  useEffect(() => {
-    fetchCategories().then(setCategories).catch(() => setCategories([]));
-  }, []);
 
   const addons = categories.find((c) => c.id === service_category_id)?.addons ?? [];
 
@@ -92,26 +98,6 @@ export function useBooking() {
   const locationText = pageData?.contact_location || "";
 
   useEffect(() => {
-    const loadPageContent = async () => {
-      try {
-        setIsPageLoading(true);
-        setPageError("");
-
-        const [data, about] = await Promise.all([fetchHomeContent(), fetchAboutContent().catch(() => null)]);
-        // The address and map link are edited in About Us
-        setPageData(withSalonLocation(data, about));
-      } catch (err) {
-        console.error("Failed to load booking page content", err);
-        setPageError("Failed to load location.");
-      } finally {
-        setIsPageLoading(false);
-      }
-    };
-
-    loadPageContent();
-  }, []);
-
-  useEffect(() => {
     if (!selectedNailist) return;
 
     fetchNailistTimeSlots(selectedNailist.id).then((slots) => {
@@ -122,39 +108,32 @@ export function useBooking() {
   useEffect(() => {
     if (!selectedNailist || timeSlots.length === 0) return;
 
+    let live = true;
+    const formatDate = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+    // The next month's taken times in one request; only a day with bookings can be fully booked
     const loadMonthAvailability = async () => {
       const start = new Date();
       const end = new Date();
       end.setMonth(end.getMonth() + 1);
 
-      const promises = [];
-
-      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, "0");
-        const day = String(d.getDate()).padStart(2, "0");
-        const formatted = `${y}-${m}-${day}`;
-
-        promises.push(
-          fetchBookedSlotsDetailed(selectedNailist.id, formatted).then(
-            (slots) => ({
-              date: formatted,
-              times: slots.map((s: any) => s.appointment_time),
-            }),
-          ),
-        );
+      const slots = await fetchBookedSlotsRange(selectedNailist.id, formatDate(start), formatDate(end));
+      const timesByDate = new Map<string, string[]>();
+      for (const { appointment_date, appointment_time } of slots) {
+        timesByDate.set(appointment_date, [...(timesByDate.get(appointment_date) ?? []), appointment_time]);
       }
 
-      const results = await Promise.all(promises);
-
-      const dates = results
-        .filter((r) => isDayFullyBooked(r.times))
-        .map((r) => r.date);
-
-      setFullyBookedDates(dates);
+      const dates = [...timesByDate].filter(([, times]) => isDayFullyBooked(times)).map(([date]) => date);
+      // Another artist may have been chosen meanwhile
+      if (live) setFullyBookedDates(dates);
     };
 
-    loadMonthAvailability();
+    // Without it the calendar just marks no day as full: picking one still checks that day
+    loadMonthAvailability().catch(() => {});
+    return () => {
+      live = false;
+    };
   }, [selectedNailist, timeSlots]);
 
   useEffect(() => {

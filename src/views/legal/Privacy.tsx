@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import PageShell from "../../components/layout/PageShell";
 import BackButton from "../../components/layout/BackButton";
 import Panel from "../../components/layout/Panel";
@@ -8,26 +8,14 @@ import Section from "../../components/layout/Section";
 import { LoadingBar } from "../../components/ui/LoadingBar";
 import { sanitizeHtml } from "../../utils/sanitizeHtml";
 import { PRIVACY_POLICY_HTML } from "../../data/privacyPolicyHtml";
-import { fetchLegalContent } from "../../services/contentService";
-import { usePreviewVersion } from "@/lib/cmsPreview";
+import { publicQueries } from "@/lib/publicQueries";
 
 // The privacy policy as edited in Admin > Privacy Policy; the original (generated) text until it's
 // been saved there, or if it can't load
 export default function Privacy() {
-  const [html, setHtml] = useState<string | null>(null);
-  // In the admin editor's preview, fetch again when the unsaved changes do
-  const previewVersion = usePreviewVersion();
-
-  useEffect(() => {
-    let live = true;
-    fetchLegalContent().then(
-      (content) => live && setHtml(content.legal_privacy_html?.trim() ? content.legal_privacy_html : PRIVACY_POLICY_HTML),
-      () => live && setHtml(PRIVACY_POLICY_HTML),
-    );
-    return () => {
-      live = false;
-    };
-  }, [previewVersion]);
+  const { data: content, isPending } = useQuery(publicQueries.legal());
+  const saved = content?.legal_privacy_html;
+  const html = isPending ? null : saved?.trim() ? saved : PRIVACY_POLICY_HTML;
 
   if (html === null) return <LoadingBar label="Loading the privacy policy" />;
 

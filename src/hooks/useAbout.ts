@@ -1,19 +1,18 @@
-import { usePreviewVersion } from "@/lib/cmsPreview";
-import { lastSeen } from "../utils/lastSeen";
-import { useEffect, useState } from "react";
-import { fetchCarousel, type CarouselItem } from "../services/carouselService";
-import { fetchAboutContent, type AboutContent } from "../services/aboutService";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { publicQueries } from "@/lib/publicQueries";
+import type { AboutContent } from "../services/aboutService";
 import { sanitizeHtml } from "../utils/sanitizeHtml";
 import { DAYS_ORDER } from "../data/about";
 
 export function useAbout() {
-  const [data, setData] = useState<AboutContent | null>(() => lastSeen("about") ?? null);
+  const aboutQuery = useQuery(publicQueries.about());
+  const data = aboutQuery.data ?? null;
+  // The photos are a bonus: the page works without them
+  const gallery = useQuery(publicQueries.carousel()).data ?? [];
+  // A failed refresh keeps showing the copy already loaded
+  const error = aboutQuery.isError && !data;
   const [copied, setCopied] = useState(false);
-  const [gallery, setGallery] = useState<CarouselItem[]>(() => lastSeen("carousel") ?? []);
-  const [error, setError] = useState(false);
-  const [attempt, setAttempt] = useState(0);
-  // In the admin editor's preview, fetch again when the unsaved changes do
-  const previewVersion = usePreviewVersion();
 
   const handleCopyLocation = async () => {
     if (!data) return;
@@ -27,14 +26,9 @@ export function useAbout() {
     }
   };
 
-  useEffect(() => {
-    setError(false);
-    fetchAboutContent().then(setData).catch(() => setError(true));
-    // The photos are a bonus: the page works without them
-    fetchCarousel().then(setGallery).catch(() => setGallery([]));
-  }, [attempt, previewVersion]);
-
-  const reload = () => setAttempt((n) => n + 1);
+  const reload = () => {
+    void aboutQuery.refetch();
+  };
 
   const aboutHtml = data ? sanitizeHtml(data.about_description) : "";
 

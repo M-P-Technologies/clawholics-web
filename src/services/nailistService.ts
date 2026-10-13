@@ -1,5 +1,4 @@
 import { previewed } from "../lib/cmsPreview";
-import { remember } from "../utils/lastSeen";
 export type Nailist = {
   id: number;
   name: string;
@@ -41,7 +40,7 @@ const loadNailists = async () => {
   const res = await fetch(`${API_BASE_URL}/nailists?t=${Date.now()}`, {
     headers: { "x-clawholics-origin": "frontend" }
   });
-  return remember("nailists", await res.json());
+  return await res.json();
 };
 export const fetchNailistServices = async (
   nailistId: number,

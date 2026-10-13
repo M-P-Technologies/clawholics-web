@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Gloock, Luxurious_Script, Noto_Sans } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ToastProvider } from "@/components/ui/ToastProvider";
+import QueryProvider from "@/components/providers/QueryProvider";
 import ScrollToTop from "@/components/layout/ScrollToTop";
 import "./globals.css";
 
@@ -52,10 +53,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" className={`${display.variable} ${script.variable} ${sans.variable}`}>
       <body suppressHydrationWarning>
         <ClerkProvider localization={localization} signInUrl="/login" signUpUrl="/signup" afterSignOutUrl="/">
-          <ToastProvider>
-            <ScrollToTop />
-            {children}
-          </ToastProvider>
+          <QueryProvider>
+            <ToastProvider>
+              <ScrollToTop />
+              {children}
+            </ToastProvider>
+          </QueryProvider>
         </ClerkProvider>
       </body>
     </html>

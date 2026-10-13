@@ -1,5 +1,6 @@
 import { isAdmin } from "@/server/auth";
 import { getService } from "@/server/catalog";
+import { publicReads } from "@/server/publicCache";
 import { deleteService, updateService } from "@/server/handlers/catalog";
 import { toId } from "@/server/http";
 import { forwardToWorker, ported } from "@/server/worker";
@@ -16,7 +17,8 @@ export const GET = ported<Context>(async (req, { params }) => {
   if (!/^\d+$/.test(id)) return forwardToWorker(req);
   const serviceId = toId(id);
   if (serviceId === null) return notFound();
-  const service = await getService(serviceId, await isAdmin());
+  // Admins also see hidden services, read fresh; everyone else gets the cached public one
+  const service = (await isAdmin()) ? await getService(serviceId, true) : await publicReads.service(serviceId);
   return service ? Response.json(service) : notFound();
 });
 
