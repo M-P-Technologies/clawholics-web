@@ -1,15 +1,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { publicQueries } from "@/lib/publicQueries";
 import { useLocation, useNavigate } from "@/lib/router";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { fetchNailists, fetchBookedSlotsDetailed, createBooking } from "../services/bookingService";
 import { fetchNailistDayOffs, fetchNailistTimeSlots } from "../services/nailistService";
-import { fetchHomeContent } from "../services/contentService";
-import { fetchAboutContent } from "../services/aboutService";
 import { withSalonLocation } from "../lib/homeSections";
 import { fetchProfileIfExists } from "../services/userService";
-import { fetchCategories, type ServiceCategory } from "../services/catalogService";
 import { estimateTotal } from "../services/pricing";
 import { type Nailist, type BookingState, parseTimeRange } from "../utils/booking";
 
@@ -20,10 +19,20 @@ export function useBooking() {
   const { getToken } = useAuth();
   const state = location.state as BookingState | null;
 
-  const [pageData, setPageData] = useState<Record<string, string> | null>(null);
-  const [isPageLoading, setIsPageLoading] = useState(true);
+  const homeQuery = useQuery(publicQueries.home());
+  const aboutQuery = useQuery(publicQueries.about());
+  const home = homeQuery.data;
+  const about = aboutQuery.data;
+  // The address and map link are edited in About Us; the page waits for them, but works without
+  const aboutSettled = !aboutQuery.isPending;
+  const pageData = useMemo(
+    () => (home && aboutSettled ? withSalonLocation(home, about ?? null) : null),
+    [home, about, aboutSettled],
+  );
+  // A failed refresh keeps showing the copy already loaded
+  const pageError = homeQuery.isError && !home ? "Failed to load location." : "";
+  const isPageLoading = !pageData && !pageError;
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [pageError, setPageError] = useState("");
 
   const [nailists, setNailists] = useState<Nailist[]>([]);
   const [selectedNailist, setSelectedNailist] = useState<Nailist | null>(null);
@@ -58,13 +67,10 @@ export function useBooking() {
   const variants: { id: number; name: string; price: number }[] = state?.variants ?? [];
   const service_category_id: number | null = state?.service_category_id ?? null;
 
-  const [categories, setCategories] = useState<ServiceCategory[]>([]);
+  // The category's add-ons; without the categories, there are none to offer
+  const categories = useQuery(publicQueries.categories()).data ?? [];
   const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null);
   const [selectedAddonIds, setSelectedAddonIds] = useState<number[]>([]);
-
-  useEffect(() => {
-    fetchCategories().then(setCategories).catch(() => setCategories([]));
-  }, []);
 
   const addons = categories.find((c) => c.id === service_category_id)?.addons ?? [];
 
@@ -90,26 +96,6 @@ export function useBooking() {
 
   const locationUrl = pageData?.contact_location_url || "";
   const locationText = pageData?.contact_location || "";
-
-  useEffect(() => {
-    const loadPageContent = async () => {
-      try {
-        setIsPageLoading(true);
-        setPageError("");
-
-        const [data, about] = await Promise.all([fetchHomeContent(), fetchAboutContent().catch(() => null)]);
-        // The address and map link are edited in About Us
-        setPageData(withSalonLocation(data, about));
-      } catch (err) {
-        console.error("Failed to load booking page content", err);
-        setPageError("Failed to load location.");
-      } finally {
-        setIsPageLoading(false);
-      }
-    };
-
-    loadPageContent();
-  }, []);
 
   useEffect(() => {
     if (!selectedNailist) return;
