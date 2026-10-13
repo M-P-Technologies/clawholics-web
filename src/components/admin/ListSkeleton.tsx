@@ -7,6 +7,8 @@ interface ListSkeletonProps {
   label: string;
   /** How many columns follow the client column in a table row */
   columns?: number;
+  /** Inside a screen's own loading region: no second "loading" for screen readers */
+  quiet?: boolean;
 }
 
 const ROWS = 5;
@@ -14,12 +16,12 @@ const ROWS = 5;
 // Placeholder rows for an admin table while it loads, shaped like the real thing: from md up,
 // rows of a photo, a name and the columns; on phones, cards like RowCards'. Each row's bars vary
 // in width so it reads as a list rather than a grid of blocks.
-export function ListSkeleton({ label, columns = 8 }: ListSkeletonProps) {
+export function ListSkeleton({ label, columns = 8, quiet = false }: ListSkeletonProps) {
   const asTable = useTableLayout();
 
   return (
-    <div role="status" aria-label={label} className="flex flex-col">
-      <span className="sr-only">{label}…</span>
+    <div role={quiet ? undefined : "status"} aria-label={quiet ? undefined : label} className="flex flex-col">
+      {!quiet && <span className="sr-only">{label}…</span>}
       {asTable
         ? Array.from({ length: ROWS }, (_, row) => (
             <div key={row} className="flex items-center gap-6 border-t border-dotted border-crimson-light py-3 first:border-t-0">

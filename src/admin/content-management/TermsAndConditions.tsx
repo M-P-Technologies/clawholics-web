@@ -4,9 +4,9 @@ import CmsEditor from "../../components/admin/cms/CmsEditor";
 import { ItemsNote, PanelSection } from "../../components/admin/cms/fields";
 import SortableList from "../../components/admin/SortableList";
 import TACDropdown from "../../components/admin/TACDropdown";
-import { LoadingBar } from "../../components/ui/LoadingBar";
 import { useTermsEditor } from "../../hooks/admin/useTermsEditor";
 import { TERMS_PREVIEW_PAGES } from "../../lib/admin/cmsPages";
+import { CmsEditorSkeleton } from "../../components/admin/skeletons";
 
 // The Terms & Conditions sections, edited beside a live preview. Its state and saving are in
 // hooks/admin/useTermsEditor.
@@ -14,13 +14,7 @@ export default function TermsAndConditions() {
   const { list, getToken, clerkId } = useTermsEditor();
   const tacs = list.items;
 
-  if (list.loading) {
-    return (
-      <div className="fixed inset-0 z-9999 flex items-center justify-center bg-light-orange">
-        <LoadingBar label="Loading terms and conditions" />
-      </div>
-    );
-  }
+  if (list.loading) return <CmsEditorSkeleton title="Terms & Conditions" />;
 
   return (
     <CmsEditor

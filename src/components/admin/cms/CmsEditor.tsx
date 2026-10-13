@@ -5,6 +5,7 @@ import AdminShell from "../AdminShell";
 import Button from "../../ui/Button";
 import Select from "../../ui/Select";
 import { PREVIEW_FRAME_NAME, type PreviewDrafts, type PreviewMessage } from "../../../lib/cmsPreview";
+import { PageSkeleton } from "../skeletons";
 
 interface PreviewPage {
   label: string;
@@ -217,8 +218,9 @@ function PreviewStage({ frameRef, src, device, reloadKey, title }: PreviewStageP
         />
       </div>
       {loading && (
-        <div role="status" className="absolute inset-0 flex items-center justify-center bg-milk/60 text-[13px] font-bold text-gray-red">
-          Loading preview…
+        <div role="status" aria-label="Loading preview" className="absolute inset-0 overflow-hidden bg-milk">
+          <span className="sr-only">Loading preview…</span>
+          <PageSkeleton className="h-full" />
         </div>
       )}
     </div>

@@ -4,10 +4,10 @@ import CategoryPanel from "../../components/admin/CategoryPanel";
 import CmsEditor from "../../components/admin/cms/CmsEditor";
 import { ItemsNote, LinkField, PanelSection, SaveBar, SubCard, TextField } from "../../components/admin/cms/fields";
 import NailServiceDropdown from "../../components/admin/NailServiceDropdown";
-import { LoadingBar } from "../../components/ui/LoadingBar";
 import { useServicesEditor } from "../../hooks/admin/useServicesEditor";
 import { SERVICES_PREVIEW_PAGES } from "../../lib/admin/cmsPages";
 import { SITE_LINK_OPTIONS } from "../../lib/homeSections";
+import { CmsEditorSkeleton } from "../../components/admin/skeletons";
 
 // The Services page's words, the categories and every service, edited beside a live preview. Its
 // state and saving are in hooks/admin/useServicesEditor.
@@ -15,13 +15,7 @@ export default function NailServices() {
   const editor = useServicesEditor();
   const { words, setWord, services, categories } = editor;
 
-  if (editor.isLoading) {
-    return (
-      <div className="fixed inset-0 z-9999 flex items-center justify-center bg-light-orange">
-        <LoadingBar label="Loading services" />
-      </div>
-    );
-  }
+  if (editor.isLoading) return <CmsEditorSkeleton title="Services" />;
 
   return (
     <CmsEditor

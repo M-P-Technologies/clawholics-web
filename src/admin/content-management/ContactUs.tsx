@@ -4,10 +4,10 @@ import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 import CmsEditor from "../../components/admin/cms/CmsEditor";
 import { ElsewhereNote, IconPicker, PanelSection, SaveBar, SubCard, TextField } from "../../components/admin/cms/fields";
 import Button from "../../components/ui/Button";
-import { LoadingBar } from "../../components/ui/LoadingBar";
 import { useContactEditor } from "../../hooks/admin/useContactEditor";
 import { CONTACT_BUSINESS_FIELDS, CONTACT_PREVIEW_PAGES } from "../../lib/admin/contactEditor";
 import { MAX_SOCIAL_LINKS, SOCIAL_PLATFORMS, platformOf } from "../../lib/socialLinks";
+import { CmsEditorSkeleton } from "../../components/admin/skeletons";
 
 // The Contact page's words, the phone and email, and the social media links (shown on the
 // Contact page and in the footer of every page), edited beside a live preview. The address and
@@ -16,13 +16,7 @@ export default function ContactUs() {
   const editor = useContactEditor();
   const { values, set, links, setLink, moveLink, error } = editor;
 
-  if (editor.isLoading) {
-    return (
-      <div className="fixed inset-0 z-9999 flex items-center justify-center bg-light-orange">
-        <LoadingBar label="Loading contact details" />
-      </div>
-    );
-  }
+  if (editor.isLoading) return <CmsEditorSkeleton title="Contact Us" />;
 
   return (
     <CmsEditor

@@ -3,9 +3,9 @@
 import CmsEditor from "../../components/admin/cms/CmsEditor";
 import { ItemsNote, PanelSection, SaveBar, TextField } from "../../components/admin/cms/fields";
 import NailArtistDropdown from "../../components/admin/NailArtistDropdown";
-import { LoadingBar } from "../../components/ui/LoadingBar";
 import { useArtistsEditor } from "../../hooks/admin/useArtistsEditor";
 import { ARTISTS_PREVIEW_PAGES } from "../../lib/admin/cmsPages";
+import { CmsEditorSkeleton } from "../../components/admin/skeletons";
 
 // The Artists page's words and every artist, edited beside a live preview. Its state and saving
 // are in hooks/admin/useArtistsEditor.
@@ -13,13 +13,7 @@ export default function NailArtists() {
   const editor = useArtistsEditor();
   const { words, setWord, nailists } = editor;
 
-  if (editor.isLoading) {
-    return (
-      <div className="fixed inset-0 z-9999 flex items-center justify-center bg-light-orange">
-        <LoadingBar label="Loading artists" />
-      </div>
-    );
-  }
+  if (editor.isLoading) return <CmsEditorSkeleton title="Artists" />;
 
   return (
     <CmsEditor

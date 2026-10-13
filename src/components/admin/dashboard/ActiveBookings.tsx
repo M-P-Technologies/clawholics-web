@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { Link } from "../../../lib/router";
 import { manilaClock, manilaToday } from "../../../lib/dashboardPeriods";
 import type { Appointment } from "../../../services/appointmentService";
+import { SectionSkeleton } from "../skeletons";
 
 const SHOWN = ["CONFIRMED", "COMPLETED"];
 const MAX_SHOWN = 3;
@@ -63,7 +64,7 @@ export default function ActiveBookings({ load }: { load: () => Promise<Appointme
       {failed ? (
         <p className="text-sm text-gray-red/70">We couldn&apos;t load today&apos;s bookings.</p>
       ) : rows === null ? (
-        <p className="text-sm text-gray-red/70">Loading…</p>
+        <SectionSkeleton label="Loading today's bookings" lines={4} />
       ) : todays.length === 0 ? (
         <p className="text-sm text-gray-red/70">No bookings today.</p>
       ) : (

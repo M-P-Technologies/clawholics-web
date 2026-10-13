@@ -9,8 +9,8 @@ import EditAdminModal from "../../components/admin/EditAdminModal";
 import FeedbackModal from "../../components/admin/FeedbackModal";
 import Button from "../../components/ui/Button";
 import ConfirmModal from "../../components/ui/ConfirmModal";
-import { LoadingBar } from "../../components/ui/LoadingBar";
 import { useAdminDirectory } from "../../hooks/admin/useAdminDirectory";
+import { AdminDirectorySkeleton } from "../../components/admin/skeletons";
 
 // The Admin Directory: the admin totals, the admins in a table and the chosen one's profile, and
 // adding, editing and removing an admin. Its data and actions are in hooks/admin/useAdminDirectory.
@@ -18,13 +18,7 @@ export default function AdminDirectory() {
   const d = useAdminDirectory();
   const { users, selected, selectedAdmin, setProfileElement } = d;
 
-  if (d.loading) {
-    return (
-      <div className="fixed inset-0 z-9999 flex items-center justify-center bg-light-orange">
-        <LoadingBar label="Loading admins" />
-      </div>
-    );
-  }
+  if (d.loading) return <AdminDirectorySkeleton />;
 
   return (
     <AdminShell title="Admin Directory" actions={<Button onClick={d.openAdd}>Add Admin</Button>}>
