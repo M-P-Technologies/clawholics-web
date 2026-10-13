@@ -22,6 +22,8 @@ export function useClientDirectory() {
   const [profilesLoaded, setProfilesLoaded] = useState(false);
   const [leadIds, setLeadIds] = useState<Set<string> | null>(null);
   const [leadsError, setLeadsError] = useState(false);
+  // All three requests answered (or failed): until then the cards and lists show placeholders
+  const [settled, setSettled] = useState(false);
 
   useEffect(() => {
     if (!isAuthLoaded) return;
@@ -42,6 +44,7 @@ export function useClientDirectory() {
       }
       if (leadsResult.status === "fulfilled") setLeadIds(new Set(leadsResult.value.clerkIds));
       else setLeadsError(true);
+      setSettled(true);
     })();
     return () => {
       live = false;
@@ -69,17 +72,20 @@ export function useClientDirectory() {
     leads,
     leadsLoaded,
     leadsFailed,
+    /** The warm leads are still on their way: the list shows placeholder rows */
+    leadsLoading: !settled,
     /** The line above the warm leads */
     leadsMessage: leadsFailed
       ? "We couldn't load the warm leads."
       : !leadsLoaded
         ? "Loading warm leads…"
         : `${leads.length} warm ${leads.length === 1 ? "lead: made an account or started a booking in the last 60 days, but hasn't" : "leads: made an account or started a booking in the last 60 days, but haven't"} booked a visit yet.`,
+    // A card that can't be worked out once everything answered shows a dash
     stats: [
-      { label: "Total clients", value: users ? clients.length : null, hint: "in the directory", icon: Users },
-      { label: "New clients", value: users && profilesLoaded ? countWithin(clients, profiles, "joinedAt", 30) : null, hint: "joined in the last 30 days", icon: UserPlus },
-      { label: "Active clients", value: users && profilesLoaded ? countWithin(clients, profiles, "lastSignInAt", 30) : null, hint: "signed in in the last 30 days", icon: Activity },
-      { label: "Warm leads", value: users && leadIds && !leadsError ? leads.length : null, hint: "active, but haven't booked yet", icon: Flame },
+      { label: "Total clients", value: users ? clients.length : null, hint: "in the directory", icon: Users, loading: !settled },
+      { label: "New clients", value: users && profilesLoaded ? countWithin(clients, profiles, "joinedAt", 30) : null, hint: "joined in the last 30 days", icon: UserPlus, loading: !settled },
+      { label: "Active clients", value: users && profilesLoaded ? countWithin(clients, profiles, "lastSignInAt", 30) : null, hint: "signed in in the last 30 days", icon: Activity, loading: !settled },
+      { label: "Warm leads", value: users && leadIds && !leadsError ? leads.length : null, hint: "active, but haven't booked yet", icon: Flame, loading: !settled },
     ],
   };
 }

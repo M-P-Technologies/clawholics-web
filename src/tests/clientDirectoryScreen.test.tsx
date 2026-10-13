@@ -56,6 +56,21 @@ describe("Clients & Bookings", () => {
     expect(screen.queryByRole("table", { name: "Clients" })).toBeNull();
   });
 
+  it("shows placeholders in the totals and the list until they load", async () => {
+    params = new URLSearchParams("view=leads");
+    render(<ClientDirectory />);
+    const totals = within(screen.getByRole("region", { name: "Client totals" }));
+    expect(totals.getAllByRole("status")).toHaveLength(4);
+    expect(screen.getByRole("status", { name: "Loading appointments" })).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "Loading warm leads" })).toBeInTheDocument();
+
+    await screen.findByRole("table", { name: "Appointments" });
+    expect(await totals.findByText("2")).toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Loading appointments" })).toBeNull();
+    expect(screen.queryByRole("status", { name: "Loading warm leads" })).toBeNull();
+    expect(totals.queryAllByRole("status")).toHaveLength(0);
+  });
+
   it("lists the warm leads when opened from the dashboard, with a way back", async () => {
     params = new URLSearchParams("view=leads");
     render(<ClientDirectory />);
