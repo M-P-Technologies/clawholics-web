@@ -4,6 +4,7 @@ import { getSql } from "../db";
 import { pgErrorCode, readJson, toId } from "../http";
 import { MAX_PROOF_SIZE, PROOF_EXTENSIONS } from "../payments";
 import { publicBaseUrl, putObject } from "../r2";
+import { changesCatalog, publicReads } from "../publicCache";
 import { ported } from "../worker";
 
 // Clients' reviews of their completed visits: a 1-5 rating, a comment and an optional photo, one
@@ -12,8 +13,6 @@ import { ported } from "../worker";
 // (migration 20261016000000_review_approval.sql).
 
 type IdContext = { params: Promise<{ id: string }> };
-/** The most reviews the home page is given */
-const PUBLIC_LIMIT = 12;
 
 const MAX_COMMENT_LENGTH = 1000;
 const errorBody = (message: string, status: number) => Response.json({ error: message, message }, { status });
@@ -84,24 +83,12 @@ export const createReview = ported(async (req) => {
   }
 });
 
-// GET /reviews/public (anyone): the reviews an admin approved for the home page, newest first.
-// Only what the page shows: the stars, words and photo, the service, and the client's first
-// name with the initial of their last.
-export const listPublicReviews = ported(async () => {
-  const rows = await getSql()`
-    select r.id, r.rating, r.comment, r.photo_url, r.created_at, a.service_name,
-      nullif(trim(coalesce(cp.first_name, '') || ' ' || coalesce(left(trim(cp.last_name), 1) || '.', '')), '') as client_name
-    from reviews r
-    join appointments a on a.id = r.appointment_id
-    left join customer_profiles cp on cp.user_id = r.user_id
-    where r.approved = 1
-    order by r.approved_at desc nulls last, r.id desc
-    limit ${PUBLIC_LIMIT}`;
-  return Response.json(rows);
-});
+// GET /reviews/public (anyone): the reviews an admin approved for the home page (cached, see
+// publicCache)
+export const listPublicReviews = ported(async () => Response.json(await publicReads.reviews()));
 
 // PUT /reviews/:id/approval { approved } (admin): show a review on the home page, or take it off
-export const setReviewApproval = ported<IdContext>(async (req, { params }) => {
+export const setReviewApproval = changesCatalog(ported<IdContext>(async (req, { params }) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const id = toId((await params).id);
@@ -120,4 +107,4 @@ export const setReviewApproval = ported<IdContext>(async (req, { params }) => {
         where id = ${id} returning id, appointment_id, approved`;
   if (!row) return errorBody("Review not found.", 404);
   return Response.json(row);
-});
+}));

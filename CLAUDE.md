@@ -64,6 +64,7 @@ The Worker's endpoints are ported to route handlers in `src/app/api/` on Supabas
   - `auth.ts`: the Clerk-verified requester, with roles from `users.role`. The `clerk_id` header is never trusted.
   - `r2.ts`: R2 through the S3 API.
   - `catalog.ts`: the read queries.
+  - `publicCache.ts`: the public catalog/CMS reads cached with `unstable_cache` under one `catalog` tag (admins' reads skip it). Every admin write to those tables must be wrapped in `changesCatalog()`, which drops the cache on success; anything else shows within an hour.
   - `clerkSync.ts`: directory sync with Clerk (names, `publicMetadata.role`, deletes). Clerk errors are logged, never fail the request.
 - **Response parity:** responses must match the Worker's exactly (columns, order, number types; cast `count(*)` to `int`).
 - **Schema and seed:** the schema is in `supabase/migrations/` and is the D1 schema translated: same columns, 0/1 integer flags, text dates and times, RLS on with no policies. Schema changes are new files in `supabase/migrations/`. `supabase/seed.sql` is dev/test data, edited by hand (its old generator read the removed `database/init.sql`); never load it into production.

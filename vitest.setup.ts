@@ -55,6 +55,13 @@ vi.mock("@testing-library/react", async (importOriginal) => {
   };
 });
 
+// unstable_cache needs Next's cache, which only runs inside Next: in tests the cached public reads
+// (server/publicCache) read the database every time, and revalidateTag is a spy
+vi.mock("next/cache", () => ({
+  unstable_cache: <F extends (...args: never[]) => unknown>(read: F) => read,
+  revalidateTag: vi.fn(),
+}));
+
 // `server-only` throws outside a React Server environment; server modules are tested directly
 vi.mock("server-only", () => ({}));
 

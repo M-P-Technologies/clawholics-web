@@ -4,6 +4,7 @@ import { getService, isContentSection } from "../catalog";
 import { getSql } from "../db";
 import { orNull, pgErrorCode, readJson, routeNotFound, toId } from "../http";
 import { createImageKey, publicBaseUrl, putObject } from "../r2";
+import { changesCatalog } from "../publicCache";
 import { forwardToWorker, ported } from "../worker";
 
 // Admin writes for the CMS and the catalog, ported from worker-api/src/index.ts
@@ -21,7 +22,7 @@ const message = (text: string, status: number, extra: object = {}) => Response.j
 
 // PUT /content/{home,about,team,contact}: { updates: [{ key, value }] }, { key, value }, or a
 // plain { key: value } object. Any key can be written from any section, as on the Worker.
-export const updateContent = ported<SectionContext>(async (req, { params }) => {
+export const updateContent = changesCatalog(ported<SectionContext>(async (req, { params }) => {
   const { section } = await params;
   if (!isContentSection(section)) return forwardToWorker(req);
   const admin = await requireAdmin();
@@ -43,7 +44,7 @@ export const updateContent = ported<SectionContext>(async (req, { params }) => {
     }
   });
   return Response.json({ message: "Content updated" });
-});
+}));
 
 const UPLOAD_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_UPLOAD_SIZE = 4 * 1024 * 1024;
@@ -70,7 +71,7 @@ export const uploadContentImage = ported<SectionContext>(async (req) => {
 // --- CAROUSEL --------------------------------------------------------------------------------
 
 // PUT /carousel: { images: [{ image_url }] } replaces the carousel, in that order.
-export const updateCarousel = ported(async (req) => {
+export const updateCarousel = changesCatalog(ported(async (req) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
 
@@ -87,11 +88,11 @@ export const updateCarousel = ported(async (req) => {
     }
   });
   return Response.json({ message: "Carousel updated" });
-});
+}));
 
 // --- FAQS AND TERMS ------------------------------------------------------------------------
 
-export const createFaq = ported(async (req) => {
+export const createFaq = changesCatalog(ported(async (req) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const body = await readJson<Body>(req);
@@ -101,9 +102,9 @@ export const createFaq = ported(async (req) => {
     returning *
   `;
   return Response.json(created, { status: 201 });
-});
+}));
 
-export const updateFaq = ported<IdContext>(async (req, { params }) => {
+export const updateFaq = changesCatalog(ported<IdContext>(async (req, { params }) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const id = toId((await params).id);
@@ -115,17 +116,17 @@ export const updateFaq = ported<IdContext>(async (req, { params }) => {
     where id = ${id} returning *
   `;
   return updated ? Response.json(updated) : routeNotFound();
-});
+}));
 
-export const deleteFaq = ported<IdContext>(async (_req, { params }) => {
+export const deleteFaq = changesCatalog(ported<IdContext>(async (_req, { params }) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const id = toId((await params).id);
   if (id !== null) await getSql()`delete from faqs where id = ${id}`;
   return Response.json({ message: "FAQ deleted" });
-});
+}));
 
-export const createTac = ported(async (req) => {
+export const createTac = changesCatalog(ported(async (req) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const body = await readJson<Body>(req);
@@ -136,9 +137,9 @@ export const createTac = ported(async (req) => {
     returning *
   `;
   return Response.json(created, { status: 201 });
-});
+}));
 
-export const updateTac = ported<IdContext>(async (req, { params }) => {
+export const updateTac = changesCatalog(ported<IdContext>(async (req, { params }) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const id = toId((await params).id);
@@ -151,15 +152,15 @@ export const updateTac = ported<IdContext>(async (req, { params }) => {
     where id = ${id} returning *
   `;
   return updated ? Response.json(updated) : routeNotFound();
-});
+}));
 
-export const deleteTac = ported<IdContext>(async (_req, { params }) => {
+export const deleteTac = changesCatalog(ported<IdContext>(async (_req, { params }) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const id = toId((await params).id);
   if (id !== null) await getSql()`delete from terms_and_conditions where id = ${id}`;
   return Response.json({ message: "TAC deleted" });
-});
+}));
 
 // --- SERVICE CATEGORIES ----------------------------------------------------------------------
 
@@ -177,7 +178,7 @@ function parseIdList(value: unknown): number[] | null {
 
 const DUPLICATE_CATEGORY = "A category with this name or slug already exists.";
 
-export const reorderCategories = ported(async (req) => {
+export const reorderCategories = changesCatalog(ported(async (req) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const ids = parseIdList((await readJson<{ ids?: unknown }>(req)).ids);
@@ -186,9 +187,9 @@ export const reorderCategories = ported(async (req) => {
     for (const [i, id] of ids.entries()) await tx`update service_categories set position = ${i + 1} where id = ${id}`;
   });
   return Response.json({ message: "Categories reordered" });
-});
+}));
 
-export const createCategory = ported(async (req) => {
+export const createCategory = changesCatalog(ported(async (req) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const body = await readJson<Body>(req);
@@ -211,9 +212,9 @@ export const createCategory = ported(async (req) => {
     if (pgErrorCode(error) === "23505") return message(DUPLICATE_CATEGORY, 409);
     throw error;
   }
-});
+}));
 
-export const updateCategory = ported<IdContext>(async (req, { params }) => {
+export const updateCategory = changesCatalog(ported<IdContext>(async (req, { params }) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const id = toId((await params).id);
@@ -248,11 +249,11 @@ export const updateCategory = ported<IdContext>(async (req, { params }) => {
     if (pgErrorCode(error) === "23505") return message(DUPLICATE_CATEGORY, 409);
     throw error;
   }
-});
+}));
 
 // DELETE /categories/:id[?reassign_to=]: a category with services needs reassign_to, and its
 // services move there.
-export const deleteCategory = ported<IdContext>(async (req, { params }) => {
+export const deleteCategory = changesCatalog(ported<IdContext>(async (req, { params }) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const id = toId((await params).id);
@@ -288,7 +289,7 @@ export const deleteCategory = ported<IdContext>(async (req, { params }) => {
     return moved.count;
   });
   return Response.json({ message: "Category deleted", reassigned, reassigned_to: target.id });
-});
+}));
 
 // --- SERVICES --------------------------------------------------------------------------------
 
@@ -341,7 +342,7 @@ async function resolveServiceCategory(body: Body): Promise<{ id: number; name: s
 const serviceNotFound = () => message("Service not found", 404);
 const text = (value: unknown) => (value === undefined || value === null ? null : String(value));
 
-export const reorderServices = ported(async (req) => {
+export const reorderServices = changesCatalog(ported(async (req) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const ids = parseIdList((await readJson<{ ids?: unknown }>(req)).ids);
@@ -350,9 +351,9 @@ export const reorderServices = ported(async (req) => {
     for (const [i, id] of ids.entries()) await tx`update services set position = ${i + 1} where id = ${id}`;
   });
   return Response.json({ message: "Services reordered" });
-});
+}));
 
-export const createService = ported(async (req) => {
+export const createService = changesCatalog(ported(async (req) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const body = await readJson<Body>(req);
@@ -369,9 +370,9 @@ export const createService = ported(async (req) => {
     returning id
   `;
   return Response.json(await getService(id, true), { status: 201 });
-});
+}));
 
-export const updateService = ported<IdContext>(async (req, { params }) => {
+export const updateService = changesCatalog(ported<IdContext>(async (req, { params }) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const id = toId((await params).id);
@@ -396,10 +397,10 @@ export const updateService = ported<IdContext>(async (req, { params }) => {
   `;
   const updated = await getService(id!, true);
   return updated ? Response.json(updated) : serviceNotFound();
-});
+}));
 
 // Appointments keep pointing at service_id, so a booked service is archived (hidden) instead
-export const deleteService = ported<IdContext>(async (_req, { params }) => {
+export const deleteService = changesCatalog(ported<IdContext>(async (_req, { params }) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const id = toId((await params).id);
@@ -412,13 +413,13 @@ export const deleteService = ported<IdContext>(async (_req, { params }) => {
   }
   await sql`delete from services where id = ${id}`;
   return Response.json({ message: "Service deleted", deleted: true });
-});
+}));
 
 // --- SERVICE GALLERY -------------------------------------------------------------------------
 
 const MAX_GALLERY_PHOTOS = 10;
 
-export const addGalleryImage = ported<IdContext>(async (req, { params }) => {
+export const addGalleryImage = changesCatalog(ported<IdContext>(async (req, { params }) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const serviceId = toId((await params).id);
@@ -443,11 +444,11 @@ export const addGalleryImage = ported<IdContext>(async (req, { params }) => {
     if (pgErrorCode(error) === "23505") return message("This photo is already in the gallery.", 409);
     throw error;
   }
-});
+}));
 
 // PUT/DELETE /gallery/:id. The Worker left these open to anyone (/gallery wasn't in its admin
 // route list); here they need an admin.
-export const updateGalleryImage = ported<IdContext>(async (req, { params }) => {
+export const updateGalleryImage = changesCatalog(ported<IdContext>(async (req, { params }) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const id = toId((await params).id);
@@ -462,12 +463,12 @@ export const updateGalleryImage = ported<IdContext>(async (req, { params }) => {
     }
   }
   return Response.json({ message: "Updated successfully" });
-});
+}));
 
-export const deleteGalleryImage = ported<IdContext>(async (_req, { params }) => {
+export const deleteGalleryImage = changesCatalog(ported<IdContext>(async (_req, { params }) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const id = toId((await params).id);
   if (id !== null) await getSql()`delete from service_gallery where id = ${id}`;
   return Response.json({ message: "Image deleted" });
-});
+}));
