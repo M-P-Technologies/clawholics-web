@@ -9,7 +9,7 @@ import Navbar from "./NavBar";
 import Footer from "./Footer";
 
 // Screens that end without the site footer.
-const NO_FOOTER_PATHS = ["/login", "/signup", "/onboarding"];
+const NO_FOOTER_PATHS = ["/login", "/signup", "/onboarding", "/profile"];
 
 // On phones the footer is only for the main pages; on every other page (a service, an artist, booking,
 // payment, profile, the legal pages...) it is hidden, since the bottom bar has the navigation.

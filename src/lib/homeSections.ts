@@ -71,6 +71,7 @@ export const HOME_TEXT_DEFAULTS = {
   home_about_text:
     "Clawholics by Max was founded in 2023 with a simple dream. What began in a tiny corner of an eatery is now a nail studio built on dedication and heart.",
   home_about_link_label: "Read our story",
+  home_reviews_title: "What our clients say",
   home_faq_title: "Frequently asked questions",
   home_cta_title: "Ready for your next set?",
   home_cta_text: "Pick a service and a time. We handle the rest.",

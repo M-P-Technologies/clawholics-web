@@ -64,7 +64,8 @@ export const getClient = ported<IdContext>(async (_req, { params }) => {
          case when lp.status in ('APPROVED', 'REJECTED') then lp.updated_at end as proof_reviewed_at,
          upper(lpay.status) as payment_status,
          -- The client's review of the visit, if they left one
-         r.rating as review_rating, r.comment as review_comment, r.photo_url as review_photo_url
+         r.id as review_id, r.rating as review_rating, r.comment as review_comment, r.photo_url as review_photo_url,
+         r.approved as review_approved
        from appointments a
        left join nailists n on n.id = a.nailist_id
        left join nailist_categories nc on nc.id = n.category_id

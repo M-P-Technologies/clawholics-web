@@ -1,11 +1,15 @@
 "use client";
 
 import { useClerk } from "@clerk/nextjs";
+import { CalendarCheck, CalendarClock, Stamp } from "lucide-react";
 import { useState } from "react";
+import clsx from "clsx";
 import PageShell from "../../components/layout/PageShell";
 import Section from "../../components/layout/Section";
 import Button from "../../components/ui/Button";
 import { LoadingBar } from "../../components/ui/LoadingBar";
+import StatCard from "../../components/ui/StatCard";
+import TabSection from "../../components/ui/TabSection";
 import AppointmentSheet from "../../components/profile/AppointmentSheet";
 import AppointmentsSection from "../../components/profile/AppointmentsSection";
 import DetailsCard from "../../components/profile/DetailsCard";
@@ -19,6 +23,18 @@ import { useMyReviews } from "../../hooks/useMyReviews";
 import { useProfile } from "../../hooks/useProfile";
 import { useServicePhotos } from "../../hooks/useServicePhotos";
 
+type ProfileTab = "overview" | "appointments";
+const PROFILE_TABS: { value: ProfileTab; label: string }[] = [
+  { value: "overview", label: "Overview" },
+  { value: "appointments", label: "Appointments" },
+];
+
+// The admin's card: milk white, soft border and shadow
+const panelClass = "flex min-w-0 flex-col rounded-2xl border border-crimson-light/40 bg-milk shadow-petal";
+
+// The client's own page, in two panels like the admin's client page: on the left who they are
+// (photo, loyalty card, details, account), on the right their next appointment and counts, and
+// every appointment.
 export default function Profile() {
   const p = useProfile();
   const { openUserProfile, signOut } = useClerk();
@@ -28,6 +44,8 @@ export default function Profile() {
   const [chosenId, setOpenId] = useState<number | null | undefined>(undefined);
   const openId = chosenId === undefined ? p.highlightedAppointmentId : chosenId;
   const [rewardsOpen, setRewardsOpen] = useState(false);
+  // Arriving for one appointment (after paying) opens on the list it is in
+  const [tab, setTab] = useState<ProfileTab>(p.highlightedAppointmentId ? "appointments" : "overview");
 
   const { dbUser } = p;
   if (p.isBusy || !dbUser) {
@@ -49,52 +67,89 @@ export default function Profile() {
   ];
   const hero = p.nextAppointment;
 
+  const completedVisits = (p.appointments ?? []).filter((a) => a.status.trim().toUpperCase() === "COMPLETED").length;
+  const reviewedIds = new Set(Object.keys(reviews).map(Number));
+
   return (
     <>
       <PageShell>
-        <Section innerClassName="max-w-5xl gap-4 md:gap-8">
-          <ProfileHeader firstName={dbUser.first_name ?? ""} imageUrl={p.clerkUser?.imageUrl ?? ""} memberSince={memberSince} />
-
-          {/* Phones: one column in reading order. From lg: the wrappers become two columns. */}
-          <div className="flex flex-col gap-4 md:gap-8 lg:grid lg:grid-cols-[1fr_1.4fr] lg:items-start">
-            <div className="contents lg:flex lg:flex-col lg:gap-8">
-              <div className="order-2"><RewardsStrip stamps={p.stamps} onOpen={() => setRewardsOpen(true)} /></div>
-              <div className="order-4"><DetailsCard rows={detailRows} onEdit={p.handleEditClick} /></div>
-            </div>
-            <div className="contents lg:flex lg:flex-col lg:gap-8">
-              <div className="order-1">
-                <NextAppointmentCard
-                  view={hero}
-                  photo={hero ? photoFor(hero.appt.service_name) : ""}
-                  now={p.currentTime}
-                  onPay={() => hero && p.payForAppointment(hero.appt)}
-                  onReschedule={() => hero && p.rescheduleAppointment(hero.appt)}
-                  onCancel={() => hero && p.startCancel(hero.appt)}
-                />
+        <Section innerClassName="max-w-6xl">
+          {/* Two panels, like the admin's client page: who you are on the left, your visits on the right */}
+          <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
+            <aside aria-label="Your profile" className={`${panelClass} gap-5 p-5 lg:sticky lg:top-24 lg:max-h-[80vh] lg:overflow-y-auto`}>
+              <ProfileHeader firstName={dbUser.first_name ?? ""} imageUrl={p.clerkUser?.imageUrl ?? ""} memberSince={memberSince} />
+              <RewardsStrip stamps={p.stamps} onOpen={() => setRewardsOpen(true)} />
+              <DetailsCard rows={detailRows} onEdit={p.handleEditClick} />
+              <div className="flex flex-col gap-2 border-t border-crimson-light/50 pt-4">
+                <Button variant="secondary" type="button" onClick={() => openUserProfile()} className="w-full">Manage account</Button>
+                <Button variant="secondary" type="button" onClick={() => signOut({ redirectUrl: "/" })} className="w-full">Log out</Button>
               </div>
-              <div className="order-3">
-                <AppointmentsSection
-                  upcoming={p.upcoming}
-                  past={p.pastViews}
-                  photoFor={photoFor}
-                  highlightedId={p.highlightedAppointmentId}
-                  onOpen={(view) => setOpenId(view.appt.id)}
-                  historyFilter={p.historyFilter}
-                  onFilterChange={p.handleHistoryFilterChange}
-                  historySort={p.historySortBy}
-                  onSortChange={p.handleHistorySortChange}
-                  hasMore={p.hasMoreHistory}
-                  showAll={p.showAllHistory}
-                  onToggleAll={p.toggleHistory}
-                  reviewedIds={new Set(Object.keys(reviews).map(Number))}
-                />
-              </div>
-            </div>
-          </div>
+            </aside>
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
-            <Button variant="secondary" type="button" onClick={() => openUserProfile()} className="w-full sm:w-auto">Manage account</Button>
-            <Button variant="secondary" type="button" onClick={() => signOut({ redirectUrl: "/" })} className="w-full sm:w-auto">Log out</Button>
+            <section aria-label="Your visits" className={`${panelClass} overflow-clip lg:min-h-[80vh]`}>
+              <div role="tablist" aria-label="Profile sections" className="flex shrink-0 overflow-x-auto overflow-y-hidden border-b border-crimson-light/50 px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {PROFILE_TABS.map((t) => (
+                  <button
+                    key={t.value}
+                    type="button"
+                    role="tab"
+                    id={`profile-tab-${t.value}`}
+                    aria-selected={tab === t.value}
+                    aria-controls={`profile-panel-${t.value}`}
+                    onClick={() => setTab(t.value)}
+                    className={clsx(
+                      "shrink-0 whitespace-nowrap border-b-2 px-4 py-3.5 text-[14px] font-bold transition-colors",
+                      tab === t.value ? "border-crimson text-berry" : "border-transparent text-gray-red/70 hover:text-berry",
+                    )}
+                  >
+                    {t.label}
+                    {t.value === "appointments" && <span className="ml-1.5 rounded-full bg-crimson-light/50 px-1.5 text-[11px] text-berry">{p.upcoming.length}</span>}
+                  </button>
+                ))}
+              </div>
+
+              <div role="tabpanel" id={`profile-panel-${tab}`} aria-labelledby={`profile-tab-${tab}`} className="flex flex-col gap-6 p-5">
+                {tab === "overview" && (
+                  <>
+                    <NextAppointmentCard
+                      view={hero}
+                      photo={hero ? photoFor(hero.appt.service_name) : ""}
+                      now={p.currentTime}
+                      onPay={() => hero && p.payForAppointment(hero.appt)}
+                      onReschedule={() => hero && p.rescheduleAppointment(hero.appt)}
+                      onCancel={() => hero && p.startCancel(hero.appt)}
+                    />
+                    <TabSection title="At a glance" description="Your visits with us and your loyalty card.">
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                        <StatCard icon={CalendarClock} label="Coming up" value={String(p.upcoming.length)} hint={p.upcoming.length === 1 ? "appointment" : "appointments"} />
+                        <StatCard icon={CalendarCheck} label="Visits" value={String(completedVisits)} hint="completed" />
+                        <StatCard icon={Stamp} label="Loyalty stamps" value={`${Math.min(p.stamps, 10)} / 10`} />
+                      </div>
+                    </TabSection>
+                  </>
+                )}
+
+                {tab === "appointments" && (
+                  <TabSection title="My appointments" description="Open one to see its details, pay, reschedule, or leave a review after your visit.">
+                    <AppointmentsSection
+                      upcoming={p.upcoming}
+                      past={p.pastViews}
+                      photoFor={photoFor}
+                      highlightedId={p.highlightedAppointmentId}
+                      onOpen={(view) => setOpenId(view.appt.id)}
+                      historyFilter={p.historyFilter}
+                      onFilterChange={p.handleHistoryFilterChange}
+                      historySort={p.historySortBy}
+                      onSortChange={p.handleHistorySortChange}
+                      hasMore={p.hasMoreHistory}
+                      showAll={p.showAllHistory}
+                      onToggleAll={p.toggleHistory}
+                      reviewedIds={reviewedIds}
+                    />
+                  </TabSection>
+                )}
+              </div>
+            </section>
           </div>
         </Section>
       </PageShell>

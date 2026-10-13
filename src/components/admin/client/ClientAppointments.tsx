@@ -21,13 +21,15 @@ interface ClientAppointmentsProps {
   onDraft: (draft: VisitDraft | null) => void;
   onSaveNote: () => void;
   onDeleteNote: (noteId: number) => void;
+  /** Shows a review on the home page, or takes it off */
+  onApproveReview: (reviewId: number, approved: boolean) => void;
 }
 
 const COLUMNS = ["Date", "Time", "Service", "Artist", "Status", "Fee", "Review", "Review photo", "Notes"];
 
 // Every appointment of the client, with its review and notes: a table on a computer, cards (five
 // to a page) on a phone
-export default function ClientAppointments({ appointments, notesFor, draft, busy, onDraft, onSaveNote, onDeleteNote }: ClientAppointmentsProps) {
+export default function ClientAppointments({ appointments, notesFor, draft, busy, onDraft, onSaveNote, onDeleteNote, onApproveReview }: ClientAppointmentsProps) {
   const asTable = useTableLayout();
   const [cardPage, setCardPage] = useState(1);
   const [photo, setPhoto] = useState<string | null>(null);
@@ -59,7 +61,7 @@ export default function ClientAppointments({ appointments, notesFor, draft, busy
                   ["Service", a.service_name],
                   ["Artist", a.nailist_name],
                   ["Fee", fee(a)],
-                  ["Review", <ReviewText key="review" appointment={a} />],
+                  ["Review", <ReviewText key="review" appointment={a} busy={busy} onApprove={onApproveReview} />],
                   ["Review photo", <ReviewPhoto key="photo" appointment={a} onOpen={setPhoto} />],
                 ]}
               />
@@ -106,8 +108,8 @@ export default function ClientAppointments({ appointments, notesFor, draft, busy
                   <StatusPill status={a.status} />
                 </td>
                 <td className={clsx(cell, "text-right")}>{fee(a)}</td>
-                <td className={clsx(cell, "max-w-[220px]")}>
-                  <ReviewText appointment={a} />
+                <td className={clsx(cell, "max-w-[260px]")}>
+                  <ReviewText appointment={a} busy={busy} onApprove={onApproveReview} />
                 </td>
                 <td className={cell}>
                   <ReviewPhoto appointment={a} onOpen={setPhoto} />

@@ -66,6 +66,9 @@ export interface ClientAppointment {
   proof_reviewed_at?: string | null;
   payment_status?: string | null;
   /** The client's review of the visit (1-5 stars), if they left one */
+  review_id?: number | null;
+  /** 1 once an admin approved it for the home page */
+  review_approved?: number | null;
   review_rating?: number | null;
   review_comment?: string | null;
   review_photo_url?: string | null;

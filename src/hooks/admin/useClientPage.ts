@@ -15,6 +15,7 @@ import {
   type ClientDetails,
   type ClientNote,
 } from "../../services/clientNotesService";
+import { setReviewApproval } from "../../services/reviewService";
 
 /** The note being written about one appointment */
 export interface VisitDraft {
@@ -107,6 +108,14 @@ export function useClientPage() {
   const removeNote = async (noteId: number) => {
     if (await run(async () => deleteNote(clientId, noteId, await auth()), "Note deleted")) await loadNotes();
   };
+  /** Shows a visit's review on the home page, or takes it off */
+  const approveReview = async (reviewId: number, approved: boolean) => {
+    const done = await run(async () => setReviewApproval(reviewId, approved, await auth()), approved ? "Review approved for the home page" : "Review taken off the home page");
+    if (!done) return;
+    setDetails((current) =>
+      current && { ...current, appointments: current.appointments.map((a) => (a.review_id === reviewId ? { ...a, review_approved: approved ? 1 : 0 } : a)) },
+    );
+  };
   const saveSteps = () => run(async () => saveNextSteps(clientId, steps, await auth()), "Next steps saved");
 
   const appointments = details?.appointments ?? [];
@@ -134,6 +143,7 @@ export function useClientPage() {
     setVisitDraft,
     addVisitNote,
     removeNote,
+    approveReview,
     steps,
     setSteps,
     saveSteps,

@@ -20,11 +20,15 @@ import { DEFAULT_HERO_IMAGE,FACEBOOK_URL } from "../../data/home";
 import { ctaLink, iconFor, readHomeSections } from "../../lib/homeSections";
 import { sectionTitleClass } from "../../components/ui/styles";
 import { useHome } from "../../hooks/useHome";
+import { useTestimonials } from "../../hooks/useTestimonials";
+import Testimonials from "../../components/home/Testimonials";
 
 export default function Home() {
   const { retryProfile, contentError, reloadContent, isBusy, content, faqs, nailists, about, profileCheckFailed, stripItems } = useHome();
   // A broken or deleted hero photo leaves the soft background instead of a broken-image icon
   const [heroFailed, setHeroFailed] = useState(false);
+  // The reviews an admin approved; the section is left out while there are none
+  const testimonials = useTestimonials();
 
   // The phone hero's "Explore": scroll to the first section below it
   const exploreMore = () => {
@@ -240,6 +244,13 @@ export default function Home() {
         <Section id="quick-contact">
           <Blush tone="crimson" className="-left-32 top-1/4 h-80 w-80" />
           <QuickContact about={about} />
+        </Section>
+      )}
+
+      {testimonials.length > 0 && (
+        <Section id="reviews" innerClassName="gap-4 md:gap-8">
+          <h2 className={sectionTitleClass}>{t.home_reviews_title}</h2>
+          <Testimonials reviews={testimonials} />
         </Section>
       )}
 

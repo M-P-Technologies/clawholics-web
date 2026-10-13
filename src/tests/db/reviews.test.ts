@@ -102,11 +102,41 @@ describe.skipIf(!TEST_DATABASE_URL)("reviews (Postgres)", () => {
     expect((await callRoute(reviews.listMyReviews, "/api/reviews")).body).toEqual([]);
   });
 
+  it("reach the home page only once an admin approves them", async () => {
+    const publicList = async () => (await callRoute(reviews.listPublicReviews, "/api/reviews/public")).body as { id: number; client_name: string | null; service_name: string }[];
+    const [{ id }] = await db<{ id: number }[]>`select id from reviews where appointment_id = ${ids.done}`;
+    const approve = (reviewId: number, approved: unknown) =>
+      callRoute(reviews.setReviewApproval, `/api/reviews/${reviewId}/approval`, { method: "PUT", body: { approved }, params: { id: String(reviewId) } });
+
+    as(null);
+    expect(await publicList()).toEqual([]);
+    expect((await approve(id, true)).status).toBe(401);
+    as("user_ana"); // the client can't approve their own review
+    expect((await approve(id, true)).status).toBe(403);
+
+    as("user_admin");
+    expect((await approve(id, "yes")).status).toBe(400);
+    expect((await approve(999999, true)).status).toBe(404);
+    expect((await approve(id, true)).body).toMatchObject({ id, approved: 1 });
+
+    as(null); // anyone can read the approved ones, and only those
+    const shown = await publicList();
+    expect(shown).toHaveLength(1);
+    expect(shown[0]).toMatchObject({ id, service_name: "Gel", rating: 5, comment: "Best set yet" });
+    expect(shown[0]).not.toHaveProperty("user_id");
+
+    as("user_admin");
+    expect((await approve(id, false)).body).toMatchObject({ id, approved: 0 });
+    as(null);
+    expect(await publicList()).toEqual([]);
+  });
+
   it("show on the admin's client page, next to each appointment", async () => {
     as("user_admin");
     const { body } = await callRoute(clients.getClient, `/api/clients/${ids.ana}`, { params: { id: String(ids.ana) } });
     const byId = Object.fromEntries((body as { appointments: { id: number }[] }).appointments.map((a) => [a.id, a]));
-    expect(byId[ids.done]).toMatchObject({ review_rating: 5, review_comment: "Best set yet" });
+    expect(byId[ids.done]).toMatchObject({ review_rating: 5, review_comment: "Best set yet", review_approved: 0 });
+    expect(typeof (byId[ids.done] as { review_id?: number }).review_id).toBe("number");
     expect(byId[ids.ahead]).toMatchObject({ review_rating: null, review_comment: null, review_photo_url: null });
   });
 });

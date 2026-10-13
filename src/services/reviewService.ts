@@ -11,6 +11,20 @@ export interface Review {
   comment: string;
   photo_url: string | null;
   created_at: string;
+  /** 1 once an admin approved it for the home page */
+  approved?: number;
+}
+
+/** An approved review, as the home page shows it */
+export interface PublicReview {
+  id: number;
+  rating: number;
+  comment: string;
+  photo_url: string | null;
+  created_at: string;
+  service_name: string;
+  /** First name and the initial of the last, e.g. "Ana C." */
+  client_name: string | null;
 }
 
 export interface ReviewDraft {
@@ -36,3 +50,10 @@ export const submitReview = async (appointmentId: number, draft: ReviewDraft, au
   }
   return call<Review>("/reviews", { method: "POST", body: form }, auth);
 };
+
+/** The reviews approved for the home page */
+export const fetchPublicReviews = (): Promise<PublicReview[]> => call<PublicReview[]>("/reviews/public", { method: "GET" });
+
+/** Admin: show a review on the home page, or take it off */
+export const setReviewApproval = (reviewId: number, approved: boolean, auth: Auth): Promise<{ id: number; appointment_id: number; approved: number }> =>
+  call(`/reviews/${reviewId}/approval`, { method: "PUT", body: JSON.stringify({ approved }) }, auth);

@@ -104,6 +104,13 @@ export default function Homepage() {
         </ElsewhereNote>
       </PanelSection>
 
+      <PanelSection title="Client reviews" description="Shown only when at least one review is approved." page="/#reviews">
+        <TextField label="Heading" value={t.home_reviews_title} onChange={setText("home_reviews_title")} />
+        <ElsewhereNote to="/clients" screen="Clients & Bookings">
+          Clients review their completed visits. Open a client, then approve a review in their Appointments tab to show it here.
+        </ElsewhereNote>
+      </PanelSection>
+
       <PanelSection title="Frequently asked questions" page="/#faq">
         <TextField label="Heading" value={t.home_faq_title} onChange={setText("home_faq_title")} />
         <ElsewhereNote to="/faqs" screen="FAQs">

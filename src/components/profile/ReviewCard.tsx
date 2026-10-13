@@ -76,6 +76,7 @@ export default function ReviewCard({ appointmentId, review, onSubmit }: ReviewCa
       <div>
         <h5 className="text-base font-bold">How was your visit?</h5>
         <p className="text-sm opacity-80">Rate it and tell us about it. A photo of your nails is welcome too.</p>
+        <p className="text-[12px] opacity-70">We may show your review on our website, with your first name and the initial of your last name.</p>
       </div>
       <StarPicker value={rating} onChange={setRating} />
       <textarea

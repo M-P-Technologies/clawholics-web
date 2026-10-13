@@ -17,6 +17,8 @@ vi.mock("@/services/clientNotesService", async (importOriginal) => ({
   fetchNextSteps: (...a: unknown[]) => fetchNextSteps(...a),
   saveNextSteps: (...a: unknown[]) => saveNextSteps(...a),
 }));
+const setReviewApproval = vi.fn();
+vi.mock("@/services/reviewService", () => ({ setReviewApproval: (...a: unknown[]) => setReviewApproval(...a) }));
 vi.mock("@/lib/router", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/router")>()),
   useParams: () => ({ id: "7" }),
@@ -39,7 +41,7 @@ const details = {
   appointments: [
     { id: 4, appointment_date: "2026-11-02", appointment_time: "10:00-11:00", service_name: "Gel", nailist_name: "Maxine", status: "CONFIRMED", price: 800 },
     { id: 2, appointment_date: "2026-09-05", appointment_time: "10:00-11:00", service_name: "Gel", nailist_name: "Maxine", status: "COMPLETED", price: 800,
-      review_rating: 5, review_comment: "Best set yet", review_photo_url: "https://images.test/reviews/a.webp" },
+      review_id: 9, review_approved: 0, review_rating: 5, review_comment: "Best set yet", review_photo_url: "https://images.test/reviews/a.webp" },
   ],
 };
 const note = (over: object) => ({
@@ -54,6 +56,7 @@ beforeEach(() => {
   deleteNote.mockReset().mockResolvedValue(undefined);
   fetchNextSteps.mockReset().mockResolvedValue({ client_user_id: 7, text: "Offer a refill", updated_by: 1, updated_at: null });
   saveNextSteps.mockReset().mockResolvedValue({ client_user_id: 7, text: "x" });
+  setReviewApproval.mockReset().mockResolvedValue({ id: 9, appointment_id: 2, approved: 1 });
 });
 
 const openTab = async (name: RegExp | string) => {
@@ -117,6 +120,19 @@ describe("Client page", () => {
     expect(within(history.getByRole("row", { name: /Nov 2, 2026/ })).queryByRole("button", { name: "View review photo" })).toBeNull();
     fireEvent.click(sept.getByRole("button", { name: "View review photo" }));
     expect(await screen.findByRole("img", { name: "Preview" })).toHaveAttribute("src", "https://images.test/reviews/a.webp");
+  });
+
+  it("approves a review for the home page, and takes it off again", async () => {
+    render(<ClientPage />);
+    const history = await openTab(/Appointments/);
+    const sept = () => within(history.getByRole("row", { name: /Sep 5, 2026/ }));
+    expect(sept().getByText("Not on the home page")).toBeInTheDocument();
+    fireEvent.click(sept().getByRole("button", { name: "Approve for the home page" }));
+    await waitFor(() => expect(setReviewApproval).toHaveBeenCalledWith(9, true, auth));
+    expect(await history.findByText("On the home page")).toBeInTheDocument();
+    fireEvent.click(sept().getByRole("button", { name: "Take it off" }));
+    await waitFor(() => expect(setReviewApproval).toHaveBeenCalledWith(9, false, auth));
+    expect(await history.findByText("Not on the home page")).toBeInTheDocument();
   });
 
   it("shows every note on the notes tab, saying which visit one is about, and adds one", async () => {
