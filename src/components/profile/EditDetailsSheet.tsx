@@ -3,7 +3,6 @@ import Button from "../ui/Button";
 import FormField from "../ui/FormField";
 import Select from "../ui/Select";
 import Sheet from "../ui/Sheet";
-import { inputClass } from "../ui/styles";
 
 interface EditDetailsSheetProps {
   open: boolean;
@@ -28,17 +27,17 @@ export default function EditDetailsSheet(p: EditDetailsSheetProps) {
   return (
     <Sheet open={p.open} title="Edit details" onClose={p.onCancel}>
       <div className="flex flex-col gap-4">
-        {p.error && <div className="rounded-sm border border-danger bg-danger/10 p-4 text-sm text-danger">{p.error}</div>}
+        {p.error && <div role="alert" className="rounded-xl bg-danger/10 px-4 py-3 text-[13px] font-bold text-danger">{p.error}</div>}
 
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {p.fields.map((field) => (
-            <FormField key={field.id} {...field} editing />
+            <FormField key={field.id} {...field} editing compact />
           ))}
 
           <div className="flex flex-col gap-1">
-            <p className="label-caps">Gender:</p>
+            <p className="text-[12px] text-gray-red/70">Gender:</p>
             <div className="relative">
-              <Button variant="bare" type="button" onClick={p.onToggleGender} className={`${inputClass} flex items-center justify-between text-left`}>
+              <Button variant="bare" type="button" onClick={p.onToggleGender} className="flex w-full items-center justify-between rounded-md border border-crimson-light bg-milk px-3 py-2 text-left text-sm text-gray-red">
                 <span className={p.genderLabel ? "" : "opacity-60"}>{p.genderLabel || "Select gender"}</span>
                 <svg
                   className={`h-5 w-5 fill-current opacity-80 transition-transform duration-200 ${p.isGenderOpen ? "rotate-180" : ""}`}
@@ -51,13 +50,13 @@ export default function EditDetailsSheet(p: EditDetailsSheetProps) {
               </Button>
 
               {p.isGenderOpen && (
-                <div className="absolute bottom-full z-10 mb-2 w-full overflow-hidden rounded-sm border border-crimson-light bg-light-orange py-1 shadow-xl shadow-crimson/20">
+                <div className="absolute bottom-full z-10 mb-2 w-full overflow-hidden rounded-xl border border-crimson-light/60 bg-milk py-1 shadow-xl shadow-crimson/20">
                   {p.genderOptions.map((option) => (
                     <div
                       key={option.value}
                       onClick={() => p.onSelectGender(option.value)}
-                      className={`cursor-pointer px-4 py-4 font-sans transition-colors ${
-                        p.genderValue === option.value ? "bg-crimson font-bold text-light-orange" : "text-gray-red hover:bg-crimson-light/50"
+                      className={`cursor-pointer px-4 py-2.5 text-sm transition-colors ${
+                        p.genderValue === option.value ? "bg-crimson-light/40 font-bold text-berry" : "text-gray-red hover:bg-crimson-light/25"
                       }`}
                     >
                       {option.label}
@@ -69,13 +68,13 @@ export default function EditDetailsSheet(p: EditDetailsSheetProps) {
           </div>
 
           <div className="flex flex-col gap-1">
-            <p className="label-caps">Best way to reach you (optional):</p>
+            <p className="text-[12px] text-gray-red/70">Best way to reach you (optional):</p>
             <Select aria-label="Best way to reach you" value={p.contactMethod} options={p.contactMethodOptions} placeholder="No preference" onChange={(e) => p.onSelectContactMethod(e.target.value)} />
-            <p className="copy-note">We use these only to reach you about your appointment.</p>
+            <p className="text-[12px] text-gray-red/60">We use these only to reach you about your appointment.</p>
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+        <div className="flex flex-col gap-2 border-t border-crimson-light/50 pt-4 sm:flex-row-reverse sm:justify-start">
           <Button type="button" onClick={p.onSave} className="w-full sm:w-auto">Save</Button>
           <Button type="button" variant="secondary" onClick={p.onCancel} className="w-full sm:w-auto">Cancel</Button>
         </div>

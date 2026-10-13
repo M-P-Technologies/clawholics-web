@@ -12,7 +12,7 @@ interface ReviewCardProps {
   onSubmit: (appointmentId: number, draft: ReviewDraft) => Promise<unknown>;
 }
 
-const cardClass = "flex flex-col gap-3 rounded-sm border border-crimson-light/80 bg-light-orange p-4 text-gray-red";
+const cardClass = "flex flex-col gap-3 rounded-xl border border-crimson-light/60 bg-light-orange/40 p-4 text-gray-red";
 
 // A completed visit's review: the form to leave one (stars, a few words, a photo), or the review left
 export default function ReviewCard({ appointmentId, review, onSubmit }: ReviewCardProps) {
@@ -34,7 +34,7 @@ export default function ReviewCard({ appointmentId, review, onSubmit }: ReviewCa
         {review.photo_url && (
           <a href={review.photo_url} target="_blank" rel="noreferrer" className="self-start">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={review.photo_url} alt="Your review photo" className="h-28 w-28 rounded-sm object-cover" />
+            <img src={review.photo_url} alt="Your review photo" className="h-28 w-28 rounded-lg object-cover" />
           </a>
         )}
         <p className="copy-note">Thank you for telling us about your visit!</p>
@@ -86,12 +86,12 @@ export default function ReviewCard({ appointmentId, review, onSubmit }: ReviewCa
         value={comment}
         onChange={(e) => setComment(e.target.value)}
         placeholder="What did you love? Anything we could do better?"
-        className="w-full rounded-sm border border-crimson-light bg-milk px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-crimson"
+        className="w-full rounded-md border border-crimson-light bg-milk px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-crimson"
       />
       {previewUrl ? (
         <div className="relative self-start">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={previewUrl} alt="Your photo" className="h-24 w-24 rounded-sm object-cover" />
+          <img src={previewUrl} alt="Your photo" className="h-24 w-24 rounded-lg object-cover" />
           <Button type="button" variant="bare" onClick={removePhoto} aria-label="Remove photo" className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-berry text-pearl">
             <X size={14} aria-hidden="true" />
           </Button>

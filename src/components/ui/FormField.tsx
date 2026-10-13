@@ -25,7 +25,13 @@ interface FormFieldProps {
   error?: string;
   /** Classes that turn the field red when it has an error. Defaults to the site's red border. */
   errorClass?: string;
+  /** The admin's look: a small quiet label over a milk-white input, for forms inside a card */
+  compact?: boolean;
 }
+
+const COMPACT_LABEL = "mb-1 block text-[12px] text-gray-red/70";
+const COMPACT_INPUT =
+  "w-full rounded-md border border-crimson-light bg-milk px-3 py-2 text-sm text-gray-red outline-none transition-colors placeholder:text-gray-red/50 focus:ring-2 focus:ring-crimson disabled:cursor-not-allowed disabled:bg-crimson-light/15 disabled:text-gray-red/60";
 
 // A label, its input and its error message, so every form field is built the same way.
 const DEFAULT_ERROR_CLASS = "border-danger focus:border-danger focus:ring-danger/30";
@@ -37,6 +43,7 @@ export default function FormField({
   errorClass = DEFAULT_ERROR_CLASS,
   editing = true,
   displayValue,
+  compact = false,
   ...input
 }: FormFieldProps) {
   if (!editing) {
@@ -50,14 +57,14 @@ export default function FormField({
 
   return (
     <div>
-      <label htmlFor={id} className={labelClass}>
+      <label htmlFor={id} className={compact ? COMPACT_LABEL : labelClass}>
         {label}
       </label>
       <input
         id={id}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${id}-error` : undefined}
-        className={clsx(inputClass, error && errorClass)}
+        className={clsx(compact ? COMPACT_INPUT : inputClass, error && errorClass)}
         {...input}
       />
       {error && (

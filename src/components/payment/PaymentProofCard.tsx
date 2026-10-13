@@ -42,7 +42,7 @@ export default function PaymentProofCard({
     <section
       id={`proof-${appointment.id}`}
       aria-label="Payment proof"
-      className={`flex flex-col gap-4 rounded-sm border border-crimson-light/80 bg-light-orange p-4 text-gray-red ${
+      className={`flex flex-col gap-3 rounded-xl border border-crimson-light/60 bg-light-orange/40 p-4 text-gray-red ${
         highlighted ? "ring-2 ring-crimson" : ""
       }`}
     >
@@ -80,7 +80,7 @@ export default function PaymentProofCard({
             <img
               src={state.proof.image_url}
               alt="Your uploaded screenshot"
-              className="max-h-32 w-auto rounded-sm border border-crimson-light object-contain"
+              className="max-h-32 w-auto rounded-lg border border-crimson-light/60 object-contain"
             />
           </a>
         </>
