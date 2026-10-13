@@ -162,6 +162,39 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       expect((await callRoute(booking.getBookedSlots, "/api/booking/slots-detailed?nailist_id=abc&date=x")).body).toEqual([]);
     });
 
+    it("TC-BK-08b: a range of days' booked slots come in one answer, active bookings only", async () => {
+      const first = nextDate();
+      const second = nextDate();
+      const outside = nextDate();
+      // A client holds one unpaid booking at a time, so each is confirmed before the next
+      await book("user_a", first, "3:00 PM");
+      await db`update appointments set status = 'CONFIRMED' where user_id = ${clientA} and appointment_date = ${first}`;
+      await book("user_b", second, "9:00 AM");
+      await db`update appointments set status = 'CONFIRMED' where user_id = ${clientB} and appointment_date = ${second}`;
+      await book("user_b", outside, "9:00 AM");
+      const { body: cancelled } = await book("user_a", second, "1:00 PM");
+      expect(cancelled.appointment_id).toBeDefined();
+      await db`update appointments set status = 'CANCELLED' where id = ${cancelled.appointment_id}`;
+
+      as(null);
+      const url = (query: string) => `/api/booking/slots-range?${query}`;
+      const res = await callRoute(booking.getBookedSlotsRange, url(`nailist_id=${nailistId}&from=${first}&to=${second}`));
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual([
+        { appointment_date: first, appointment_time: "3:00 PM" },
+        { appointment_date: second, appointment_time: "9:00 AM" },
+      ]);
+
+      for (const bad of [
+        `nailist_id=abc&from=${first}&to=${second}`,
+        `nailist_id=${nailistId}&from=${second}&to=${first}`,
+        `nailist_id=${nailistId}&from=2099-01-01&to=2099-06-01`,
+        `nailist_id=${nailistId}&from=x&to=${second}`,
+      ]) {
+        expect((await callRoute(booking.getBookedSlotsRange, url(bad))).status).toBe(400);
+      }
+    });
+
     it("TC-BK-09: reschedule is owner-only and refuses a taken slot", async () => {
       const takenDate = nextDate();
       await book("user_b", takenDate, "11:00 AM");

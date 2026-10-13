@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { publicQueries } from "@/lib/publicQueries";
 import { useLocation, useNavigate } from "@/lib/router";
 import { useUser, useAuth } from "@clerk/nextjs";
-import { fetchNailists, fetchBookedSlotsDetailed, createBooking } from "../services/bookingService";
+import { fetchNailists, fetchBookedSlotsDetailed, fetchBookedSlotsRange, createBooking } from "../services/bookingService";
 import { fetchNailistDayOffs, fetchNailistTimeSlots } from "../services/nailistService";
 import { withSalonLocation } from "../lib/homeSections";
 import { fetchProfileIfExists } from "../services/userService";
@@ -108,39 +108,32 @@ export function useBooking() {
   useEffect(() => {
     if (!selectedNailist || timeSlots.length === 0) return;
 
+    let live = true;
+    const formatDate = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+    // The next month's taken times in one request; only a day with bookings can be fully booked
     const loadMonthAvailability = async () => {
       const start = new Date();
       const end = new Date();
       end.setMonth(end.getMonth() + 1);
 
-      const promises = [];
-
-      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, "0");
-        const day = String(d.getDate()).padStart(2, "0");
-        const formatted = `${y}-${m}-${day}`;
-
-        promises.push(
-          fetchBookedSlotsDetailed(selectedNailist.id, formatted).then(
-            (slots) => ({
-              date: formatted,
-              times: slots.map((s: any) => s.appointment_time),
-            }),
-          ),
-        );
+      const slots = await fetchBookedSlotsRange(selectedNailist.id, formatDate(start), formatDate(end));
+      const timesByDate = new Map<string, string[]>();
+      for (const { appointment_date, appointment_time } of slots) {
+        timesByDate.set(appointment_date, [...(timesByDate.get(appointment_date) ?? []), appointment_time]);
       }
 
-      const results = await Promise.all(promises);
-
-      const dates = results
-        .filter((r) => isDayFullyBooked(r.times))
-        .map((r) => r.date);
-
-      setFullyBookedDates(dates);
+      const dates = [...timesByDate].filter(([, times]) => isDayFullyBooked(times)).map(([date]) => date);
+      // Another artist may have been chosen meanwhile
+      if (live) setFullyBookedDates(dates);
     };
 
-    loadMonthAvailability();
+    // Without it the calendar just marks no day as full: picking one still checks that day
+    loadMonthAvailability().catch(() => {});
+    return () => {
+      live = false;
+    };
   }, [selectedNailist, timeSlots]);
 
   useEffect(() => {

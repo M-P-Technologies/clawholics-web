@@ -67,6 +67,33 @@ export const getBookedSlots = ported(async (req) => {
   `);
 });
 
+const DATE = /^\d{4}-\d{2}-\d{2}$/;
+/** The longest range /booking/slots-range answers, in days: the booking calendar asks for a month */
+export const MAX_SLOTS_RANGE_DAYS = 62;
+
+// GET /booking/slots-range?nailist_id=&from=YYYY-MM-DD&to=YYYY-MM-DD (public): the taken times
+// of every day in the range in one query, for the booking calendar's fully booked days (it used
+// to ask /booking/slots-detailed once per day). Dates are text, so the range compares as text.
+export const getBookedSlotsRange = ported(async (req) => {
+  const params = new URL(req.url).searchParams;
+  const nailistId = toId(params.get("nailist_id"));
+  const from = params.get("from") ?? "";
+  const to = params.get("to") ?? "";
+  if (nailistId === null || !DATE.test(from) || !DATE.test(to) || from > to) {
+    return Response.json({ error: "nailist_id, from and to (YYYY-MM-DD, from <= to) are required" }, { status: 400 });
+  }
+  const days = (Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000;
+  if (!(days <= MAX_SLOTS_RANGE_DAYS)) {
+    return Response.json({ error: `The range can be at most ${MAX_SLOTS_RANGE_DAYS} days` }, { status: 400 });
+  }
+  return Response.json(await getSql()`
+    select appointment_date, appointment_time from appointments
+    where nailist_id = ${nailistId} and appointment_date between ${from} and ${to}
+      and upper(status) in ('PENDING', 'CONFIRMED')
+    order by appointment_date, appointment_time
+  `);
+});
+
 // POST /booking/create (signed in): the client's own booking, held for 5 minutes until paid.
 // The user comes from the session; the body's user_id is ignored.
 export const createBooking = ported(async (req) => {
