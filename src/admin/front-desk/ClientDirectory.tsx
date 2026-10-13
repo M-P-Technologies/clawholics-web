@@ -30,7 +30,7 @@ export default function ClientDirectory() {
                 Back to the appointments
               </Link>
             </div>
-            {directory.leadsLoading && <ListSkeleton label="Loading warm leads" />}
+            {directory.leadsLoading && <ListSkeleton label="Loading warm leads" quiet />}
             {leads.length > 0 && (
               <DirectoryTable
                 label="Warm leads"

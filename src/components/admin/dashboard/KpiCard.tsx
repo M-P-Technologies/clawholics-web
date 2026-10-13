@@ -63,8 +63,10 @@ export default function KpiCard({
       )}
       <p className={clsx("text-[13px] font-medium text-gray-red/80", CardIcon && "pr-10")}>{label}</p>
       {loading ? (
-        // As tall as the figure it stands in for, so the card doesn't change size when it arrives
-        <p role="status" className={size === "hero" ? "h-9 sm:h-12" : "h-[30px] sm:h-9 lg:h-[30px] xl:h-9"}>
+        // As tall as the figure it stands in for, so the card doesn't change size when it arrives.
+        // Read as part of the card ("New clients, Loading"), not as a live region: a row of cards
+        // would otherwise announce "Loading" once per card.
+        <p className={size === "hero" ? "h-9 sm:h-12" : "h-[30px] sm:h-9 lg:h-[30px] xl:h-9"}>
           <span className="sr-only">Loading</span>
           <Skeleton className="h-full w-16" />
         </p>

@@ -60,15 +60,18 @@ describe("Clients & Bookings", () => {
     params = new URLSearchParams("view=leads");
     render(<ClientDirectory />);
     const totals = within(screen.getByRole("region", { name: "Client totals" }));
-    expect(totals.getAllByRole("status")).toHaveLength(4);
+    expect(totals.getAllByText("Loading")).toHaveLength(4);
+    // Each card says so, but only the list regions are announced
+    expect(totals.queryAllByRole("status")).toHaveLength(0);
     expect(screen.getByRole("status", { name: "Loading appointments" })).toBeInTheDocument();
-    expect(screen.getByRole("status", { name: "Loading warm leads" })).toBeInTheDocument();
+    // The warm leads' banner already says "Loading warm leads…", so their placeholder rows are quiet
+    expect(screen.getByText("Loading warm leads…")).toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Loading warm leads" })).toBeNull();
 
     await screen.findByRole("table", { name: "Appointments" });
     expect(await totals.findByText("2")).toBeInTheDocument();
     expect(screen.queryByRole("status", { name: "Loading appointments" })).toBeNull();
-    expect(screen.queryByRole("status", { name: "Loading warm leads" })).toBeNull();
-    expect(totals.queryAllByRole("status")).toHaveLength(0);
+    expect(totals.queryAllByText("Loading")).toHaveLength(0);
   });
 
   it("lists the warm leads when opened from the dashboard, with a way back", async () => {

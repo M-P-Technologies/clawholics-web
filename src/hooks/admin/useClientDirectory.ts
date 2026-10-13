@@ -29,7 +29,15 @@ export function useClientDirectory() {
     if (!isAuthLoaded) return;
     let live = true;
     (async () => {
-      const token = await getToken();
+      // Without a session token nothing can load: show the failure rather than placeholders forever
+      const token = await getToken().catch(() => undefined);
+      if (token === undefined) {
+        if (!live) return;
+        setUsersFailed(true);
+        setLeadsError(true);
+        setSettled(true);
+        return;
+      }
       const [usersResult, profilesResult, leadsResult] = await Promise.allSettled([
         fetchDirectoryUsers(token, currentUser?.id),
         fetchDirectoryProfiles(token, currentUser?.id),
