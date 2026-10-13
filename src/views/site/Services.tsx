@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { Clock } from "lucide-react";
-import { FACEBOOK_URL } from "../../data/home";
+import { ctaLink, readServicesPage } from "../../lib/homeSections";
 import CtaBand from "../../components/home/CtaBand";
 import ImageCard from "../../components/home/ImageCard";
 import Button from "../../components/ui/Button";
@@ -20,6 +20,7 @@ import { useServices } from "../../hooks/useServices";
 
 export default function Services() {
   const { resetFilters, cards, error, reload, content, category, setCategory, search, categoryNames, handleSearchChange } = useServices();
+  const banner = readServicesPage(content);
   // 9 services a page; a new category or search starts again from the first page
   const { page, setPage, totalPages, pageItems } = usePagination(cards, `${category}|${search}`);
   const listRef = useRef<HTMLElement>(null);
@@ -34,7 +35,7 @@ export default function Services() {
   return (
     <PageShell>
       <Section>
-        <PageHeader title="Nail services" subtitle={content.home_services_subtitle}>
+        <PageHeader title={banner.home_services_title} subtitle={content.home_services_subtitle}>
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             {/* CATEGORY FILTERS */}
             <div className="flex flex-wrap gap-4">
@@ -124,12 +125,15 @@ export default function Services() {
         </section>
       </Section>
 
-      <CtaBand
-        title="Not sure what to get?"
-        text="Talk to our support or ask one of our artists. They will help you pick the right set."
-        primary={{ href: FACEBOOK_URL, label: "Talk to support" }}
-        secondary={{ to: "/artists", label: "Meet our artists" }}
-      />
+      {/* As edited in Admin > Services (or the defaults) */}
+      <div id="services-banner">
+        <CtaBand
+          title={banner.home_services_cta_title}
+          text={banner.home_services_cta_text}
+          primary={ctaLink(banner.home_services_cta_primary_link, banner.home_services_cta_primary_label)}
+          secondary={ctaLink(banner.home_services_cta_secondary_link, banner.home_services_cta_secondary_label)}
+        />
+      </div>
     </PageShell>
   );
 }

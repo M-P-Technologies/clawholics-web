@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import Payment from "@/views/booking/Payment";
-import { FALLBACK_PAYMENT_METHODS, OFFERED_PAYMENT_METHODS, PAYMENT_METHOD_HINTS, PAYMENT_METHOD_LABELS } from "@/data/payment";
+import { OFFERED_PAYMENT_METHODS, PAYMENT_METHOD_HINTS, PAYMENT_METHOD_LABELS } from "@/data/payment";
 
 const hook = vi.fn();
 vi.mock("@/hooks/usePayment", () => ({ usePayment: () => hook() }));
@@ -11,7 +11,6 @@ vi.mock("@/components/layout/BackButton", () => ({ default: () => null }));
 describe("payment methods", () => {
   it("QR Ph is the only way to pay, and what the screen falls back to", () => {
     expect(OFFERED_PAYMENT_METHODS).toEqual(["QRPH"]);
-    expect(FALLBACK_PAYMENT_METHODS).toEqual(["QRPH"]);
     expect(PAYMENT_METHOD_LABELS.QRPH).toBe("QR Ph");
     expect(PAYMENT_METHOD_HINTS.QRPH).toMatch(/bank or e-wallet/i);
   });

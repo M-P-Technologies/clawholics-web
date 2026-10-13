@@ -1,0 +1,62 @@
+export interface NavItem {
+  path: string;
+  label: string;
+}
+
+// The desktop sidebar's groups
+export const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
+  {
+    title: "Overview",
+    items: [
+      { path: "/dashboard", label: "Dashboard" },
+      { path: "/sales", label: "Sales" },
+      { path: "/performance", label: "Performance" },
+    ],
+  },
+  {
+    title: "Front Desk",
+    items: [
+      { path: "/clients", label: "Clients & Bookings" },
+      { path: "/schedule", label: "Schedule" },
+      { path: "/admin-scanner", label: "Admin Scanner" },
+      { path: "/admin-directory", label: "Admin Directory" },
+    ],
+  },
+  {
+    title: "Content Management",
+    items: [
+      { path: "/homepage", label: "Homepage" },
+      { path: "/nail-services", label: "Services" },
+      { path: "/nail-artists", label: "Artists" },
+      { path: "/about-us", label: "About Us" },
+      { path: "/contact-info", label: "Contact Us" },
+      { path: "/faqs", label: "FAQs" },
+      { path: "/terms-and-conditions", label: "Terms & Conditions" },
+      { path: "/privacy-policy", label: "Privacy Policy" },
+    ],
+  },
+];
+
+// The phone's bottom tab bar: the screens used every day
+export const TAB_ITEMS: NavItem[] = [
+  { path: "/dashboard", label: "Dashboard" },
+  { path: "/clients", label: "Bookings" },
+  { path: "/schedule", label: "Schedule" },
+  { path: "/admin-scanner", label: "Scanner" },
+];
+
+// Everything else, in the tab bar's More sheet, under the sidebar's headings. The Admin Directory
+// is the only Front Desk screen left over, so it sits with the Overview ones.
+export const MORE_GROUPS: { title: string; items: NavItem[] }[] = [
+  {
+    title: "Overview",
+    items: [
+      { path: "/sales", label: "Sales" },
+      { path: "/performance", label: "Performance" },
+      { path: "/admin-directory", label: "Admin Directory" },
+    ],
+  },
+  { title: "Content Management", items: NAV_GROUPS[2].items },
+];
+
+export const MORE_ITEMS: NavItem[] = MORE_GROUPS.flatMap((group) => group.items);

@@ -1,3 +1,4 @@
+import { previewed } from "../lib/cmsPreview";
 import { remember } from "../utils/lastSeen";
 import { API_BASE_URL } from "../apiConfig";
 
@@ -80,7 +81,7 @@ const normalizeCategory = (raw: RawCategory): ServiceCategory => ({
   addons: Array.isArray(raw.addons) ? raw.addons : [],
 });
 
-export const fetchCategories = async () =>
+const loadCategories = async () =>
   remember(
     "categories",
     (await call<RawCategory[]>(`${CATEGORIES}?t=${Date.now()}`, { method: "GET" })).map(normalizeCategory),
@@ -112,3 +113,6 @@ export const updateAddon = (id: number, name: string, price: number, auth: Auth)
 
 export const deleteAddon = (id: number, auth: Auth) =>
   call<void>(`${CATEGORIES}/addons/${id}`, { method: "DELETE" }, auth);
+
+// Through the admin editor's live preview (see lib/cmsPreview); a plain fetch everywhere else
+export const fetchCategories = () => previewed("categories", () => loadCategories());

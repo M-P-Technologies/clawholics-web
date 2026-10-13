@@ -1,3 +1,4 @@
+import { usePreviewVersion } from "@/lib/cmsPreview";
 import { lastSeen } from "../utils/lastSeen";
 import { useEffect, useState } from "react";
 import type { Nailist } from "../services/nailistService";
@@ -11,6 +12,8 @@ export function useTeam() {
   const [teamContent, setTeamContent] = useState<TeamContent | null>(() => lastSeen("team") ?? null);
   const [error, setError] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  // In the admin editor's preview, fetch again when the unsaved changes do
+  const previewVersion = usePreviewVersion();
   const [loading, setLoading] = useState(() => !(lastSeen("nailists") && lastSeen("team")));
 
   useEffect(() => {
@@ -24,14 +27,15 @@ export function useTeam() {
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
-  }, [attempt]);
+  }, [attempt, previewVersion]);
 
   const reload = () => {
     setLoading(true);
     setAttempt((n) => n + 1);
   };
 
-  const { photos, instagram } = usePhotoStrip();
+  // "Their art": the work each artist uploaded to their gallery
+  const { photos, instagram } = usePhotoStrip(nailists.map((n) => n.id));
 
   return { photos, instagram, error, reload, nailists, teamContent, loading };
 }

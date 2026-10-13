@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import AS_NailArtistGallery from "@/components/admin/AS_NailArtistGallery";
+import NailArtistGallery from "@/components/admin/NailArtistGallery";
 
 const show = vi.fn();
 const fetchNailistGallery = vi.fn();
@@ -20,8 +20,8 @@ vi.mock("@/services/uploadService", () => ({
 }));
 
 const photo = (id: number, name: string) => ({ id, nailist_id: 7, image_url: `https://img/nailists/${name}.webp`, position: id });
-const renderCard = (props: Partial<React.ComponentProps<typeof AS_NailArtistGallery>> = {}) =>
-  render(<AS_NailArtistGallery nailistId={7} isEditing onPreview={() => {}} {...props} />);
+const renderCard = (props: Partial<React.ComponentProps<typeof NailArtistGallery>> = {}) =>
+  render(<NailArtistGallery nailistId={7} isEditing onPreview={() => {}} {...props} />);
 
 beforeEach(() => {
   vi.clearAllMocks();

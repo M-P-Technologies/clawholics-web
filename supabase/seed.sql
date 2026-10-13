@@ -83,7 +83,9 @@ on conflict do nothing;
 
 insert into service_categories (id, name, slug, description, image, position, is_active, created_at) values
   (1, 'Manicure', 'manicure', null, null, 1, 1, '2026-10-10 06:42:22'),
-  (2, 'Pedicure', 'pedicure', null, null, 2, 1, '2026-10-10 06:42:22')
+  (2, 'Pedicure', 'pedicure', null, null, 2, 1, '2026-10-10 06:42:22'),
+  (3, 'Lashes', 'lashes', null, null, 3, 1, '2026-10-13 00:00:00'),
+  (4, 'Brows', 'brows', null, null, 4, 1, '2026-10-13 00:00:00')
 on conflict do nothing;
 
 insert into services (id, name, category, description, master_price, junior_price, duration, image, category_id, is_active, position, pricing_mode) values
@@ -93,7 +95,11 @@ insert into services (id, name, category, description, master_price, junior_pric
   (4, 'Gel Overlay', 'Manicure', 'This is the way to go when you want nail sets that last. Regular builder gel is applied over your natural nails to add a beautiful layer of strength and high-gloss shine. It’s the right canvas for all your cute designs!', 800, 450, '1 hr 30 mins', 'http://localhost:3000/uploads/GelOverlay1.webp', 1, 1, 4, 'tiered'),
   (5, 'Gel Manicure', 'Manicure', 'Looking for a full nail pamper, with a long-lasting, high-gloss finish that stays chip-free for weeks? It’s the easiest way to keep your hands looking 10/10. Give your nails the princess treatment today!', 800, 400, '1 hr 30 mins', 'http://localhost:3000/uploads/GelManicure1.webp', 1, 1, 5, 'tiered'),
   (6, 'Gel Pedicure', 'Pedicure', 'Say hello to sandal-ready, perfect toes! Our gel pedicure delivers a durable, mirror-like shine that lasts for 3-4 weeks. Because your toes deserve that same long-lasting, princess treatment too.', 800, 450, '1 hr 30 mins', 'http://localhost:3000/uploads/GelPedi1.webp', 2, 1, 6, 'tiered'),
-  (7, 'Pedi Softgel Extension', 'Pedicure', 'Add length, shape, and extra cuteness to your toes with our softgel extensions. Lightweight, comfy, and super perfect for showing off in sandals and beach pics.', 800, 650, '2 hrs', 'http://localhost:3000/uploads/PediSoftgel1.webp', 2, 1, 7, 'tiered')
+  (7, 'Pedi Softgel Extension', 'Pedicure', 'Add length, shape, and extra cuteness to your toes with our softgel extensions. Lightweight, comfy, and super perfect for showing off in sandals and beach pics.', 800, 650, '2 hrs', 'http://localhost:3000/uploads/PediSoftgel1.webp', 2, 1, 7, 'tiered'),
+  -- Lash and brow services: one price each. The prices and durations are placeholders until the salon sets them.
+  (8, 'Lash Lift', 'Lashes', 'A lift that curls your natural lashes from the root, so they look longer and more open for weeks, with no extensions.', 1000, 1000, '1 hr', null, 3, 1, 8, 'single'),
+  (9, 'Lash Perm', 'Lashes', 'A soft, lasting curl for your natural lashes. Wake up with lashes that already look done.', 1000, 1000, '1 hr', null, 3, 1, 9, 'single'),
+  (10, 'Brow Lamination', 'Brows', 'Brow hairs are set in place for a fuller, brushed-up shape that stays neat for weeks.', 1000, 1000, '1 hr', null, 4, 1, 10, 'single')
 on conflict do nothing;
 
 insert into service_gallery (id, service_id, image_url, position) values

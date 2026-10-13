@@ -13,7 +13,7 @@ import Button from "../ui/Button";
 // whole screen. (The floating Facebook button uses the same value to drop into the corner.)
 export const TAB_BAR_REVEAL_PX = 40;
 
-const MORE_PATHS = ["/about", "/contact", "/profile", "/login", "/signup"];
+const MORE_PATHS = ["/about", "/faq", "/contact", "/profile", "/login", "/signup"];
 
 const tabClass = (active: boolean) =>
   clsx(
@@ -93,6 +93,7 @@ export default function MobileTabBar() {
           className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-40 max-h-[70vh] overflow-y-auto border-t border-crimson-light/70 bg-light-orange px-4 py-2 shadow-2xl shadow-crimson/20 drawer-panel"
         >
           <Link to="/about" className={sheetLink(pathname === "/about")}>About Us</Link>
+          <Link to="/faq" className={sheetLink(pathname === "/faq")}>FAQ</Link>
           <Link to="/contact" className={sheetLink(pathname === "/contact")}>Contact Us</Link>
 
           <div className="my-2 border-t border-crimson-light/70" />

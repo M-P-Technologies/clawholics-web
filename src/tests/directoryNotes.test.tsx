@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import AS_DirectoryTile from "../components/admin/AS_DirectoryTile";
+import DirectoryProfileCard from "../components/admin/DirectoryProfileCard";
 import { fetchDirectoryUsers } from "../services/directoryService";
 
 
@@ -40,37 +40,36 @@ describe("fetchDirectoryUsers: notes-related fields", () => {
   });
 });
 
-describe("AS_DirectoryTile", () => {
+describe("DirectoryProfileCard", () => {
   const client = {
     id: "clerk_1", user_id: 5, firstName: "Ana", lastName: "Cruz", phoneNumber: "0917", email: "a@x.com",
     role: "Client", visit_count: 3, last_visit: "2026-09-30T08:00:00Z", is_recurring: true,
   };
 
   it("shows the Recurring badge and the visit count", () => {
-    render(<AS_DirectoryTile user={client} onNotes={() => {}} />);
+    render(<DirectoryProfileCard user={client} onNotes={() => {}} />);
     expect(screen.getByText("Recurring")).toBeInTheDocument();
-    expect(screen.getByText(/3 visits/i)).toBeInTheDocument();
+    expect(screen.getByText("Visits").nextElementSibling).toHaveTextContent("3");
   });
 
   it("shows no badge for a first-time client", () => {
-    render(<AS_DirectoryTile user={{ ...client, is_recurring: false, visit_count: 1 }} onNotes={() => {}} />);
+    render(<DirectoryProfileCard user={{ ...client, is_recurring: false, visit_count: 1 }} onNotes={() => {}} />);
     expect(screen.queryByText("Recurring")).not.toBeInTheDocument();
-    expect(screen.getByText(/1 visit\b/i)).toBeInTheDocument();
+    expect(screen.getByText("Visits").nextElementSibling).toHaveTextContent("1");
   });
 
-  it("opens notes from the menu", async () => {
+  it("opens notes", async () => {
     const onNotes = vi.fn();
     const user = userEvent.setup();
-    render(<AS_DirectoryTile user={client} onNotes={onNotes} />);
+    render(<DirectoryProfileCard user={client} onNotes={onNotes} />);
 
-    await user.click(screen.getByRole("button"));
     await user.click(screen.getByRole("button", { name: "Notes" }));
 
     expect(onNotes).toHaveBeenCalledWith(client);
   });
 
-  it("has no menu at all when there are no actions", () => {
-    render(<AS_DirectoryTile user={client} />);
+  it("has no action buttons when there are no actions", () => {
+    render(<DirectoryProfileCard user={client} />);
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 });

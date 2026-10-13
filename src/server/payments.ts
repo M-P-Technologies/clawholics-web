@@ -7,7 +7,7 @@ import { getSql } from "./db";
 // Xendit invoice channel codes (PAYMAYA = Maya, CREDIT_CARD = cards, QRPH = QR Ph). Each one
 // must also be activated in the Xendit dashboard, or Xendit refuses the invoice.
 // MANUAL = pay outside Xendit and upload a payment proof
-export const PAYMENT_METHOD_OPTIONS = ["GCASH", "PAYMAYA", "GRABPAY", "SHOPEEPAY", "CREDIT_CARD", "QRPH", "MANUAL"];
+const PAYMENT_METHOD_OPTIONS = ["GCASH", "PAYMAYA", "GRABPAY", "SHOPEEPAY", "CREDIT_CARD", "QRPH", "MANUAL"];
 const DEFAULT_DOWNPAYMENT_AMOUNT = 500;
 const DEFAULT_PAYMENT_METHODS = ["GCASH"];
 const MAX_DOWNPAYMENT_AMOUNT = 100000;
@@ -64,7 +64,7 @@ const xenditAuth = () => {
   return key ? `Basic ${Buffer.from(`${key}:`).toString("base64")}` : null;
 };
 
-export const frontendUrl = () => process.env.FRONTEND_URL || "https://clawholicsbymax.com";
+const frontendUrl = () => process.env.FRONTEND_URL || "https://clawholicsbymax.com";
 
 export interface XenditInvoice {
   id?: string;

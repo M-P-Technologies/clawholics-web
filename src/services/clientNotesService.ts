@@ -5,6 +5,8 @@ import { ApiError, call, type Auth } from "./catalogService";
 export interface ClientNote {
   id: number;
   client_user_id: number;
+  /** Set when the note is about one of the client's appointments */
+  appointment_id?: number | null;
   author_admin_id: number;
   author_name?: string | null;
   note: string;
@@ -27,8 +29,59 @@ export const isNotesApiUnavailable = (err: unknown): boolean =>
 export const fetchNotes = (clientUserId: number, auth: Auth): Promise<ClientNote[]> =>
   call<ClientNote[]>(`${base(clientUserId)}/notes`, { method: "GET" }, auth);
 
-export const addNote = (clientUserId: number, note: string, auth: Auth): Promise<ClientNote> =>
-  call<ClientNote>(`${base(clientUserId)}/notes`, { method: "POST", body: JSON.stringify({ note }) }, auth);
+export const addNote = (clientUserId: number, note: string, auth: Auth, appointmentId?: number): Promise<ClientNote> =>
+  call<ClientNote>(
+    `${base(clientUserId)}/notes`,
+    { method: "POST", body: JSON.stringify(appointmentId === undefined ? { note } : { note, appointment_id: appointmentId }) },
+    auth,
+  );
+
+interface ClientProfile {
+  id: number;
+  clerk_id: string;
+  email: string;
+  created_at: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  phone: string | null;
+  alt_phone: string | null;
+  preferred_contact_method: string | null;
+  facebook_handle: string | null;
+  instagram_handle: string | null;
+  /** Date of birth, "YYYY-MM-DD" */
+  dob?: string | null;
+}
+export interface ClientAppointment {
+  id: number;
+  appointment_date: string;
+  appointment_time: string;
+  service_name: string;
+  nailist_name: string;
+  status: string;
+  price: number | null;
+  /** For the booking tracker (server times, UTC "YYYY-MM-DD HH:MM:SS") */
+  booked_at?: string | null;
+  proof_sent_at?: string | null;
+  proof_status?: "PENDING" | "APPROVED" | "REJECTED" | null;
+  proof_reviewed_at?: string | null;
+  payment_status?: string | null;
+  /** The client's review of the visit (1-5 stars), if they left one */
+  review_id?: number | null;
+  /** 1 once an admin approved it for the home page */
+  review_approved?: number | null;
+  review_rating?: number | null;
+  review_comment?: string | null;
+  review_photo_url?: string | null;
+}
+export interface ClientDetails {
+  client: ClientProfile;
+  summary: { visits: number; totalSpent: number; lastVisit: string | null; nextVisit: string | null; stamps: number };
+  appointments: ClientAppointment[];
+}
+
+// The client page: profile, summary and every appointment, newest first
+export const fetchClient = (clientUserId: number, auth: Auth): Promise<ClientDetails> =>
+  call<ClientDetails>(base(clientUserId), { method: "GET" }, auth);
 
 export const updateNote = (
   clientUserId: number,

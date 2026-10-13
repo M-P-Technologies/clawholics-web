@@ -43,7 +43,7 @@ export default function ConfirmModal({
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="confirm-modal-title"
-        className="drawer-panel flex w-full max-w-md flex-col gap-4 rounded-sm border border-crimson bg-light-orange p-4 text-gray-red shadow-xl max-sm:max-h-[90vh] max-sm:min-h-[40vh] max-sm:max-w-none max-sm:overflow-y-auto max-sm:rounded-b-none max-sm:rounded-t-md md:gap-8 md:p-8"
+        className="drawer-panel flex w-full max-w-md flex-col gap-4 rounded-2xl border border-crimson-light/40 bg-milk p-4 text-gray-red shadow-xl max-sm:max-h-[90vh] max-sm:min-h-[40vh] max-sm:max-w-none max-sm:overflow-y-auto max-sm:rounded-b-none max-sm:rounded-t-md md:gap-8 md:p-8"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 id="confirm-modal-title" className="text-center font-display text-2xl text-gray-red">

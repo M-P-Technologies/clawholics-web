@@ -14,6 +14,9 @@ const CONTENT_PREFIXES = {
   about: ["about_%"],
   team: ["team_%"],
   contact: ["contact_%", "social_%"],
+  // The legal pages' text (e.g. legal_privacy_html), apart from home so it isn't sent with every
+  // page's content. New with the Next API: the Worker has no such section.
+  legal: ["legal_%"],
 } as const;
 
 export type ContentSection = keyof typeof CONTENT_PREFIXES;

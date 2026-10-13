@@ -2,7 +2,7 @@ import { useState, type ChangeEvent } from "react";
 import clsx from "clsx";
 import Button from "../ui/Button";
 import Select from "../ui/Select";
-import AppointmentCard from "./AppointmentCard";
+import AppointmentCard, { isCompleted } from "./AppointmentCard";
 import type { AppointmentView } from "./types";
 
 interface AppointmentsSectionProps {
@@ -18,11 +18,13 @@ interface AppointmentsSectionProps {
   hasMore: boolean;
   showAll: boolean;
   onToggleAll: () => void;
+  /** The appointments the client has reviewed */
+  reviewedIds: ReadonlySet<number>;
 }
 
 // Upcoming | Past switch over a list of appointment cards.
 export default function AppointmentsSection(props: AppointmentsSectionProps) {
-  const { upcoming, past, photoFor, highlightedId, onOpen } = props;
+  const { upcoming, past, photoFor, highlightedId, onOpen, reviewedIds } = props;
   const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
   const list = tab === "upcoming" ? upcoming : past;
 
@@ -34,8 +36,8 @@ export default function AppointmentsSection(props: AppointmentsSectionProps) {
       aria-selected={tab === id}
       onClick={() => setTab(id)}
       className={clsx(
-        "flex-1 rounded-md py-3 text-center text-sm font-bold uppercase tracking-extrawide transition-colors",
-        tab === id ? "bg-crimson text-light-orange shadow-md shadow-crimson/30" : "text-gray-red hover:text-crimson",
+        "flex-1 rounded-full px-4 py-1.5 text-center text-[13px] font-bold transition-colors sm:flex-none",
+        tab === id ? "bg-milk text-berry shadow-sm" : "text-gray-red/80 hover:text-berry",
       )}
     >
       {label} ({count})
@@ -44,7 +46,7 @@ export default function AppointmentsSection(props: AppointmentsSectionProps) {
 
   return (
     <section aria-label="Appointments" className="flex flex-col gap-4">
-      <div role="tablist" className="flex gap-1 rounded-md border border-crimson-light bg-light-orange p-1">
+      <div role="tablist" aria-label="Which appointments" className="flex gap-1 self-start rounded-full bg-crimson-light/25 p-1 max-sm:w-full">
         {tabButton("upcoming", "Upcoming", upcoming.length)}
         {tabButton("past", "Past", past.length)}
       </div>
@@ -66,7 +68,7 @@ export default function AppointmentsSection(props: AppointmentsSectionProps) {
       )}
 
       {list.length === 0 ? (
-        <p className="rounded-sm border border-crimson-light/80 bg-light-orange p-4 copy-body">
+        <p className="rounded-xl bg-crimson-light/15 px-4 py-6 text-center text-[13px] text-gray-red/70">
           {tab === "upcoming" ? "Nothing coming up yet." : "No past appointments to show."}
         </p>
       ) : (
@@ -77,6 +79,7 @@ export default function AppointmentsSection(props: AppointmentsSectionProps) {
               view={view}
               photo={photoFor(view.appt.service_name)}
               highlighted={view.appt.id === highlightedId}
+              awaitingReview={isCompleted(view) && !reviewedIds.has(view.appt.id)}
               onOpen={() => onOpen(view)}
             />
           ))}

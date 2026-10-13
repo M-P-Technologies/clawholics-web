@@ -14,6 +14,7 @@ import StatePanel from "../../components/ui/StatePanel";
 import { usePagination } from "../../hooks/usePagination";
 import { artistPath } from "../../utils/slug";
 import { useTeam } from "../../hooks/useTeam";
+import { readTeamPage } from "../../lib/homeSections";
 
 export default function Team() {
   const { photos, instagram, error, reload, nailists, teamContent, loading } = useTeam();
@@ -27,11 +28,13 @@ export default function Team() {
 
   if (error && !teamContent) return <LoadError what="artists" onRetry={reload} />;
   if (loading || !teamContent) return <LoadingBar label="Loading our artists" />;
+  // The heading, intro and strip title, as edited in Admin > Artists (or the defaults)
+  const words = readTeamPage(teamContent);
 
   return (
     <PageShell>
       <Section>
-        <PageHeader title="Meet our artists" subtitle={teamContent.team_description} />
+        <PageHeader title={words.team_title} subtitle={words.team_description} />
 
         {nailists.length === 0 && (
           <StatePanel
@@ -70,7 +73,7 @@ export default function Team() {
         <Pagination page={page} totalPages={totalPages} onPageChange={goToPage} />
         </div>
 
-        <PhotoRow title="Their art" photos={photos} instagram={instagram} />
+        <PhotoRow title={words.team_art_title} photos={photos} instagram={instagram} />
       </Section>
 
     </PageShell>

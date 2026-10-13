@@ -101,7 +101,7 @@ export function useProfile() {
 
   useEffect(() => {
     if (isLoaded && clerkUser?.publicMetadata?.role === "admin") {
-      navigate("/AS_AdminDirectory", { replace: true });
+      navigate("/dashboard", { replace: true });
       return;
     }
 
@@ -158,6 +158,10 @@ export function useProfile() {
       setFormData({ ...formData, gender: value });
     }
     setIsGenderOpen(false);
+  };
+
+  const handleContactMethodSelect = (value: string) => {
+    if (formData) setFormData({ ...formData, preferred_contact_method: value });
   };
 
   useEffect(() => {
@@ -240,6 +244,18 @@ export function useProfile() {
         return;
       }
 
+      // The optional contact details; "" clears one
+      const contact = {
+        alt_phone: (formData.alt_phone ?? "").trim(),
+        preferred_contact_method: formData.preferred_contact_method ?? "",
+        facebook_handle: (formData.facebook_handle ?? "").trim(),
+        instagram_handle: (formData.instagram_handle ?? "").trim().replace(/^@+/, ""),
+      };
+      if (contact.alt_phone && !/^[+\d\s()-]+$/.test(contact.alt_phone)) {
+        setError("Please enter a valid other phone number, or leave it empty.");
+        return;
+      }
+
       setError(null);
 
       try {
@@ -252,6 +268,7 @@ export function useProfile() {
           phone: currentPhone,
           dob: currentDob,
           gender: formData.gender || "female",
+          ...contact,
         };
 
         await updateProfile(clerkUser.id, formattedPayload, token);
@@ -259,6 +276,7 @@ export function useProfile() {
         setDbUser({
           ...dbUser,
           ...formData,
+          ...contact,
           first_name: formattedPayload.first_name,
           last_name: formattedPayload.last_name,
         } as UserProfile);
@@ -518,5 +536,5 @@ export function useProfile() {
   const toggleHistory = () => setShowAllHistory(!showAllHistory);
   const closeRewardModal = () => setShowRewardModal(false);
 
-  return { toggleGender, toggleHistory, closeRewardModal, loyaltyCardNumber, isBusy, genderLabel, history, hasMoreHistory, noHistory, stampCells, isLateCancellation, selectedApptDateLabel, profileFields, isLoaded, clerkUser, getToken, navigate, highlightedAppointmentId, upcoming, nextAppointment, pastViews, dbUser, isEditing, formData, error, appointments, setAppointments, stamps, isGenderOpen, setIsGenderOpen, showRewardModal, setShowRewardModal, selectedAppt, setSelectedAppt, isCancelModalOpen, setIsCancelModalOpen, actionError, setActionError, currentTime, showAllHistory, setShowAllHistory, isCancelling, historySortBy, setHistorySortBy, historyFilter, setHistoryFilter, processedPastAppointments, todayFormatted, formatDisplayDate, handleEditClick, genderOptions, handleGenderSelect, formatTime, handleChange, handleSave, handleCancel, handleClientRedeem, handleCancelAppointment, isEligibleForChanges, formatSlot, getStatusDotColor, todayIso, currentAppointments, payForAppointment, rescheduleAppointment, startCancel, closeCancelModal, handleProofUploaded, handleHistoryFilterChange, handleHistorySortChange };
+  return { toggleGender, toggleHistory, closeRewardModal, loyaltyCardNumber, isBusy, genderLabel, history, hasMoreHistory, noHistory, stampCells, isLateCancellation, selectedApptDateLabel, profileFields, isLoaded, clerkUser, getToken, navigate, highlightedAppointmentId, upcoming, nextAppointment, pastViews, dbUser, isEditing, formData, error, appointments, setAppointments, stamps, isGenderOpen, setIsGenderOpen, showRewardModal, setShowRewardModal, selectedAppt, setSelectedAppt, isCancelModalOpen, setIsCancelModalOpen, actionError, setActionError, currentTime, showAllHistory, setShowAllHistory, isCancelling, historySortBy, setHistorySortBy, historyFilter, setHistoryFilter, processedPastAppointments, todayFormatted, formatDisplayDate, handleEditClick, genderOptions, handleGenderSelect, handleContactMethodSelect, formatTime, handleChange, handleSave, handleCancel, handleClientRedeem, handleCancelAppointment, isEligibleForChanges, formatSlot, getStatusDotColor, todayIso, currentAppointments, payForAppointment, rescheduleAppointment, startCancel, closeCancelModal, handleProofUploaded, handleHistoryFilterChange, handleHistorySortChange };
 }

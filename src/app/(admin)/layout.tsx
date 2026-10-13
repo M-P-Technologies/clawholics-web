@@ -1,8 +1,12 @@
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import { isAdmin } from "@/server/auth";
 import { nextApiEnabled } from "@/server/worker";
+
+// Search engines must not list the admin screens
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 // Every admin screen needs a signed-in admin. It is checked on the server before the screen
 // renders; the API still enforces the role on every admin request.

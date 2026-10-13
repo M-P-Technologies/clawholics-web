@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import AS_ClientNotesPanel from "../components/admin/AS_ClientNotesPanel";
+import ClientNotesPanel from "../components/admin/ClientNotesPanel";
 import { ApiError } from "../services/catalogService";
 import * as notes from "../services/clientNotesService";
 
@@ -29,7 +29,7 @@ const note = (over: Partial<notes.ClientNote> = {}): notes.ClientNote => ({
 
 const setup = async () => {
   const user = userEvent.setup();
-  render(<AS_ClientNotesPanel clientUserId={5} tokenFetcher={async () => "tok"} clerkId="admin_1" />);
+  render(<ClientNotesPanel clientUserId={5} tokenFetcher={async () => "tok"} clerkId="admin_1" />);
   await screen.findByLabelText("Next steps");
   return user;
 };
@@ -40,7 +40,7 @@ beforeEach(() => {
   vi.mocked(notes.fetchNextSteps).mockResolvedValue({ client_user_id: 5, text: "Offer gel removal" });
 });
 
-describe("AS_ClientNotesPanel", () => {
+describe("ClientNotesPanel", () => {
   it("loads the notes and the next steps", async () => {
     await setup();
     expect(screen.getByText("Prefers short square")).toBeInTheDocument();
@@ -124,7 +124,7 @@ describe("AS_ClientNotesPanel", () => {
 
   it("says notes are unavailable when the backend returns 404", async () => {
     vi.mocked(notes.fetchNotes).mockRejectedValue(new ApiError("Not found", 404));
-    render(<AS_ClientNotesPanel clientUserId={5} tokenFetcher={async () => "tok"} clerkId="admin_1" />);
+    render(<ClientNotesPanel clientUserId={5} tokenFetcher={async () => "tok"} clerkId="admin_1" />);
     expect(await screen.findByText(/notes aren't available yet/i)).toBeInTheDocument();
     expect(screen.queryByLabelText("New note")).not.toBeInTheDocument();
   });

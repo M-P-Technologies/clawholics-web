@@ -1,3 +1,4 @@
+import { Check } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { themeColor } from "../../services/themeColor";
 import Button from "../ui/Button";
@@ -23,51 +24,51 @@ export default function RewardsSheet({ open, onClose, stamps, cardNumber, clerkI
     <Sheet open={open} title="Loyalty card" onClose={onClose}>
       <div className="flex flex-col gap-4">
         <div
-          className={`flex flex-col overflow-hidden rounded-sm border shadow-xl shadow-crimson/10 ${
-            full ? "border-crimson bg-crimson-light/30" : "border-crimson-light/80 bg-light-orange"
+          className={`flex flex-col overflow-hidden rounded-2xl border ${
+            full ? "border-crimson bg-crimson-light/30" : "border-crimson-light/60 bg-light-orange/40"
           }`}
         >
-          <div className="flex flex-col gap-1 bg-crimson p-4">
-            <p className="font-sans text-lg font-bold tracking-tight text-light-orange">Clawholics Loyalty Card</p>
-            <p className="break-all font-sans text-sm text-light-orange opacity-90">{cardNumber}</p>
+          <div className="flex flex-col gap-0.5 bg-berry px-4 py-3">
+            <p className="font-display text-xl text-pearl">Clawholics Loyalty Card</p>
+            <p className="break-all text-[12px] text-pearl/80">{cardNumber}</p>
           </div>
           <div className="flex flex-col gap-4 p-4">
-            <p className="text-sm font-bold text-gray-red">Stamp Card — {stamps}/{STAMP_TARGET}</p>
+            <p className="text-[13px] font-medium text-gray-red/80">Stamp Card — {stamps}/{STAMP_TARGET}</p>
             <div className="grid w-full grid-cols-5 gap-2">
               {stampCells.map(({ number, isEarned }) => (
                 <div
                   key={number}
-                  className={`flex aspect-square items-center justify-center rounded-sm text-base font-bold ${
-                    isEarned ? "border border-crimson bg-crimson text-light-orange" : "border border-crimson-light bg-light-orange text-gray-red"
+                  className={`flex aspect-square items-center justify-center rounded-full text-sm font-bold ${
+                    isEarned ? "bg-crimson text-light-orange shadow-sm" : "border-2 border-dashed border-crimson-light text-gray-red/50"
                   }`}
                 >
-                  {number}
+                  {isEarned ? <Check size={18} strokeWidth={3} aria-label={`Stamp ${number}`} /> : number}
                 </div>
               ))}
             </div>
             {full ? (
               <Button type="button" onClick={onRedeem} className="w-full">Redeem reward</Button>
             ) : (
-              <p className="text-center copy-note">
+              <p className="text-center text-[13px] text-gray-red/80">
                 {left} more visit{left === 1 ? "" : "s"} to earn a reward!
               </p>
             )}
           </div>
         </div>
 
-        <div className="flex flex-col items-center gap-4 rounded-sm border border-crimson-light/80 bg-light-orange p-4 text-center text-gray-red">
-          <p className="label-caps">Your QR code</p>
-          <div className="flex aspect-square w-48 items-center justify-center rounded-sm border border-crimson-light bg-light-orange p-4">
+        <div className="flex flex-col items-center gap-3 rounded-2xl bg-crimson-light/15 p-4 text-center text-gray-red">
+          <p className="font-display text-lg text-gray-red">Your QR code</p>
+          <div className="flex aspect-square w-48 items-center justify-center rounded-xl border border-crimson-light/60 bg-milk p-4">
             <QRCodeSVG
               value={JSON.stringify({ userId: clerkId, action: "stamp" })}
               size={256}
               style={{ height: "100%", width: "100%" }}
-              bgColor={themeColor("light-orange")}
+              bgColor={themeColor("milk")}
               fgColor={themeColor("gray-red")}
               level="H"
             />
           </div>
-          <p className="copy-note max-w-[16rem]">Show this QR code at the salon to earn stamps and redeem rewards.</p>
+          <p className="max-w-[16rem] text-[12px] text-gray-red/70">Show this QR code at the salon to earn stamps and redeem rewards.</p>
         </div>
       </div>
     </Sheet>

@@ -1,7 +1,7 @@
 import { ApiError, call, type Auth } from "./catalogService";
 import { compressImageToWebp, type UploadOptions } from "./uploadService";
 
-export type ProofStatus = "PENDING" | "APPROVED" | "REJECTED";
+type ProofStatus = "PENDING" | "APPROVED" | "REJECTED";
 
 export interface ProofSummary {
   id: number;
@@ -23,8 +23,8 @@ export interface ProofReview {
   admin_note?: string;
 }
 
-export const PROOF_ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
-export const PROOF_MAX_ORIGINAL_MB = 8;
+const PROOF_ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const PROOF_MAX_ORIGINAL_MB = 8;
 
 // Payment screenshots hold small text, so they keep more detail than other uploads.
 export const PROOF_UPLOAD_OPTIONS: UploadOptions = {

@@ -3,10 +3,10 @@ import type { NailService } from "../../services/serviceService";
 import Button from "../ui/Button";
 import Select from "../ui/Select";
 
-export type VariantDraft = { name: string; price: string };
+type VariantDraft = { name: string; price: string };
 
 const variantInputClass =
-  "min-w-0 flex-1 bg-light-orange rounded-md px-4 py-1.5 text-[16px] text-gray-red outline-none focus:ring-2 focus:ring-crimson disabled:opacity-70 border border-crimson-light/80";
+  "min-w-0 flex-1 bg-milk rounded-md px-3 py-1.5 text-sm text-gray-red outline-none focus:ring-2 focus:ring-crimson disabled:opacity-70 border border-crimson-light";
 
 export type PricingDraft = {
   categoryId: number | null;
@@ -74,14 +74,13 @@ type Props = {
   categories: ServiceCategory[];
 };
 
-const card = "bg-light-orange rounded-sm sm:rounded-sm px-4 sm:px-4 py-2";
+const card = "flex flex-col gap-1.5";
 const fieldClass =
-  "w-full min-h-[32px] mt-1 outline-none text-[16px] text-gray-red bg-transparent disabled:cursor-not-allowed";
+  "w-full rounded-md border border-crimson-light bg-milk px-3 py-2 text-sm text-gray-red outline-none focus:ring-2 focus:ring-crimson disabled:cursor-not-allowed disabled:opacity-70";
 
 const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
   <div className={card}>
-    <h3 className="text-[17px] tracking-wide text-gray-red mb-2">{label}</h3>
-    <div className="w-full h-[1.5px] bg-crimson mb-1" />
+    <h3 className="text-[13px] font-medium text-gray-red/80">{label}</h3>
     {children}
   </div>
 );
@@ -159,9 +158,8 @@ export default function ServicePricingFields({ draft, onChange, isEditing, categ
         </Field>
       )}
 
-      <div className="bg-light-orange rounded-sm sm:rounded-sm px-4 sm:px-4 py-2">
-        <h3 className="text-[17px] tracking-wide text-gray-red mb-2">Options (optional)</h3>
-        <div className="w-full h-[1.5px] bg-crimson mb-4" />
+      <div className="flex flex-col gap-1.5">
+        <h3 className="text-[13px] font-medium text-gray-red/80">Options (optional)</h3>
         <p className="text-[14px] text-gray-red/80 mb-2">
           Use options when a service has several fully priced choices, for example "Cat Eye - Volume" and "Cat Eye - Mega Volume". Clients must pick one.
         </p>

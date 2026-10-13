@@ -19,11 +19,11 @@ const wrapperClass = (path: string) => {
 };
 
 describe("footer on phones", () => {
-  it.each(["/", "/services", "/artists", "/about", "/contact"])("shows on %s", (path) => {
+  it.each(["/", "/services", "/artists", "/about", "/faq", "/contact"])("shows on %s", (path) => {
     expect(wrapperClass(path)).not.toContain("hidden");
   });
 
-  it.each(["/artists/3", "/services/2", "/booking", "/payment", "/payment-confirmation", "/profile", "/reschedule", "/terms", "/privacy", "/tou"])(
+  it.each(["/artists/3", "/services/2", "/booking", "/payment", "/payment-confirmation", "/reschedule", "/terms", "/privacy", "/tou"])(
     "is hidden on phones on %s, but still there from lg up",
     (path) => {
       expect(wrapperClass(path)).toContain("hidden");
@@ -31,7 +31,7 @@ describe("footer on phones", () => {
     },
   );
 
-  it.each(["/login", "/signup", "/onboarding"])("is not rendered at all on %s", (path) => {
+  it.each(["/login", "/signup", "/onboarding", "/profile"])("is not rendered at all on %s", (path) => {
     expect(wrapperClass(path)).toBeNull();
   });
 });

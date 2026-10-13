@@ -1,3 +1,4 @@
+import { usePreviewVersion } from "@/lib/cmsPreview";
 import { lastSeen } from "../utils/lastSeen";
 import { useEffect, useState } from "react";
 import { fetchServices } from "../services/serviceService";
@@ -18,6 +19,8 @@ export function useServices() {
   const [search, setSearch] = useState<string>("");
   const [error, setError] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  // In the admin editor's preview, fetch again when the unsaved changes do
+  const previewVersion = usePreviewVersion();
 
   useEffect(() => {
     setError(false);
@@ -32,7 +35,7 @@ export function useServices() {
     fetchHomeContent().then(setContent).catch(() => setError(true));
     // Categories only group the filter chips, so the page still works without them
     fetchCategories().then(setCategories).catch(() => setCategories([]));
-  }, [attempt]);
+  }, [attempt, previewVersion]);
 
   const reload = () => setAttempt((n) => n + 1);
 

@@ -16,9 +16,9 @@ const DragIcon = ({
       {...attributes}
       onClick={(e) => e.stopPropagation()}
       className="cursor-grab active:cursor-grabbing flex items-center shrink-0"
-      aria-label="Drag section"
+      aria-label="Drag to reorder"
     >
-      <DragSvg size={20} className="text-gray-red" />
+      <DragSvg size={18} className="text-gray-red/70" />
     </Button>
   );
 };

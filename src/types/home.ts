@@ -1,15 +1,3 @@
-import { type LucideIcon } from "lucide-react";
-
-export interface Feature {
-  icon: LucideIcon;
-  title: string;
-  text: string;
-  /** Page the card opens. */
-  to: string;
-  /** Optional router state, e.g. which profile tab to open. */
-  state?: Record<string, unknown>;
-}
-
 export interface StripItem {
   id: number;
   image: string;

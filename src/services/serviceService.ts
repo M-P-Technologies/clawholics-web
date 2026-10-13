@@ -1,3 +1,4 @@
+import { previewed } from "../lib/cmsPreview";
 import { remember } from "../utils/lastSeen";
 import { API_BASE_URL } from "../apiConfig";
 
@@ -8,7 +9,7 @@ export type ServiceGalleryImage = {
   position: number;
 };
 
-export type ServiceVariant = {
+type ServiceVariant = {
   id: number;
   service_id: number;
   name: string;
@@ -55,7 +56,7 @@ const getHeaders = (token?: string | null, clerkId?: string | null) => {
   return headers;
 };
 
-export const fetchServices = async (): Promise<NailService[]> => {
+const loadServices = async (): Promise<NailService[]> => {
   const res = await fetch(`${API_BASE_URL}/services?t=${Date.now()}`, {
     headers: { "x-clawholics-origin": "frontend" }
   });
@@ -68,7 +69,7 @@ export const fetchServices = async (): Promise<NailService[]> => {
   return remember("services", await res.json());
 };
 
-export const fetchServiceById = async (id: number): Promise<NailService> => {
+const loadServiceById = async (id: number): Promise<NailService> => {
   const res = await fetch(`${API_BASE_URL}/services/${id}?t=${Date.now()}`, {
     headers: { "x-clawholics-origin": "frontend" }
   });
@@ -146,7 +147,7 @@ export const deleteService = async (id: number, token?: string | null, clerkId?:
     throw new Error("Failed to delete service");
   }
 };
-export const fetchServiceGallery = async (
+const loadServiceGallery = async (
   serviceId: number,
 ): Promise<ServiceGalleryImage[]> => {
   const res = await fetch(`${API_BASE_URL}/api/services/${serviceId}/gallery`, {
@@ -194,3 +195,8 @@ export const deleteServiceGalleryImage = async (id: number, token?: string | nul
     throw new Error("Failed to delete service gallery image");
   }
 };
+
+// Through the admin editor's live preview (see lib/cmsPreview); a plain fetch everywhere else
+export const fetchServices = () => previewed("services", () => loadServices());
+export const fetchServiceById = (id: number) => previewed(`service:${id}`, () => loadServiceById(id));
+export const fetchServiceGallery = (serviceId: number) => previewed(`serviceGallery:${serviceId}`, () => loadServiceGallery(serviceId));

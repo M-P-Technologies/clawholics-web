@@ -5,7 +5,7 @@ import { ArrowRight, Loader2 } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 import clsx from "clsx";
 
-export type ButtonVariant = "primary" | "secondary" | "bare";
+type ButtonVariant = "primary" | "secondary" | "bare";
 
 interface ButtonOwnProps {
   /**

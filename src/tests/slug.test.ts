@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { artistPath, findBySlugOrId, findServiceByParam, servicePath, slugify } from "../utils/slug";
+import { artistPath, findBySlugOrId, servicePath, slugify } from "../utils/slug";
 
 const services = [
   { id: 1, name: "Softgel Extensions" },
@@ -25,20 +25,20 @@ describe("slugify", () => {
   });
 });
 
-describe("findServiceByParam", () => {
+describe("findBySlugOrId", () => {
   it("finds a service by the slug of its name, ignoring case", () => {
-    expect(findServiceByParam(services, "hard-gel")?.id).toBe(2);
-    expect(findServiceByParam(services, "Hard-Gel")?.id).toBe(2);
-    expect(findServiceByParam(services, "hard-gel-and-biab-overlay")?.id).toBe(3);
+    expect(findBySlugOrId(services, "hard-gel")?.id).toBe(2);
+    expect(findBySlugOrId(services, "Hard-Gel")?.id).toBe(2);
+    expect(findBySlugOrId(services, "hard-gel-and-biab-overlay")?.id).toBe(3);
   });
 
   it("still follows the older numeric addresses", () => {
-    expect(findServiceByParam(services, "2")?.name).toBe("Hard Gel");
-    expect(findServiceByParam(services, "99")).toBeNull();
+    expect(findBySlugOrId(services, "2")?.name).toBe("Hard Gel");
+    expect(findBySlugOrId(services, "99")).toBeNull();
   });
 
   it("finds nothing for a name that doesn't exist", () => {
-    expect(findServiceByParam(services, "soft-gel")).toBeNull();
+    expect(findBySlugOrId(services, "soft-gel")).toBeNull();
   });
 });
 
@@ -56,6 +56,5 @@ describe("artists", () => {
     expect(findBySlugOrId(artists, "miss-pring")?.id).toBe(3);
     expect(findBySlugOrId(artists, "1")?.name).toBe("Miss Max");
     expect(findBySlugOrId(artists, "miss-nobody")).toBeNull();
-    expect(findServiceByParam).toBe(findBySlugOrId); // the older name still works
   });
 });

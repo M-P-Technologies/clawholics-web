@@ -20,6 +20,11 @@ export interface UserProfile {
   phone?: string;
   dob?: string;
   gender?: string;
+  /** More ways for the salon to reach the client before an appointment */
+  alt_phone?: string | null;
+  preferred_contact_method?: string | null;
+  facebook_handle?: string | null;
+  instagram_handle?: string | null;
   stamps: number;
   onboarded?: boolean;
   member_since_month?: string;

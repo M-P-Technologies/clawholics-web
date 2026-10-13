@@ -1,5 +1,5 @@
 // --- HELPER FUNCTIONS ---
-export const parseTimeRange = (range: string) => {
+const parseTimeRange = (range: string) => {
   const [start, end] = range.split("-");
   const toNumber = (t: string) => {
     const [h, m] = t.split(":").map(Number);

@@ -25,7 +25,7 @@ npm run dev                  # http://localhost:5174
 
 ## Layout
 
-- `src/app/` – routes: `(site)/` public pages, `(admin)/AS_*` admin screens, `api/` route handlers
+- `src/app/` – routes: `(site)/` public pages, `(admin)/` admin screens (kebab-case URLs such as `/client-directory`), `api/` route handlers
 - `src/views/`, `src/components/`, `src/hooks/`, `src/services/` – screens, components, hooks and API clients
 - `src/server/` – server-only code: database, auth, R2, email and the API handlers
 - `supabase/` – Postgres migrations, dev seed and the D1 copy scripts

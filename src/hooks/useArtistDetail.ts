@@ -1,3 +1,4 @@
+import { usePreviewVersion } from "@/lib/cmsPreview";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "@/lib/router";
 import {
@@ -23,6 +24,8 @@ export function useArtistDetail() {
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  // In the admin editor's preview, fetch again when the unsaved changes do
+  const previewVersion = usePreviewVersion();
 
   const [pickerOpen, setPickerOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -101,7 +104,7 @@ export function useArtistDetail() {
     return () => {
       cancelled = true;
     };
-  }, [id, attempt]);
+  }, [id, attempt, previewVersion]);
 
   // The services this artist offers, as full services (the booking page needs their prices)
   const offeredServices = useMemo(

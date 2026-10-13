@@ -42,7 +42,24 @@ export async function getClerkUser(clerkId: string): Promise<User | null> {
  * Copies Clerk users into the directory: admins (publicMetadata.role) get an admin row, the
  * rest a customer row whose role is kept if already set. Names only fill empty ones.
  */
+// Every directory load asks for a sync; one at a time, and at most every two minutes, is plenty
+// (each pass writes up to 100 users, and several at once kept the database connections busy)
+const SYNC_INTERVAL_MS = 2 * 60_000;
+let syncRunning = false;
+let lastSyncAt = 0;
+
 export async function syncAllUsersFromClerk() {
+  if (syncRunning || Date.now() - lastSyncAt < SYNC_INTERVAL_MS) return;
+  syncRunning = true;
+  try {
+    await syncAllUsers();
+  } finally {
+    syncRunning = false;
+    lastSyncAt = Date.now();
+  }
+}
+
+async function syncAllUsers() {
   const sql = getSql();
   for (const user of await listClerkUsers()) {
     const isAdmin = clerkRole(user) === "admin";
