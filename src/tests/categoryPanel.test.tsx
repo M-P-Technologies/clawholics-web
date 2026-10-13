@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import AS_CategoryPanel from "../components/admin/AS_CategoryPanel";
+import CategoryPanel from "../components/admin/CategoryPanel";
 import * as catalog from "../services/catalogService";
 
 vi.mock("../services/catalogService", async () => {
@@ -26,12 +26,12 @@ const categories = [
 const setup = () => {
   const onChanged = vi.fn();
   render(
-    <AS_CategoryPanel categories={categories} tokenFetcher={async () => "tok"} clerkId="admin_1" onChanged={onChanged} />,
+    <CategoryPanel categories={categories} tokenFetcher={async () => "tok"} clerkId="admin_1" onChanged={onChanged} />,
   );
   return { onChanged, user: userEvent.setup() };
 };
 
-describe("AS_CategoryPanel", () => {
+describe("CategoryPanel", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("lists categories in order with their add-ons", () => {

@@ -6,7 +6,7 @@ import Select from "../ui/Select";
 export type VariantDraft = { name: string; price: string };
 
 const variantInputClass =
-  "min-w-0 flex-1 bg-light-orange rounded-md px-4 py-1.5 text-[16px] text-gray-red outline-none focus:ring-2 focus:ring-crimson disabled:opacity-70 border border-crimson-light/80";
+  "min-w-0 flex-1 bg-milk rounded-md px-4 py-1.5 text-[16px] text-gray-red outline-none focus:ring-2 focus:ring-crimson disabled:opacity-70 border border-crimson-light";
 
 export type PricingDraft = {
   categoryId: number | null;
@@ -74,7 +74,7 @@ type Props = {
   categories: ServiceCategory[];
 };
 
-const card = "bg-light-orange rounded-sm sm:rounded-sm px-4 sm:px-4 py-2";
+const card = "rounded-xl bg-crimson-light/15 px-4 py-2";
 const fieldClass =
   "w-full min-h-[32px] mt-1 outline-none text-[16px] text-gray-red bg-transparent disabled:cursor-not-allowed";
 
@@ -159,7 +159,7 @@ export default function ServicePricingFields({ draft, onChange, isEditing, categ
         </Field>
       )}
 
-      <div className="bg-light-orange rounded-sm sm:rounded-sm px-4 sm:px-4 py-2">
+      <div className="rounded-xl bg-crimson-light/15 px-4 py-2">
         <h3 className="text-[17px] tracking-wide text-gray-red mb-2">Options (optional)</h3>
         <div className="w-full h-[1.5px] bg-crimson mb-4" />
         <p className="text-[14px] text-gray-red/80 mb-2">

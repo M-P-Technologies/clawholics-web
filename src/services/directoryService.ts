@@ -12,6 +12,10 @@ export interface DirectoryUser {
   visit_count?: number;
   last_visit?: string | null;
   is_recurring?: boolean;
+  altPhone?: string;
+  preferredContactMethod?: string;
+  facebookHandle?: string;
+  instagramHandle?: string;
 }
 
 export interface DirectoryUserPayload {
@@ -66,6 +70,11 @@ type RawDirectoryUser = Partial<{
   lastVisit: string | null;
   is_recurring: boolean | number | string;
   isRecurring: boolean | number | string;
+
+  altPhone: string | null;
+  preferredContactMethod: string | null;
+  facebookHandle: string | null;
+  instagramHandle: string | null;
 }>;
 
 function buildHeaders(
@@ -262,10 +271,15 @@ function normalizeDirectoryUser(user: RawDirectoryUser): DirectoryUser {
     role,
     name: name || computedFullName,
     fullName: computedFullName || name,
-    user_id: toPositiveInt(user.user_id ?? user.userId),
+    // users.id: the directory sends it as `id` (its Clerk id is the tile's id)
+    user_id: toPositiveInt(user.user_id ?? user.userId ?? user.id),
     visit_count: toCount(user.visit_count ?? user.visitCount),
     last_visit: getString(user.last_visit ?? user.lastVisit).trim() || null,
     is_recurring: toFlag(user.is_recurring ?? user.isRecurring),
+    altPhone: getString(user.altPhone).trim() || undefined,
+    preferredContactMethod: getString(user.preferredContactMethod).trim() || undefined,
+    facebookHandle: getString(user.facebookHandle).trim() || undefined,
+    instagramHandle: getString(user.instagramHandle).trim() || undefined,
   };
 }
 
@@ -370,4 +384,17 @@ export async function deleteDirectoryUser(
       data.error || data.message || "Failed to delete directory user."
     );
   }
+}
+
+// The directory cards' photos, join dates and last sign-ins from Clerk, by Clerk id (admin only)
+export async function fetchDirectoryProfiles(
+  token?: string | null,
+  clerkId?: string | null
+): Promise<{ profiles: Record<string, { imageUrl: string | null; joinedAt: string | null; lastSignInAt: string | null }> }> {
+  const response = await fetch(`${API_BASE_URL}/directory/profiles`, {
+    cache: "no-store",
+    headers: buildHeaders(token, false, clerkId),
+  });
+  if (!response.ok) throw new Error("Failed to fetch the directory profiles.");
+  return response.json();
 }

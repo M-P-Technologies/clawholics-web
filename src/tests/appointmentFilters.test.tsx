@@ -1,7 +1,7 @@
 import userEvent from "@testing-library/user-event";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import AS_AppointmentRow from "../components/admin/AS_AppointmentRow";
+import AppointmentRow from "../components/admin/AppointmentRow";
 import type { Appointment } from "../services/appointmentService";
 import { matchesAppointmentFilter } from "../services/appointmentFilters";
 
@@ -53,9 +53,9 @@ describe("matchesAppointmentFilter", () => {
   });
 });
 
-describe("AS_AppointmentRow proof pills", () => {
+describe("AppointmentRow proof pills", () => {
   const renderRow = (a: Appointment) =>
-    render(<AS_AppointmentRow appointment={a} onClick={() => {}} onStatusChange={() => {}} />);
+    render(<AppointmentRow appointment={a} onClick={() => {}} onStatusChange={() => {}} />);
 
   it("shows 'Proof overdue' for an overdue appointment", () => {
     renderRow(appt({ proof_due_at: new Date(Date.now() - HOUR).toISOString() }));

@@ -101,7 +101,7 @@ export function useProfile() {
 
   useEffect(() => {
     if (isLoaded && clerkUser?.publicMetadata?.role === "admin") {
-      navigate("/AS_AdminDirectory", { replace: true });
+      navigate("/dashboard", { replace: true });
       return;
     }
 

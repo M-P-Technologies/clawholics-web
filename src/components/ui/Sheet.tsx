@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { X } from "lucide-react";
 import Button from "./Button";
 
@@ -9,8 +9,37 @@ interface SheetProps {
   children: ReactNode;
 }
 
+const FOCUSABLE =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 // A panel that rises from the bottom on phones and is a centred dialog from `lg` up.
 export default function Sheet({ open, title, onClose, children }: SheetProps) {
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+
+  // Focus moves into the panel when it opens and goes back to what opened it when it closes
+  useEffect(() => {
+    if (!open) return;
+    const opener = document.activeElement as HTMLElement | null;
+    dialogRef.current?.querySelector<HTMLElement>(FOCUSABLE)?.focus();
+    return () => opener?.focus?.();
+  }, [open]);
+
+  // Tab wraps around inside the panel
+  const keepFocusInside = (e: ReactKeyboardEvent) => {
+    if (e.key !== "Tab") return;
+    const items = [...(dialogRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])];
+    if (items.length === 0) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -26,6 +55,8 @@ export default function Sheet({ open, title, onClose, children }: SheetProps) {
       onClick={onClose}
     >
       <div
+        ref={dialogRef}
+        onKeyDown={keepFocusInside}
         role="dialog"
         aria-modal="true"
         aria-label={title}

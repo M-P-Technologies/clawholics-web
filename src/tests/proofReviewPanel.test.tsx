@@ -1,12 +1,12 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import AS_ProofReviewPanel from "../components/admin/AS_ProofReviewPanel";
+import ProofReviewPanel from "../components/admin/ProofReviewPanel";
 import { ApiError } from "../services/catalogService";
 import * as proofs from "../services/proofService";
 
 // The real preview modal imports an svg component that the test setup does not mock.
-vi.mock("../components/admin/AS_ImagePreviewModal", () => ({
+vi.mock("../components/admin/ImagePreviewModal", () => ({
   default: ({ imageUrl }: { imageUrl: string | null }) =>
     imageUrl ? <div data-testid="zoom">{imageUrl}</div> : null,
 }));
@@ -22,10 +22,10 @@ const proof = (over: Partial<proofs.PaymentProof> = {}): proofs.PaymentProof => 
   admin_note: null, created_at: "2026-10-09T10:00:00Z", ...over,
 });
 
-const setup = (props: Partial<React.ComponentProps<typeof AS_ProofReviewPanel>> = {}) => {
+const setup = (props: Partial<React.ComponentProps<typeof ProofReviewPanel>> = {}) => {
   const onReviewed = vi.fn();
   render(
-    <AS_ProofReviewPanel
+    <ProofReviewPanel
       appointmentId={7}
       status="AWAITING_PROOF"
       proofDueAt={new Date(Date.now() + 3_600_000).toISOString()}
@@ -46,7 +46,7 @@ beforeEach(() => {
   ]);
 });
 
-describe("AS_ProofReviewPanel", () => {
+describe("ProofReviewPanel", () => {
   it("shows the latest screenshot and the history with the earlier rejection note", async () => {
     setup();
     expect(await screen.findByAltText(/latest payment screenshot/i)).toHaveAttribute("src", "https://img/2.webp");

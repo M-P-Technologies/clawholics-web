@@ -34,7 +34,7 @@ export function useHome() {
       const clerkRole = String(user.publicMetadata?.role || "").toLowerCase();
 
       if (clerkRole === "admin") {
-        navigate("/AS_AdminDirectory", { replace: true });
+        navigate("/dashboard", { replace: true });
         return;
       }
 
@@ -48,7 +48,7 @@ export function useHome() {
 
           // Fallback: Check backend role if Clerk metadata hasn't synced yet
           if (profile && String(profile.role || "").toLowerCase() === "admin") {
-            navigate("/AS_AdminDirectory", { replace: true });
+            navigate("/dashboard", { replace: true });
             return;
           }
 

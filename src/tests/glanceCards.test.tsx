@@ -1,0 +1,63 @@
+import { render, screen, within } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import GlanceCards from "@/components/admin/dashboard/GlanceCards";
+
+vi.mock("@/lib/router", () => ({
+  Link: ({ to, children, ...rest }: { to: string; children: React.ReactNode }) => <a href={to} {...rest}>{children}</a>,
+}));
+
+const totals = {
+  clients: 17, services: 35, artists: 5, upcoming: 7,
+  trend: [
+    { date: "2026-10-12", clients: 15, services: 2, artists: 1 },
+    { date: "2026-10-13", clients: 17, services: 4, artists: 3 },
+  ],
+};
+const upcomingDays = [{ date: "2026-10-14", value: 1600, visits: 2 }, { date: "2026-10-15", value: 0, visits: 0 }, { date: "2026-10-16", value: 800, visits: 1 }];
+
+describe("GlanceCards", () => {
+  it("shows the four counts, each opening its screen", () => {
+    render(<GlanceCards totals={totals} />);
+    const row = within(screen.getByRole("region", { name: "Salon at a glance" }));
+    const card = (name: string) => within(row.getByRole("group", { name }));
+    expect(card("Total clients").getByText("17")).toBeInTheDocument();
+    expect(card("Total clients").getByRole("link", { name: "Open clients" })).toHaveAttribute("href", "/client-directory");
+    expect(card("Services").getByText("35")).toBeInTheDocument();
+    expect(card("Services").getByRole("link", { name: "Open services" })).toHaveAttribute("href", "/nail-services");
+    expect(card("Artists").getByText("5")).toBeInTheDocument();
+    expect(card("Artists").getByRole("link", { name: "Open artists" })).toHaveAttribute("href", "/nail-artists");
+    expect(card("Appointments").getByText("7")).toBeInTheDocument();
+    expect(card("Appointments").getByRole("link", { name: "Open appointments" })).toHaveAttribute("href", "/appointments?status=CONFIRMED");
+  });
+
+  it("says what each count is", () => {
+    render(<GlanceCards totals={totals} />);
+    expect(screen.getByText("client accounts")).toBeInTheDocument();
+    expect(screen.getByText("on the menu")).toBeInTheDocument();
+    expect(screen.getByText("nail artists")).toBeInTheDocument();
+    expect(screen.getByText("upcoming, confirmed")).toBeInTheDocument();
+  });
+
+  it("looks like the stat cards: a milk card, the small icon badge, the number in berry", () => {
+    render(<GlanceCards totals={totals} />);
+    for (const card of screen.getAllByRole("group")) {
+      expect(card).toHaveClass("bg-milk", "shadow-petal");
+      expect(within(card).getByTestId("kpi-icon")).toHaveClass("rounded-full", "text-berry");
+    }
+    expect(screen.getByText("17")).toHaveClass("font-display", "text-berry");
+  });
+
+  it("draws a small line on each card, described in words", () => {
+    render(<GlanceCards totals={totals} granularity="day" upcomingDays={upcomingDays} />);
+    expect(screen.getByRole("img", { name: "Total clients per day, from 15 to 17" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Different services booked per day, from 2 to 4" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Artists with bookings per day, from 1 to 3" })).toBeInTheDocument();
+    const ahead = screen.getByRole("img", { name: "Upcoming appointments per day for the next 3 days, from 2 to 1" });
+    expect([...ahead.querySelectorAll("title")].map((t) => t.textContent)).toEqual(["Oct 14: 2", "Oct 15: 0", "Oct 16: 1"]);
+  });
+
+  it("draws no lines without points", () => {
+    render(<GlanceCards totals={{ ...totals, trend: [] }} granularity="day" upcomingDays={[]} />);
+    expect(screen.queryByRole("img")).toBeNull();
+  });
+});

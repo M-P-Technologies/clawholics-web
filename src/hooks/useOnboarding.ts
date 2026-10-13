@@ -44,7 +44,7 @@ export function useOnboarding() {
       // 1. HARD ADMIN CHECK: Immediate redirect if Clerk metadata says admin
       const clerkRole = String(user.publicMetadata?.role || "").toLowerCase();
       if (clerkRole === "admin") {
-        navigate("/AS_AdminDirectory", { replace: true });
+        navigate("/dashboard", { replace: true });
         return;
       }
 
@@ -54,7 +54,7 @@ export function useOnboarding() {
 
         // 2. BACKEND ADMIN CHECK: In case Clerk metadata is not synced yet
         if (existingProfile && String(existingProfile.role || "").toLowerCase() === "admin") {
-          navigate("/AS_AdminDirectory", { replace: true });
+          navigate("/dashboard", { replace: true });
           return;
         }
 
