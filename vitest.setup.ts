@@ -28,6 +28,33 @@ vi.mock("../assets/cherry.svg", () => ({
   default: () => React.createElement("div", { "data-testid": "cherry-icon" }),
 }));
 
+// The app's hooks fetch through TanStack Query (QueryProvider in the root layout). Each render
+// gets a fresh client, so no cached content carries over between tests, and no retries, so a
+// failed request shows its error at once.
+vi.mock("@testing-library/react", async (importOriginal) => {
+  const rtl = await importOriginal<typeof import("@testing-library/react")>();
+  const { QueryClient, QueryClientProvider } = await import("@tanstack/react-query");
+
+  const withQueryClient = (Inner?: React.JSXElementConstructor<{ children: React.ReactNode }>) => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    return function TestQueryClient({ children }: { children: React.ReactNode }) {
+      return React.createElement(
+        QueryClientProvider,
+        { client },
+        Inner ? React.createElement(Inner, null, children) : children,
+      );
+    };
+  };
+
+  return {
+    ...rtl,
+    render: ((ui: React.ReactNode, options?: Parameters<typeof rtl.render>[1]) =>
+      rtl.render(ui, { ...options, wrapper: withQueryClient(options?.wrapper) })) as typeof rtl.render,
+    renderHook: ((hook: (props: unknown) => unknown, options?: Parameters<typeof rtl.renderHook>[1]) =>
+      rtl.renderHook(hook, { ...options, wrapper: withQueryClient(options?.wrapper) })) as typeof rtl.renderHook,
+  };
+});
+
 // `server-only` throws outside a React Server environment; server modules are tested directly
 vi.mock("server-only", () => ({}));
 

@@ -1,5 +1,4 @@
 import { previewed } from "../lib/cmsPreview";
-import { remember } from "../utils/lastSeen";
 import { API_BASE_URL } from "../apiConfig";
 
 const getAuthHeaders = (token?: string | null, clerkId?: string | null) => {
@@ -36,7 +35,7 @@ const loadHomeContent = async () => {
     throw new Error("Failed to fetch content");
   }
 
-  return remember("home", await res.json());
+  return await res.json();
 };
 
 const loadTeamContent = async () => {
@@ -48,7 +47,7 @@ const loadTeamContent = async () => {
     throw new Error("Failed to fetch team content");
   }
 
-  return remember("team", await res.json());
+  return await res.json();
 };
 
 const loadLegalContent = async (): Promise<Record<string, string>> => {

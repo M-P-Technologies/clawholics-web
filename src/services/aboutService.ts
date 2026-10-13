@@ -1,5 +1,4 @@
 import { previewed } from "../lib/cmsPreview";
-import { remember } from "../utils/lastSeen";
 import { API_BASE_URL } from "../apiConfig";
 
 export type AboutContent = {
@@ -38,7 +37,7 @@ const loadAboutContent = async (): Promise<AboutContent> => {
     throw new Error("Failed to fetch about content");
   }
 
-  return remember("about", await res.json());
+  return await res.json();
 };
 
 export const updateAboutContent = async (

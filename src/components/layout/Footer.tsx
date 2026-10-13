@@ -1,8 +1,7 @@
-import { useEffect,useState } from "react";
-import { usePreviewVersion } from "@/lib/cmsPreview";
+import { useQuery } from "@tanstack/react-query";
+import { publicQueries } from "@/lib/publicQueries";
 import { Link } from "@/lib/router";
 import logo from "../../assets/logo/logo-pink-transparent.png";
-import { fetchHomeContent } from "../../services/contentService";
 import { readHomeSections } from "../../lib/homeSections";
 import Button from "../ui/Button";
 import Blush from "../ui/Blush";
@@ -15,14 +14,8 @@ const linkClass = "w-fit text-sm text-gray-red transition-colors hover:text-crim
 const columnTitle = "mb-4 font-display text-sm uppercase tracking-extrawide text-gray-red";
 
 export default function Footer() {
-  const [data, setData] = useState<Record<string, string> | null>(null);
-  // In the admin editor's preview, fetch again when the unsaved changes do
-  const previewVersion = usePreviewVersion();
-
-  useEffect(() => {
-    // The footer works without the social links, so a failed request just leaves them out
-    fetchHomeContent().then(setData).catch(() => {});
-  }, [previewVersion]);
+  // The footer works without the social links, so a failed request just leaves them out
+  const data = useQuery(publicQueries.home()).data ?? null;
 
   // As edited in Admin > Contact Us
   const socials = data ? readSocialLinks(data).map((link) => ({ ...platformOf(link.platform), href: socialHref(link) })) : [];
