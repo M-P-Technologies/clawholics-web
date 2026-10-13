@@ -1,4 +1,4 @@
-import AdminScanner from "@/admin/AdminScanner";
+import AdminScanner from "@/admin/front-desk/AdminScanner";
 
 export default function Page() {
   return <AdminScanner />;

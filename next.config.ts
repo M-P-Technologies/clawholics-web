@@ -40,12 +40,16 @@ const nextConfig: NextConfig = {
       { source: "/contact-us", destination: "/contact", permanent: true },
       // The service page used to live at /appointment/<id>
       { source: "/appointment/:id", destination: "/services/:id", permanent: true },
+      // The Client Directory and Appointments screens became one: Clients & Appointments (the
+      // query, e.g. ?status=PENDING or ?view=leads, is kept)
+      { source: "/client-directory", destination: "/clients", permanent: true },
+      { source: "/appointments", destination: "/clients", permanent: true },
       // Admin screens used to live at /AS_<Name>
       { source: "/AS_AboutUs", destination: "/about-us", permanent: true },
       { source: "/AS_AdminDirectory", destination: "/admin-directory", permanent: true },
       { source: "/AS_AdminScanner", destination: "/admin-scanner", permanent: true },
-      { source: "/AS_Appointments", destination: "/appointments", permanent: true },
-      { source: "/AS_ClientDirectory", destination: "/client-directory", permanent: true },
+      { source: "/AS_Appointments", destination: "/clients", permanent: true },
+      { source: "/AS_ClientDirectory", destination: "/clients", permanent: true },
       { source: "/AS_ContactUs", destination: "/contact-info", permanent: true },
       { source: "/AS_FAQs", destination: "/faqs", permanent: true },
       { source: "/AS_Homepage", destination: "/homepage", permanent: true },

@@ -14,7 +14,7 @@ interface EditActionsProps {
   onDelete?: () => void;
 }
 
-// The button row at the bottom of every admin card.
+// The button row at the bottom of every item in the content editors.
 // Viewing: Edit (and Delete, when it can be deleted). Editing: Cancel and Save, or Add for a new item.
 export default function EditActions({
   isEditing,
@@ -29,24 +29,24 @@ export default function EditActions({
   const locked = isSaving || busy;
 
   return (
-    <div className="flex min-h-10 flex-wrap justify-center gap-4">
+    <div className="flex min-h-9 flex-wrap justify-end gap-2">
       {isEditing ? (
         <>
-          <Button variant="secondary" onClick={onCancel} disabled={locked} className="w-25">
+          <Button variant="secondary" onClick={onCancel} disabled={locked} className="px-4! py-1.5! text-[13px]">
             Cancel
           </Button>
-          <Button onClick={onSave} loading={isSaving} loadingText={isCreateMode ? "Adding..." : "Saving..."} disabled={busy} className="w-25">
+          <Button onClick={onSave} loading={isSaving} loadingText={isCreateMode ? "Adding..." : "Saving..."} disabled={busy} className="px-4! py-1.5! text-[13px]">
             {isCreateMode ? "Add" : "Save"}
           </Button>
         </>
       ) : isCreateMode ? null : (
         <>
           {onDelete && (
-            <Button variant="secondary" onClick={onDelete} className="w-25">
+            <Button variant="secondary" onClick={onDelete} className="px-4! py-1.5! text-[13px]">
               Delete
             </Button>
           )}
-          <Button onClick={onEdit} className="w-25">
+          <Button onClick={onEdit} className="px-4! py-1.5! text-[13px]">
             Edit
           </Button>
         </>

@@ -1,10 +1,12 @@
 import PaymentProofCard from "../payment/PaymentProofCard";
 import Button from "../ui/Button";
 import Sheet from "../ui/Sheet";
-import { AppointmentThumb } from "./AppointmentCard";
+import { AppointmentThumb, isCompleted } from "./AppointmentCard";
+import ReviewCard from "./ReviewCard";
 import StatusPill from "./StatusPill";
 import type { AppointmentView } from "./types";
 import type { PaymentProof } from "../../services/proofService";
+import type { Review, ReviewDraft } from "../../services/reviewService";
 
 interface AppointmentSheetProps {
   view: AppointmentView | null;
@@ -17,10 +19,13 @@ interface AppointmentSheetProps {
   onReschedule: () => void;
   onCancel: () => void;
   onProofUploaded: (appointmentId: number, proof: PaymentProof) => void;
+  /** The client's review of this visit, once left */
+  review?: Review;
+  onSubmitReview: (appointmentId: number, draft: ReviewDraft) => Promise<unknown>;
 }
 
 // One appointment in full: what, who, when, its payment proof and every action that applies.
-export default function AppointmentSheet({ view, photo, now, tokenFetcher, clerkId, onClose, onPay, onReschedule, onCancel, onProofUploaded }: AppointmentSheetProps) {
+export default function AppointmentSheet({ view, photo, now, tokenFetcher, clerkId, onClose, onPay, onReschedule, onCancel, onProofUploaded, review, onSubmitReview }: AppointmentSheetProps) {
   return (
     <Sheet open={view !== null} title="Appointment" onClose={onClose}>
       {view && (
@@ -46,6 +51,8 @@ export default function AppointmentSheet({ view, photo, now, tokenFetcher, clerk
             clerkId={clerkId}
             onUploaded={(proof) => onProofUploaded(view.appt.id, proof)}
           />
+
+          {isCompleted(view) && <ReviewCard appointmentId={view.appt.id} review={review} onSubmit={onSubmitReview} />}
 
           <div className="flex flex-col gap-2">
             {view.canPay && <Button type="button" onClick={onPay} className="w-full">Complete payment ({view.payLabel})</Button>}

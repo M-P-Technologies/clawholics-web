@@ -305,35 +305,6 @@ export async function fetchDirectoryUsers(
   const data = await response.json();
   return unwrapDirectoryUsers(data).map(normalizeDirectoryUser);
 }
-export async function createDirectoryUser(
-  payload: DirectoryUserPayload,
-  token?: string | null,
-  clerkId?: string | null
-): Promise<DirectoryUser> {
-  const response = await fetch(`${API_BASE_URL}/directory`, {
-    method: "POST",
-    headers: buildHeaders(token, true, clerkId),
-    body: JSON.stringify({
-      firstName: payload.firstName,
-      lastName: payload.lastName,
-      phoneNumber: payload.phoneNumber,
-      email: payload.email,
-      role: payload.role,
-    }),
-  });
-
-  const data = await response.json().catch(() => ({}));
-
-  if (!response.ok || data.error) {
-    if (response.status === 403) {
-      window.location.href = "/";
-    }
-    throw new Error(data.error || data.message || "Failed to create directory user.");
-  }
-
-  return data;
-}
-
 export async function updateDirectoryUser(
   id: string,
   payload: DirectoryUserPayload,
@@ -397,4 +368,30 @@ export async function fetchDirectoryProfiles(
   });
   if (!response.ok) throw new Error("Failed to fetch the directory profiles.");
   return response.json();
+}
+
+/** The admin accounts, for the Admin Directory */
+export async function fetchAdmins(token: string | null, clerkId?: string | null): Promise<DirectoryUser[]> {
+  if (!token) throw new Error("Failed to get authentication token");
+  const response = await fetch(`${API_BASE_URL}/users/admins`, {
+    headers: { Authorization: `Bearer ${token}`, clerk_id: clerkId || "", "x-clawholics-origin": "frontend" },
+  });
+  if (!response.ok) throw new Error("Failed to fetch admins");
+  return response.json();
+}
+
+/** Makes the account with this email an admin. Resolves with the server's error, if it refused. */
+export async function promoteAdmin(email: string, token: string | null, clerkId?: string | null): Promise<{ ok: boolean; error?: string }> {
+  const response = await fetch(`${API_BASE_URL}/users/promote-admin`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      clerk_id: clerkId || "",
+      "x-clawholics-origin": "frontend",
+    },
+    body: JSON.stringify({ targetEmail: email }),
+  });
+  const result = await response.json();
+  return { ok: response.ok && !result.error, error: result.error };
 }

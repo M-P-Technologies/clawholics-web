@@ -1,65 +1,74 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
-import ClientDirectory from "@/admin/ClientDirectory";
+import { render, screen, within } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import ClientDirectory from "@/admin/front-desk/ClientDirectory";
+import type { Appointment } from "@/services/appointmentService";
 
+let params = new URLSearchParams();
+vi.mock("@/lib/router", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/router")>()),
+  useSearchParams: () => [params] as const,
+}));
 vi.mock("@/components/admin/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
-// A stable getToken, as the real Clerk hook has (the shared mock's changes every render)
+// A stable getToken, as the real Clerk hook has
 vi.mock("@clerk/nextjs", () => {
   const auth = { getToken: async () => "tok", isLoaded: true };
   const user = { user: { id: "admin_1" } };
   return { useAuth: () => auth, useUser: () => user };
 });
+vi.mock("@/components/ui/ToastProvider", () => ({ useToast: () => ({ show: vi.fn() }) }));
+vi.mock("@/hooks/usePolling", () => ({ usePolling: () => {} }));
 vi.mock("@/services/directoryService", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/services/directoryService")>()),
   fetchDirectoryUsers: async () => [
-    { id: "c1", firstName: "Ana", lastName: "Cruz", phoneNumber: "09171234567", role: "customer", user_id: 5 },
-    { id: "c2", firstName: "Bea", lastName: "Lim", phoneNumber: "09181234567", role: "customer" },
+    { id: "user_ana", clerk_id: "user_ana", user_id: 5, firstName: "Ana", lastName: "Cruz", phoneNumber: "09171234567", role: "customer" },
+    { id: "user_bea", clerk_id: "user_bea", user_id: 6, firstName: "Bea", lastName: "Lim", phoneNumber: "09181234567", role: "customer" },
+    { id: "user_max", clerk_id: "user_max", user_id: 1, firstName: "Max", lastName: "Owner", phoneNumber: "", role: "admin" },
   ],
-  fetchDirectoryProfiles: async () => ({ profiles: { c1: { imageUrl: "https://img.clerk.com/ana.png", joinedAt: "2026-06-01T00:00:00.000Z", lastSignInAt: null } } }),
+  fetchDirectoryProfiles: async () => ({ profiles: { user_ana: { imageUrl: "https://img.clerk.com/ana.png", joinedAt: "2026-06-01T00:00:00.000Z", lastSignInAt: null } } }),
+}));
+vi.mock("@/services/dashboardService", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/services/dashboardService")>()),
+  fetchWarmLeads: async () => ({ clerkIds: ["user_bea"] }),
+}));
+vi.mock("@/services/appointmentService", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/services/appointmentService")>()),
+  fetchAppointments: async (): Promise<Appointment[]> => [
+    { id: 11, user_id: 5, first_name: "Ana", last_name: "Cruz", email: "ana@x.test", phone: "09171234567", service_name: "Gel", nailist_name: "Maxine", appointment_date: "2026-11-02", appointment_time: "10:00-11:00", status: "CONFIRMED" },
+  ],
 }));
 
-describe("Client Directory on a phone", () => {
-  it("offers Notes only for a client that has an account", async () => {
-    render(<ClientDirectory />);
-    const list = within(await screen.findByRole("group", { name: "Clients (phone)" }));
-    const ana = list.getByRole("button", { name: /Ana Cruz/ }).parentElement!;
-    const bea = list.getByRole("button", { name: /Bea Lim/ }).parentElement!;
-    expect(within(ana).getByRole("button", { name: "Notes" })).toBeInTheDocument();
-    expect(within(bea).queryByRole("button", { name: "Notes" })).toBeNull();
-  });
+beforeEach(() => {
+  params = new URLSearchParams();
+  vi.stubGlobal("fetch", vi.fn(async () => Response.json([])));
 });
 
-describe("Client Directory: the table and the profile panel", () => {
-  it("lists the clients in a table, with the first one's profile beside it", async () => {
+describe("Clients & Appointments", () => {
+  it("shows the client totals and the appointments with each client's details", async () => {
     render(<ClientDirectory />);
-    const table = within(await screen.findByRole("table", { name: "Clients" }));
-    expect(table.getAllByRole("row")).toHaveLength(3); // header + Ana + Bea
-    const ana = within(screen.getByRole("region", { name: "Ana Cruz" }));
-    expect(await ana.findByRole("img", { name: "Ana Cruz" })).toHaveAttribute("src", "https://img.clerk.com/ana.png");
-    expect(ana.getByRole("link", { name: "View client page" })).toHaveAttribute("href", "/clients/5");
+    expect(screen.getByRole("heading", { name: "Clients & Appointments" })).toBeInTheDocument();
+    const totals = within(screen.getByRole("region", { name: "Client totals" }));
+    expect(await totals.findByText("2")).toBeInTheDocument(); // two clients; the admin isn't counted
+    const table = within(await screen.findByRole("table", { name: "Appointments" }));
+    expect(table.getByRole("link", { name: "Ana Cruz" })).toHaveAttribute("href", "/clients/5");
+    expect(await table.findByText("Jun 2026")).toBeInTheDocument();
+    // The client list and its profile card are gone
+    expect(screen.queryByRole("region", { name: "Clients" })).toBeNull();
+    expect(screen.queryByRole("table", { name: "Clients" })).toBeNull();
   });
 
-  it("shows another client's profile when their row is chosen", async () => {
+  it("lists the warm leads when opened from the dashboard, with a way back", async () => {
+    params = new URLSearchParams("view=leads");
     render(<ClientDirectory />);
-    const table = within(await screen.findByRole("table", { name: "Clients" }));
-    fireEvent.click(table.getByRole("button", { name: "Bea Lim" }));
-    const bea = within(screen.getByRole("region", { name: "Bea Lim" }));
-    expect(bea.queryByRole("img")).toBeNull();
-    expect(bea.queryByRole("link", { name: "View client page" })).toBeNull();
-    expect(screen.queryByRole("region", { name: "Ana Cruz" })).toBeNull();
+    expect(await screen.findByText(/1 warm lead: made an account or started a booking in the last 60 days, but hasn't booked a visit/)).toBeInTheDocument();
+    const leads = within(screen.getByRole("table", { name: "Warm leads" }));
+    expect(leads.getByRole("button", { name: /Bea Lim/ })).toBeInTheDocument();
+    expect(leads.queryByRole("button", { name: /Ana Cruz/ })).toBeNull();
+    expect(screen.getByRole("link", { name: "Back to the appointments" })).toHaveAttribute("href", "/clients");
   });
-});
 
-describe("Client Directory: matching heights", () => {
-  it("stretches the table and the profile card to the same height on desktop", async () => {
+  it("doesn't list the leads otherwise", async () => {
     render(<ClientDirectory />);
-    const table = await screen.findByRole("region", { name: "Clients list" });
-    const card = screen.getByRole("region", { name: "Ana Cruz" });
-    const grid = table.parentElement!.parentElement!;
-    expect(grid).toHaveClass("lg:grid-cols-3");
-    expect(grid).not.toHaveClass("lg:items-start");
-    expect(table).toHaveClass("lg:h-full");
-    expect(card).toHaveClass("lg:h-full");
+    await screen.findByRole("table", { name: "Appointments" });
+    expect(screen.queryByRole("region", { name: "Warm leads" })).toBeNull();
   });
 });
-

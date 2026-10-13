@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import ClientPage from "@/admin/ClientPage";
+import ClientPage from "@/admin/front-desk/ClientPage";
 
 const fetchClient = vi.fn();
 const fetchNotes = vi.fn();
@@ -38,7 +38,8 @@ const details = {
   summary: { visits: 2, totalSpent: 1600, lastVisit: "2026-09-05", nextVisit: "2026-11-02", stamps: 3 },
   appointments: [
     { id: 4, appointment_date: "2026-11-02", appointment_time: "10:00-11:00", service_name: "Gel", nailist_name: "Maxine", status: "CONFIRMED", price: 800 },
-    { id: 2, appointment_date: "2026-09-05", appointment_time: "10:00-11:00", service_name: "Gel", nailist_name: "Maxine", status: "COMPLETED", price: 800 },
+    { id: 2, appointment_date: "2026-09-05", appointment_time: "10:00-11:00", service_name: "Gel", nailist_name: "Maxine", status: "COMPLETED", price: 800,
+      review_rating: 5, review_comment: "Best set yet", review_photo_url: "https://images.test/reviews/a.webp" },
   ],
 };
 const note = (over: object) => ({
@@ -55,25 +56,44 @@ beforeEach(() => {
   saveNextSteps.mockReset().mockResolvedValue({ client_user_id: 7, text: "x" });
 });
 
+const openTab = async (name: RegExp | string) => {
+  fireEvent.click(await screen.findByRole("tab", { name }));
+  return within(screen.getByRole("tabpanel"));
+};
+
 describe("Client page", () => {
-  it("shows the client's profile and summary", async () => {
+  it("shows the profile on the left, and the overview tab first", async () => {
     render(<ClientPage />);
-    expect(await screen.findByRole("heading", { name: "Ana Cruz" })).toBeInTheDocument();
+    const profile = within(await screen.findByRole("complementary", { name: "Client profile" }));
     expect(fetchClient).toHaveBeenCalledWith(7, auth);
-    const profile = within(screen.getByRole("region", { name: "Contact" }));
+    expect(profile.getByRole("heading", { name: "Ana Cruz" })).toBeInTheDocument();
     expect(profile.getByText("ana@x.test")).toBeInTheDocument();
     expect(profile.getByText("09171234567")).toBeInTheDocument();
     expect(profile.getByText("@ana")).toBeInTheDocument();
     expect(profile.getByText("Prefers").nextElementSibling).toHaveTextContent("Instagram");
-    const summary = within(screen.getByRole("region", { name: "Summary" }));
-    expect(within(summary.getByRole("group", { name: "Visits" })).getByText("2")).toBeInTheDocument();
-    expect(within(summary.getByRole("group", { name: "Total spent" })).getByText("₱1,600")).toBeInTheDocument();
-    expect(within(summary.getByRole("group", { name: "Loyalty stamps" })).getByText("3")).toBeInTheDocument();
+    // The next visit, highlighted, and the last and next visits with the client info
+    expect(profile.getAllByText("Nov 2, 2026").length).toBe(2);
+    expect(profile.getByText("Last visit").nextElementSibling).toHaveTextContent("Sep 5, 2026");
+    expect(screen.getByRole("tab", { name: "Overview" })).toHaveAttribute("aria-selected", "true");
+    const overview = within(screen.getByRole("tabpanel"));
+    expect(within(overview.getByRole("group", { name: "Visits" })).getByText("2")).toBeInTheDocument();
+    expect(within(overview.getByRole("group", { name: "Total spent" })).getByText("₱1,600")).toBeInTheDocument();
+    expect(within(overview.getByRole("group", { name: "Loyalty stamps" })).getByText("3 / 10")).toBeInTheDocument();
+  });
+
+  it("tracks the current booking from booking to the visit", async () => {
+    render(<ClientPage />);
+    const progress = within(await screen.findByRole("list", { name: "Booking progress" }));
+    const steps = progress.getAllByRole("listitem");
+    expect(steps.map((li) => li.querySelector("p")?.textContent?.split(":")[0])).toEqual(["Booked", "Downpayment", "Confirmed", "Completed"]);
+    // The Nov 2 booking is confirmed: everything up to the visit is done, the visit is next
+    expect(steps[2]).toHaveTextContent("Booked for Nov 2, 2026");
+    expect(steps[3]).toHaveAttribute("aria-current", "step");
   });
 
   it("lists every appointment with its own notes, and adds a note to one", async () => {
     render(<ClientPage />);
-    const history = within(await screen.findByRole("region", { name: "Appointments" }));
+    const history = await openTab(/Appointments/);
     const sept = within(history.getByRole("row", { name: /Sep 5, 2026/ }));
     expect(sept.getByText("Completed")).toBeInTheDocument();
     expect(sept.getByText("₱800")).toBeInTheDocument();
@@ -85,20 +105,37 @@ describe("Client page", () => {
     await waitFor(() => expect(addNote).toHaveBeenCalledWith(7, "Loved the colour", auth, 2));
   });
 
-  it("keeps general notes apart from appointment notes, and adds one", async () => {
+  it("shows a visit's review and opens its photo", async () => {
     render(<ClientPage />);
-    const general = within(await screen.findByRole("region", { name: "Notes" }));
-    expect(general.getByText("Prefers mornings")).toBeInTheDocument();
-    expect(general.queryByText("Asked for almond shape")).toBeNull();
-    expect(general.getByText(/Max Owner/)).toBeInTheDocument();
-    fireEvent.change(general.getByLabelText("New note"), { target: { value: "Allergic to acetone" } });
-    fireEvent.click(general.getByRole("button", { name: "Add note" }));
+    const history = await openTab(/Appointments/);
+    expect(history.getByRole("columnheader", { name: "Review" })).toBeInTheDocument();
+    expect(history.getByRole("columnheader", { name: "Review photo" })).toBeInTheDocument();
+    const sept = within(history.getByRole("row", { name: /Sep 5, 2026/ }));
+    expect(sept.getByRole("img", { name: "5 out of 5 stars" })).toBeInTheDocument();
+    expect(sept.getByText("Best set yet")).toBeInTheDocument();
+    // The visit still to come has no review
+    expect(within(history.getByRole("row", { name: /Nov 2, 2026/ })).queryByRole("button", { name: "View review photo" })).toBeNull();
+    fireEvent.click(sept.getByRole("button", { name: "View review photo" }));
+    expect(await screen.findByRole("img", { name: "Preview" })).toHaveAttribute("src", "https://images.test/reviews/a.webp");
+  });
+
+  it("shows every note on the notes tab, saying which visit one is about, and adds one", async () => {
+    render(<ClientPage />);
+    const tab = await openTab(/Notes & next steps/);
+    const notes = within(tab.getByRole("region", { name: "Notes" }));
+    expect(notes.getByText("Prefers mornings")).toBeInTheDocument();
+    expect(notes.getByText("Asked for almond shape")).toBeInTheDocument();
+    expect(notes.getByText("About the Sep 5, 2026 visit (Gel)")).toBeInTheDocument();
+    expect(notes.getAllByText("Max Owner").length).toBeGreaterThan(0);
+    fireEvent.change(notes.getByLabelText("New note"), { target: { value: "Allergic to acetone" } });
+    fireEvent.click(notes.getByRole("button", { name: "Add note" }));
     await waitFor(() => expect(addNote).toHaveBeenCalledWith(7, "Allergic to acetone", auth));
   });
 
   it("saves the next steps", async () => {
     render(<ClientPage />);
-    const steps = within(await screen.findByRole("region", { name: "Next steps" }));
+    const tab = await openTab(/Notes & next steps/);
+    const steps = within(tab.getByRole("region", { name: "Next steps" }));
     const field = steps.getByLabelText("Next steps");
     await waitFor(() => expect(field).toHaveValue("Offer a refill"));
     fireEvent.change(field, { target: { value: "Book a lash fill" } });
@@ -110,6 +147,6 @@ describe("Client page", () => {
     fetchClient.mockRejectedValue(Object.assign(new Error("Client not found"), { status: 404 }));
     render(<ClientPage />);
     expect(await screen.findByText("We couldn't find this client")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Back to clients" })).toHaveAttribute("href", "/client-directory");
+    expect(screen.getByRole("link", { name: "Back to clients" })).toHaveAttribute("href", "/clients");
   });
 });

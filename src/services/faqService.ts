@@ -5,6 +5,7 @@ export type Faq = {
   display_order: number;
 };
 
+import { previewed } from "../lib/cmsPreview";
 import { API_BASE_URL } from "../apiConfig";
 
 const getHeaders = (token?: string | null, clerkId?: string | null) => {
@@ -17,7 +18,7 @@ const getHeaders = (token?: string | null, clerkId?: string | null) => {
   return headers;
 };
 
-export const fetchFaqs = async (): Promise<Faq[]> => {
+const loadFaqs = async (): Promise<Faq[]> => {
   const res = await fetch(`${API_BASE_URL}/faqs?t=${Date.now()}`, {
     headers: { "x-clawholics-origin": "frontend" }
   });
@@ -89,3 +90,6 @@ export const deleteFaq = async (id: number, token?: string | null, clerkId?: str
     throw new Error(errorText || "Failed to delete FAQ");
   }
 };
+
+// Through the admin editor's live preview (see lib/cmsPreview); a plain fetch everywhere else
+export const fetchFaqs = () => previewed("faqs", () => loadFaqs());

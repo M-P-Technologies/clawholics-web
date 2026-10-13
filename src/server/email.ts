@@ -13,7 +13,7 @@ const escapeHtml = (value: unknown) =>
 
 const adminEmail = () => process.env.ADMIN_EMAIL || "appointments@clawholicsbymax.com";
 
-export async function sendEmail(to: string, subject: string, html: string) {
+async function sendEmail(to: string, subject: string, html: string) {
   const key = process.env.RESEND_API_KEY;
   if (!key) {
     console.error("SKIP EMAIL - RESEND_API_KEY missing");

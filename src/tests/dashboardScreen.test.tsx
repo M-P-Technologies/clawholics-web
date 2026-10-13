@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Dashboard from "@/admin/Dashboard";
+import Dashboard from "@/admin/overview/Dashboard";
 import type { DashboardResponse } from "@/services/dashboardTypes";
 
 const fetchDashboard = vi.fn();
@@ -131,7 +131,7 @@ describe("Dashboard", () => {
     render(<Dashboard />);
     expect(await screen.findByText(/couldn't load the dashboard/i)).toBeInTheDocument();
     // the rest of the admin is still one tap away
-    expect(screen.getByRole("link", { name: "Open appointments" })).toHaveAttribute("href", "/appointments");
+    expect(screen.getByRole("link", { name: "Open appointments" })).toHaveAttribute("href", "/clients");
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     expect(await screen.findByRole("group", { name: "Collected" })).toBeInTheDocument();
   });

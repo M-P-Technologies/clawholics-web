@@ -26,6 +26,9 @@ describe("EditDetailsSheet", () => {
     isGenderOpen: false,
     onToggleGender: vi.fn(),
     onSelectGender: vi.fn(),
+    contactMethod: "",
+    contactMethodOptions: [{ value: "", label: "No preference" }, { value: "sms", label: "Text message" }],
+    onSelectContactMethod: vi.fn(),
     onSave: vi.fn(),
     onCancel: vi.fn(),
   });

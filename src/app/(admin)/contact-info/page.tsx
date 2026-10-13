@@ -1,4 +1,4 @@
-import ContactUs from "@/admin/ContactUs";
+import ContactUs from "@/admin/content-management/ContactUs";
 
 export default function Page() {
   return <ContactUs />;

@@ -1,3 +1,4 @@
+import { previewed } from "../lib/cmsPreview";
 import { remember } from "../utils/lastSeen";
 export type Nailist = {
   id: number;
@@ -36,7 +37,7 @@ const getHeaders = (token?: string | null, clerkId?: string | null) => {
   return headers;
 };
 
-export const fetchNailists = async () => {
+const loadNailists = async () => {
   const res = await fetch(`${API_BASE_URL}/nailists?t=${Date.now()}`, {
     headers: { "x-clawholics-origin": "frontend" }
   });
@@ -201,7 +202,7 @@ export const fetchNailistDayOffs = async (
   const data = await res.json();
 
   if (!res.ok) {
-    throw new Error(data?.message || "Failed to fetch day offs");
+    throw new Error(data?.message || data?.error || "Failed to fetch day offs");
   }
 
   return data;
@@ -230,7 +231,7 @@ export const updateNailistDayOffs = async (
 };
 
 /** One artist, or null when there is no such artist. */
-export const fetchNailistById = async (id: number): Promise<Nailist | null> => {
+const loadNailistById = async (id: number): Promise<Nailist | null> => {
   const res = await fetch(`${API_BASE_URL}/nailists/${id}?t=${Date.now()}`, {
     headers: { "x-clawholics-origin": "frontend" },
   });
@@ -239,7 +240,7 @@ export const fetchNailistById = async (id: number): Promise<Nailist | null> => {
   return res.json();
 };
 
-export const fetchNailistGallery = async (id: number): Promise<NailistGalleryImage[]> => {
+const loadNailistGallery = async (id: number): Promise<NailistGalleryImage[]> => {
   const res = await fetch(`${API_BASE_URL}/nailists/${id}/gallery?t=${Date.now()}`, {
     headers: { "x-clawholics-origin": "frontend" },
   });
@@ -271,3 +272,8 @@ export const deleteNailistGalleryImage = async (id: number, token?: string | nul
   });
   if (!res.ok) throw new Error("Failed to delete artist gallery image");
 };
+
+// Through the admin editor's live preview (see lib/cmsPreview); a plain fetch everywhere else
+export const fetchNailists = () => previewed("nailists", () => loadNailists());
+export const fetchNailistById = (id: number) => previewed(`nailist:${id}`, () => loadNailistById(id));
+export const fetchNailistGallery = (id: number) => previewed(`nailistGallery:${id}`, () => loadNailistGallery(id));

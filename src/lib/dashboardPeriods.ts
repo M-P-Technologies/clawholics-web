@@ -31,7 +31,7 @@ export const manilaToday = (now: Date): string => format(new Date(now.getTime() 
 export const manilaClock = (now: Date): string =>
   new Date(now.getTime() + MANILA_OFFSET_MS).toISOString().slice(11, 16);
 
-export const monthStart = (ymd: string) => `${ymd.slice(0, 7)}-01`;
+const monthStart = (ymd: string) => `${ymd.slice(0, 7)}-01`;
 export const monthEnd = (ymd: string) => {
   const date = parse(monthStart(ymd));
   date.setUTCMonth(date.getUTCMonth() + 1);

@@ -5,6 +5,7 @@ export type Tac = {
   display_order: number;
 };
 
+import { previewed } from "../lib/cmsPreview";
 import { API_BASE_URL } from "../apiConfig";
 
 const getHeaders = (token?: string | null, clerkId?: string | null) => {
@@ -17,7 +18,7 @@ const getHeaders = (token?: string | null, clerkId?: string | null) => {
   return headers;
 };
 
-export const fetchTacs = async (): Promise<Tac[]> => {
+const loadTacs = async (): Promise<Tac[]> => {
   const res = await fetch(`${API_BASE_URL}/tacs?t=${Date.now()}`, {
     headers: { "x-clawholics-origin": "frontend" }
   });
@@ -89,3 +90,6 @@ export const deleteTac = async (id: number, token?: string | null, clerkId?: str
     throw new Error(errorText || "Failed to delete TAC");
   }
 };
+
+// Through the admin editor's live preview (see lib/cmsPreview); a plain fetch everywhere else
+export const fetchTacs = () => previewed("tacs", () => loadTacs());

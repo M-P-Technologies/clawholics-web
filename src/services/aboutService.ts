@@ -1,3 +1,4 @@
+import { previewed } from "../lib/cmsPreview";
 import { remember } from "../utils/lastSeen";
 import { API_BASE_URL } from "../apiConfig";
 
@@ -13,6 +14,8 @@ export type AboutContent = {
   about_business_hours_Friday: string;
   about_business_hours_Saturday: string;
   about_business_hours_Sunday: string;
+  /** The home page's Good to know list, one item per line; missing on content saved before it */
+  about_good_to_know?: string;
 };
 
 const getHeaders = (token?: string | null, clerkId?: string | null) => {
@@ -25,7 +28,7 @@ const getHeaders = (token?: string | null, clerkId?: string | null) => {
   return headers;
 };
 
-export const fetchAboutContent = async (): Promise<AboutContent> => {
+const loadAboutContent = async (): Promise<AboutContent> => {
   const res = await fetch(`${API_BASE_URL}/content/about?t=${Date.now()}`, {
     headers: { "x-clawholics-origin": "frontend" }
   });
@@ -91,3 +94,6 @@ export const uploadAboutImage = async (
 
   return data;
 };
+
+// Through the admin editor's live preview (see lib/cmsPreview); a plain fetch everywhere else
+export const fetchAboutContent = () => previewed("about", () => loadAboutContent(), "about");

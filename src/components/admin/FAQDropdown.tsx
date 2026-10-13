@@ -151,9 +151,9 @@ const InputField = ({
   };
 
   return (
-    <div className="rounded-xl bg-crimson-light/15 px-4 py-2">
-      <div className="flex items-center justify-between gap-4 mb-2">
-        <h3 className={`text-[17px] ${labelClassName}`}>{label}</h3>
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center justify-between gap-4">
+        <h3 className={`text-[13px] font-medium text-gray-red/80 ${labelClassName}`}>{label}</h3>
 
         {isTextarea && showListButton && (
           <div className="flex items-center gap-2 shrink-0">
@@ -168,7 +168,6 @@ const InputField = ({
         )}
       </div>
 
-      <div className="w-full h-[1.5px] bg-crimson mb-2" />
 
       <textarea
         ref={textareaRef}
@@ -176,7 +175,7 @@ const InputField = ({
         value={value}
         onChange={onChange}
         onKeyDown={handleKeyDown}
-        className="border border-crimson-light focus:border-crimson w-full min-h-[32px] mt-1 bg-transparent outline-none resize-none overflow-hidden text-[16px] text-gray-red whitespace-pre-line disabled:cursor-not-allowed"
+        className="w-full min-h-[38px] rounded-md border border-crimson-light bg-milk px-3 py-2 text-sm text-gray-red outline-none resize-none overflow-hidden whitespace-pre-line focus:ring-2 focus:ring-crimson disabled:cursor-not-allowed disabled:opacity-70"
       />
     </div>
   );
@@ -339,43 +338,41 @@ const FAQDropdown: React.FC<DropdownProps> = ({
     <>
       <div
         className={[
-          "flex flex-col w-full rounded-2xl border border-crimson-light/40 px-4 py-3 shadow-petal transition-[transform,box-shadow,opacity] duration-200 sm:px-5",
+          "flex flex-col w-full rounded-xl border border-crimson-light/50 px-3 py-2.5 transition-[transform,box-shadow,opacity] duration-200",
           isDragOverlay ? "bg-milk shadow-2xl scale-[1.02]" : "bg-milk",
           isDragging ? "opacity-0 pointer-events-none" : "opacity-100",
         ].join(" ")}
       >
-        <Button
-          variant="bare"
-          type="button"
-          onClick={handleToggleOpen}
-          className="flex items-center justify-between w-full gap-4 sm:gap-4 text-left min-h-[35px]"
-        >
-          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
-            {!isCreateMode && (
-              <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
-                <DragIcon {...(dragHandleProps ?? {})} />
-              </div>
-            )}
+        {/* The drag handle sits beside the toggle, not inside it: a button can't hold a button */}
+        <div className="flex min-h-[35px] items-center gap-2 sm:gap-3">
+          {!isCreateMode && <DragIcon {...(dragHandleProps ?? {})} />}
 
-            <p className="font-bold text-[17px] truncate text-gray-red">
+          <Button
+            variant="bare"
+            type="button"
+            onClick={handleToggleOpen}
+            aria-expanded={isOpen}
+            className="flex min-w-0 flex-1 items-center justify-between gap-4 text-left"
+          >
+            <span className="block min-w-0 font-bold text-[15px] truncate text-gray-red">
               {title || "Untitled FAQ"}
-            </p>
-          </div>
+            </span>
 
-          {isCreateMode ? (
-            <PlusIcon
-              size={26} className={`shrink-0 mr-0.75 transition-transform duration-300 ${
-                isOpen ? "rotate-45" : ""
-              }`}
-            />
-          ) : (
-            <DropdownIcon
-              size={32} className={`text-gray-red shrink-0 transition-transform duration-300 ${
-                isOpen ? "rotate-180" : ""
-              }`}
-            />
-          )}
-        </Button>
+            {isCreateMode ? (
+              <PlusIcon
+                size={20} className={`shrink-0 mr-0.75 transition-transform duration-300 ${
+                  isOpen ? "rotate-45" : ""
+                }`}
+              />
+            ) : (
+              <DropdownIcon
+                size={22} className={`text-gray-red shrink-0 transition-transform duration-300 ${
+                  isOpen ? "rotate-180" : ""
+                }`}
+              />
+            )}
+          </Button>
+        </div>
 
         <div
           className={`transition-all duration-300 ease-in-out overflow-hidden ${

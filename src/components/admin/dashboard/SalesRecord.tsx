@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useTableLayout } from "../../../hooks/useMinWidth";
 import { peso } from "../../../lib/dashboardFormat";
 import { Link } from "../../../lib/router";
 import type { DashboardResponse } from "../../../services/dashboardTypes";
-import TablePager, { paginate } from "./TablePager";
+import { CARDS_PER_PAGE, CardFields, RowCard, RowCards } from "../RowCards";
+import TablePager, { paginate, PAGE_SIZE } from "./TablePager";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const dateLabel = (ymd: string) => {
@@ -11,10 +13,12 @@ const dateLabel = (ymd: string) => {
 };
 
 // The period's sales, one row per completed visit: the service, the customer and the fee (its
-// list price), with the total above. It adds up to Estimated sales.
+// list price), with the total above. It adds up to Estimated sales. On a phone each sale is a
+// card, five to a page.
 export default function SalesRecord({ sales }: { sales: DashboardResponse["sales"] }) {
   const [page, setPage] = useState(1);
-  const view = paginate(sales, page);
+  const asTable = useTableLayout();
+  const view = paginate(sales, page, asTable ? PAGE_SIZE : CARDS_PER_PAGE);
   const total = sales.reduce((sum, s) => sum + (s.fee ?? 0), 0);
   const cell = "border-t border-dotted border-crimson-light py-3 pr-3";
 
@@ -31,6 +35,34 @@ export default function SalesRecord({ sales }: { sales: DashboardResponse["sales
         <p className="text-sm text-gray-red/70">No completed visits in this period.</p>
       ) : (
         <>
+          {!asTable ? (
+            <RowCards label="Sales record">
+              {view.rows.map((s) => (
+                <RowCard key={s.id}>
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="min-w-0 font-bold">{s.service_name}</span>
+                    <span className="shrink-0 font-bold text-berry">{s.fee === null ? "–" : peso(s.fee)}</span>
+                  </div>
+                  <CardFields
+                    fields={[
+                      [
+                        "Customer",
+                        s.user_id === null ? (
+                          s.client_name
+                        ) : (
+                          <Link to={`/clients/${s.user_id}`} className="text-berry underline decoration-crimson-light underline-offset-4">
+                            {s.client_name}
+                          </Link>
+                        ),
+                      ],
+                      ["Artist", s.nailist_name],
+                      ["Date", dateLabel(s.date)],
+                    ]}
+                  />
+                </RowCard>
+              ))}
+            </RowCards>
+          ) : (
           <div className="-mx-5 overflow-x-auto px-5">
             <table aria-label="Sales record" className="w-full min-w-[640px] border-separate border-spacing-0 text-sm text-gray-red">
               <thead>
@@ -63,6 +95,7 @@ export default function SalesRecord({ sales }: { sales: DashboardResponse["sales
               </tbody>
             </table>
           </div>
+          )}
           <TablePager view={view} onPage={setPage} />
         </>
       )}

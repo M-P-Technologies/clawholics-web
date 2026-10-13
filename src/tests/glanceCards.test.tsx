@@ -21,13 +21,13 @@ describe("GlanceCards", () => {
     const row = within(screen.getByRole("region", { name: "Salon at a glance" }));
     const card = (name: string) => within(row.getByRole("group", { name }));
     expect(card("Total clients").getByText("17")).toBeInTheDocument();
-    expect(card("Total clients").getByRole("link", { name: "Open clients" })).toHaveAttribute("href", "/client-directory");
+    expect(card("Total clients").getByRole("link", { name: "Open clients" })).toHaveAttribute("href", "/clients#clients");
     expect(card("Services").getByText("35")).toBeInTheDocument();
     expect(card("Services").getByRole("link", { name: "Open services" })).toHaveAttribute("href", "/nail-services");
     expect(card("Artists").getByText("5")).toBeInTheDocument();
     expect(card("Artists").getByRole("link", { name: "Open artists" })).toHaveAttribute("href", "/nail-artists");
     expect(card("Appointments").getByText("7")).toBeInTheDocument();
-    expect(card("Appointments").getByRole("link", { name: "Open appointments" })).toHaveAttribute("href", "/appointments?status=CONFIRMED");
+    expect(card("Appointments").getByRole("link", { name: "Open appointments" })).toHaveAttribute("href", "/clients?status=CONFIRMED");
   });
 
   it("says what each count is", () => {

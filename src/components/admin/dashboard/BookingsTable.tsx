@@ -4,7 +4,9 @@ import clsx from "clsx";
 import { manilaToday } from "../../../lib/dashboardPeriods";
 import { Link } from "../../../lib/router";
 import type { Appointment } from "../../../services/appointmentService";
+import { useTableLayout } from "../../../hooks/useMinWidth";
 import Button from "../../ui/Button";
+import { CardFields, RowCard, RowCards } from "../RowCards";
 import TablePager, { paginate } from "./TablePager";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -40,7 +42,7 @@ const startOf = (a: Appointment) => `${a.appointment_date} ${a.appointment_time.
 
 // Every booking in one table, like the Appointments screen but at a glance: Upcoming (still to
 // come, soonest first), All and Cancelled (newest first), with a search and pages of ten. Each
-// client with an account opens their client page.
+// client with an account opens their client page. On a phone each booking is a card.
 export default function BookingsTable({ load }: { load: () => Promise<Appointment[]> }) {
   const [rows, setRows] = useState<Appointment[] | null>(null);
   const [failed, setFailed] = useState(false);
@@ -48,6 +50,7 @@ export default function BookingsTable({ load }: { load: () => Promise<Appointmen
   const [tab, setTab] = useState<Tab>("upcoming");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
+  const asTable = useTableLayout();
 
   useEffect(() => {
     let live = true;
@@ -134,6 +137,49 @@ export default function BookingsTable({ load }: { load: () => Promise<Appointmen
         <p className="text-sm text-gray-red/70">Loading…</p>
       ) : (
         <>
+          {!asTable ? (
+            <RowCards label="Bookings">
+              {view.rows.map((a) => {
+                const name = clientName(a);
+                const status = statusOf(a);
+                const badge = STATUS[status] ?? { label: a.status, className: "bg-sand text-gray-red" };
+                return (
+                  <RowCard key={a.id}>
+                    <div className="flex items-center gap-2.5">
+                      <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-crimson-light/50 font-display text-base text-berry">
+                        {name.charAt(0).toUpperCase()}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-bold">{name}</span>
+                        {a.email && !isWalkin(a) && <span className="block truncate text-[12px] text-gray-red/70">{a.email}</span>}
+                      </span>
+                      <span className={clsx("shrink-0 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[12px] font-bold", badge.className)}>{badge.label}</span>
+                    </div>
+                    <CardFields
+                      fields={[
+                        ["Service", a.service_name],
+                        ["Artist", a.nailist_name],
+                        ["Date", dateLabel(a.appointment_date)],
+                        ["Time", a.appointment_time],
+                      ]}
+                    />
+                    {isWalkin(a) ? (
+                      <span className="text-[12px] text-gray-red/60">Walk-in</span>
+                    ) : (
+                      <Link
+                        to={`/clients/${a.user_id}`}
+                        aria-label={`Open ${name}`}
+                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-berry px-3 py-2 text-[13px] font-bold text-pearl transition-colors hover:bg-gray-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson"
+                      >
+                        <SquarePen size={15} aria-hidden="true" />
+                        Client page
+                      </Link>
+                    )}
+                  </RowCard>
+                );
+              })}
+            </RowCards>
+          ) : (
           <div className="-mx-5 overflow-x-auto px-5">
             <table aria-label="Bookings" className="w-full min-w-[720px] border-separate border-spacing-0 text-sm text-gray-red">
               <thead>
@@ -189,6 +235,7 @@ export default function BookingsTable({ load }: { load: () => Promise<Appointmen
               </tbody>
             </table>
           </div>
+          )}
 
           {shown.length === 0 && (
             <p className="text-sm text-gray-red/70">

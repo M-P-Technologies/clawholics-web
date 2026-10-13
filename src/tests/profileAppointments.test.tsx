@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import AppointmentSheet from "@/components/profile/AppointmentSheet";
 import AppointmentsSection from "@/components/profile/AppointmentsSection";
@@ -19,12 +19,12 @@ const make = (id: number, over: Partial<AppointmentView> = {}, status = "confirm
 });
 const sheetProps = () => ({
   photo: "", now: 0, tokenFetcher: async () => "t", clerkId: "u",
-  onClose: vi.fn(), onPay: vi.fn(), onReschedule: vi.fn(), onCancel: vi.fn(), onProofUploaded: vi.fn(),
+  onClose: vi.fn(), onPay: vi.fn(), onReschedule: vi.fn(), onCancel: vi.fn(), onProofUploaded: vi.fn(), onSubmitReview: vi.fn(async () => undefined),
 });
 const sectionProps = (over = {}) => ({
   upcoming: [make(1), make(2)], past: [make(3, {}, "completed")], photoFor: () => "", highlightedId: null, onOpen: vi.fn(),
   historyFilter: "all", onFilterChange: vi.fn(), historySort: "appointmentDateDesc", onSortChange: vi.fn(),
-  hasMore: false, showAll: false, onToggleAll: vi.fn(), ...over,
+  hasMore: false, showAll: false, onToggleAll: vi.fn(), reviewedIds: new Set<number>(), ...over,
 });
 
 describe("AppointmentSheet", () => {
@@ -55,6 +55,29 @@ describe("AppointmentSheet", () => {
     expect(screen.getByRole("button", { name: "Reschedule" })).toBeDisabled();
     expect(screen.getByText(/Changes close 3 days before/)).toBeInTheDocument();
   });
+
+  it("asks for a review of a completed visit only, and sends the stars and words", async () => {
+    const p = sheetProps();
+    const { rerender } = render(<AppointmentSheet view={make(1)} {...p} />);
+    expect(screen.queryByRole("region", { name: "Leave a review" })).toBeNull();
+    rerender(<AppointmentSheet view={make(3, { canReschedule: false, canCancel: false }, "COMPLETED")} {...p} />);
+    const form = within(screen.getByRole("region", { name: "Leave a review" }));
+    expect(form.getByRole("button", { name: "Send review" })).toBeDisabled(); // no stars yet
+    fireEvent.click(form.getByRole("radio", { name: "5 stars" }));
+    fireEvent.change(form.getByLabelText("Your review"), { target: { value: "Loved it" } });
+    fireEvent.click(form.getByRole("button", { name: "Send review" }));
+    await waitFor(() => expect(p.onSubmitReview).toHaveBeenCalledWith(3, { rating: 5, comment: "Loved it", photo: null }));
+  });
+
+  it("shows the review already left instead of the form", () => {
+    const review = { id: 1, appointment_id: 3, rating: 4, comment: "So pretty", photo_url: "https://images.test/reviews/a.webp", created_at: "2026-10-21 02:00:00" };
+    render(<AppointmentSheet view={make(3, { canReschedule: false, canCancel: false }, "completed")} {...sheetProps()} review={review} />);
+    const left = within(screen.getByRole("region", { name: "Your review" }));
+    expect(left.getByRole("img", { name: "4 out of 5 stars" })).toBeInTheDocument();
+    expect(left.getByText("So pretty")).toBeInTheDocument();
+    expect(left.getByRole("img", { name: "Your review photo" })).toHaveAttribute("src", review.photo_url);
+    expect(screen.queryByRole("button", { name: "Send review" })).toBeNull();
+  });
 });
 
 describe("AppointmentsSection", () => {
@@ -66,6 +89,14 @@ describe("AppointmentsSection", () => {
     fireEvent.click(screen.getByRole("tab", { name: /Past/ }));
     expect(screen.getByText("Service 3")).toBeInTheDocument();
     expect(screen.queryByText("Service 1")).toBeNull();
+  });
+
+  it("marks a completed visit that hasn't been reviewed", () => {
+    const { rerender } = render(<AppointmentsSection {...sectionProps()} />);
+    fireEvent.click(screen.getByRole("tab", { name: /Past/ }));
+    expect(screen.getByText("Leave a review")).toBeInTheDocument();
+    rerender(<AppointmentsSection {...sectionProps({ reviewedIds: new Set([3]) })} />);
+    expect(screen.queryByText("Leave a review")).toBeNull();
   });
 
   it("opens the tapped appointment", () => {

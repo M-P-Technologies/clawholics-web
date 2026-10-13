@@ -328,9 +328,24 @@ html {
   }
 }
 
+/* A panel that slides in from the right edge (the admin's appointment details) */
+@keyframes drawer-from-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.drawer-right {
+  animation: drawer-from-right 320ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .drawer-panel,
-  .drawer-backdrop {
+  .drawer-backdrop,
+  .drawer-right {
     animation: none;
   }
 }
@@ -413,4 +428,20 @@ input[type="search"]::-webkit-search-cancel-button {
   mask-position: center;
 
   cursor: pointer;
+}
+
+/* The admin sidebar's menu: a slim scrollbar in the brand colours, on the left (see SideBar) */
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-crimson-light) transparent;
+}
+.sidebar-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: var(--color-crimson-light);
+}
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
 }

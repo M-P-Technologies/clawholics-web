@@ -58,9 +58,9 @@ export default function SalonNotes({ data }: { data: DashboardResponse }) {
   const insights = buildInsights(data, { repeatKpis: false });
   const todos = [
     { label: "Today's appointments", count: data.attention.today, to: "/schedule" },
-    { label: "Proofs to review", count: data.attention.proofsToReview, to: "/appointments?status=PROOF_PENDING" },
-    { label: "Pending payments", count: data.attention.unpaid, to: "/appointments?status=PENDING" },
-    { label: "Warm leads", count: data.attention.warmLeads, to: "/client-directory?view=leads" },
+    { label: "Proofs to review", count: data.attention.proofsToReview, to: "/clients?status=PROOF_PENDING" },
+    { label: "Pending payments", count: data.attention.unpaid, to: "/clients?status=PENDING" },
+    { label: "Warm leads", count: data.attention.warmLeads, to: "/clients?view=leads" },
   ].filter((todo) => todo.count > 0);
 
   // Waiting payment proofs are already a row under Needs attention, with its own link

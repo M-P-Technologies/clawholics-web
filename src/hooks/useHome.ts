@@ -1,3 +1,4 @@
+import { inCmsPreview, usePreviewVersion } from "@/lib/cmsPreview";
 import { lastSeen } from "../utils/lastSeen";
 import { useEffect, useState } from "react";
 import { useUser, useAuth } from "@clerk/nextjs";
@@ -9,9 +10,8 @@ import { fetchNailists } from "../services/nailistService";
 import { fetchAboutContent, type AboutContent } from "../services/aboutService";
 import { fetchProfile, isMissingProfile } from "../services/userService";
 import type { HomeContent, Service, Faq, Nailist } from "../types";
-import { startingPrice } from "../services/pricing";
 import { type StripItem } from "../types/home";
-import { photoFocusY } from "../data/home";
+import { buildStripItems, readHomeSections } from "../lib/homeSections";
 
 export function useHome() {
   const { user, isLoaded } = useUser();
@@ -28,9 +28,12 @@ export function useHome() {
   const [contentAttempt, setContentAttempt] = useState(0);
   const [profileCheckFailed, setProfileCheckFailed] = useState(false);
   const [profileRetry, setProfileRetry] = useState(0);
+  // In the admin editor's preview, fetch again when the unsaved changes do
+  const previewVersion = usePreviewVersion();
 
   useEffect(() => {
-    if (isLoaded && user) {
+    // The editor's preview shows the page as visitors see it, so an admin stays on it there
+    if (isLoaded && user && !inCmsPreview()) {
       const clerkRole = String(user.publicMetadata?.role || "").toLowerCase();
 
       if (clerkRole === "admin") {
@@ -90,24 +93,16 @@ export function useHome() {
     fetchFaqs().then(setFaqs).catch(() => setFaqs([]));
     fetchNailists().then(setNailists).catch(() => setNailists([]));
     fetchAboutContent().then(setAbout).catch(() => setAbout(null));
-  }, [contentAttempt]);
+  }, [contentAttempt, previewVersion]);
 
   const reloadContent = () => setContentAttempt((n) => n + 1);
 
-  // The strip shows each service with its own photo, price and hours.
-  const stripItems: StripItem[] = services
-    .filter((service) => service.image)
-    .map((service) => ({
-      id: service.id,
-      image: service.image,
-      name: service.name,
-      price: startingPrice(service),
-      duration: service.duration,
-      focusY: photoFocusY(service.name),
-    }));
+  // The strip shows the services chosen in Admin > Homepage, or each service that has a photo,
+  // with its price and hours
+  const stripItems: StripItem[] = buildStripItems(services, readHomeSections(content).strip);
 
   // Admins are sent to their own screens, so nothing is shown while that happens
-  const isBusy = !isLoaded || (!!user && String(user.publicMetadata?.role || "").toLowerCase() === "admin");
+  const isBusy = !inCmsPreview() && (!isLoaded || (!!user && String(user.publicMetadata?.role || "").toLowerCase() === "admin"));
 
   const retryProfile = () => setProfileRetry((n) => n + 1);
 

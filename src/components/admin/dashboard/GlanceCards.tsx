@@ -48,10 +48,10 @@ export default function GlanceCards({ totals, granularity = "day", upcomingDays 
     );
 
   const cards: Glance[] = [
-    { label: "Total clients", value: totals.clients, hint: "client accounts", to: "/client-directory", linkLabel: "Open clients", icon: Users, line: line("Total clients", "clients") },
+    { label: "Total clients", value: totals.clients, hint: "client accounts", to: "/clients#clients", linkLabel: "Open clients", icon: Users, line: line("Total clients", "clients") },
     { label: "Services", value: totals.services, hint: "on the menu", to: "/nail-services", linkLabel: "Open services", icon: Gem, line: line("Different services booked", "services") },
     { label: "Artists", value: totals.artists, hint: "nail artists", to: "/nail-artists", linkLabel: "Open artists", icon: Palette, line: line("Artists with bookings", "artists") },
-    { label: "Appointments", value: totals.upcoming, hint: "upcoming, confirmed", to: "/appointments?status=CONFIRMED", linkLabel: "Open appointments", icon: CalendarCheck, line: upcomingLine },
+    { label: "Appointments", value: totals.upcoming, hint: "upcoming, confirmed", to: "/clients?status=CONFIRMED", linkLabel: "Open appointments", icon: CalendarCheck, line: upcomingLine },
   ];
 
   return (

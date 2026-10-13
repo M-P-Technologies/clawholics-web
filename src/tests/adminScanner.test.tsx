@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import AdminScanner from "@/admin/AdminScanner";
+import AdminScanner from "@/admin/front-desk/AdminScanner";
 
 vi.mock("@/components/admin/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
 // A stable getToken, as the real Clerk hook has (the global mock makes a new one every render)
@@ -35,7 +35,7 @@ afterEach(() => {
 
 const scanOnce = async () => {
   render(<AdminScanner />);
-  fireEvent.click(await screen.findByRole("button", { name: "Start Scanner" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Start scanner" }));
   fireEvent.click(screen.getByRole("button", { name: "fake scan" }));
   await screen.findByText("Ana Cruz");
 };
@@ -43,17 +43,17 @@ const scanOnce = async () => {
 describe("AdminScanner", () => {
   it("shows the camera card, the result and the history", async () => {
     render(<AdminScanner />);
-    expect(await screen.findByRole("heading", { name: "QR Scanner" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Start Scanner" })).toBeInTheDocument();
-    expect(screen.getByText("Waiting for scan...")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "History" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Scanner" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Start scanner" })).toBeInTheDocument();
+    expect(screen.getByText(/Waiting for a scan/)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Recent scans" })).toBeInTheDocument();
   });
 
   it("orders the cards camera, result, history on a phone", async () => {
     render(<AdminScanner />);
-    const camera = (await screen.findByRole("heading", { name: "QR Scanner" })).closest("div[class*='max-lg:order']")!;
-    const result = screen.getByRole("heading", { name: "Scan Result" }).closest("div[class*='max-lg:order']")!;
-    const history = screen.getByRole("heading", { name: "History" }).closest("div[class*='max-lg:order']")!;
+    const camera = (await screen.findByRole("heading", { name: "Scanner" })).closest("div[class*='max-lg:order']")!;
+    const result = screen.getByRole("heading", { name: "Scan result" }).closest("div[class*='max-lg:order']")!;
+    const history = screen.getByRole("heading", { name: "Recent scans" }).closest("div[class*='max-lg:order']")!;
     expect(camera.className).toContain("max-lg:order-1");
     expect(result.className).toContain("max-lg:order-2");
     expect(history.className).toContain("max-lg:order-3");
@@ -68,5 +68,14 @@ describe("AdminScanner", () => {
     window.matchMedia = ((query: string) => ({ matches: query === "(min-width: 64rem)" })) as unknown as typeof window.matchMedia;
     await scanOnce();
     expect(scrollIntoView).not.toHaveBeenCalled();
+  });
+
+  it("shows the client's stamps as a loyalty card, and the recent scans as tagged rows", async () => {
+    await scanOnce();
+    expect(screen.getByRole("list", { name: "2 of 10 stamps" }).children).toHaveLength(10);
+    expect(screen.getByRole("button", { name: "Redeem reward" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Award stamp" }));
+    expect(await screen.findByText("Stamp")).toBeInTheDocument();
+    expect(screen.getByRole("list", { name: "3 of 10 stamps" })).toBeInTheDocument();
   });
 });

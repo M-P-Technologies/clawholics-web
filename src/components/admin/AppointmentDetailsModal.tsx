@@ -1,170 +1,138 @@
-import { X as CloseIconLucide } from "lucide-react";
-import type {
-Appointment,
-AppointmentStatus,
-} from "../../services/appointmentService";
+import { ArrowUpRight, X as CloseIconLucide } from "lucide-react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
+import type { Appointment, AppointmentStatus } from "../../services/appointmentService";
+import { Link } from "../../lib/router";
 import Button from "../ui/Button";
 import Select from "../ui/Select";
 import ClientNotesPanel from "./ClientNotesPanel";
 import ProofReviewPanel from "./ProofReviewPanel";
-
+import { initialsOf } from "./DirectoryProfileCard";
 
 interface AppointmentDetailsModalProps {
   appointment: Appointment;
   onClose: () => void;
   onStatusChange: (id: number, status: AppointmentStatus) => void;
-  // Needed for the proof review and notes panels. Without it the modal is unchanged.
+  // Needed for the proof review and notes panels. Without it they are left out.
   tokenFetcher?: () => Promise<string | null>;
   clerkId?: string | null;
   onProofReviewed?: () => void;
 }
 
-const statusOptions: AppointmentStatus[] = [
-  "PENDING",
-  "AWAITING_PROOF",
-  "CONFIRMED",
-  "COMPLETED",
-  "CANCELLED",
-  "REFUNDED",
-];
+const statusOptions: AppointmentStatus[] = ["PENDING", "AWAITING_PROOF", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUNDED"];
 
-const AppointmentDetailsModal = ({
-  appointment,
-  onClose,
-  onStatusChange,
-  tokenFetcher,
-  clerkId,
-  onProofReviewed,
-}: AppointmentDetailsModalProps) => {
-  const customerName =
-    `${appointment.first_name ?? ""} ${appointment.last_name ?? ""}`.trim() ||
-    `User #${appointment.user_id}`;
+const STATUS_PILL: Record<string, string> = {
+  CONFIRMED: "bg-crimson-light/50 text-berry",
+  COMPLETED: "bg-success/20 text-gray-red",
+  PENDING: "bg-sand text-gray-red",
+  AWAITING_PROOF: "bg-sand text-gray-red",
+  CANCELLED: "bg-danger/15 text-gray-red",
+  REFUNDED: "bg-danger/15 text-gray-red",
+};
 
-  const currentStatus =
-    appointment.status?.trim().toUpperCase() as AppointmentStatus;
+const label = (status: string) => status.charAt(0) + status.slice(1).toLowerCase().replace(/_/g, " ");
 
-  const showProofPanel =
-    currentStatus === "AWAITING_PROOF" || Boolean(appointment.latest_proof);
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const dateLabel = (ymd?: string) => {
+  if (!ymd) return "";
+  const [y, m, d] = ymd.split("-").map(Number);
+  return MONTHS[m - 1] ? `${MONTHS[m - 1]} ${d}, ${y}` : ymd;
+};
+
+// One appointment's details, in a drawer that slides in from the right: the client, the
+// appointment (with its status), the payment, the proof review and the private notes. Escape or
+// a click outside closes it.
+const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFetcher, clerkId, onProofReviewed }: AppointmentDetailsModalProps) => {
+  const titleId = useId();
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const customerName = `${appointment.first_name ?? ""} ${appointment.last_name ?? ""}`.trim() || `User #${appointment.user_id}`;
+  const currentStatus = (appointment.status?.trim().toUpperCase() || "PENDING") as AppointmentStatus;
+  const showProofPanel = currentStatus === "AWAITING_PROOF" || Boolean(appointment.latest_proof);
   // Walk-in bookings have no real client account, so there is nobody to keep notes on.
   const isWalkin = Boolean(appointment.is_walkin);
 
+  // Focus the drawer once when it opens, and close it on Escape (the latest onClose, without
+  // running again when the screen behind re-renders)
+  const closeHandler = useRef(onClose);
+  useEffect(() => {
+    closeHandler.current = onClose;
+  }, [onClose]);
+  useEffect(() => {
+    closeRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && closeHandler.current();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-gray-red/40 px-4 sm:px-4 py-4 drawer-backdrop max-sm:p-0"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-50 flex justify-end bg-gray-red/40 drawer-backdrop" onClick={onClose}>
       <div
-        className="w-full max-w-[500px] max-h-[calc(100vh-32px)] overflow-y-auto rounded-2xl bg-milk px-4 py-4 shadow-lg drawer-panel max-sm:max-h-[90vh] max-sm:min-h-[40vh] max-sm:w-full max-sm:max-w-none max-sm:overflow-y-auto max-sm:rounded-t-md max-sm:rounded-b-none"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className="flex h-full w-full max-w-[480px] flex-col bg-milk shadow-2xl drawer-right"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* HEADER */}
-        <div className="mb-2 flex items-center justify-between gap-4">
-          <h3 className="text-[18px] sm:text-[20px] font-bold uppercase text-gray-red">
-            Appointment Details
-          </h3>
-
-          {/* ICON BUTTON INSTEAD OF TEXT X */}
-          <Button variant="bare" onClick={onClose} className="shrink-0">
-            <CloseIconLucide size={28} className="sm:h-[30px] sm:w-[30px] text-crimson" aria-hidden="true" />
+        {/* Header: who and which appointment */}
+        <div className="flex shrink-0 items-start gap-3 border-b border-crimson-light/50 px-5 py-4">
+          <span aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-crimson-light/60 font-display text-lg text-berry">
+            {initialsOf(customerName)}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[12px] font-medium text-gray-red/70">Appointment #{appointment.id}</p>
+            <h3 id={titleId} className="truncate font-display text-2xl font-normal normal-case leading-tight tracking-normal text-gray-red">
+              {customerName}
+            </h3>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              <span className={`rounded-full px-2.5 py-0.5 text-[12px] font-bold ${STATUS_PILL[currentStatus] ?? "bg-sand text-gray-red"}`}>{label(currentStatus)}</span>
+              {!isWalkin && appointment.user_id > 0 && (
+                <Link to={`/clients/${appointment.user_id}`} className="inline-flex items-center gap-1 text-[12px] font-bold text-berry underline underline-offset-4">
+                  Client page
+                  <ArrowUpRight size={12} aria-hidden="true" />
+                </Link>
+              )}
+            </div>
+          </div>
+          <Button ref={closeRef} variant="bare" aria-label="Close" onClick={onClose} className="shrink-0 rounded-full p-1.5 text-gray-red/70 hover:bg-crimson-light/30 hover:text-berry">
+            <CloseIconLucide size={22} aria-hidden="true" />
           </Button>
         </div>
 
-        {/* CONTENT */}
-        <div className="flex flex-col gap-4 text-gray-red">
-          {/* CLIENT INFO */}
-          <Section
-            title="Client Information"
-            idLabel={`Client ID #${appointment.user_id}`}
-          >
-            <DetailItem label="Name" value={customerName} />
+        {/* Body: scrolls on its own */}
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 py-5 text-gray-red">
+          <Section title="Client" aside={`Client #${appointment.user_id}`}>
+            <Row name="Name" value={customerName} />
+            <Row name="Email" value={appointment.email || "No email"} />
+            <Row name="Phone" value={appointment.phone || "No phone"} />
+          </Section>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <DetailItem label="Email" value={appointment.email || "No email"} />
-              <DetailItem label="Phone" value={appointment.phone || "No phone"} />
+          <Section title="Appointment">
+            <Row name="Service" value={appointment.service_name || "No service"} />
+            <Row name="Nail artist" value={appointment.nailist_name || "No artist"} />
+            <Row name="Date" value={dateLabel(appointment.appointment_date) || "No date"} />
+            <Row name="Time" value={appointment.appointment_time || "No time"} />
+            <div className="flex items-center justify-between gap-4 border-t border-dotted border-crimson-light pt-2.5">
+              <p className="text-[13px] text-gray-red/70">Status</p>
+              <Select
+                aria-label="Appointment status"
+                className="w-44"
+                triggerClassName="!h-9 !py-0 text-[13px]"
+                value={currentStatus}
+                onChange={(e) => onStatusChange(appointment.id, e.target.value as AppointmentStatus)}
+              >
+                {statusOptions.map((status) => (
+                  <option key={status} value={status}>
+                    {label(status)}
+                  </option>
+                ))}
+              </Select>
             </div>
           </Section>
 
-          {/* APPOINTMENT DETAILS */}
-          <Section
-            title="Appointment Details"
-            idLabel={`Appointment ID #${appointment.id}`}
-          >
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <DetailItem
-                label="Service"
-                value={appointment.service_name || "No service"}
-              />
-              <DetailItem
-                label="Nail Artist"
-                value={appointment.nailist_name || "No artist"}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <DetailItem
-                label="Date"
-                value={appointment.appointment_date || "No date"}
-              />
-              <DetailItem
-                label="Time"
-                value={appointment.appointment_time || "No time"}
-              />
-            </div>
-
-            {/* STATUS */}
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded-xl bg-crimson-light/15 px-4 py-2">
-              <p className="text-[12px] font-bold uppercase text-gray-red">
-                Status
-              </p>
-
-              <Select className="w-full sm:w-auto"
-                  value={currentStatus || "PENDING"}
-                  onChange={(e) =>
-                    onStatusChange(
-                      appointment.id,
-                      e.target.value as AppointmentStatus
-                    )
-                  }
-                >
-                  {statusOptions.map((status) => (
-                    <option key={status} value={status}>
-                      {status.replace(/_/g, " ")}
-                    </option>
-                  ))}
-                </Select>
-            </div>
-          </Section>
-
-          {/* PAYMENT DETAILS */}
-          <Section
-            title="Payment Details"
-            idLabel={`Payment ID #${appointment.payment_reference || "N/A"}`}
-          >
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <DetailItem
-                label="Payment Status"
-                value={appointment.payment_status || "No payment status"}
-              />
-              <DetailItem
-                label="Amount"
-                value={
-                  appointment.payment_amount
-                    ? `₱${appointment.payment_amount}`
-                    : "No amount"
-                }
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <DetailItem
-                label="Payment Method"
-                value={appointment.payment_method || "No payment method"}
-              />
-              <DetailItem
-                label="Reference"
-                value={appointment.payment_reference || "No reference"}
-              />
-            </div>
+          <Section title="Payment">
+            <Row name="Status" value={appointment.payment_status ? label(appointment.payment_status.toUpperCase()) : "No payment status"} />
+            <Row name="Amount" value={appointment.payment_amount ? `₱${appointment.payment_amount}` : "No amount"} strong={Boolean(appointment.payment_amount)} />
+            <Row name="Method" value={appointment.payment_method || "No payment method"} />
+            <Row name="Reference" value={appointment.payment_reference || "No reference"} />
           </Section>
 
           {tokenFetcher && showProofPanel && (
@@ -180,11 +148,7 @@ const AppointmentDetailsModal = ({
           )}
 
           {tokenFetcher && !isWalkin && appointment.user_id > 0 && (
-            <ClientNotesPanel
-              clientUserId={appointment.user_id}
-              tokenFetcher={tokenFetcher}
-              clerkId={clerkId}
-            />
+            <ClientNotesPanel clientUserId={appointment.user_id} tokenFetcher={tokenFetcher} clerkId={clerkId} />
           )}
         </div>
       </div>
@@ -192,50 +156,24 @@ const AppointmentDetailsModal = ({
   );
 };
 
-function Section({
-  title,
-  idLabel,
-  children,
-}: {
-  title: string;
-  idLabel?: string;
-  children: React.ReactNode;
-}) {
+function Section({ title, aside, children }: { title: string; aside?: string; children: ReactNode }) {
   return (
-    <div className="rounded-xl bg-crimson-light/15 px-4 py-4 flex flex-col gap-2">
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-[14px] font-bold uppercase text-gray-red">
-          {title}
-        </p>
-
-        {idLabel && (
-          <span className="text-[11px] font-semibold text-gray-red sm:text-[12px]">
-            {idLabel}
-          </span>
-        )}
+    <section aria-label={title} className="flex flex-col gap-2 rounded-xl border border-crimson-light/50 p-4">
+      <div className="flex items-baseline justify-between gap-2">
+        <h4 className="font-display text-lg font-normal text-gray-red">{title}</h4>
+        {aside && <span className="text-[12px] text-gray-red/60">{aside}</span>}
       </div>
-
-      <div className="flex flex-col gap-2">{children}</div>
-    </div>
+      <div className="flex flex-col">{children}</div>
+    </section>
   );
 }
 
-function DetailItem({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number;
-}) {
+// A label and its value, divided from the row above by a dotted line
+function Row({ name, value, strong = false }: { name: string; value: string; strong?: boolean }) {
   return (
-    <div className="rounded-xl bg-crimson-light/15 px-4 py-2 flex flex-col gap-1">
-      <p className="text-[12px] font-bold uppercase text-gray-red">
-        {label}
-      </p>
-
-      <p className="break-words text-[12px] text-gray-red">
-        {value}
-      </p>
+    <div className="flex items-baseline justify-between gap-4 border-t border-dotted border-crimson-light py-2 first:border-t-0 first:pt-0">
+      <p className="shrink-0 text-[13px] text-gray-red/70">{name}</p>
+      <p className={strong ? "min-w-0 break-words text-right font-display text-xl text-berry" : "min-w-0 break-words text-right text-[13px] font-bold"}>{value}</p>
     </div>
   );
 }

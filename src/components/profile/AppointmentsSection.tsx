@@ -2,7 +2,7 @@ import { useState, type ChangeEvent } from "react";
 import clsx from "clsx";
 import Button from "../ui/Button";
 import Select from "../ui/Select";
-import AppointmentCard from "./AppointmentCard";
+import AppointmentCard, { isCompleted } from "./AppointmentCard";
 import type { AppointmentView } from "./types";
 
 interface AppointmentsSectionProps {
@@ -18,11 +18,13 @@ interface AppointmentsSectionProps {
   hasMore: boolean;
   showAll: boolean;
   onToggleAll: () => void;
+  /** The appointments the client has reviewed */
+  reviewedIds: ReadonlySet<number>;
 }
 
 // Upcoming | Past switch over a list of appointment cards.
 export default function AppointmentsSection(props: AppointmentsSectionProps) {
-  const { upcoming, past, photoFor, highlightedId, onOpen } = props;
+  const { upcoming, past, photoFor, highlightedId, onOpen, reviewedIds } = props;
   const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
   const list = tab === "upcoming" ? upcoming : past;
 
@@ -77,6 +79,7 @@ export default function AppointmentsSection(props: AppointmentsSectionProps) {
               view={view}
               photo={photoFor(view.appt.service_name)}
               highlighted={view.appt.id === highlightedId}
+              awaitingReview={isCompleted(view) && !reviewedIds.has(view.appt.id)}
               onOpen={() => onOpen(view)}
             />
           ))}

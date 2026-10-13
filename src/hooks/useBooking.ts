@@ -6,6 +6,8 @@ import { useUser, useAuth } from "@clerk/nextjs";
 import { fetchNailists, fetchBookedSlotsDetailed, createBooking } from "../services/bookingService";
 import { fetchNailistDayOffs, fetchNailistTimeSlots } from "../services/nailistService";
 import { fetchHomeContent } from "../services/contentService";
+import { fetchAboutContent } from "../services/aboutService";
+import { withSalonLocation } from "../lib/homeSections";
 import { fetchProfileIfExists } from "../services/userService";
 import { fetchCategories, type ServiceCategory } from "../services/catalogService";
 import { estimateTotal } from "../services/pricing";
@@ -95,8 +97,9 @@ export function useBooking() {
         setIsPageLoading(true);
         setPageError("");
 
-        const data = await fetchHomeContent();
-        setPageData(data);
+        const [data, about] = await Promise.all([fetchHomeContent(), fetchAboutContent().catch(() => null)]);
+        // The address and map link are edited in About Us
+        setPageData(withSalonLocation(data, about));
       } catch (err) {
         console.error("Failed to load booking page content", err);
         setPageError("Failed to load location.");

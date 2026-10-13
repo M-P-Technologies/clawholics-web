@@ -1,7 +1,10 @@
+import { usePreviewVersion } from "@/lib/cmsPreview";
 import { lastSeen } from "../utils/lastSeen";
 import React, { useEffect, useState } from "react";
 import { type ModalType } from "../components/ui/FeedbackModal";
 import { fetchHomeContent } from "../services/contentService";
+import { fetchAboutContent } from "../services/aboutService";
+import { withSalonLocation } from "../lib/homeSections";
 import { API_BASE_URL } from "../apiConfig";
 import type { ChangeEvent } from "react";
 import { CONTACT_FIELDS } from "../data/contactUs";
@@ -25,14 +28,17 @@ export function useContactUs() {
   }>({ isOpen: false, type: "success" });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // In the admin editor's preview, fetch again when the unsaved changes do
+  const previewVersion = usePreviewVersion();
 
   useEffect(() => {
     const loadPageContent = async () => {
       try {
         if (!lastSeen("home")) setIsPageLoading(true);
         setPageError("");
-        const data = await fetchHomeContent();
-        setPageData(data);
+        const [data, about] = await Promise.all([fetchHomeContent(), fetchAboutContent().catch(() => null)]);
+        // The address and map link are edited in About Us
+        setPageData(withSalonLocation(data, about));
       } catch (err) {
         console.error("Failed to load page content", err);
         setPageError("Failed to load contact information.");
@@ -42,7 +48,7 @@ export function useContactUs() {
     };
 
     loadPageContent();
-  }, []);
+  }, [previewVersion]);
 
   const closeModal = () => setModalState({ ...modalState, isOpen: false });
 

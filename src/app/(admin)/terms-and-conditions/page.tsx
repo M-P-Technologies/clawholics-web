@@ -1,4 +1,4 @@
-import TermsAndConditions from "@/admin/TermsAndConditions";
+import TermsAndConditions from "@/admin/content-management/TermsAndConditions";
 
 export default function Page() {
   return <TermsAndConditions />;

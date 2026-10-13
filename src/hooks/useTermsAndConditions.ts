@@ -1,3 +1,4 @@
+import { usePreviewVersion } from "@/lib/cmsPreview";
 import { useEffect, useState } from "react";
 import { fetchTacs, type Tac } from "../services/tacService";
 
@@ -6,6 +7,8 @@ export function useTermsAndConditions() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  // In the admin editor's preview, fetch again when the unsaved changes do
+  const previewVersion = usePreviewVersion();
 
   useEffect(() => {
     setError(false);
@@ -13,7 +16,7 @@ export function useTermsAndConditions() {
       .then((data) => setTacs(data))
       .catch(() => setError(true))
       .finally(() => setLoading(false));
-  }, [attempt]);
+  }, [attempt, previewVersion]);
 
   const reload = () => {
     setLoading(true);

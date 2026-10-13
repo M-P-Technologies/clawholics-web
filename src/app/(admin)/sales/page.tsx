@@ -1,4 +1,4 @@
-import Sales from "@/admin/Sales";
+import Sales from "@/admin/overview/Sales";
 
 export default function Page() {
   return <Sales />;

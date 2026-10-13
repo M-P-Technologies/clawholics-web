@@ -25,8 +25,8 @@ describe("keeping the admin screens out of search engines", () => {
     const rules = robots().rules as { userAgent: string; allow: string; disallow: string[] };
     expect(rules.allow).toBe("/");
     for (const path of [
-      "/admin", "/dashboard", "/sales", "/performance", "/admin-directory", "/admin-scanner", "/client-directory", "/appointments", "/schedule",
-      "/homepage", "/nail-services", "/nail-artists", "/about-us", "/contact-info", "/faqs", "/terms-and-conditions",
+      "/admin", "/dashboard", "/sales", "/performance", "/admin-directory", "/admin-scanner", "/clients", "/schedule",
+      "/homepage", "/nail-services", "/nail-artists", "/about-us", "/contact-info", "/faqs", "/terms-and-conditions", "/privacy-policy",
     ]) {
       expect(rules.disallow).toContain(path);
     }

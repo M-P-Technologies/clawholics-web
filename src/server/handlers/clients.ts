@@ -50,18 +50,33 @@ export const getClient = ported<IdContext>(async (_req, { params }) => {
   const sql = getSql();
   const [[client], appointments] = await Promise.all([
     sql`
-      select u.id, u.clerk_id, u.email, u.created_at, cp.first_name, cp.last_name, cp.phone, cp.alt_phone,
+      select u.id, u.clerk_id, u.email, u.created_at, cp.first_name, cp.last_name, cp.phone, cp.alt_phone, cp.dob,
         cp.preferred_contact_method, cp.facebook_handle, cp.instagram_handle, coalesce(cp.stamps, 0)::int as stamps
       from users u left join customer_profiles cp on cp.user_id = u.id
       where u.id = ${id}`,
     sql.unsafe<{ id: number; appointment_date: string; status: string; price: number | null }[]>(
       `select a.id, a.appointment_date, a.appointment_time, a.service_name,
          coalesce(n.name, a.nailist_name) as nailist_name, upper(trim(a.status)) as status,
-         ${SERVICE_PRICE_SQL} as price
+         ${SERVICE_PRICE_SQL} as price,
+         -- For the booking tracker: when it was booked, the latest payment proof and payment
+         a.created_at as booked_at,
+         lp.created_at as proof_sent_at, lp.status as proof_status,
+         case when lp.status in ('APPROVED', 'REJECTED') then lp.updated_at end as proof_reviewed_at,
+         upper(lpay.status) as payment_status,
+         -- The client's review of the visit, if they left one
+         r.rating as review_rating, r.comment as review_comment, r.photo_url as review_photo_url
        from appointments a
        left join nailists n on n.id = a.nailist_id
        left join nailist_categories nc on nc.id = n.category_id
        left join services s on s.id = a.service_id
+       left join lateral (
+         select pp.created_at, pp.status, pp.updated_at from payment_proofs pp
+         where pp.appointment_id = a.id order by pp.created_at desc, pp.id desc limit 1
+       ) lp on true
+       left join lateral (
+         select p.status from payments p where p.appointment_id = a.id order by p.created_at desc, p.id desc limit 1
+       ) lpay on true
+       left join reviews r on r.appointment_id = a.id
        where a.user_id = $1
        order by a.appointment_date desc, a.appointment_time desc, a.id desc`,
       [String(id)],

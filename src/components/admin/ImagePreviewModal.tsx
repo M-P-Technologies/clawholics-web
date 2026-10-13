@@ -33,7 +33,7 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-gray-red/40 px-4 py-8 drawer-backdrop max-sm:p-0"
+      className="fixed inset-0 z-9999 flex items-end sm:items-center justify-center bg-gray-red/40 px-4 py-8 drawer-backdrop max-sm:p-0"
       onClick={onClose}
     >
       <div

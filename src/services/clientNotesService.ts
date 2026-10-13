@@ -36,7 +36,7 @@ export const addNote = (clientUserId: number, note: string, auth: Auth, appointm
     auth,
   );
 
-export interface ClientProfile {
+interface ClientProfile {
   id: number;
   clerk_id: string;
   email: string;
@@ -48,6 +48,8 @@ export interface ClientProfile {
   preferred_contact_method: string | null;
   facebook_handle: string | null;
   instagram_handle: string | null;
+  /** Date of birth, "YYYY-MM-DD" */
+  dob?: string | null;
 }
 export interface ClientAppointment {
   id: number;
@@ -57,6 +59,16 @@ export interface ClientAppointment {
   nailist_name: string;
   status: string;
   price: number | null;
+  /** For the booking tracker (server times, UTC "YYYY-MM-DD HH:MM:SS") */
+  booked_at?: string | null;
+  proof_sent_at?: string | null;
+  proof_status?: "PENDING" | "APPROVED" | "REJECTED" | null;
+  proof_reviewed_at?: string | null;
+  payment_status?: string | null;
+  /** The client's review of the visit (1-5 stars), if they left one */
+  review_rating?: number | null;
+  review_comment?: string | null;
+  review_photo_url?: string | null;
 }
 export interface ClientDetails {
   client: ClientProfile;

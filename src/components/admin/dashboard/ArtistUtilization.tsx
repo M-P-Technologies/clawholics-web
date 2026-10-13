@@ -1,10 +1,13 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import clsx from "clsx";
+import { useTableLayout } from "../../../hooks/useMinWidth";
 import { percent } from "../../../lib/dashboardFormat";
 import { addDays, manilaToday, resolvePeriod } from "../../../lib/dashboardPeriods";
 import type { ArtistUtilization as ArtistRow, Utilization, UtilizationDay } from "../../../services/dashboardTypes";
 import Button from "../../ui/Button";
+import { CARDS_PER_PAGE, RowCard, RowCards } from "../RowCards";
+import TablePager, { paginate } from "./TablePager";
 
 const DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -49,13 +52,15 @@ function Avatar({ artist }: { artist: ArtistRow }) {
 
 // How full each artist's week is: booked of offered slots per day, a week rate per artist and
 // one for the whole salon. It loads its own week, so it has its own arrows, apart from the
-// dashboard's period.
+// dashboard's period. On a phone each artist is a card with the week in a strip, five to a page.
 export default function ArtistUtilization({ load }: { load: (date: string) => Promise<Utilization> }) {
   const today = manilaToday(new Date());
   const [anchor, setAnchor] = useState(today);
   const [data, setData] = useState<Utilization | null>(null);
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const [page, setPage] = useState(1);
+  const asTable = useTableLayout();
   const from = mondayOf(anchor);
   const thisWeek = mondayOf(today);
 
@@ -78,6 +83,7 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
   }, [load, anchor, attempt]);
 
   const shown = data && data.week.from === from ? data : null;
+  const cards = paginate(shown?.artists ?? [], page, CARDS_PER_PAGE);
 
   return (
     <section aria-label="Artist utilization" className="flex min-w-0 flex-col gap-4 rounded-2xl border border-crimson-light/40 bg-milk p-5 shadow-petal">
@@ -117,7 +123,47 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
         <p className="text-sm text-gray-red/70">No artists yet. Add them in Nail Artists, with their time slots.</p>
       ) : (
         <>
-          {/* Wider than a phone: it scrolls sideways, with the artists' column kept in view */}
+          {!asTable ? (
+            <>
+              <RowCards label="Artists">
+                {cards.rows.map((artist) => (
+                  <RowCard key={artist.id}>
+                    <div className="flex items-center gap-2.5">
+                      <Avatar artist={artist} />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-bold">{artist.name}</span>
+                        {artist.title && <span className="block truncate text-[12px] text-gray-red/70">{artist.title}</span>}
+                      </span>
+                      <span className="shrink-0 font-bold text-berry">{artist.rate === null ? "–" : percent(artist.rate)}</span>
+                    </div>
+                    <ol aria-label={`${artist.name}'s week`} className="grid grid-cols-7 gap-1">
+                      {artist.days.map((d, i) => {
+                        const { label, text } = describe(d, DAY_NAMES[i]);
+                        const fill = d.offered === 0 ? 0 : Math.min(d.booked / d.offered, 1);
+                        return (
+                          <li
+                            key={d.date}
+                            aria-label={label}
+                            className={clsx("flex min-w-0 flex-col items-center gap-1 rounded-lg px-0.5 py-1.5 text-center", d.date === today && "bg-crimson-light/40")}
+                          >
+                            <span aria-hidden="true" className="text-[11px] text-gray-red/70">{DAY_NAMES[i].slice(0, 2)}</span>
+                            <span aria-hidden="true" className={clsx("text-[12px] leading-tight", d.off && d.booked === 0 ? "text-gray-red/50" : "font-bold")}>{text}</span>
+                            {!d.off && d.offered > 0 && (
+                              <span aria-hidden="true" className="block h-1 w-full overflow-hidden rounded-full bg-crimson-light/40">
+                                <span className="block h-full rounded-full bg-berry" style={{ width: `${fill * 100}%` }} />
+                              </span>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ol>
+                  </RowCard>
+                ))}
+              </RowCards>
+              <TablePager view={cards} onPage={setPage} />
+            </>
+          ) : (
+          /* Wider than a phone: it scrolls sideways, with the artists' column kept in view */
           <div className="-mx-5 overflow-x-auto px-5">
             <table className="w-full min-w-[640px] border-separate border-spacing-0 text-sm text-gray-red">
               <thead>
@@ -177,6 +223,7 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
               </tbody>
             </table>
           </div>
+          )}
 
           <ul aria-label="Legend" className="flex flex-wrap gap-x-5 gap-y-1 text-[12px] text-gray-red/80">
             <li className="flex items-center gap-1.5">

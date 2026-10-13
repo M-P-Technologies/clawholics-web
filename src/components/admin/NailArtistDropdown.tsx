@@ -36,6 +36,8 @@ type NailArtistDropdownProps = {
   onNailistUpdated?: (updatedNailist: Nailist) => void;
   onNailistCreated?: (createdNailist: Nailist) => void;
   onNailistDeleted?: (nailistId: number) => void;
+  /** After a work photo is added or removed (they save at once) */
+  onGalleryChanged?: () => void;
   tokenFetcher?: () => Promise<string | null>;
   clerkId?: string | null;
 };
@@ -65,11 +67,10 @@ const WEEK_DAYS = [
 const CardTitle = ({ label }: { label: string }) => {
   return (
     <>
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-[17px] tracking-wide text-gray-red">{label}</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-[13px] font-medium text-gray-red/80">{label}</h3>
       </div>
 
-      <div className="w-full h-[1.5px] bg-crimson mb-4" />
     </>
   );
 };
@@ -92,12 +93,11 @@ const InputField = ({ label, value, onChange, isEditing }: InputFieldProps) => {
   }, [value]);
 
   return (
-    <div className="rounded-xl bg-crimson-light/15 px-4 py-2">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-[17px] tracking-wide text-gray-red">{label}</h3>
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center justify-between">
+        <h3 className="text-[13px] font-medium text-gray-red/80">{label}</h3>
       </div>
 
-      <div className="w-full h-[1.5px] bg-crimson mb-2" />
 
       <textarea
         ref={textareaRef}
@@ -111,7 +111,7 @@ const InputField = ({ label, value, onChange, isEditing }: InputFieldProps) => {
             32
           )}px`;
         }}
-        className="w-full min-h-[32px] mt-1 bg-transparent outline-none resize-none overflow-hidden text-[16px] text-gray-red whitespace-pre-line disabled:cursor-not-allowed"
+        className="w-full min-h-[38px] rounded-md border border-crimson-light bg-milk px-3 py-2 text-sm text-gray-red outline-none resize-none overflow-hidden whitespace-pre-line focus:ring-2 focus:ring-crimson disabled:cursor-not-allowed disabled:opacity-70"
       />
     </div>
   );
@@ -147,6 +147,20 @@ const splitTimeSlot = (timeSlot: string) => {
     .map((value) => value.trim());
 
   return { startTime, endTime };
+};
+
+// Every artist's calendar marks booked days from the same appointment list, so the cards opened
+// together share one request instead of each asking for all the appointments
+let sharedAppointments: { at: number; list: ReturnType<typeof fetchAppointments> } | null = null;
+const appointmentsForCalendars = () => {
+  if (!sharedAppointments || Date.now() - sharedAppointments.at > 30_000) {
+    const list = fetchAppointments();
+    sharedAppointments = { at: Date.now(), list };
+    list.catch(() => {
+      if (sharedAppointments?.list === list) sharedAppointments = null;
+    });
+  }
+  return sharedAppointments.list;
 };
 
 const DayOffCard = ({
@@ -197,7 +211,7 @@ const DayOffCard = ({
 
     const loadBookedDates = async () => {
       try {
-        const appointments = await fetchAppointments();
+        const appointments = await appointmentsForCalendars();
 
         const dates = appointments
           .filter((appointment) => {
@@ -254,7 +268,7 @@ const DayOffCard = ({
   };
 
   return (
-    <div className="rounded-xl bg-crimson-light/15 px-4 py-2">
+    <div className="flex flex-col gap-1.5">
       <CardTitle label="Day Off" />
 
       {isLoading ? (
@@ -298,8 +312,9 @@ const DayOffCard = ({
 
           <p className="text-[15px] text-gray-red mb-1">Custom Dates:</p>
 
-          <div className="flex flex-col lg:flex-row gap-4 lg:items-center">
-            <div className="rounded-xl bg-crimson-light/15 px-2 py-2 sm:px-4 sm:py-4 w-full lg:w-fit flex justify-center overflow-x-auto border border-crimson-light">
+          {/* Calendar above its legend: the editor's side panel is narrow at every screen size */}
+          <div className="flex flex-col gap-3">
+            <div className="rounded-xl bg-milk p-2 w-full flex justify-center border border-crimson-light">
               <DayPicker
                 mode="multiple"
                 month={month}
@@ -314,32 +329,32 @@ const DayOffCard = ({
                   dayOff: (date) => isDayOff(date) && !isBookedDay(date),
                   available: (date) => !isDayOff(date) && !isBookedDay(date),
                 }}
-                className="day-off-picker text-gray-red w-full lg:w-fit"
+                className="day-off-picker text-gray-red w-full"
                 classNames={{
-                  root: "relative w-full lg:w-fit",
-                  month: "w-full lg:w-fit",
+                  root: "relative w-full",
+                  month: "w-full",
                   month_caption:
-                    "flex items-center justify-center h-8 text-[13px] lg:text-[14px] font-bold uppercase tracking-wide text-gray-red",
-                  caption_label: "text-[13px] lg:text-[14px] font-bold uppercase",
+                    "flex items-center justify-center h-8 text-[13px] font-bold uppercase tracking-wide text-gray-red",
+                  caption_label: "text-[13px] font-bold uppercase",
                   nav: "absolute left-0 right-0 top-0 flex items-center justify-between",
                   button_previous:
-                    "w-7 h-7 lg:w-8 lg:h-8 flex items-center justify-center",
+                    "w-7 h-7 flex items-center justify-center",
                   button_next:
-                    "w-7 h-7 lg:w-8 lg:h-8 flex items-center justify-center",
+                    "w-7 h-7 flex items-center justify-center",
                   chevron: "w-4 h-4 fill-crimson text-gray-red",
                   month_grid:
-                    "w-full lg:w-fit table-fixed lg:table-auto border-separate border-spacing-1 lg:border-spacing-2.5",
+                    "w-full table-fixed border-separate border-spacing-1",
                   weekday:
-                    "text-center text-[11px] lg:text-[14px] font-bold text-gray-red pb-1",
-                  day: "p-0 text-center lg:h-7 lg:w-7",
+                    "text-center text-[11px] font-bold text-gray-red pb-1",
+                  day: "p-0 text-center",
                   day_button:
-                    "w-full aspect-square lg:h-9 lg:w-9 rounded-sm text-[14px] lg:text-[14px] font-bold text-gray-red transition-colors disabled:cursor-not-allowed",
+                    "w-full aspect-square rounded-sm text-[13px] font-bold text-gray-red transition-colors disabled:cursor-not-allowed",
                   outside: "opacity-0 pointer-events-none",
                 }}
                 components={{
                   Chevron: ({ orientation }) => (
                     <BackButtonIcon
-                      size={24} className={`text-gray-red lg:w-7 lg:h-7 ${
+                      size={24} className={`text-gray-red ${
                         orientation === "right" ? "rotate-180" : ""
                       }`}
                     />
@@ -353,24 +368,24 @@ const DayOffCard = ({
               />
             </div>
 
-            <div className="flex flex-wrap lg:flex-col gap-x-4 gap-y-2 lg:gap-4">
+            <div className="flex flex-wrap gap-x-4 gap-y-2">
               <div className="flex items-center gap-2">
-                <span className="block w-5 h-5 lg:w-6 lg:h-6 rounded-sm bg-success/50" />
-                <span className="text-[13px] lg:text-[15px] text-gray-red">
+                <span className="block w-4 h-4 rounded-sm bg-success/50" />
+                <span className="text-[13px] text-gray-red">
                   Available
                 </span>
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="block w-5 h-5 lg:w-6 lg:h-6 rounded-sm bg-danger/40" />
-                <span className="text-[13px] lg:text-[15px] text-gray-red">
+                <span className="block w-4 h-4 rounded-sm bg-danger/40" />
+                <span className="text-[13px] text-gray-red">
                   Booked
                 </span>
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="block w-5 h-5 lg:w-6 lg:h-6 rounded-sm bg-gray-red/40" />
-                <span className="text-[13px] lg:text-[15px] text-gray-red">
+                <span className="block w-4 h-4 rounded-sm bg-gray-red/40" />
+                <span className="text-[13px] text-gray-red">
                   Day off
                 </span>
               </div>
@@ -496,7 +511,7 @@ const TimeSlotCard = ({
     onChange: (value: string) => void;
   }) => {
     return disabled ? (
-      <div className="w-full h-[35px] bg-milk rounded-md px-4 flex items-center text-[16px] text-gray-red leading-none cursor-not-allowed border border-crimson-light">
+      <div className="w-full h-[35px] bg-milk rounded-md px-3 flex items-center text-sm text-gray-red leading-none cursor-not-allowed border border-crimson-light">
         {displayValue}
       </div>
     ) : (
@@ -508,14 +523,14 @@ const TimeSlotCard = ({
           type="time"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full h-full bg-transparent text-[16px] text-gray-red outline-none cursor-pointer appearance-none p-0 m-0 leading-none [&::-webkit-calendar-picker-indicator]:hidden"
+          className="w-full h-full bg-transparent text-sm text-gray-red outline-none cursor-pointer appearance-none p-0 m-0 leading-none [&::-webkit-calendar-picker-indicator]:hidden"
         />
       </div>
     );
   };
 
   return (
-    <div className="rounded-xl bg-crimson-light/15 px-4 py-2">
+    <div className="flex flex-col gap-1.5">
       <CardTitle label="Time Slots" />
 
       {isLoading ? (
@@ -529,11 +544,11 @@ const TimeSlotCard = ({
                 : "grid-cols-[1fr_1fr_20px]"
             }`}
           >
-            <p className="text-[16px] font-bold text-center text-gray-red">
+            <p className="text-[13px] font-bold text-center text-gray-red">
               Start Time
             </p>
 
-            <p className="text-[16px] font-bold text-center text-gray-red">
+            <p className="text-[13px] font-bold text-center text-gray-red">
               End Time
             </p>
 
@@ -626,6 +641,7 @@ const NailArtistDropdown: React.FC<NailArtistDropdownProps> = ({
   onNailistUpdated,
   onNailistCreated,
   onNailistDeleted,
+  onGalleryChanged,
   tokenFetcher,
   clerkId,
 }) => {
@@ -962,26 +978,27 @@ const NailArtistDropdown: React.FC<NailArtistDropdownProps> = ({
 
   return (
     <>
-      <div className="flex flex-col w-full rounded-2xl border border-crimson-light/40 bg-milk px-4 py-3 shadow-petal sm:px-5">
+      <div className="flex flex-col w-full rounded-xl border border-crimson-light/50 bg-milk px-3 py-2.5">
         <Button
           variant="bare"
           type="button"
           onClick={() => setIsOpen((prevState) => !prevState)}
+          aria-expanded={isOpen}
           className="flex items-center justify-between w-full gap-4 sm:gap-4 text-left min-h-[35px]"
         >
-          <p className="font-bold text-[17px] truncate text-gray-red">
+          <span className="block min-w-0 font-bold text-[15px] truncate text-gray-red">
             {title || "Untitled Artist"}
-          </p>
+          </span>
 
           {isCreateMode ? (
             <PlusIcon
-              size={26} className={`shrink-0 mr-0.75 transition-transform duration-300 ${
+              size={20} className={`shrink-0 mr-0.75 transition-transform duration-300 ${
                 isOpen ? "rotate-45" : ""
               }`}
             />
           ) : (
             <DropdownIcon
-              size={32} className={`text-gray-red shrink-0 transition-transform duration-300 ${
+              size={22} className={`text-gray-red shrink-0 transition-transform duration-300 ${
                 isOpen ? "rotate-180" : ""
               }`}
             />
@@ -1001,14 +1018,13 @@ const NailArtistDropdown: React.FC<NailArtistDropdownProps> = ({
               isEditing={isEditing}
             />
 
-            <div className="rounded-xl bg-crimson-light/15 px-4 py-2 relative">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-[17px] tracking-wide text-gray-red">
+            <div className="relative flex flex-col gap-1.5">
+              <div className="flex items-center justify-between">
+                <h3 className="text-[13px] font-medium text-gray-red/80">
                   Position
                 </h3>
               </div>
 
-              <div className="w-full h-[1.5px] bg-crimson mb-1" />
 
               <Select className="w-full"
                   disabled={!isEditing}
@@ -1032,7 +1048,7 @@ const NailArtistDropdown: React.FC<NailArtistDropdownProps> = ({
               isEditing={isEditing}
             />
 
-            <div className="rounded-xl bg-crimson-light/15 px-4 py-2">
+            <div className="flex flex-col gap-1.5">
               <CardTitle label="Services Offered" />
 
               {availableServices.length === 0 ? (
@@ -1080,7 +1096,7 @@ const NailArtistDropdown: React.FC<NailArtistDropdownProps> = ({
               isEditing={isEditing}
             />
 
-            <div className="rounded-xl bg-crimson-light/15 px-4 py-2">
+            <div className="flex flex-col gap-1.5">
               <CardTitle label="Photo" />
 
               {image && (
@@ -1089,7 +1105,7 @@ const NailArtistDropdown: React.FC<NailArtistDropdownProps> = ({
                     variant="bare"
                     type="button"
                     onClick={() => setPreviewImageUrl(image)}
-                    className="min-w-0 flex-1 cursor-pointer text-left text-[16px] leading-none truncate text-gray-red hover:underline"
+                    className="min-w-0 flex-1 cursor-pointer text-left text-[13px] leading-none truncate text-gray-red hover:underline"
                   >
                     {image.split("/").pop()}
                   </Button>
@@ -1183,6 +1199,7 @@ const NailArtistDropdown: React.FC<NailArtistDropdownProps> = ({
               tokenFetcher={tokenFetcher}
               clerkId={clerkId}
               onPreview={setPreviewImageUrl}
+              onChanged={onGalleryChanged}
             />
 
             <EditActions

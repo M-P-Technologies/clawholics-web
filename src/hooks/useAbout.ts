@@ -1,3 +1,4 @@
+import { usePreviewVersion } from "@/lib/cmsPreview";
 import { lastSeen } from "../utils/lastSeen";
 import { useEffect, useState } from "react";
 import { fetchCarousel, type CarouselItem } from "../services/carouselService";
@@ -11,6 +12,8 @@ export function useAbout() {
   const [gallery, setGallery] = useState<CarouselItem[]>(() => lastSeen("carousel") ?? []);
   const [error, setError] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  // In the admin editor's preview, fetch again when the unsaved changes do
+  const previewVersion = usePreviewVersion();
 
   const handleCopyLocation = async () => {
     if (!data) return;
@@ -29,7 +32,7 @@ export function useAbout() {
     fetchAboutContent().then(setData).catch(() => setError(true));
     // The photos are a bonus: the page works without them
     fetchCarousel().then(setGallery).catch(() => setGallery([]));
-  }, [attempt]);
+  }, [attempt, previewVersion]);
 
   const reload = () => setAttempt((n) => n + 1);
 

@@ -7,6 +7,7 @@ vi.mock("@/lib/router", () => ({
 }));
 vi.mock("@clerk/nextjs", () => ({ useClerk: () => ({ openUserProfile: vi.fn(), signOut: vi.fn() }) }));
 vi.mock("@/hooks/useServicePhotos", () => ({ useServicePhotos: () => () => "" }));
+vi.mock("@/hooks/useMyReviews", () => ({ useMyReviews: () => ({ reviews: {}, submit: vi.fn() }) }));
 vi.mock("@/components/payment/PaymentProofCard", () => ({ default: () => null }));
 vi.mock("@/components/layout/PageShell", () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
 vi.mock("@/components/layout/Section", () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));

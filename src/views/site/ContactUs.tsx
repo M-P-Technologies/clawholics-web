@@ -12,7 +12,7 @@ import ContactGroup from "../../components/ui/ContactGroup";
 import ImageBanner from "../../components/home/ImageBanner";
 import { DEFAULT_HERO_IMAGE } from "../../data/home";
 import Section from "../../components/layout/Section";
-import { FacebookIcon,InstagramIcon,TikTokIcon } from "../../components/ui/SocialIcons";
+import { platformOf, readSocialLinks, socialHref } from "../../lib/socialLinks";
 import { contactLinkLightClass, inputClass, labelClass } from "../../components/ui/styles";
 import { useContactUs } from "../../hooks/useContactUs";
 
@@ -92,36 +92,23 @@ export default function ContactUs() {
 
         <ImageBanner image={pageData.home_hero_image || DEFAULT_HERO_IMAGE} alt="Hands with freshly done soft gel nails" focus="50% 45%">
         <ContactGroup title="Connect with us on social media!">
-          <a
-            href={pageData.social_facebook_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`Visit our Facebook page: ${pageData.social_facebook_name}`}
-            className={contactLinkLightClass}
-          >
-            <FacebookIcon className="h-6 w-6 shrink-0 text-crimson" />
-            <span>{pageData.social_facebook_name}</span>
-          </a>
-          <a
-            href={pageData.social_instagram_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`Visit our Instagram page: ${pageData.social_instagram_name}`}
-            className={contactLinkLightClass}
-          >
-            <InstagramIcon className="h-6 w-6 shrink-0 text-crimson" />
-            <span>{pageData.social_instagram_name}</span>
-          </a>
-          <a
-            href={pageData.social_tiktok_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`Visit our TikTok page: ${pageData.social_tiktok_name}`}
-            className={contactLinkLightClass}
-          >
-            <TikTokIcon className="h-6 w-6 shrink-0 text-crimson" />
-            <span>{pageData.social_tiktok_name}</span>
-          </a>
+          {/* As edited in Admin > Contact Us */}
+          {readSocialLinks(pageData).map((link, index) => {
+            const { label, Icon } = platformOf(link.platform);
+            return (
+              <a
+                key={index}
+                href={socialHref(link)}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Visit our ${label} page: ${link.name}`}
+                className={contactLinkLightClass}
+              >
+                <Icon className="h-6 w-6 shrink-0 text-crimson" />
+                <span>{link.name}</span>
+              </a>
+            );
+          })}
         </ContactGroup>
 
         <ContactGroup title="Business information">

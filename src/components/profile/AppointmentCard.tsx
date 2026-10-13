@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { CalendarDays, Clock } from "lucide-react";
+import { CalendarDays, Clock, Star } from "lucide-react";
 import clsx from "clsx";
 import emblem from "../../assets/logo/emblem-pink.png";
 import Button from "../ui/Button";
@@ -12,7 +12,12 @@ interface AppointmentCardProps {
   photo: string;
   onOpen: () => void;
   highlighted?: boolean;
+  /** A completed visit the client hasn't reviewed yet */
+  awaitingReview?: boolean;
 }
+
+/** The visit is done, so the client can review it */
+export const isCompleted = (view: AppointmentView) => view.appt.status.trim().toUpperCase() === "COMPLETED";
 
 export function AppointmentThumb({ photo, size = 64 }: { photo: string; size?: number }) {
   return (
@@ -27,7 +32,7 @@ export function AppointmentThumb({ photo, size = 64 }: { photo: string; size?: n
 }
 
 // One appointment in a list: photo, what, who, when, and its status. The whole card opens the details.
-export default function AppointmentCard({ view, photo, onOpen, highlighted }: AppointmentCardProps) {
+export default function AppointmentCard({ view, photo, onOpen, highlighted, awaitingReview }: AppointmentCardProps) {
   const { appt, statusLabel, statusDot, dateLabel, timeLabel } = view;
   return (
     <Button
@@ -48,6 +53,9 @@ export default function AppointmentCard({ view, photo, onOpen, highlighted }: Ap
           <span className="inline-flex items-center gap-1"><CalendarDays size={14} aria-hidden="true" />{dateLabel}</span>
           <span className="inline-flex items-center gap-1"><Clock size={14} aria-hidden="true" />{timeLabel}</span>
         </span>
+        {awaitingReview && (
+          <span className="inline-flex items-center gap-1 text-[13px] font-bold text-berry"><Star size={14} aria-hidden="true" />Leave a review</span>
+        )}
       </span>
       <StatusPill label={statusLabel} dotClass={statusDot} />
     </Button>

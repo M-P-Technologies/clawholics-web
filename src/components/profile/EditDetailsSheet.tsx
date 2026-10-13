@@ -1,6 +1,7 @@
 import type { ComponentProps } from "react";
 import Button from "../ui/Button";
 import FormField from "../ui/FormField";
+import Select from "../ui/Select";
 import Sheet from "../ui/Sheet";
 import { inputClass } from "../ui/styles";
 
@@ -14,6 +15,10 @@ interface EditDetailsSheetProps {
   isGenderOpen: boolean;
   onToggleGender: () => void;
   onSelectGender: (value: string) => void;
+  /** How the client prefers to be reached; "" is no preference */
+  contactMethod: string;
+  contactMethodOptions: { value: string; label: string }[];
+  onSelectContactMethod: (value: string) => void;
   onSave: () => void;
   onCancel: () => void;
 }
@@ -61,6 +66,12 @@ export default function EditDetailsSheet(p: EditDetailsSheetProps) {
                 </div>
               )}
             </div>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <p className="label-caps">Best way to reach you (optional):</p>
+            <Select aria-label="Best way to reach you" value={p.contactMethod} options={p.contactMethodOptions} placeholder="No preference" onChange={(e) => p.onSelectContactMethod(e.target.value)} />
+            <p className="copy-note">We use these only to reach you about your appointment.</p>
           </div>
         </div>
 

@@ -7,3 +7,10 @@ export const sanitizeHtml = (html: string, options?: { allowStyle?: boolean }) =
   typeof window === "undefined"
     ? ""
     : DOMPurify.sanitize(html, options?.allowStyle ? { ADD_TAGS: ["style"] } : undefined);
+
+/** Whether the HTML has any words in it (a cleared editor still holds empty tags). Browser only. */
+export const htmlHasText = (html: string) => {
+  const box = document.createElement("div");
+  box.innerHTML = html;
+  return !!box.textContent?.trim();
+};

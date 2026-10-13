@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "@/lib/router";
 import { fetchServiceById, fetchServiceGallery, fetchServices, type ServiceGalleryImage, type NailService } from "../services/serviceService";
 import { fetchTacs, type Tac } from "../services/tacService";
 import { startingPrice } from "../services/pricing";
-import { findServiceByParam, servicePath } from "../utils/slug";
+import { findBySlugOrId, servicePath } from "../utils/slug";
 import { useStartBooking } from "./useStartBooking";
 
 export function useAppointment() {
@@ -46,7 +46,7 @@ export function useAppointment() {
         // The address names the service (/services/hard-gel); older ones carry its id
         let serviceId = /^\d+$/.test(id) ? Number(id) : null;
         try {
-          const match = findServiceByParam(await fetchServices(), id);
+          const match = findBySlugOrId(await fetchServices(), id);
           if (match) serviceId = match.id;
         } catch (err) {
           // Without the list, only an id in the address can still be followed

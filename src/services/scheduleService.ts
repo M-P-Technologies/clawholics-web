@@ -16,14 +16,14 @@ export interface ScheduleAppointment {
   last_name?: string | null;
 }
 
-export interface DayOff {
+interface DayOff {
   nailist_id: number;
   day_off_type: "REGULAR" | "CUSTOM";
   day_of_week?: number | null;
   date?: string | null;
 }
 
-export interface TimeSlot {
+interface TimeSlot {
   nailist_id: number;
   start_time: string;
   end_time: string;

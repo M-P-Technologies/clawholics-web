@@ -19,11 +19,13 @@ interface NailArtistGalleryProps {
   tokenFetcher?: () => Promise<string | null>;
   clerkId?: string | null;
   onPreview: (url: string) => void;
+  /** After a photo is added or removed (they save at once), e.g. to refresh a preview */
+  onChanged?: () => void;
 }
 
 // The photos of an artist's work, shown on their page. Unlike the other fields of the form,
 // photos are saved the moment they are uploaded or removed (Save and Cancel don't apply to them).
-export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, clerkId, onPreview }: NailArtistGalleryProps) {
+export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, clerkId, onPreview, onChanged }: NailArtistGalleryProps) {
   const toast = useToast();
   const [images, setImages] = useState<NailistGalleryImage[]>([]);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -63,6 +65,7 @@ export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, 
         const uploaded = await uploadImage(file, "nailists", token, clerkId, PHOTO_UPLOAD_OPTIONS);
         const created = await addNailistGalleryImage(nailistId, uploaded.imageUrl, token, clerkId);
         setImages((prev) => [...prev, { id: created.id, nailist_id: nailistId, image_url: uploaded.imageUrl, position: prev.length + 1 }]);
+        onChanged?.();
       }
     } catch (error) {
       console.error("Failed to add artist photos:", error);
@@ -78,6 +81,7 @@ export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, 
       const token = tokenFetcher ? await tokenFetcher() : null;
       await deleteNailistGalleryImage(image.id, token, clerkId);
       setImages((prev) => prev.filter((item) => item.id !== image.id));
+      onChanged?.();
     } catch (error) {
       console.error("Failed to remove artist photo:", error);
       toast.show("error", "Photo not removed", "We couldn't remove that photo, so it is still in the gallery. Please try again.");
@@ -87,13 +91,12 @@ export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, 
   };
 
   return (
-    <div className="rounded-xl bg-crimson-light/15 px-4 py-2">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-[17px] tracking-wide text-gray-red">
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center justify-between">
+        <h3 className="text-[13px] font-medium text-gray-red/80">
           Photos of their work{nailistId !== null && ` (${images.length}/${MAX_IMAGES})`}
         </h3>
       </div>
-      <div className="w-full h-[1.5px] bg-crimson mb-4" />
 
       {nailistId === null ? (
         <p className="text-[13px] text-gray-red/80">Save the artist first, then you can add photos of their work.</p>
@@ -113,7 +116,7 @@ export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, 
                   variant="bare"
                   type="button"
                   onClick={() => onPreview(image.image_url)}
-                  className="min-w-0 flex-1 cursor-pointer text-left text-[16px] leading-none truncate text-gray-red hover:underline"
+                  className="min-w-0 flex-1 cursor-pointer text-left text-[13px] leading-none truncate text-gray-red hover:underline"
                 >
                   {image.image_url.split("/").pop()}
                 </Button>

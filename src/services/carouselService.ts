@@ -1,3 +1,4 @@
+import { previewed } from "../lib/cmsPreview";
 import { remember } from "../utils/lastSeen";
 import { API_BASE_URL } from "../apiConfig";
 
@@ -24,7 +25,7 @@ export type CarouselItem = {
   position: number;
 };
 
-export const fetchCarousel = async (): Promise<CarouselItem[]> => {
+const loadCarousel = async (): Promise<CarouselItem[]> => {
   const res = await fetch(`${API_BASE_URL}/carousel?t=${Date.now()}`, {
     headers: { "x-clawholics-origin": "frontend" }
   });
@@ -60,3 +61,6 @@ export const updateCarousel = async (images: CarouselItem[], token?: string | nu
 
   return data;
 };
+
+// Through the admin editor's live preview (see lib/cmsPreview); a plain fetch everywhere else
+export const fetchCarousel = () => previewed("carousel", () => loadCarousel(), "carousel");

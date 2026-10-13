@@ -25,5 +25,3 @@ export function findBySlugOrId<T extends { id: number; name: string }>(items: T[
   const wanted = param.toLowerCase();
   return items.find((s) => slugify(s.name) === wanted) ?? null;
 }
-
-export const findServiceByParam = findBySlugOrId;

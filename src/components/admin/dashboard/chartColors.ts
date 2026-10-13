@@ -17,6 +17,5 @@ export const STATUS_COLORS = {
   cancelled: "#d9576b",
   refunded: "#f3b6c4",
 } as const;
-// The page surface the charts sit on, and the soft track behind bars and rings
-export const SURFACE = "#fffbf8";
+// The soft track behind bars and rings
 export const TRACK = "#fbe6ec";

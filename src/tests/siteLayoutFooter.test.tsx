@@ -19,7 +19,7 @@ const wrapperClass = (path: string) => {
 };
 
 describe("footer on phones", () => {
-  it.each(["/", "/services", "/artists", "/about", "/contact"])("shows on %s", (path) => {
+  it.each(["/", "/services", "/artists", "/about", "/faq", "/contact"])("shows on %s", (path) => {
     expect(wrapperClass(path)).not.toContain("hidden");
   });
 

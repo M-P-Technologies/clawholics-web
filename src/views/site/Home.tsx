@@ -16,7 +16,8 @@ import Blush from "../../components/ui/Blush";
 import LoadError from "../../components/ui/LoadError";
 import CtaBand from "../../components/home/CtaBand";
 import Section from "../../components/layout/Section";
-import { ABOUT_TEXT,DEFAULT_HERO_IMAGE,FACEBOOK_URL,FEATURES,HERO_TEXT,OFFER_TEXT } from "../../data/home";
+import { DEFAULT_HERO_IMAGE,FACEBOOK_URL } from "../../data/home";
+import { ctaLink, iconFor, readHomeSections } from "../../lib/homeSections";
 import { sectionTitleClass } from "../../components/ui/styles";
 import { useHome } from "../../hooks/useHome";
 
@@ -35,6 +36,10 @@ export default function Home() {
 
   if (contentError && !content) return <LoadError what="home page" onRetry={reloadContent} />;
   if (!content) return <LoadingBar label="Loading" />;
+
+  // The home page's words and pieces, as edited in Admin > Homepage (or the defaults)
+  const sections = readHomeSections(content);
+  const t = sections.text;
 
   return (
     <>
@@ -84,7 +89,7 @@ export default function Home() {
               {content.home_title}
             </h1>
             <p className="max-w-lg copy-lead">
-              {HERO_TEXT}
+              {t.home_hero_text}
             </p>
             {/* Phones: one wide button, and a small Explore that scrolls to the next section */}
             <div className="flex flex-col items-center gap-4 md:hidden">
@@ -130,16 +135,17 @@ export default function Home() {
 
       <Section id="why-choose-us" innerClassName="gap-4 md:gap-8">
         <Blush tone="crimson" className="-right-32 top-10 h-80 w-80" />
-        <h2 className={sectionTitleClass}>Why choose us?</h2>
+        <h2 className={sectionTitleClass}>{t.home_features_title}</h2>
         <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-l border-t border-crimson-light/80">
-          {FEATURES.map(({ icon: Icon, title, text, to, state }) => (
+          {sections.features.map(({ icon, title, text, link }, i) => {
+            const Icon = iconFor(icon);
+            return (
             <li
-              key={title}
+              key={i}
               className="border-b border-r border-crimson-light/80 transition-all duration-300 hover:relative hover:z-10 hover:border-crimson hover:shadow-xl hover:shadow-crimson/20 focus-within:relative focus-within:z-10"
             >
               <Link
-                to={to}
-                state={state}
+                to={link}
                 className="group flex h-full flex-col bg-light-orange p-4 md:p-8 transition-colors sm:flex-col gap-4 hover:bg-light-orange focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-crimson"
               >
                 <div className="w-full flex flex-row sm:flex-col items-center sm:items-start gap-4 sm:gap-8">
@@ -158,25 +164,25 @@ export default function Home() {
                 <p className="copy-body">{text}</p>
               </Link>
             </li>
-          ))}
+            );
+          })}
         </ul>
       </Section>
 
-      <Section>
+      <Section id="studio-intro">
         <Blush className="-left-40 top-1/2 h-96 w-96" />
         <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] items-center gap-4 md:gap-8">
           <div className="flex flex-col gap-4 md:gap-8">
-            <p className="copy-note">Clawholics by Max</p>
+            <p className="copy-note">{t.home_offer_eyebrow}</p>
             <p className="whitespace-pre-line bg-linear-to-b from-gray-red to-gray-red/50 bg-clip-text font-display text-2xl leading-snug tracking-wide text-transparent md:text-3xl">
-              {OFFER_TEXT}
+              {t.home_offer_text}
             </p>
             <Button
-              to="/services"
+              to={t.home_offer_link}
               variant="bare" arrow
-              aria-label="Browse all of our nail and eyelash services"
               className="text-sm font-bold uppercase tracking-extrawide text-gray-red hover:text-crimson gap-4 self-start"
             >
-              Browse all services
+              {t.home_offer_link_label}
             </Button>
           </div>
           {/* The emblem file has ~18% empty margin on every side (circle is 1388 of 2160px),
@@ -184,49 +190,54 @@ export default function Home() {
               On desktop the box is as tall as the text beside it, so the circle matches the
               text; the image is absolutely positioned so it never stretches the row itself. */}
           <div className="relative mx-auto hidden aspect-square w-full max-w-xs overflow-hidden lg:block lg:aspect-auto lg:h-full lg:max-w-none lg:self-stretch">
-            <img
-              loading="lazy"
-              src={emblem.src}
-              alt="Clawholics by Max nail art studio emblem"
-              className="absolute inset-0 h-full w-full scale-[1.556] object-contain"
-            />
+            {/* An uploaded photo replaces the emblem; it has no built-in margin, so it isn't scaled */}
+            {sections.offerImage ? (
+              <img loading="lazy" src={sections.offerImage} alt="" className="absolute inset-0 h-full w-full object-contain" />
+            ) : (
+              <img
+                loading="lazy"
+                src={emblem.src}
+                alt="Clawholics by Max nail art studio emblem"
+                className="absolute inset-0 h-full w-full scale-[1.556] object-contain"
+              />
+            )}
           </div>
         </div>
       </Section>
 
       {stripItems.length > 0 && (
-        <Section bleed>
+        <Section id="service-strip" bleed>
           <PhotoStrip items={stripItems} />
         </Section>
       )}
 
-      <Section>
+      <Section id="about-teaser">
         <Blush tone="crimson" className="-right-32 top-1/4 h-80 w-80" />
         <div className="flex flex-col lg:flex-row lg:items-center gap-4 md:gap-8">
           <div className="lg:w-2/3 flex flex-col gap-8">
-            <p className="copy-note">About us</p>
+            <p className="copy-note">{t.home_about_eyebrow}</p>
             <h2 className="font-display text-4xl font-normal uppercase leading-tight tracking-widest text-gray-red md:text-5xl">
-              Where every set is made with care
+              {t.home_about_heading}
             </h2>
           </div>
           <div className="lg:w-1/3 flex flex-col gap-4 md:gap-8">
-            <p className="copy-lead">{ABOUT_TEXT}</p>
+            <p className="copy-lead">{t.home_about_text}</p>
             <Button to="/about" variant="secondary" className="self-start">
-              Read our story
+              {t.home_about_link_label}
             </Button>
           </div>
         </div>
       </Section>
 
       {nailists.length > 0 && (
-        <Section>
+        <Section id="artist-spotlight">
           <Blush className="-left-32 top-1/3 h-80 w-80" />
           <ArtistSpotlight artists={nailists} />
         </Section>
       )}
 
       {about && (
-        <Section>
+        <Section id="quick-contact">
           <Blush tone="crimson" className="-left-32 top-1/4 h-80 w-80" />
           <QuickContact about={about} />
         </Section>
@@ -235,17 +246,23 @@ export default function Home() {
       {faqs.length > 0 && (
         <Section id="faq" innerClassName="!max-w-4xl gap-4 md:gap-8">
           <Blush className="-right-32 top-1/4 h-80 w-80" />
-          <h2 className={sectionTitleClass}>Frequently asked questions</h2>
+          <h2 className={sectionTitleClass}>{t.home_faq_title}</h2>
           <FaqList faqs={faqs} />
+          <Link to="/faq" className="inline-flex w-fit items-center gap-2 text-sm font-bold uppercase tracking-widest text-crimson underline-offset-4 hover:underline">
+            Open the FAQ page
+            <ArrowRight size={16} aria-hidden="true" />
+          </Link>
         </Section>
       )}
 
-      <CtaBand
-        title="Ready for your next set?"
-        text="Pick a service and a time. We handle the rest."
-        primary={{ to: "/services", label: "Book now" }}
-        secondary={{ to: "/contact", label: "Contact us" }}
-      />
+      <div id="closing-banner">
+        <CtaBand
+          title={t.home_cta_title}
+          text={t.home_cta_text}
+          primary={ctaLink(t.home_cta_primary_link, t.home_cta_primary_label)}
+          secondary={ctaLink(t.home_cta_secondary_link, t.home_cta_secondary_label)}
+        />
+      </div>
       <FloatingFacebookButton href={FACEBOOK_URL} />
     </>
   );

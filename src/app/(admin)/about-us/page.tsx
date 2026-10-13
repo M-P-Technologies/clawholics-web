@@ -1,4 +1,4 @@
-import AboutUs from "@/admin/AboutUs";
+import AboutUs from "@/admin/content-management/AboutUs";
 
 export default function Page() {
   return <AboutUs />;

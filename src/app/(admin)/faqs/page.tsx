@@ -1,4 +1,4 @@
-import FAQs from "@/admin/FAQs";
+import FAQs from "@/admin/content-management/FAQs";
 
 export default function Page() {
   return <FAQs />;

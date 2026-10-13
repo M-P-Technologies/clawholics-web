@@ -76,7 +76,7 @@ export function buildInsights(data: DashboardResponse, { repeatKpis = true }: In
       tips.push({
         id: "proofs",
         text: `Review ${proofs} ${plural(proofs, "payment proof so that booking gets", "payment proofs so those bookings get")} confirmed.`,
-        to: "/appointments?status=PROOF_PENDING",
+        to: "/clients?status=PROOF_PENDING",
         cta: "Review proofs",
       });
     }
@@ -86,7 +86,7 @@ export function buildInsights(data: DashboardResponse, { repeatKpis = true }: In
       tips.push({
         id: "lapsed",
         text: `Message the ${plural(lapsed, "client who hasn't", `${lapsed} clients who haven't`)} visited in over ${LAPSED_DAYS} days with a comeback offer.`,
-        to: "/client-directory",
+        to: "/clients#clients",
         cta: "Open clients",
       });
     }
@@ -175,7 +175,7 @@ export function buildInsights(data: DashboardResponse, { repeatKpis = true }: In
   proofsTip();
   lapsedTip();
   if (conversionLow) {
-    tips.push({ id: "followup", text: "Follow up on pending bookings before they expire.", to: "/appointments?status=PENDING", cta: "Open pending" });
+    tips.push({ id: "followup", text: "Follow up on pending bookings before they expire.", to: "/clients?status=PENDING", cta: "Open pending" });
   }
   if (cancellationHigh || cancellationRising) {
     tips.push({ id: "reminder", text: "Send clients a reminder the day before to cut cancellations." });

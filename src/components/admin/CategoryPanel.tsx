@@ -23,8 +23,10 @@ type Props = {
   onChanged: () => void | Promise<void>;
 };
 
+// Inputs and buttons share one height, so every row lines up
 const inputClass =
-  "min-w-0 flex-1 bg-milk rounded-md px-4 py-1.5 text-[16px] text-gray-red outline-none focus:ring-2 focus:ring-crimson border border-crimson-light";
+  "h-9 min-w-0 flex-1 bg-milk rounded-md px-3 text-sm text-gray-red outline-none focus:ring-2 focus:ring-crimson border border-crimson-light";
+const buttonClass = "!h-9 !px-3 !py-0 text-[12px]";
 
 function AddonRow({ addon, run, busy }: { addon: ServiceAddon; run: Run; busy: boolean }) {
   const [name, setName] = useState(addon.name);
@@ -42,10 +44,10 @@ function AddonRow({ addon, run, busy }: { addon: ServiceAddon; run: Run; busy: b
         value={price}
         onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ""))}
       />
-      <Button variant="secondary" type="button"  disabled={busy || !dirty || !valid} onClick={() => run((auth) => updateAddon(addon.id, name.trim(), Number(price), auth))}>
+      <Button className={buttonClass} variant="secondary" type="button" disabled={busy || !dirty || !valid} onClick={() => run((auth) => updateAddon(addon.id, name.trim(), Number(price), auth))}>
         Save
       </Button>
-      <Button variant="secondary" type="button"  aria-label={`Remove add-on ${addon.name}`} disabled={busy} onClick={() => run((auth) => deleteAddon(addon.id, auth))}>
+      <Button className={buttonClass} variant="secondary" type="button" aria-label={`Remove add-on ${addon.name}`} disabled={busy} onClick={() => run((auth) => deleteAddon(addon.id, auth))}>
         Remove
       </Button>
     </div>
@@ -75,7 +77,7 @@ function NewAddon({ category, run, busy }: { category: ServiceCategory; run: Run
         value={price}
         onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ""))}
       />
-      <Button variant="secondary" type="button"  aria-label={`Add add-on to ${category.name}`} disabled={busy || !name.trim() || price === ""} onClick={add}>
+      <Button className={buttonClass} variant="secondary" type="button" aria-label={`Add add-on to ${category.name}`} disabled={busy || !name.trim() || price === ""} onClick={add}>
         Add
       </Button>
     </div>
@@ -120,23 +122,22 @@ export default function CategoryPanel({ categories, tokenFetcher, clerkId, onCha
   };
 
   return (
-    <section className="flex flex-col gap-4 rounded-2xl border border-crimson-light/40 bg-milk px-4 py-4 shadow-petal sm:px-5" aria-label="Categories">
-      <h3 className="text-[20px] font-bold text-gray-red">Categories</h3>
+    <div className="flex flex-col gap-3">
 
       {error && (
-        <p role="alert" className="rounded-xl bg-crimson-light/15 px-4 py-2 text-[15px] text-gray-red">
+        <p role="alert" className="rounded-md bg-danger/10 px-3 py-2 text-[13px] text-gray-red">
           {error}
         </p>
       )}
 
       <div className="flex flex-col gap-4">
         {categories.map((category, index) => (
-          <div key={category.id} className="flex flex-col gap-2 rounded-xl bg-crimson-light/15 px-4 py-4">
+          <div key={category.id} className="flex flex-col gap-2 rounded-xl border border-crimson-light/50 p-3">
             <div className="flex items-center gap-2">
               {editingId === category.id ? (
                 <>
                   <input aria-label={`Rename ${category.name}`} className={inputClass} value={editingName} onChange={(e) => setEditingName(e.target.value)} />
-                  <Button
+                  <Button className={buttonClass}
                     variant="secondary"
                     type="button"
                     
@@ -148,20 +149,20 @@ export default function CategoryPanel({ categories, tokenFetcher, clerkId, onCha
                   >
                     Save
                   </Button>
-                  <Button variant="secondary" type="button"  disabled={busy} onClick={() => setEditingId(null)}>
+                  <Button className={buttonClass} variant="secondary" type="button" disabled={busy} onClick={() => setEditingId(null)}>
                     Cancel
                   </Button>
                 </>
               ) : (
                 <>
-                  <p className="min-w-0 flex-1 truncate text-[17px] font-bold text-gray-red">{category.name}</p>
-                  <Button variant="secondary" type="button"  aria-label={`Move ${category.name} up`} disabled={busy || index === 0} onClick={() => move(index, -1)}>
+                  <p className="min-w-0 flex-1 truncate text-[15px] font-bold text-gray-red">{category.name}</p>
+                  <Button className={buttonClass} variant="secondary" type="button" aria-label={`Move ${category.name} up`} disabled={busy || index === 0} onClick={() => move(index, -1)}>
                     Up
                   </Button>
-                  <Button variant="secondary" type="button"  aria-label={`Move ${category.name} down`} disabled={busy || index === categories.length - 1} onClick={() => move(index, 1)}>
+                  <Button className={buttonClass} variant="secondary" type="button" aria-label={`Move ${category.name} down`} disabled={busy || index === categories.length - 1} onClick={() => move(index, 1)}>
                     Down
                   </Button>
-                  <Button
+                  <Button className={buttonClass}
                     variant="secondary"
                     type="button"
                     
@@ -175,11 +176,11 @@ export default function CategoryPanel({ categories, tokenFetcher, clerkId, onCha
                     Rename
                   </Button>
                   {confirmId === category.id ? (
-                    <Button variant="secondary" type="button"  aria-label={`Confirm delete ${category.name}`} disabled={busy} onClick={() => run((auth) => deleteCategory(category.id, auth))}>
+                    <Button className={buttonClass} variant="secondary" type="button" aria-label={`Confirm delete ${category.name}`} disabled={busy} onClick={() => run((auth) => deleteCategory(category.id, auth))}>
                       Confirm?
                     </Button>
                   ) : (
-                    <Button variant="secondary" type="button"  aria-label={`Delete ${category.name}`} disabled={busy} onClick={() => setConfirmId(category.id)}>
+                    <Button className={buttonClass} variant="secondary" type="button" aria-label={`Delete ${category.name}`} disabled={busy} onClick={() => setConfirmId(category.id)}>
                       Delete
                     </Button>
                   )}
@@ -200,10 +201,9 @@ export default function CategoryPanel({ categories, tokenFetcher, clerkId, onCha
 
       <div className="flex items-center gap-2">
         <input aria-label="New category name" placeholder="New category name" className={inputClass} value={newName} onChange={(e) => setNewName(e.target.value)} />
-        <Button
+        <Button className={buttonClass}
           variant="secondary"
           type="button"
-          
           disabled={busy || !newName.trim()}
           onClick={async () => {
             const ok = await run((auth) => createCategory(newName.trim(), auth));
@@ -213,6 +213,6 @@ export default function CategoryPanel({ categories, tokenFetcher, clerkId, onCha
           Add category
         </Button>
       </div>
-    </section>
+    </div>
   );
 }

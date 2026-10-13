@@ -1,5 +1,6 @@
 import { Check } from "lucide-react";
-import { GOOD_TO_KNOW,WEEK } from "../../data/home";
+import { WEEK } from "../../data/home";
+import { readGoodToKnow } from "../../lib/homeSections";
 import { type AboutContent } from "../../services/aboutService";
 import Button from "../ui/Button";
 
@@ -74,8 +75,8 @@ export default function QuickContact({ about }: { about: AboutContent }) {
             Good to know
           </h3>
           <ul className="flex flex-col gap-4">
-            {GOOD_TO_KNOW.map((item) => (
-              <li key={item} className="flex items-start gap-4 copy-body">
+            {readGoodToKnow(about).map((item, i) => (
+              <li key={i} className="flex items-start gap-4 copy-body">
                 <Check size={16} className="mt-0.5 shrink-0 text-crimson" aria-hidden="true" />
                 {item}
               </li>

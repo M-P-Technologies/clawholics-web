@@ -75,7 +75,7 @@ describe("buildInsights: too little data", () => {
       "2 payment proofs are waiting for review.",
       "3 clients haven't visited in over 60 days.",
     ]);
-    expect(i.tips.map((t) => t.to)).toEqual(["/appointments?status=PROOF_PENDING", "/client-directory"]);
+    expect(i.tips.map((t) => t.to)).toEqual(["/clients?status=PROOF_PENDING", "/clients#clients"]);
   });
 });
 
@@ -156,7 +156,7 @@ describe("buildInsights: watch-outs", () => {
   it("flags low booking conversion and points at the pending list", () => {
     const i = buildInsights({ ...steady(), rates: { ...steady().rates, conversion: { value: 0.4, previous: 0.9 } } });
     expect(i.watch.map((w) => w.text)).toContain("Only 40% of started bookings got paid.");
-    const tip = i.tips.find((t) => t.to === "/appointments?status=PENDING");
+    const tip = i.tips.find((t) => t.to === "/clients?status=PENDING");
     expect(tip?.text).toBe("Follow up on pending bookings before they expire.");
   });
 
@@ -178,9 +178,9 @@ describe("buildInsights: suggestions", () => {
     const i = buildInsights({ ...steady(), attention: { today: 0, proofsToReview: 3, unpaid: 0, warmLeads: 0 }, lapsedClients: 2 });
     expect(i.tips[0]).toEqual({
       id: "proofs", text: "Review 3 payment proofs so those bookings get confirmed.",
-      to: "/appointments?status=PROOF_PENDING", cta: "Review proofs",
+      to: "/clients?status=PROOF_PENDING", cta: "Review proofs",
     });
-    expect(i.tips[1].to).toBe("/client-directory");
+    expect(i.tips[1].to).toBe("/clients#clients");
     expect(i.tips[1].text).toBe("Message the 2 clients who haven't visited in over 60 days with a comeback offer.");
   });
 

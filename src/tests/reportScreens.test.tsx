@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Performance from "@/admin/Performance";
-import Sales from "@/admin/Sales";
+import Performance from "@/admin/overview/Performance";
+import Sales from "@/admin/overview/Sales";
 import { dashboardData } from "./dashboardFixture";
 
 const fetchDashboard = vi.fn();

@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "@/lib/router";
 import { useAuth } from "@clerk/nextjs";
 import { createPayment, fetchPaymentSettings } from "../services/paymentService";
-import { FALLBACK_PAYMENT_METHODS, OFFERED_PAYMENT_METHODS, PAYMENT_METHOD_HINTS, PAYMENT_METHOD_LABELS } from "../data/payment";
+import { OFFERED_PAYMENT_METHODS, PAYMENT_METHOD_HINTS, PAYMENT_METHOD_LABELS } from "../data/payment";
 import { fetchAppointmentById } from "../services/appointmentService";
 import { type AppointmentState, explainPaymentFailure, explainStatusChange } from "../utils/payment";
 
@@ -13,7 +13,7 @@ export function usePayment() {
 
   // With a single way to pay, it is already chosen
   const [method, setMethod] = useState(OFFERED_PAYMENT_METHODS[0] ?? "");
-  const [enabledMethods, setEnabledMethods] = useState<string[]>(FALLBACK_PAYMENT_METHODS);
+  const [enabledMethods, setEnabledMethods] = useState<string[]>(OFFERED_PAYMENT_METHODS); // until the settings load; the server still checks the method
   const [agree, setAgree] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isInvalid, setIsInvalid] = useState(false);

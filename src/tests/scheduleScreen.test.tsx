@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import Schedule from "@/admin/Schedule";
+import Schedule from "@/admin/front-desk/Schedule";
 import type { MonthlySchedule, ScheduleAppointment } from "@/services/scheduleService";
 
 const appt = (id: number, date: string, client: string): ScheduleAppointment => ({
@@ -65,6 +65,19 @@ describe("Schedule on a phone", () => {
     fireEvent.click(screen.getByRole("button", { name: "Open Thursday, October 15" }));
     // the desktop day drawer opens, not the phone agenda
     expect(await screen.findByText(/October 15, 2026/)).toBeInTheDocument();
+  });
+
+  it("on desktop, has the service and artist filters together in the row above the week", async () => {
+    vi.setSystemTime(new Date(2026, 9, 12));
+    window.matchMedia = ((query: string) => ({ matches: query === "(min-width: 64rem)" })) as unknown as typeof window.matchMedia;
+    render(<Schedule />);
+    await screen.findByRole("table", { name: "Week schedule" });
+    const service = screen.getByRole("button", { name: "Service" });
+    const artist = screen.getByRole("button", { name: "Artist" });
+    const row = (el: HTMLElement) => el.closest(".flex-wrap");
+    expect(row(service)).not.toBeNull();
+    expect(row(artist)).toBe(row(service));
+    expect(row(artist)).toContainElement(screen.getByRole("button", { name: "Next week" }));
   });
 
   it("on desktop, moves a week at a time, loading both months when a week spans two", async () => {

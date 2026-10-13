@@ -1,9 +1,9 @@
 import type { DashboardRange } from "../lib/dashboardPeriods";
 import type { Trend } from "../lib/dashboardTrend";
 
-export type Change = { value: number; previous: number };
+type Change = { value: number; previous: number };
 // A fraction (0..1) or an amount; null means there was nothing to divide by
-export type Rate = { value: number | null; previous: number | null };
+type Rate = { value: number | null; previous: number | null };
 
 /** Money worked out from list prices and downpayments: nothing is entered by hand */
 export interface Money {

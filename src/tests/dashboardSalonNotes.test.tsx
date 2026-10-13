@@ -42,7 +42,7 @@ describe("SalonNotes", () => {
     render(<SalonNotes data={base({ attention: { today: 3, proofsToReview: 2, unpaid: 0, warmLeads: 0 } })} />);
     const todo = within(screen.getByRole("region", { name: "Needs attention" }));
     expect(todo.getByRole("link", { name: /3.*Today's appointments/ })).toHaveAttribute("href", "/schedule");
-    expect(todo.getByRole("link", { name: /2.*Proofs to review/ })).toHaveAttribute("href", "/appointments?status=PROOF_PENDING");
+    expect(todo.getByRole("link", { name: /2.*Proofs to review/ })).toHaveAttribute("href", "/clients?status=PROOF_PENDING");
     expect(todo.queryByRole("link", { name: /Pending/ })).toBeNull();
   });
 
@@ -66,7 +66,7 @@ describe("SalonNotes", () => {
 
   it("links a suggestion to the screen where it can be done", () => {
     render(<SalonNotes data={base({ lapsedClients: 2 })} />);
-    expect(within(screen.getByRole("region", { name: "Try this" })).getByRole("link", { name: "Open clients" })).toHaveAttribute("href", "/client-directory");
+    expect(within(screen.getByRole("region", { name: "Try this" })).getByRole("link", { name: "Open clients" })).toHaveAttribute("href", "/clients#clients");
   });
 
   it("says when the period is steady, or too quiet to compare", () => {
@@ -105,6 +105,6 @@ describe("SalonNotes: warm leads", () => {
   it("lists clients who haven't booked yet, linking to them in the Client Directory", () => {
     render(<SalonNotes data={base({ attention: { today: 0, proofsToReview: 0, unpaid: 0, warmLeads: 5 } })} />);
     const todo = within(screen.getByRole("region", { name: "Needs attention" }));
-    expect(todo.getByRole("link", { name: /5.*Warm leads/ })).toHaveAttribute("href", "/client-directory?view=leads");
+    expect(todo.getByRole("link", { name: /5.*Warm leads/ })).toHaveAttribute("href", "/clients?view=leads");
   });
 });

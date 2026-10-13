@@ -14,10 +14,12 @@ export const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     ],
   },
   {
-    title: "Directories",
+    title: "Front Desk",
     items: [
+      { path: "/clients", label: "Clients & Appointments" },
+      { path: "/schedule", label: "Schedule" },
+      { path: "/admin-scanner", label: "Admin Scanner" },
       { path: "/admin-directory", label: "Admin Directory" },
-      { path: "/client-directory", label: "Client Directory" },
     ],
   },
   {
@@ -30,32 +32,21 @@ export const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
       { path: "/contact-info", label: "Contact Us" },
       { path: "/faqs", label: "FAQs" },
       { path: "/terms-and-conditions", label: "Terms & Conditions" },
+      { path: "/privacy-policy", label: "Privacy Policy" },
     ],
-  },
-  {
-    title: "Client Appointments",
-    items: [
-      { path: "/schedule", label: "Schedule" },
-      { path: "/appointments", label: "Appointments" },
-    ],
-  },
-  {
-    title: "Tools",
-    items: [{ path: "/admin-scanner", label: "Admin Scanner" }],
   },
 ];
 
 // The phone's bottom tab bar: the screens used every day
 export const TAB_ITEMS: NavItem[] = [
-  { path: "/appointments", label: "Appointments" },
+  { path: "/clients", label: "Bookings" },
   { path: "/schedule", label: "Schedule" },
   { path: "/admin-scanner", label: "Scanner" },
-  { path: "/client-directory", label: "Clients" },
+  { path: "/dashboard", label: "Dashboard" },
 ];
 
 // Everything else, in the tab bar's More sheet
 export const MORE_ITEMS: NavItem[] = [
-  { path: "/dashboard", label: "Dashboard" },
   { path: "/sales", label: "Sales" },
   { path: "/performance", label: "Performance" },
   { path: "/homepage", label: "Homepage" },
@@ -65,5 +56,6 @@ export const MORE_ITEMS: NavItem[] = [
   { path: "/contact-info", label: "Contact Us" },
   { path: "/faqs", label: "FAQs" },
   { path: "/terms-and-conditions", label: "Terms & Conditions" },
+  { path: "/privacy-policy", label: "Privacy Policy" },
   { path: "/admin-directory", label: "Admin Directory" },
 ];

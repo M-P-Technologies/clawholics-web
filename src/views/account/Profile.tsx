@@ -14,6 +14,8 @@ import NextAppointmentCard from "../../components/profile/NextAppointmentCard";
 import ProfileHeader from "../../components/profile/ProfileHeader";
 import RewardsSheet from "../../components/profile/RewardsSheet";
 import RewardsStrip from "../../components/profile/RewardsStrip";
+import { CONTACT_METHOD_OPTIONS, contactMethodLabel } from "../../data/profile";
+import { useMyReviews } from "../../hooks/useMyReviews";
 import { useProfile } from "../../hooks/useProfile";
 import { useServicePhotos } from "../../hooks/useServicePhotos";
 
@@ -21,6 +23,7 @@ export default function Profile() {
   const p = useProfile();
   const { openUserProfile, signOut } = useClerk();
   const photoFor = useServicePhotos();
+  const { reviews, submit: submitReview } = useMyReviews();
   // undefined = not chosen yet: arriving for one appointment (after paying) shows that one
   const [chosenId, setOpenId] = useState<number | null | undefined>(undefined);
   const openId = chosenId === undefined ? p.highlightedAppointmentId : chosenId;
@@ -39,6 +42,10 @@ export default function Profile() {
     { label: "Phone", value: dbUser.phone ?? "" },
     { label: "Date of birth", value: p.formatDisplayDate(dbUser.dob || "") },
     { label: "Gender", value: dbUser.gender ?? "" },
+    { label: "Other phone", value: dbUser.alt_phone ?? "" },
+    { label: "Instagram", value: dbUser.instagram_handle ? `@${dbUser.instagram_handle}` : "" },
+    { label: "Facebook", value: dbUser.facebook_handle ?? "" },
+    { label: "Reach me by", value: contactMethodLabel(dbUser.preferred_contact_method) },
   ];
   const hero = p.nextAppointment;
 
@@ -79,6 +86,7 @@ export default function Profile() {
                   hasMore={p.hasMoreHistory}
                   showAll={p.showAllHistory}
                   onToggleAll={p.toggleHistory}
+                  reviewedIds={new Set(Object.keys(reviews).map(Number))}
                 />
               </div>
             </div>
@@ -106,6 +114,8 @@ export default function Profile() {
           p.startCancel(openView.appt);
         }}
         onProofUploaded={p.handleProofUploaded}
+        review={openView ? reviews[openView.appt.id] : undefined}
+        onSubmitReview={submitReview}
       />
       <RewardsSheet
         open={rewardsOpen}
@@ -128,6 +138,9 @@ export default function Profile() {
         isGenderOpen={p.isGenderOpen}
         onToggleGender={p.toggleGender}
         onSelectGender={p.handleGenderSelect}
+        contactMethod={p.formData?.preferred_contact_method ?? ""}
+        contactMethodOptions={CONTACT_METHOD_OPTIONS}
+        onSelectContactMethod={p.handleContactMethodSelect}
         onSave={p.handleSave}
         onCancel={p.handleCancel}
       />

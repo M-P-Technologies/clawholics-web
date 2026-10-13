@@ -6,6 +6,10 @@ import { fetchHomeContent } from "../services/contentService";
 vi.mock("../services/contentService", () => ({
   fetchHomeContent: vi.fn(),
 }));
+// The page takes the address from About Us; that load isn't what these tests are about
+vi.mock("../services/aboutService", () => ({
+  fetchAboutContent: vi.fn(async () => ({ about_location: "7th 3rd St", about_location_url: "https://maps.test/salon" })),
+}));
 
 const mockFetch = vi.fn();
 vi.stubGlobal("fetch", mockFetch);

@@ -7,12 +7,6 @@ export interface HomeContent {
   home_hero_image?: string;
 }
 
-export interface CarouselItem {
-  id: number;
-  image_url: string;
-  position: number;
-}
-
 export interface Service {
   id: number;
   name: string;
@@ -28,15 +22,6 @@ export interface Faq {
   id: number;
   question: string;
   answer: string;
-}
-
-export interface AboutContent {
-  about_description: string;
-  about_image: string;
-  about_location: string;
-  contact_location_url?: string;
-  // Business hours (dynamic keys)
-  [key: string]: string | undefined;
 }
 
 export type TeamContent = {

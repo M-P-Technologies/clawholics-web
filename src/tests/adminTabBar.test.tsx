@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import AdminTabBar from "@/components/admin/AdminTabBar";
 
-let pathname = "/appointments";
+let pathname = "/clients";
 const openUserProfile = vi.fn();
 const signOut = vi.fn();
 
@@ -15,7 +15,7 @@ vi.mock("@clerk/nextjs", () => ({
 }));
 
 beforeEach(() => {
-  pathname = "/appointments";
+  pathname = "/clients";
   vi.clearAllMocks();
 });
 
@@ -25,10 +25,10 @@ describe("admin tab bar", () => {
     const bar = screen.getByRole("navigation", { name: "Admin tabs" });
     const links = [...bar.querySelectorAll("a")].map((a) => [a.textContent?.trim(), a.getAttribute("href")]);
     expect(links).toEqual([
-      ["Appointments", "/appointments"],
+      ["Bookings", "/clients"],
       ["Schedule", "/schedule"],
       ["Scanner", "/admin-scanner"],
-      ["Clients", "/client-directory"],
+      ["Dashboard", "/dashboard"],
     ]);
     expect(screen.getByRole("button", { name: "More" })).toHaveAttribute("aria-expanded", "false");
   });
@@ -37,14 +37,13 @@ describe("admin tab bar", () => {
     pathname = "/schedule";
     render(<AdminTabBar />);
     expect(screen.getByRole("link", { name: "Schedule" })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("link", { name: "Appointments" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: "Bookings" })).not.toHaveAttribute("aria-current");
   });
 
   it("More lists the content screens, the admin directory and the account actions", () => {
     render(<AdminTabBar />);
     fireEvent.click(screen.getByRole("button", { name: "More" }));
     const hrefs = (name: string) => screen.getByRole("link", { name }).getAttribute("href");
-    expect(hrefs("Dashboard")).toBe("/dashboard");
     expect(hrefs("Sales")).toBe("/sales");
     expect(hrefs("Performance")).toBe("/performance");
     expect(hrefs("Homepage")).toBe("/homepage");
@@ -54,6 +53,7 @@ describe("admin tab bar", () => {
     expect(hrefs("Contact Us")).toBe("/contact-info");
     expect(hrefs("FAQs")).toBe("/faqs");
     expect(hrefs("Terms & Conditions")).toBe("/terms-and-conditions");
+    expect(hrefs("Privacy Policy")).toBe("/privacy-policy");
     expect(hrefs("Admin Directory")).toBe("/admin-directory");
     expect(screen.getByRole("button", { name: "Manage account" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Log out" })).toBeInTheDocument();
@@ -65,7 +65,7 @@ describe("admin tab bar", () => {
     render(<AdminTabBar />);
     const more = screen.getByRole("button", { name: "More" });
     expect(more.className).toContain("text-berry");
-    expect(screen.getByRole("link", { name: "Appointments" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: "Bookings" })).not.toHaveAttribute("aria-current");
   });
 
   it("closes the sheet on Escape and runs the account actions", () => {
@@ -108,12 +108,13 @@ describe("admin tab bar", () => {
     error.mockRestore();
   });
 
-  it("puts the dashboard first in More and marks More active on it", () => {
+  it("has the dashboard as a tab, and Sales first in More", () => {
     pathname = "/dashboard";
     render(<AdminTabBar />);
-    expect(screen.getByRole("button", { name: "More" }).className).toContain("text-berry");
+    expect(screen.getByRole("link", { name: "Dashboard" })).toHaveAttribute("aria-current", "page");
     fireEvent.click(screen.getByRole("button", { name: "More" }));
     const links = screen.getAllByRole("link").filter((a) => a.closest("#admin-more-menu"));
-    expect(links[0]).toHaveTextContent("Dashboard");
+    expect(links[0]).toHaveTextContent("Sales");
   });
+
 });

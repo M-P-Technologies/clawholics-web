@@ -445,17 +445,20 @@ const CreateAppointmentModal = ({
       >
         {/* HEADER */}
         <div className="mb-4 flex items-start justify-between gap-4">
-          <h3 className="text-[20px] font-bold uppercase leading-tight text-gray-red sm:text-[24px]">
-            Create Appointment
-          </h3>
+          <div className="flex flex-col gap-0.5">
+            <h3 className="font-display text-2xl font-normal normal-case leading-tight tracking-normal text-gray-red sm:text-3xl">
+              Create appointment
+            </h3>
+            <p className="text-[13px] text-gray-red/70">A walk-in or phone booking: the client, the artist and service, then a free slot.</p>
+          </div>
 
-          <Button variant="bare" type="button" onClick={onClose} className="shrink-0">
-            <CloseIconLucide size={28} className="sm:h-[30px] sm:w-[30px] text-crimson" aria-hidden="true" />
+          <Button variant="bare" type="button" aria-label="Close" onClick={onClose} className="shrink-0 rounded-full p-1.5 text-gray-red/70 hover:bg-crimson-light/30 hover:text-berry">
+            <CloseIconLucide size={22} aria-hidden="true" />
           </Button>
         </div>
 
         {message && (
-          <div className="mb-4 rounded-xl bg-crimson-light/15 px-4 py-4 text-center text-[13px] font-medium text-gray-red">
+          <div role="alert" className="mb-4 rounded-xl bg-danger/10 px-4 py-3 text-[13px] font-medium text-danger">
             {message}
           </div>
         )}
@@ -464,9 +467,9 @@ const CreateAppointmentModal = ({
           {/* LEFT SIDE */}
           <div className="flex flex-col gap-4">
             {/* CLIENT INFORMATION */}
-            <section className="rounded-xl bg-crimson-light/15 px-4 py-4 flex flex-col gap-1">
-              <h4 className="text-[14px] font-bold uppercase text-gray-red sm:text-[15px]">
-                Client Information
+            <section className="flex flex-col gap-3 rounded-xl border border-crimson-light/50 p-4">
+              <h4 className="font-display text-lg font-normal text-gray-red">
+                Client
               </h4>
 
               <div className="flex flex-col gap-4">
@@ -513,9 +516,9 @@ const CreateAppointmentModal = ({
             </section>
 
             {/* APPOINTMENT DETAILS */}
-            <section className="rounded-xl bg-crimson-light/15 px-4 py-4 flex flex-col gap-1">
-              <h4 className="text-[14px] font-bold uppercase text-gray-red sm:text-[15px]">
-                Appointment Details
+            <section className="flex flex-col gap-3 rounded-xl border border-crimson-light/50 p-4">
+              <h4 className="font-display text-lg font-normal text-gray-red">
+                Artist and service
               </h4>
 
               <div className="flex flex-col gap-4">
@@ -559,7 +562,7 @@ const CreateAppointmentModal = ({
             </section>
 
             {/* DATE AND TIME - MOBILE POSITION */}
-            <section className="rounded-xl bg-crimson-light/15 px-4 py-4 lg:hidden border border-crimson-light">
+            <section className="flex flex-col gap-3 rounded-xl border border-crimson-light/50 p-4 lg:hidden">
               <DateAndTimeContent
                 selectedNailist={selectedNailist}
                 loadingSlots={loadingSlots}
@@ -580,7 +583,7 @@ const CreateAppointmentModal = ({
             </section>
 
             {/* BOOKING SUMMARY */}
-            <section className="rounded-xl bg-crimson-light/15 px-4 py-4 text-gray-red">
+            <section className="flex flex-col gap-3 rounded-xl border border-crimson-light/50 p-4 text-gray-red">
               <SummaryContent
                 selectedService={selectedService}
                 selectedNailist={selectedNailist}
@@ -595,7 +598,7 @@ const CreateAppointmentModal = ({
           {/* RIGHT SIDE DESKTOP */}
           <div className="hidden flex-col gap-4 lg:flex">
             {/* DATE AND TIME */}
-            <section className="rounded-xl bg-crimson-light/15 px-4 py-4">
+            <section className="flex flex-col gap-3 rounded-xl border border-crimson-light/50 p-4">
               <DateAndTimeContent
                 selectedNailist={selectedNailist}
                 loadingSlots={loadingSlots}
@@ -619,29 +622,14 @@ const CreateAppointmentModal = ({
         </div>
 
         {/* ACTIONS */}
-        <div className="mt-4 flex flex-row items-center justify-center gap-4 sm:justify-end lg:justify-center">
-          <Button
-            variant="secondary"
-            type="button"
-            onClick={onClose}
-            disabled={submitting}
-            className="w-[100px] lg:text-[14px]"
-            >
+        <div className="mt-5 flex flex-wrap items-center justify-end gap-3 border-t border-crimson-light/50 pt-4">
+          <Button variant="secondary" type="button" onClick={onClose} disabled={submitting}>
             Cancel
           </Button>
 
-          <Button
-            variant="bare"
-            type="button"
-            onClick={handleSubmit}
-            disabled={submitting}
-            className="flex w-[230px] items-center justify-center gap-2 rounded-md bg-crimson px-4 py-2 transition hover:opacity-90 disabled:opacity-60"
-          >
-            <PlusIcon size={14} className="text-light-orange" />
-
-            <span className="text-[14px] font-semibold text-light-orange uppercase">
-              {submitting ? "Creating..." : "Create Appointment"}
-            </span>
+          <Button type="button" onClick={handleSubmit} loading={submitting} loadingText="Creating…">
+            <PlusIcon size={14} aria-hidden="true" />
+            Create appointment
           </Button>
         </div>
       </div>
@@ -684,18 +672,18 @@ function DateAndTimeContent({
 }) {
   return (
     <>
-      <h4 className="mb-1 text-[14px] font-bold uppercase text-gray-red sm:text-[15px]">
-        Pick Date & Time
+      <h4 className="font-display text-lg font-normal text-gray-red">
+        Date and time
       </h4>
 
       {loadingSlots ? (
-        <div className="rounded-xl bg-crimson-light/15 px-4 py-8 text-center text-[13px] font-medium text-gray-red">
+        <div className="rounded-xl bg-crimson-light/15 px-4 py-8 text-center text-[13px] text-gray-red/70">
           Loading availability...
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4">
           {/* CALENDAR */}
-          <div className="flex justify-center rounded-xl bg-crimson-light/15 px-2 py-1">
+          <div className="flex justify-center rounded-xl bg-light-orange/40 px-2 py-2">
             <DayPicker
               mode="single"
               required
@@ -731,39 +719,37 @@ function DateAndTimeContent({
                   "pb-1 text-center text-[12px] font-bold text-gray-red sm:text-[13px]",
                   day: "h-7 w-7 p-0 text-center sm:h-8 sm:w-8",
                   day_button:
-                    "h-7 w-7 rounded-sm bg-crimson/30 text-[12px] font-bold transition-all duration-200 hover:bg-crimson hover:text-light-orange focus:bg-crimson focus:text-light-orange disabled:cursor-not-allowed disabled:opacity-30 disabled:line-through disabled:hover:bg-crimson/30 disabled:hover:text-gray-red sm:h-8 sm:w-8 sm:text-[13px]",
+                    "h-7 w-7 rounded-md bg-crimson-light/40 text-[12px] font-bold text-gray-red transition-colors duration-200 hover:bg-crimson hover:text-light-orange focus:bg-crimson focus:text-light-orange disabled:cursor-not-allowed disabled:opacity-30 disabled:line-through disabled:hover:bg-crimson-light/40 disabled:hover:text-gray-red sm:h-8 sm:w-8 sm:text-[13px]",
                 selected:
-                  "rounded-sm !bg-crimson !text-light-orange hover:!bg-crimson focus:!bg-crimson",
+                  "rounded-md [&>button]:!bg-berry [&>button]:!text-pearl",
                 range_start: "!bg-transparent",
                 range_middle: "!bg-transparent",
                 range_end: "!bg-transparent",
                 disabled: "pointer-events-none",
-                today: "rounded-sm border border-crimson",
+                today: "[&>button]:ring-2 [&>button]:ring-crimson/60",
                 outside: "opacity-0 pointer-events-none",
               }}
             />
           </div>
 
           {/* TIME */}
-          <div className="rounded-xl bg-crimson-light/15 px-2 py-1">
-            <p className="mb-1 lg:mb-2 text-center text-[14px] font-bold uppercase text-gray-red">
-              Time
-            </p>
+          <div className="flex flex-col gap-2">
+            <p className="text-[13px] font-medium text-gray-red/80">Time</p>
 
             {!selectedNailist ? (
-            <p className="p-2 text-center text-[13px] font-medium text-gray-red">
+            <p className="rounded-xl bg-crimson-light/15 p-3 text-center text-[13px] text-gray-red/70">
                 Select a nail artist to view available time slots.
             </p>
             ) : !appointmentDate ? (
-              <p className="p-2 text-center text-[13px] font-medium text-gray-red">
+              <p className="rounded-xl bg-crimson-light/15 p-3 text-center text-[13px] text-gray-red/70">
                 Select a date first.
               </p>
             ) : timeSlots.length === 0 ? (
-              <p className="rounded-sm bg-crimson-light/70 px-4 py-4 text-center text-[13px] font-medium text-gray-red">
+              <p className="rounded-xl bg-crimson-light/15 p-3 text-center text-[13px] text-gray-red/70">
                 No schedule available.
               </p>
             ) : (
-              <div className="max-h-[190px] overflow-y-auto px-2 sm:max-h-[220px]">
+              <div className="grid max-h-[190px] grid-cols-2 gap-2 overflow-y-auto pr-1 sm:max-h-[220px]">
                 {timeSlots.map((slot) => {
                   const blocked = isTimeBlocked(slot);
 
@@ -774,12 +760,13 @@ function DateAndTimeContent({
                       type="button"
                       disabled={blocked}
                       onClick={() => setAppointmentTime(slot)}
-                      className={`mb-2 w-full rounded-sm px-4 py-2 text-[13px] font-semibold transition ${
+                      aria-pressed={appointmentTime === slot}
+                      className={`w-full rounded-full border px-3 py-2 text-[13px] font-bold transition-colors ${
                         appointmentTime === slot
-                          ? "bg-crimson text-light-orange"
+                          ? "border-berry bg-berry text-pearl"
                           : blocked
-                            ? "cursor-not-allowed bg-crimson/10 text-crimson-light"
-                            : "bg-crimson/30 text-crimson hover:bg-crimson hover:text-light-orange"
+                            ? "cursor-not-allowed border-crimson-light/50 text-gray-red/40 line-through"
+                            : "border-crimson-light bg-milk text-gray-red hover:border-crimson hover:text-berry"
                       }`}
                     >
                       {formatSlot(slot)}
@@ -812,27 +799,26 @@ function SummaryContent({
 }) {
   return (
     <>
-      <h4 className="mb-1 text-[14px] font-bold uppercase text-gray-red sm:text-[15px]">
-        Booking Summary
+      <h4 className="font-display text-lg font-normal text-gray-red">
+        Summary
       </h4>
 
-      <div className="border-b mb-1.5"></div>
+      <div className="flex flex-col">
+        <SummaryRow label="Service" value={selectedService?.name || "–"} />
 
-      <div className="space-y-4">
-        <SummaryRow label="Service:" value={selectedService?.name || "-"} />
+        <SummaryRow label="Artist" value={selectedNailist?.name || "–"} />
 
-        <SummaryRow label="Artist:" value={selectedNailist?.name || "-"} />
-
-        <SummaryRow label="Date:" value={appointmentDate || "-"} />
+        <SummaryRow label="Date" value={appointmentDate || "–"} />
 
         <SummaryRow
-          label="Time:"
-          value={appointmentTime ? formatSlot(appointmentTime) : "-"}
+          label="Time"
+          value={appointmentTime ? formatSlot(appointmentTime) : "–"}
         />
 
         <SummaryRow
-          label="Price:"
-          value={selectedPrice ? `₱${selectedPrice}` : "-"}
+          label="Price"
+          value={selectedPrice ? `₱${selectedPrice}` : "–"}
+          strong
         />
       </div>
     </>
@@ -842,19 +828,17 @@ function SummaryContent({
 function SummaryRow({
   label,
   value,
+  strong = false,
 }: {
   label: string;
   value: string;
+  /** The total: bigger and in the brand colour */
+  strong?: boolean;
 }) {
   return (
-    <div className="flex items-start justify-between gap-4">
-      <p className="text-[13px] font-bold uppercase text-gray-red sm:text-[14px]">
-        {label}
-      </p>
-
-      <p className="text-right text-[13px] text-gray-red sm:text-[14px]">
-        {value}
-      </p>
+    <div className="flex items-baseline justify-between gap-4 border-t border-dotted border-crimson-light py-2 first:border-t-0 first:pt-0">
+      <p className="text-[13px] text-gray-red/70">{label}</p>
+      <p className={strong ? "text-right font-display text-xl text-berry" : "text-right text-[13px] font-bold text-gray-red"}>{value}</p>
     </div>
   );
 }

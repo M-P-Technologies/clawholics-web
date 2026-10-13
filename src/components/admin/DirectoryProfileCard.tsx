@@ -141,7 +141,7 @@ export default function DirectoryProfileCard({
       <div
         data-testid="banner"
         aria-hidden="true"
-        className="h-24 shrink-0 bg-gradient-to-br from-berry via-crimson to-crimson-light lg:min-h-20 lg:flex-1"
+        className="h-24 shrink-0 bg-linear-to-br from-berry via-crimson to-crimson-light lg:min-h-20 lg:flex-1"
       />
 
       <div className="flex w-full flex-col items-center gap-4 px-6 pb-6">
@@ -277,7 +277,7 @@ export default function DirectoryProfileCard({
                 type="button"
                 variant="secondary"
                 onClick={() => onNotes(user)}
-                className="!px-4 !py-1.5"
+                className="px-4! py-1.5!"
               >
                 Notes
               </Button>
@@ -287,7 +287,7 @@ export default function DirectoryProfileCard({
                 type="button"
                 variant="secondary"
                 onClick={() => onEdit(user)}
-                className="!px-4 !py-1.5"
+                className="px-4! py-1.5!"
               >
                 Edit
               </Button>
@@ -297,7 +297,7 @@ export default function DirectoryProfileCard({
                 type="button"
                 variant="secondary"
                 onClick={() => onDelete(user)}
-                className="!border-danger !px-4 !py-1.5 !text-danger hover:!bg-danger hover:!text-pearl"
+                className="border-danger! px-4! py-1.5! text-danger! hover:bg-danger! hover:text-pearl!"
               >
                 Delete
               </Button>

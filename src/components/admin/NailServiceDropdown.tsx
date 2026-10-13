@@ -51,11 +51,10 @@ const MAX_IMAGES = 10;
 const CardTitle = ({ label }: { label: string }) => {
   return (
     <>
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-[17px] tracking-wide text-gray-red">{label}</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-[13px] font-medium text-gray-red/80">{label}</h3>
       </div>
 
-      <div className="w-full h-[1.5px] bg-crimson mb-4" />
     </>
   );
 };
@@ -78,12 +77,11 @@ const InputField = ({ label, value, onChange, isEditing }: InputFieldProps) => {
   }, [value]);
 
   return (
-    <div className="rounded-xl bg-crimson-light/15 px-4 py-2">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-[17px] tracking-wide text-gray-red">{label}</h3>
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center justify-between">
+        <h3 className="text-[13px] font-medium text-gray-red/80">{label}</h3>
       </div>
 
-      <div className="w-full h-[1.5px] bg-crimson mb-2" />
 
       <textarea
         ref={textareaRef}
@@ -97,7 +95,7 @@ const InputField = ({ label, value, onChange, isEditing }: InputFieldProps) => {
             32
           )}px`;
         }}
-        className="w-full min-h-[32px] mt-1 bg-transparent outline-none resize-none overflow-hidden text-[16px] text-gray-red whitespace-pre-line disabled:cursor-not-allowed"
+        className="w-full min-h-[38px] rounded-md border border-crimson-light bg-milk px-3 py-2 text-sm text-gray-red outline-none resize-none overflow-hidden whitespace-pre-line focus:ring-2 focus:ring-crimson disabled:cursor-not-allowed disabled:opacity-70"
       />
     </div>
   );
@@ -417,26 +415,27 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
 
   return (
     <>
-      <div className="flex flex-col w-full rounded-2xl border border-crimson-light/40 bg-milk px-4 py-3 shadow-petal sm:px-5">
+      <div className="flex flex-col w-full rounded-xl border border-crimson-light/50 bg-milk px-3 py-2.5">
         <Button
           variant="bare"
           type="button"
           onClick={() => setIsOpen((prevState) => !prevState)}
+          aria-expanded={isOpen}
           className="flex items-center justify-between w-full gap-4 sm:gap-4 text-left min-h-[35px]"
         >
-          <p className="font-bold text-[17px] truncate text-gray-red">
+          <span className="block min-w-0 font-bold text-[15px] truncate text-gray-red">
             {title || "Untitled Service"}
-          </p>
+          </span>
 
           {isCreateMode ? (
             <PlusIcon
-              size={26} className={`shrink-0 mr-0.75 transition-transform duration-300 ${
+              size={20} className={`shrink-0 mr-0.75 transition-transform duration-300 ${
                 isOpen ? "rotate-45" : ""
               }`}
             />
           ) : (
             <DropdownIcon
-              size={32} className={`text-gray-red shrink-0 transition-transform duration-300 ${
+              size={22} className={`text-gray-red shrink-0 transition-transform duration-300 ${
                 isOpen ? "rotate-180" : ""
               }`}
             />
@@ -477,7 +476,7 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
               isEditing={isEditing}
             />
 
-            <div className="rounded-xl bg-crimson-light/15 px-4 py-2">
+            <div className="flex flex-col gap-1.5">
               <CardTitle label={`Photos (${gallery.length}/${MAX_IMAGES})`} />
               {gallery.length > 0 && (
                 <p className="mb-2 text-[13px] text-gray-red/80">The starred photo is the one shown for this service on the website.</p>
@@ -493,7 +492,7 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
                       variant="bare"
                       type="button"
                       onClick={() => setPreviewImageUrl(image.image_url)}
-                      className="min-w-0 flex-1 cursor-pointer text-left text-[16px] leading-none truncate text-gray-red hover:underline"
+                      className="min-w-0 flex-1 cursor-pointer text-left text-[13px] leading-none truncate text-gray-red hover:underline"
                     >
                       {image.image_url.split("/").pop()}
                     </Button>

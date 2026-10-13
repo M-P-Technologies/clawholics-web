@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import clsx from "clsx";
 import { useLocation } from "@/lib/router";
+import { useSiteTheme } from "../../hooks/useSiteTheme";
 import MobileTabBar from "./MobileTabBar";
 import Navbar from "./NavBar";
 import Footer from "./Footer";
@@ -13,12 +14,14 @@ const NO_FOOTER_PATHS = ["/login", "/signup", "/onboarding"];
 // On phones the footer is only for the main pages; on every other page (a service, an artist, booking,
 // payment, profile, the legal pages...) it is hidden, since the bottom bar has the navigation.
 // An exact match, so /artists/3 is not the artists page.
-const MOBILE_FOOTER_PATHS = ["/", "/services", "/artists", "/about", "/contact"];
+const MOBILE_FOOTER_PATHS = ["/", "/services", "/artists", "/about", "/faq", "/contact"];
 
 // The top bar and footer are built once here and stay on screen while only the page in
 // the middle changes, so moving between pages no longer rebuilds (and flashes) them.
 export default function SiteLayout({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
+  // The colour set and fonts chosen in Admin > Homepage
+  useSiteTheme();
   const showFooter = !NO_FOOTER_PATHS.some((path) => pathname.startsWith(path));
   // On phones the bottom bar covers the foot of the page, so pages without a footer keep room
   // for it. Pages with one don't: the bar slides away when the footer reaches it.

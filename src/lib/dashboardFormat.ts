@@ -2,7 +2,7 @@ export const peso = (amount: number) => `₱${Math.round(amount).toLocaleString(
 
 export const percent = (fraction: number | null) => (fraction === null ? "–" : `${Math.round(fraction * 100)}%`);
 
-export type ChangeKind = "up" | "down" | "flat" | "new" | "none";
+type ChangeKind = "up" | "down" | "flat" | "new" | "none";
 export interface ChangeView {
   kind: ChangeKind;
   label: string;

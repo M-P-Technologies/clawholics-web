@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { CalendarCheck, CalendarDays, Ellipsis, QrCode, Users, type LucideIcon } from "lucide-react";
+import { CalendarCheck, CalendarDays, Ellipsis, LayoutDashboard, QrCode, type LucideIcon } from "lucide-react";
 import { useClerk } from "@clerk/nextjs";
 import clsx from "clsx";
 import { Link, useLocation } from "@/lib/router";
@@ -10,10 +10,10 @@ import { MORE_ITEMS, TAB_ITEMS } from "./adminNav";
 // sidebar has the links). Four tabs go straight to the screens used every day; "More" opens a
 // sheet with the content screens, the admin directory and the account actions.
 const TAB_ICONS: Record<string, LucideIcon> = {
-  "/appointments": CalendarCheck,
+  "/clients": CalendarCheck,
   "/schedule": CalendarDays,
   "/admin-scanner": QrCode,
-  "/client-directory": Users,
+  "/dashboard": LayoutDashboard,
 };
 
 const tabClass = (active: boolean) =>
