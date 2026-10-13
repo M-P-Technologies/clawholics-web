@@ -7,7 +7,7 @@ import DirectoryTable from "../../components/admin/DirectoryTable";
 import { useClientDirectory } from "../../hooks/admin/useClientDirectory";
 import { Link, useNavigate } from "../../lib/router";
 
-// Clients & Appointments: the client totals, then every appointment with its client's details
+// Clients & Bookings: the client totals, then every appointment with its client's details
 // (photo, email, phone, joined, last active, visits). Opened from the dashboard's warm leads
 // (?view=leads), it also lists those clients, who have no appointments to show yet. Its data is
 // in hooks/admin/useClientDirectory.
@@ -17,7 +17,7 @@ export default function ClientDirectory() {
   const { leads } = directory;
 
   return (
-    <AdminShell title="Clients & Appointments">
+    <AdminShell title="Clients & Bookings">
       <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pb-2">
         {!directory.usersFailed && <DirectoryStats label="Client totals" stats={directory.stats} />}
 

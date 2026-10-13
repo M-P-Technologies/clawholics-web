@@ -48,14 +48,19 @@ export const fetchMonthlySchedule = async (
   token?: string | null,
   clerkId?: string | null
 ): Promise<MonthlySchedule> => {
-  const res = await fetch(`${BASE_URL}?month=${month}&t=${Date.now()}`, {
-    headers: {
-      "Content-Type": "application/json",
-      "x-clawholics-origin": "frontend",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(clerkId ? { clerk_id: clerkId } : {}),
-    },
-  });
+  const load = () =>
+    fetch(`${BASE_URL}?month=${month}&t=${Date.now()}`, {
+      headers: {
+        "Content-Type": "application/json",
+        "x-clawholics-origin": "frontend",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(clerkId ? { clerk_id: clerkId } : {}),
+      },
+    });
+  let res = await load();
+  // 503: the server gave up waiting for the database and has opened new connections by now,
+  // so asking once more usually works
+  if (res.status === 503) res = await load();
 
   if (!res.ok) {
     if (res.status === 403) window.location.href = "/";

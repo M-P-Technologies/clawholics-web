@@ -25,10 +25,10 @@ describe("admin tab bar", () => {
     const bar = screen.getByRole("navigation", { name: "Admin tabs" });
     const links = [...bar.querySelectorAll("a")].map((a) => [a.textContent?.trim(), a.getAttribute("href")]);
     expect(links).toEqual([
+      ["Dashboard", "/dashboard"],
       ["Bookings", "/clients"],
       ["Schedule", "/schedule"],
       ["Scanner", "/admin-scanner"],
-      ["Dashboard", "/dashboard"],
     ]);
     expect(screen.getByRole("button", { name: "More" })).toHaveAttribute("aria-expanded", "false");
   });

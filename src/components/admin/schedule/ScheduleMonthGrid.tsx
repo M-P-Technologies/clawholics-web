@@ -53,10 +53,12 @@ export default function ScheduleMonthGrid({ month, onMonthChange, onPrevious, on
         components={{
           Day: (props) => {
             const validDate = getDayPickerDate(props);
-            if (!validDate || validDate.getMonth() !== month.getMonth()) return <div className="h-full w-full" />;
+            if (!validDate || validDate.getMonth() !== month.getMonth()) return <td className="p-0" />;
             const artists = dayData(validDate);
 
+            // The day replaces the calendar's own cell, so it must still be a <td> inside the row
             return (
+              <td className="flex min-w-0 p-0">
               <Button
                 variant="bare"
                 type="button"
@@ -82,6 +84,7 @@ export default function ScheduleMonthGrid({ month, onMonthChange, onPrevious, on
                   ))}
                 </div>
               </Button>
+              </td>
             );
           },
         }}

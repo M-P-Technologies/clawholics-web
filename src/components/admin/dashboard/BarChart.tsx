@@ -1,4 +1,6 @@
 
+import { useEffect, useRef, useState } from "react";
+
 interface BarChartProps {
   title: string;
   data: { label: string; a: number; b: number }[];
@@ -10,7 +12,8 @@ interface BarChartProps {
 }
 
 const W = 300;
-const H = 156;
+// The least the drawing is tall; in a taller card it grows to fill it (see useDrawingHeight)
+const MIN_H = 156;
 const LEFT = 26;
 const TOP = 8;
 const BOTTOM = 22;
@@ -25,9 +28,29 @@ function niceTicks(max: number): number[] {
   return Array.from({ length: Math.round(top / step) + 1 }, (_, i) => i * step);
 }
 
+// The drawing is always W units wide, so its height in the same units follows the shape of the
+// box it is in: a card stretched by its neighbour gets taller bars, not empty space under them.
+function useDrawingHeight() {
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState(MIN_H);
+  useEffect(() => {
+    const box = boxRef.current;
+    if (!box || typeof ResizeObserver === "undefined") return;
+    const measure = () => {
+      const { width, height: boxHeight } = box.getBoundingClientRect();
+      if (width > 0) setHeight(Math.max(MIN_H, Math.round((W * boxHeight) / width)));
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, []);
+  return { boxRef, height };
+}
+
 // Grouped columns, one pair per entry: `a` and `b` side by side, each from the baseline and
 // scaled on its own value, with rounded ends. Labelled gridlines run behind them.
 export default function BarChart({ title, data, aLabel, bLabel, aColor, bColor, emptyText }: BarChartProps) {
+  const { boxRef, height: H } = useDrawingHeight();
   const max = Math.max(...data.map((d) => Math.max(d.a, d.b)), 0);
   if (max === 0) return <p className="text-sm text-gray-red/70">{emptyText}</p>;
 
@@ -49,7 +72,7 @@ export default function BarChart({ title, data, aLabel, bLabel, aColor, bColor, 
   };
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
       <ul className="flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-gray-red">
         {[[aLabel, aColor], [bLabel, bColor]].map(([label, color]) => (
           <li key={label} className="flex items-center gap-2">
@@ -59,7 +82,10 @@ export default function BarChart({ title, data, aLabel, bLabel, aColor, bColor, 
         ))}
       </ul>
 
-      <svg role="img" aria-label={summary} viewBox={`0 0 ${W} ${H}`} className="w-full">
+      {/* The spacer keeps the least height; the drawing fills whatever the box ends up being */}
+      <div ref={boxRef} className="relative min-h-0 flex-1">
+        <div aria-hidden="true" className="w-full" style={{ aspectRatio: `${W} / ${MIN_H}` }} />
+      <svg role="img" aria-label={summary} viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 h-full w-full">
         {ticks.map((tick) => (
           <g key={tick}>
             <text data-tick x={LEFT - 4} y={y(tick) + 3} textAnchor="end" fontSize="9" fill="#7a5f5a">{tick}</text>
@@ -86,6 +112,7 @@ export default function BarChart({ title, data, aLabel, bLabel, aColor, bColor, 
           );
         })}
       </svg>
+      </div>
 
       <table aria-label={title} className="sr-only">
         <thead><tr><th>Month</th><th>{aLabel}</th><th>{bLabel}</th></tr></thead>

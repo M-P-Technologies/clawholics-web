@@ -4,7 +4,7 @@ import { useClerk } from "@clerk/nextjs";
 import clsx from "clsx";
 import { Link, useLocation } from "@/lib/router";
 import Button from "../ui/Button";
-import { MORE_ITEMS, TAB_ITEMS } from "./adminNav";
+import { MORE_GROUPS, MORE_ITEMS, TAB_ITEMS } from "./adminNav";
 
 // The phone's admin navigation: a bar fixed to the bottom (hidden from `lg` up, where the
 // sidebar has the links). Four tabs go straight to the screens used every day; "More" opens a
@@ -75,10 +75,15 @@ export default function AdminTabBar() {
           ref={sheetRef}
           className="drawer-panel fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-40 max-h-[70vh] overflow-y-auto rounded-t-3xl border-t border-crimson-light/60 bg-milk px-5 py-3 shadow-2xl shadow-crimson/25"
         >
-          {MORE_ITEMS.map((item) => (
-            <Link key={item.path} to={item.path} className={sheetLink(pathname === item.path)}>
-              {item.label}
-            </Link>
+          {MORE_GROUPS.map((group) => (
+            <section key={group.title} aria-label={group.title} className="pb-1">
+              <h2 className="pb-1 pt-3 font-display text-lg font-normal text-gray-red/70">{group.title}</h2>
+              {group.items.map((item) => (
+                <Link key={item.path} to={item.path} className={sheetLink(pathname === item.path)}>
+                  {item.label}
+                </Link>
+              ))}
+            </section>
           ))}
 
           <div className="my-2 border-t border-crimson-light/70" />

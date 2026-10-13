@@ -316,10 +316,11 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
 
   return (
     <section id="appointments" aria-label="Appointments" className="flex min-w-0 scroll-mt-4 flex-col gap-4 rounded-2xl border border-crimson-light/40 bg-milk p-4 shadow-petal sm:p-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-2xl font-normal text-gray-red">Appointments</h2>
-        <Button type="button" onClick={() => setCreating(true)} className="!px-4 !py-2 text-[13px]">
-          <Plus size={14} aria-hidden="true" />
+      {/* One row at every width; on a phone the button drops its icon to fit */}
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="min-w-0 truncate font-display text-2xl font-normal text-gray-red">Appointments</h2>
+        <Button type="button" onClick={() => setCreating(true)} className="shrink-0 whitespace-nowrap !px-3 !py-2 text-[12px] sm:!px-4 sm:text-[13px]">
+          <Plus size={14} aria-hidden="true" className="hidden sm:block" />
           New appointment
         </Button>
       </div>

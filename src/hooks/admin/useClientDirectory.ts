@@ -9,7 +9,7 @@ import { useSearchParams } from "../../lib/router";
 import { fetchWarmLeads } from "../../services/dashboardService";
 import { fetchDirectoryProfiles, fetchDirectoryUsers } from "../../services/directoryService";
 
-// Clients & Appointments: the clients, their Clerk details, the warm leads and the stat cards
+// Clients & Bookings: the clients, their Clerk details, the warm leads and the stat cards
 export function useClientDirectory() {
   const { getToken, isLoaded: isAuthLoaded } = useAuth();
   const { user: currentUser } = useUser();

@@ -96,5 +96,8 @@ export const currentSql = () => globalForDb.clawholicsSql;
 export function resetSql(dead: Sql | undefined = globalForDb.clawholicsSql) {
   if (!dead || globalForDb.clawholicsSql !== dead) return;
   globalForDb.clawholicsSql = undefined;
-  dead.end({ timeout: 0 }).catch(() => {});
+  // A few seconds' grace instead of cutting every socket at once: a connection cut in the middle
+  // of logging in counts as a failed login at Supabase's pooler, and after several of those it
+  // refuses all new connections for a couple of minutes (ECIRCUITBREAKER).
+  dead.end({ timeout: 5 }).catch(() => {});
 }

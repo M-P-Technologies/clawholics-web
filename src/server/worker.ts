@@ -109,6 +109,7 @@ export function ported<C>(handler: Handler<C>, { requireOrigin = true } = {}): H
       );
     }
     const path = new URL(req.url).pathname;
+    const startedAt = Date.now();
     const deadline = wait(REQUEST_TIMEOUT_MS, "timeout" as const);
     const stallCheck = wait(STALL_CHECK_MS, "check" as const);
     const tooSlow = Response.json({ error: "The server took too long to answer. Please try again." }, { status: 503 });
@@ -125,6 +126,12 @@ export function ported<C>(handler: Handler<C>, { requireOrigin = true } = {}): H
 
       if (first === "check") {
         const client = currentSql();
+        // The stall is counted in working time. If far more time passed on the clock, this
+        // server was frozen meanwhile (the dev server compiling), which is not a database fault.
+        const onTheClock = Math.round((Date.now() - startedAt) / 1000);
+        if (onTheClock >= 2 * (STALL_CHECK_MS / 1000)) {
+          console.error(`[api] ${req.method} ${path} stalled while this server was frozen for about ${onTheClock - STALL_CHECK_MS / 1000}s (busy compiling?)`);
+        }
         // What the database was doing when this request stalled (logged in the background)
         void logDatabaseActivity(`${req.method} ${path} waited ${STALL_CHECK_MS / 1000}s`);
         const responds = await sqlResponds(client, CHECK_MS);

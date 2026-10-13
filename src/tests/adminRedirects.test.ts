@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import nextConfig from "../../next.config";
 
 describe("old admin addresses", () => {
-  it("send the Client Directory and Appointments screens to Clients & Appointments", async () => {
+  it("send the Client Directory and Appointments screens to Clients & Bookings", async () => {
     const redirects = await nextConfig.redirects!();
     const to = (source: string) => redirects.find((r) => r.source === source)?.destination;
     expect(to("/client-directory")).toBe("/clients");

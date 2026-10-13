@@ -30,7 +30,7 @@ describe("admin sidebar", () => {
     const nav = screen.getByRole("navigation", { name: "Admin navigation" });
     expect([...nav.querySelectorAll("h3")].map((h) => h.textContent)).toEqual(["Overview", "Front Desk", "Content Management"]);
     const frontDesk = within(nav.querySelectorAll("h3")[1].parentElement as HTMLElement);
-    expect(frontDesk.getAllByRole("button").map((b) => b.textContent)).toEqual(["Clients & Appointments", "Schedule", "Admin Scanner", "Admin Directory"]);
+    expect(frontDesk.getAllByRole("button").map((b) => b.textContent)).toEqual(["Clients & Bookings", "Schedule", "Admin Scanner", "Admin Directory"]);
   });
 
   it("scrolls only the menu, with its scrollbar on the left, and lets long names wrap", () => {
@@ -39,7 +39,7 @@ describe("admin sidebar", () => {
     expect(nav.parentElement?.className).toContain("overflow-y-auto");
     expect(nav.parentElement?.className).toContain("[direction:rtl]");
     expect(nav.className).toContain("[direction:ltr]");
-    expect(within(nav).getByRole("button", { name: "Clients & Appointments" }).className).toContain("whitespace-normal");
+    expect(within(nav).getByRole("button", { name: "Clients & Bookings" }).className).toContain("whitespace-normal");
     // Log out stays below the scrolling menu
     expect(nav.parentElement?.contains(screen.getByRole("button", { name: "Log out" }))).toBe(false);
   });
@@ -57,7 +57,7 @@ describe("admin sidebar", () => {
     fireEvent.click(screen.getByRole("button", { name: "Collapse the sidebar" }));
     const nav = within(screen.getByRole("navigation", { name: "Admin navigation" }));
     // Icons only, each still named for screen readers, and no group headings
-    expect(nav.getByRole("button", { name: "Clients & Appointments" })).toHaveAttribute("title", "Clients & Appointments");
+    expect(nav.getByRole("button", { name: "Clients & Bookings" })).toHaveAttribute("title", "Clients & Bookings");
     expect(nav.queryByText("Front Desk")).toBeNull();
     expect(screen.getByRole("button", { name: "Log out" })).toHaveTextContent("");
     expect(window.localStorage.getItem("clawholics-admin-sidebar-collapsed")).toBe("1");

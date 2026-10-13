@@ -42,10 +42,10 @@ beforeEach(() => {
   vi.stubGlobal("fetch", vi.fn(async () => Response.json([])));
 });
 
-describe("Clients & Appointments", () => {
+describe("Clients & Bookings", () => {
   it("shows the client totals and the appointments with each client's details", async () => {
     render(<ClientDirectory />);
-    expect(screen.getByRole("heading", { name: "Clients & Appointments" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Clients & Bookings" })).toBeInTheDocument();
     const totals = within(screen.getByRole("region", { name: "Client totals" }));
     expect(await totals.findByText("2")).toBeInTheDocument(); // two clients; the admin isn't counted
     const table = within(await screen.findByRole("table", { name: "Appointments" }));
