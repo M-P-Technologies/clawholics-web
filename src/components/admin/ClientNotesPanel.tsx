@@ -12,6 +12,7 @@ type ClientNote,
 } from "../../services/clientNotesService";
 import { parseServerTime } from "../../services/serverTime";
 import Button from "../ui/Button";
+import { SectionSkeleton } from "./skeletons";
 
 interface Props {
   clientUserId: number;
@@ -141,7 +142,7 @@ export default function ClientNotesPanel({ clientUserId, tokenFetcher, clerkId }
         Private notes <span className="text-[11px] font-semibold normal-case">(admin only)</span>
       </p>
 
-      {loading && <p className="text-[13px]">Loading notes...</p>}
+      {loading && <SectionSkeleton label="Loading notes" />}
 
       {!loading && unavailable && <p className="text-[13px]">Notes aren't available yet.</p>}
 

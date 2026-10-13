@@ -8,6 +8,7 @@ import type { ArtistUtilization as ArtistRow, Utilization, UtilizationDay } from
 import Button from "../../ui/Button";
 import { CARDS_PER_PAGE, RowCard, RowCards } from "../RowCards";
 import TablePager, { paginate } from "./TablePager";
+import { ListSkeleton } from "../ListSkeleton";
 
 const DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -118,7 +119,7 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
           </Button>
         </div>
       ) : !shown ? (
-        <p className="text-sm text-gray-red/70">Loading…</p>
+        <ListSkeleton label="Loading artist utilization" columns={7} />
       ) : shown.artists.length === 0 ? (
         <p className="text-sm text-gray-red/70">No artists yet. Add them in Nail Artists, with their time slots.</p>
       ) : (

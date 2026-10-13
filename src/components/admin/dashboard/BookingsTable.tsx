@@ -8,6 +8,7 @@ import { useTableLayout } from "../../../hooks/useMinWidth";
 import Button from "../../ui/Button";
 import { CardFields, RowCard, RowCards } from "../RowCards";
 import TablePager, { paginate } from "./TablePager";
+import { ListSkeleton } from "../ListSkeleton";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const dateLabel = (ymd: string) => {
@@ -134,7 +135,7 @@ export default function BookingsTable({ load }: { load: () => Promise<Appointmen
           </Button>
         </div>
       ) : rows === null ? (
-        <p className="text-sm text-gray-red/70">Loading…</p>
+        <ListSkeleton label="Loading the bookings" columns={6} />
       ) : (
         <>
           {!asTable ? (

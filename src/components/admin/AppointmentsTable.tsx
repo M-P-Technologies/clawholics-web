@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import clsx from "clsx";
 import AppointmentDetailsModal from "./AppointmentDetailsModal";
 import CreateAppointmentModal from "./CreateAppointmentModal";
+import { ListSkeleton } from "./ListSkeleton";
 import { CardFields, CARDS_PER_PAGE, RowCard, RowCards } from "./RowCards";
 import TablePager, { paginate } from "./dashboard/TablePager";
 import Button from "../ui/Button";
@@ -406,7 +407,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
           </Button>
         </div>
       ) : appointments === null ? (
-        <p className="text-sm text-gray-red/70">Loading…</p>
+        <ListSkeleton label="Loading appointments" columns={9} />
       ) : shown.length === 0 ? (
         <p className="text-sm text-gray-red/70">{q || artist !== "All" ? "No appointments match your search." : status === "ALL" ? "No appointments yet." : "No appointments with this status."}</p>
       ) : !asTable ? (

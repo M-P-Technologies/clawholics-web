@@ -15,6 +15,7 @@ import { useClientPage } from "../../hooks/admin/useClientPage";
 import { CLIENT_TABS, clientName, dateLabel, noteFieldClass } from "../../lib/admin/clientPage";
 import { peso } from "../../lib/dashboardFormat";
 import { Link } from "../../lib/router";
+import { ClientPageSkeleton } from "../../components/admin/skeletons";
 
 // One client's page (admin only): who they are on the left, and on the right three tabs: an
 // overview (counts and where their booking is), the notes and next steps, and every appointment
@@ -44,13 +45,7 @@ export default function ClientPage() {
     );
   }
 
-  if (!details) {
-    return (
-      <AdminShell title="Client">
-        <p className="text-sm text-gray-red/70">Loading…</p>
-      </AdminShell>
-    );
-  }
+  if (!details) return <ClientPageSkeleton />;
 
   const { summary, appointments } = details;
   const name = clientName(details.client);

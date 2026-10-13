@@ -29,6 +29,7 @@ import EditActions from "./EditActions";
 import Button from "../ui/Button";
 import ConfirmModal from "../ui/ConfirmModal";
 import Select from "../ui/Select";
+import { SectionSkeleton } from "./skeletons";
 
 type NailArtistDropdownProps = {
   nailist?: Nailist;
@@ -272,7 +273,7 @@ const DayOffCard = ({
       <CardTitle label="Day Off" />
 
       {isLoading ? (
-        <p className="text-[15px] text-gray-red">Loading day offs...</p>
+        <SectionSkeleton label="Loading days off" lines={2} />
       ) : (
         <>
           <div className="mb-4 flex flex-col gap-1">
@@ -534,7 +535,7 @@ const TimeSlotCard = ({
       <CardTitle label="Time Slots" />
 
       {isLoading ? (
-        <p className="text-[15px] text-gray-red">Loading time slots...</p>
+        <SectionSkeleton label="Loading time slots" lines={3} />
       ) : (
         <div className="flex flex-col gap-4">
           <div
