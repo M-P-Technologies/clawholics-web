@@ -21,6 +21,7 @@ import {
 } from "../services/nailistService";
 import { fetchPublicReviews, type PublicReview } from "../services/reviewService";
 import { fetchPaymentSettings } from "../services/paymentService";
+import { fetchLoyaltySettings } from "../services/settingsService";
 import type { HomeContent, TeamContent } from "../types";
 
 // The public site's content as TanStack Query queries. Pages that show the same content share
@@ -91,4 +92,6 @@ export const publicQueries = {
   reviews: () => queryOptions({ queryKey: [PUBLIC, "reviews"], queryFn: (): Promise<PublicReview[]> => fetchPublicReviews() }),
   /** The downpayment and the payment methods the salon has turned on */
   paymentSettings: () => queryOptions({ queryKey: [PUBLIC, "paymentSettings"], queryFn: fetchPaymentSettings }),
+  /** The stamps a loyalty card needs for a reward */
+  loyaltySettings: () => queryOptions({ queryKey: [PUBLIC, "loyaltySettings"], queryFn: fetchLoyaltySettings }),
 };

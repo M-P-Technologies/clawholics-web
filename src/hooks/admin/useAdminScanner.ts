@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { adminDataChanged, adminKeys, adminQueries } from "../../lib/adminQueries";
 import { useToast } from "../../components/ui/ToastProvider";
 import { isDesktopWidth } from "../../lib/viewport";
+import { useStampTarget } from "../useStampTarget";
 import { fetchScannedClient, recordScanAction, type ScanRecord, type ScannedClient } from "../../services/scanService";
 
 /** What the last scanned code turned out to be: a client, or why it couldn't be used */
@@ -22,6 +23,7 @@ export function useAdminScanner() {
   const { user: currentUser } = useUser();
   const toast = useToast();
   const queryClient = useQueryClient();
+  const stampTarget = useStampTarget();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [lastScan, setLastScan] = useState<LastScan | null>(null);
@@ -79,8 +81,8 @@ export function useAdminScanner() {
     if (!lastScan?.client || isProcessing) return;
     setIsProcessing(true);
 
-    if (action === "stamp" && lastScan.client.stamps >= 10) {
-      toast.show("info", "The card is full", "This client has 10 stamps. Please redeem their reward first.");
+    if (action === "stamp" && lastScan.client.stamps >= stampTarget) {
+      toast.show("info", "The card is full", `This client has ${stampTarget} stamps. Please redeem their reward first.`);
       setIsProcessing(false);
       return;
     }
@@ -107,12 +109,18 @@ export function useAdminScanner() {
       }, 1500);
     } catch (error) {
       console.error("Failed to save action to database:", error);
+      // Nothing was saved: show the card and the recent scans as they were
+      setHistory((h) => h.filter((r) => r.id !== record.id));
+      setLastScan(lastScan);
+      toast.show("error", action === "stamp" ? "Stamp not added" : "Reward not redeemed", error instanceof Error ? error.message : "Please try again.");
       setIsProcessing(false);
     }
   };
 
   return {
     loading,
+    /** The stamps a card needs for a reward */
+    stampTarget,
     isProcessing,
     isScanning,
     lastScan,

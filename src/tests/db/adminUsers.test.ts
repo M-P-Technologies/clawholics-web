@@ -29,6 +29,7 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
   let nailists: typeof import("../../server/handlers/nailists");
   let users: typeof import("../../server/handlers/users");
   let misc: typeof import("../../server/handlers/misc");
+  let settings: typeof import("../../server/handlers/settings");
   let customerId: number;
 
   const call = (handler: Handler, url: string, options: { method?: string; body?: unknown; params?: object } = {}) =>
@@ -47,6 +48,7 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
     nailists = await import("../../server/handlers/nailists");
     users = await import("../../server/handlers/users");
     misc = await import("../../server/handlers/misc");
+    settings = await import("../../server/handlers/settings");
   });
 
   afterAll(async () => {
@@ -221,10 +223,36 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
     expect((await call(users.redeemOwnReward, "/api/users/redeem", { method: "POST" })).body).toEqual({ success: true, newStamps: 0 });
 
     as("user_admin");
-    await call(users.redeemScannedReward, "/api/users/scan/user_cust/redeem", { method: "POST", params: { clerkId: "user_cust" } });
+    // An admin can't redeem a card that isn't full, or stamp one that is
+    expect((await call(users.redeemScannedReward, "/api/users/scan/user_cust/redeem", { method: "POST", params: { clerkId: "user_cust" } })).status).toBe(400);
+    await db`update customer_profiles set stamps = 10 where user_id = ${customerId}`;
+    expect((await call(users.addStamp, "/api/users/scan/user_cust/stamp", { method: "POST", params: { clerkId: "user_cust" } })).status).toBe(400);
+    expect(
+      (await call(users.redeemScannedReward, "/api/users/scan/user_cust/redeem", { method: "POST", params: { clerkId: "user_cust" } })).body,
+    ).toEqual({ success: true, newStamps: 0 });
     const history = await call(users.getScanHistory, "/api/users/scan-history");
     expect(history.body.map((h: { action: string }) => h.action).sort()).toEqual(["redeem", "stamp"]);
     expect(history.body[0]).toEqual({ id: expect.any(String), userId: "user_cust", clientName: "Carla C", action: expect.any(String), time: expect.stringMatching(/^\d{1,2}:\d{2}:\d{2} [AP]M$/) });
+  });
+
+  it("the settings set the stamps a reward needs, and the client redeems at that number", async () => {
+    const body = { downpayment_amount: 500, payment_methods: ["QRPH"], birthday_discount_pct: 20, loyalty_stamps_required: 3 };
+    as("user_cust");
+    expect((await call(settings.updateSettings, "/api/settings", { method: "PUT", body })).status).toBe(403);
+    expect((await call(settings.getLoyaltySettings, "/api/settings/loyalty")).body).toEqual({ stamps_required: 10 });
+
+    as("user_admin");
+    expect((await call(settings.updateSettings, "/api/settings", { method: "PUT", body: { ...body, loyalty_stamps_required: 21 } })).status).toBe(400);
+    expect((await call(settings.updateSettings, "/api/settings", { method: "PUT", body })).body).toEqual(body);
+    expect((await call(settings.getSettings, "/api/settings")).body).toEqual(body);
+    expect((await call(settings.getLoyaltySettings, "/api/settings/loyalty")).body).toEqual({ stamps_required: 3 });
+
+    await db`update customer_profiles set stamps = 2 where user_id = ${customerId}`;
+    as("user_cust");
+    expect((await call(users.redeemOwnReward, "/api/users/redeem", { method: "POST" })).status).toBe(400);
+    await db`update customer_profiles set stamps = 3 where user_id = ${customerId}`;
+    expect((await call(users.redeemOwnReward, "/api/users/redeem", { method: "POST" })).body).toEqual({ success: true, newStamps: 0 });
+    await db`update site_settings set value = '10' where key = 'loyalty_stamps_required'`;
   });
 
   it("TC-USR-03: the directory adds, edits and deletes users", async () => {

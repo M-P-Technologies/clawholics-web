@@ -35,6 +35,12 @@ describe("RewardsStrip", () => {
     fireEvent.click(screen.getByRole("button", { name: /loyalty card/i }));
     expect(onOpen).toHaveBeenCalled();
   });
+
+  it("draws the salon's own number of stamps", () => {
+    render(<RewardsStrip stamps={5} target={6} onOpen={() => {}} />);
+    expect(screen.getAllByTestId("stamp-dot")).toHaveLength(6);
+    expect(screen.getByText(/1 more visit to a reward/)).toBeInTheDocument();
+  });
 });
 
 describe("RewardsSheet", () => {
@@ -54,5 +60,11 @@ describe("RewardsSheet", () => {
     rerender(<RewardsSheet open onClose={() => {}} stamps={10} cardNumber="X" clerkId="u" onRedeem={onRedeem} />);
     fireEvent.click(screen.getByRole("button", { name: /redeem/i }));
     expect(onRedeem).toHaveBeenCalledTimes(1);
+  });
+
+  it("lets a card be redeemed once it has the salon's number of stamps", () => {
+    render(<RewardsSheet open onClose={() => {}} stamps={5} target={5} cardNumber="X" clerkId="u" onRedeem={() => {}} />);
+    expect(screen.getByText(/Stamp Card — 5\/5/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /redeem/i })).toBeInTheDocument();
   });
 });

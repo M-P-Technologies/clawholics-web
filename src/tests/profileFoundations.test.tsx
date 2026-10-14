@@ -49,6 +49,8 @@ describe("profileView helpers", () => {
     expect(stampsToGo(0)).toBe(10);
     expect(stampsToGo(7)).toBe(3);
     expect(stampsToGo(12)).toBe(0);
+    expect(stampsToGo(3, 5)).toBe(2);
+    expect(stampsToGo(6, 5)).toBe(0);
   });
 
   it("reads appointment times as Philippine time", () => {
