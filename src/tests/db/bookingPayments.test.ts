@@ -162,6 +162,67 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       expect((await callRoute(booking.getBookedSlots, "/api/booking/slots-detailed?nailist_id=abc&date=x")).body).toEqual([]);
     });
 
+    it("TC-BK-08c: the admin list answers one page, filtered, searched and sorted, with the total", async () => {
+      // Two days, three appointments: A at 9 and 2, B at 11 on the next day (confirmed between
+      // bookings: a client holds one unpaid booking at a time)
+      const day1 = nextDate();
+      const day2 = nextDate();
+      const { body: a1 } = await book("user_a", day1, "14:00-15:00");
+      await db`update appointments set status = 'CONFIRMED' where id = ${a1.appointment_id}`;
+      const { body: a2 } = await book("user_a", day1, "09:00-10:00");
+      await db`update appointments set status = 'COMPLETED' where id = ${a2.appointment_id}`;
+      const { body: b1 } = await book("user_b", day2, "11:00-12:00");
+      await db`update appointments set status = 'AWAITING_PROOF' where id = ${b1.appointment_id}`;
+      await db`insert into payment_proofs (appointment_id, user_id, image_url, status) values (${b1.appointment_id}, ${clientB}, 'https://img/p.jpg', 'PENDING')`;
+
+      const list = (query: string) => callRoute(booking.listAllAppointments, `/api/booking/appointments?${query}`);
+      const ids = (body: { rows: { id: number }[] }) => body.rows.map((r) => r.id);
+
+      as("user_admin");
+      // The two days, soonest first, two to a page
+      const first = await list(`page=1&pageSize=2&from=${day1}&sort=upcoming`);
+      expect(first.status).toBe(200);
+      expect(first.body).toMatchObject({ total: 3, page: 1, pageSize: 2 });
+      expect(ids(first.body)).toEqual([a2.appointment_id, a1.appointment_id]);
+      expect(ids((await list(`page=2&pageSize=2&from=${day1}&sort=upcoming`)).body)).toEqual([b1.appointment_id]);
+      expect(ids((await list(`page=1&pageSize=5&from=${day1}&sort=latest`)).body)).toEqual([b1.appointment_id, a1.appointment_id, a2.appointment_id]);
+
+      // Filters: statuses, one day, the proof to review, the search
+      expect(ids((await list(`page=1&from=${day1}&status=CONFIRMED,COMPLETED`)).body).sort()).toEqual([a1.appointment_id, a2.appointment_id].sort());
+      expect((await list(`page=1&on=${day2}`)).body.total).toBe(1);
+      const proofs = await list(`page=1&from=${day1}&proof=review`);
+      expect(ids(proofs.body)).toEqual([b1.appointment_id]);
+      expect(proofs.body.rows[0].latest_proof).toMatchObject({ status: "PENDING", image_url: "https://img/p.jpg" });
+      expect((await list(`page=1&from=${day1}&q=bea`)).body.total).toBe(1);
+      expect(ids((await list(`page=1&q=%23${a1.appointment_id}`)).body)).toContain(a1.appointment_id);
+      // A search for a LIKE wildcard matches only that character, not everything
+      expect((await list(`page=1&from=${day1}&q=%25`)).body.total).toBe(0);
+
+      // Each row carries its client's completed visits
+      const ana = (await list(`page=1&on=${day1}`)).body.rows[0];
+      expect(ana.client_visits).toBeGreaterThanOrEqual(1);
+
+      // Times are ordered by their padded start: "9:00-10:00" comes before "13:00-14:00"
+      const day3 = nextDate();
+      await db`update appointments set appointment_date = ${day3}, appointment_time = '13:00-14:00' where id = ${a1.appointment_id}`;
+      await db`update appointments set appointment_date = ${day3}, appointment_time = '9:00-10:00' where id = ${a2.appointment_id}`;
+      expect(ids((await list(`page=1&on=${day3}&sort=upcoming`)).body)).toEqual([a2.appointment_id, a1.appointment_id]);
+      expect(ids((await list(`page=1&on=${day3}&sort=latest`)).body)).toEqual([a1.appointment_id, a2.appointment_id]);
+
+      // Without page, the full list as before; an empty status list means no status filter
+      expect(Array.isArray((await list("status=CONFIRMED")).body)).toBe(true);
+      const blank = await list("status=%2C");
+      expect(blank.status).toBe(200);
+      expect(Array.isArray(blank.body)).toBe(true);
+
+      // Bad paging or sort is refused, and only admins may list
+      for (const bad of ["page=0", "page=1&pageSize=51", "page=1&sort=price", "page=1&on=tomorrow"]) {
+        expect((await list(bad)).status).toBe(400);
+      }
+      as("user_a");
+      expect((await list("page=1")).status).toBe(403);
+    });
+
     it("TC-BK-08b: a range of days' booked slots come in one answer, active bookings only", async () => {
       const first = nextDate();
       const second = nextDate();
