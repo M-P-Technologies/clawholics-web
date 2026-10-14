@@ -385,18 +385,6 @@ export function useProfile() {
     return `${format(start)} - ${format(end)}`;
   };
 
-  const getStatusDotColor = (status: string) => {
-    const s = status.toLowerCase();
-    if (s === "pending") return "bg-warning";
-    if (s === "awaiting_proof") return "bg-warning";
-    if (s === "confirmed") return "bg-info";
-    if (s === "completed") return "bg-success";
-    if (s === "cancelled") return "bg-danger";
-    if (s === "refunded") return "bg-crimson-light";
-    return "bg-gray-red/50";
-  };
-
-
   const todayIso = new Date().toISOString().split("T")[0];
 
   // Active appointments together with everything the list needs to show each one.
@@ -429,7 +417,6 @@ export function useProfile() {
         canCancel,
         // What the card shows, so the page only lays it out
         statusLabel: displayStatus.replace(/_/g, " "),
-        statusDot: getStatusDotColor(displayStatus),
         dateLabel: formatDisplayDate(appt.appointment_date),
         timeLabel: formatSlot(appt.appointment_time),
         canPay: displayStatus.toLowerCase() === "pending" && !isExpired,
@@ -502,13 +489,12 @@ export function useProfile() {
       appt,
       dateLabel: formatDisplayDate(appt.appointment_date),
       timeLabel: formatSlot(appt.appointment_time.replace(" (Cancelled)", "")),
-      statusDot: getStatusDotColor(appt.status),
     }));
   const hasMoreHistory = processedPastAppointments.length > 5;
   const noHistory = processedPastAppointments.length === 0;
 
   // Same shape as the upcoming list, so one card component shows both
-  const pastViews: AppointmentView[] = history.map(({ appt, dateLabel, timeLabel, statusDot }) => ({
+  const pastViews: AppointmentView[] = history.map(({ appt, dateLabel, timeLabel }) => ({
     appt,
     displayStatus: appt.status,
     remainingTime: 0,
@@ -516,7 +502,6 @@ export function useProfile() {
     canReschedule: false,
     canCancel: false,
     statusLabel: appt.status.replace(/_/g, " "),
-    statusDot,
     dateLabel,
     timeLabel,
     canPay: false,
@@ -547,5 +532,5 @@ export function useProfile() {
     setLoadAttempt((n) => n + 1);
   };
 
-  return { loadError, retryLoad, toggleGender, toggleHistory, closeRewardModal, loyaltyCardNumber, isBusy, genderLabel, history, hasMoreHistory, noHistory, stampCells, isLateCancellation, selectedApptDateLabel, profileFields, isLoaded, clerkUser, getToken, navigate, highlightedAppointmentId, upcoming, nextAppointment, pastViews, dbUser, isEditing, formData, error, appointments, setAppointments, stamps, isGenderOpen, setIsGenderOpen, showRewardModal, setShowRewardModal, selectedAppt, setSelectedAppt, isCancelModalOpen, setIsCancelModalOpen, actionError, setActionError, currentTime, showAllHistory, setShowAllHistory, isCancelling, historySortBy, setHistorySortBy, historyFilter, setHistoryFilter, processedPastAppointments, todayFormatted, formatDisplayDate, handleEditClick, genderOptions, handleGenderSelect, handleContactMethodSelect, formatTime, handleChange, handleSave, handleCancel, handleClientRedeem, handleCancelAppointment, isEligibleForChanges, formatSlot, getStatusDotColor, todayIso, currentAppointments, payForAppointment, rescheduleAppointment, startCancel, closeCancelModal, handleProofUploaded, handleHistoryFilterChange, handleHistorySortChange };
+  return { loadError, retryLoad, toggleGender, toggleHistory, closeRewardModal, loyaltyCardNumber, isBusy, genderLabel, history, hasMoreHistory, noHistory, stampCells, isLateCancellation, selectedApptDateLabel, profileFields, isLoaded, clerkUser, getToken, navigate, highlightedAppointmentId, upcoming, nextAppointment, pastViews, dbUser, isEditing, formData, error, appointments, setAppointments, stamps, isGenderOpen, setIsGenderOpen, showRewardModal, setShowRewardModal, selectedAppt, setSelectedAppt, isCancelModalOpen, setIsCancelModalOpen, actionError, setActionError, currentTime, showAllHistory, setShowAllHistory, isCancelling, historySortBy, setHistorySortBy, historyFilter, setHistoryFilter, processedPastAppointments, todayFormatted, formatDisplayDate, handleEditClick, genderOptions, handleGenderSelect, handleContactMethodSelect, formatTime, handleChange, handleSave, handleCancel, handleClientRedeem, handleCancelAppointment, isEligibleForChanges, formatSlot, todayIso, currentAppointments, payForAppointment, rescheduleAppointment, startCancel, closeCancelModal, handleProofUploaded, handleHistoryFilterChange, handleHistorySortChange };
 }

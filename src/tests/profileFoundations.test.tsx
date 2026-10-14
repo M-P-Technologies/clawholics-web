@@ -12,7 +12,7 @@ vi.mock("@/services/serviceService", () => ({ fetchServices: () => fetchServices
 const view = (over: Partial<AppointmentView> & { date?: string } = {}): AppointmentView => ({
   appt: { id: 1, service_name: "Hard Gel", nailist_id: 1, nailist_name: "Max", appointment_date: over.date ?? "2026-10-20", appointment_time: "09:00-11:00", status: "confirmed" },
   displayStatus: "confirmed", remainingTime: 0, isExpired: false, canReschedule: true, canCancel: true,
-  statusLabel: "confirmed", statusDot: "bg-info", dateLabel: "October 20, 2026", timeLabel: "9:00 AM - 11:00 AM",
+  statusLabel: "confirmed", dateLabel: "October 20, 2026", timeLabel: "9:00 AM - 11:00 AM",
   canPay: false, payLabel: "", isLocked: false, ...over,
 });
 

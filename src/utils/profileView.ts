@@ -32,7 +32,7 @@ export function pickNext(views: AppointmentView[]): AppointmentView | null {
   return sortSoonest(views.filter((v) => !v.isExpired))[0] ?? null;
 }
 
-/** The dot of a client's appointment status, as useProfile's getStatusDotColor colors it */
+/** The dot of a client's appointment status */
 export function statusDotTone(status: string): BadgeTone {
   const s = status.toLowerCase();
   if (s === "pending" || s === "awaiting_proof") return "warning";

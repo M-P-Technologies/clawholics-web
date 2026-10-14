@@ -14,7 +14,7 @@ vi.mock("@/components/payment/PaymentProofCard", () => ({
 
 const make = (id: number, over: Partial<AppointmentView> = {}, status = "confirmed"): AppointmentView => ({
   appt: { id, service_name: `Service ${id}`, nailist_id: 1, nailist_name: "Max", appointment_date: "2026-10-20", appointment_time: "09:00-11:00", status },
-  displayStatus: status, remainingTime: 0, isExpired: false, canReschedule: true, canCancel: true, statusLabel: status, statusDot: "bg-info",
+  displayStatus: status, remainingTime: 0, isExpired: false, canReschedule: true, canCancel: true, statusLabel: status,
   dateLabel: "October 20, 2026", timeLabel: "9:00 AM - 11:00 AM", canPay: false, payLabel: "", isLocked: false, ...over,
 });
 const sheetProps = () => ({

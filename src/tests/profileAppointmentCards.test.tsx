@@ -11,7 +11,7 @@ vi.mock("@/lib/router", () => ({
 const make = (over: Partial<AppointmentView> = {}, apptOver: Partial<AppointmentView["appt"]> = {}): AppointmentView => ({
   appt: { id: 5, service_name: "Hard Gel", nailist_id: 1, nailist_name: "Miss Max", appointment_date: "2026-10-20", appointment_time: "09:00-11:00", status: "confirmed", ...apptOver },
   displayStatus: "confirmed", remainingTime: 0, isExpired: false, canReschedule: true, canCancel: true,
-  statusLabel: "confirmed", statusDot: "bg-info", dateLabel: "October 20, 2026", timeLabel: "9:00 AM - 11:00 AM",
+  statusLabel: "confirmed", dateLabel: "October 20, 2026", timeLabel: "9:00 AM - 11:00 AM",
   canPay: false, payLabel: "", isLocked: false, ...over,
 });
 const NOW = Date.parse("2026-10-17T09:00:00+08:00");

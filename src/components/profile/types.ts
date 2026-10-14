@@ -9,7 +9,6 @@ export interface AppointmentView {
   canReschedule: boolean;
   canCancel: boolean;
   statusLabel: string;
-  statusDot: string;
   dateLabel: string;
   timeLabel: string;
   canPay: boolean;
