@@ -15,6 +15,7 @@ export default function ClientFields({ a }: { a: CreateAppointment }) {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <input
             type="text"
+            data-autofocus
             value={a.firstName}
             onChange={(e) => a.setFirstName(e.target.value)}
             placeholder="First name"

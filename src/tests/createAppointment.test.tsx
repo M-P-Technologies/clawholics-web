@@ -192,6 +192,11 @@ describe("CreateAppointmentDialog: opening and closing", () => {
     expect(dialog).toContainElement(document.activeElement as HTMLElement);
   });
 
+  it("opens with focus on the First name field", async () => {
+    await renderModal();
+    expect(screen.getByPlaceholderText("First name")).toHaveFocus();
+  });
+
   it("calls onClose once on Escape", async () => {
     const { onClose } = await renderModal();
     fireEvent.keyDown(window, { key: "Escape" });
