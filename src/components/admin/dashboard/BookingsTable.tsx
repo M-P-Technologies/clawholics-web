@@ -1,13 +1,16 @@
 import { Search, SquarePen } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { manilaToday } from "../../../lib/dashboardPeriods";
 import { Link } from "../../../lib/router";
-import type { Appointment } from "../../../services/appointmentService";
+import { ADMIN_APPOINTMENTS_KEY, type Appointment, type AppointmentPageParams } from "../../../services/appointmentService";
+import type { BookingsLoader } from "../../../hooks/admin/useReports";
+import { useDebouncedValue } from "../../../hooks/useDebouncedValue";
 import { useTableLayout } from "../../../hooks/useMinWidth";
 import Button from "../../ui/Button";
 import { CardFields, RowCard, RowCards } from "../RowCards";
-import TablePager, { paginate } from "./TablePager";
+import TablePager, { pageView } from "./TablePager";
 import { ListSkeleton } from "../ListSkeleton";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -26,7 +29,11 @@ const STATUS: Record<string, { label: string; className: string }> = {
   REFUNDED: { label: "Refunded", className: "bg-danger/15 text-gray-red" },
 };
 const CANCELLED = ["CANCELLED", "CANCELED", "REFUNDED"];
+// Still to come: not cancelled, refunded or completed
+const UPCOMING = ["PENDING", "AWAITING_PROOF", "CONFIRMED"];
 const statusOf = (a: Appointment) => (a.status ?? "").trim().toUpperCase();
+/** Five to a page keeps the dashboard short */
+const PAGE = 5;
 
 type Tab = "upcoming" | "all" | "cancelled";
 const TABS: { value: Tab; label: string }[] = [
@@ -39,51 +46,43 @@ const TABS: { value: Tab; label: string }[] = [
 const WALKIN_EMAIL = "walkin-guest@clawholics.local";
 const isWalkin = (a: Appointment) => Boolean(a.is_walkin) || (a.email ?? "").trim().toLowerCase() === WALKIN_EMAIL;
 const clientName = (a: Appointment) => `${a.first_name ?? ""} ${a.last_name ?? ""}`.trim() || "Client";
-const startOf = (a: Appointment) => `${a.appointment_date} ${a.appointment_time.split("-")[0].trim().padStart(5, "0")}`;
 
 // Every booking in one table, like the Appointments screen but at a glance: Upcoming (still to
 // come, soonest first), All and Cancelled (newest first), with a search and pages of ten. Each
 // client with an account opens their client page. On a phone each booking is a card.
-export default function BookingsTable({ load }: { load: () => Promise<Appointment[]> }) {
-  const [rows, setRows] = useState<Appointment[] | null>(null);
-  const [failed, setFailed] = useState(false);
-  const [attempt, setAttempt] = useState(0);
+export default function BookingsTable({ load }: { load: BookingsLoader }) {
   const [tab, setTab] = useState<Tab>("upcoming");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const asTable = useTableLayout();
+  // The search asks the server once typing pauses
+  const search = useDebouncedValue(query.trim());
 
-  useEffect(() => {
-    let live = true;
-    (async () => {
-      try {
-        const loaded = await load();
-        if (live) {
-          setRows(loaded);
-          setFailed(false);
-        }
-      } catch {
-        if (live) setFailed(true);
-      }
-    })();
-    return () => {
-      live = false;
-    };
-  }, [load, attempt]);
-
+  // One page from the server for the tab: Upcoming soonest first, the others newest first
   const today = manilaToday(new Date());
-  const q = query.trim().toLowerCase();
-  const shown = (rows ?? [])
-    .filter((a) => {
-      const status = statusOf(a);
-      if (tab === "cancelled") return CANCELLED.includes(status);
-      if (tab === "upcoming") return a.appointment_date >= today && !CANCELLED.includes(status) && status !== "COMPLETED";
-      return true;
-    })
-    .filter((a) => !q || [clientName(a), a.email, a.service_name, a.nailist_name].some((v) => (v ?? "").toLowerCase().includes(q)))
-    .sort((a, b) => (tab === "upcoming" ? startOf(a).localeCompare(startOf(b)) : startOf(b).localeCompare(startOf(a))) || a.id - b.id);
-
-  const view = paginate(shown, page, 5); // five to a page keeps the dashboard short
+  const [lastTotal, setLastTotal] = useState(0);
+  const params: AppointmentPageParams = {
+    // A list that shrank keeps you on its last page rather than past it
+    page: Math.min(page, Math.max(1, Math.ceil(lastTotal / PAGE))),
+    pageSize: PAGE,
+    search,
+    ...(tab === "upcoming"
+      ? { statuses: UPCOMING, from: today, sort: "upcoming" }
+      : tab === "cancelled"
+        ? { statuses: CANCELLED, sort: "latest" }
+        : { sort: "latest" }),
+  };
+  const bookings = useQuery({
+    queryKey: [...ADMIN_APPOINTMENTS_KEY, "dashboard", params],
+    queryFn: () => load(params),
+    placeholderData: keepPreviousData,
+  });
+  // A failed refresh keeps the page on screen; a failed load of another tab or page has no data
+  const current = bookings.data;
+  if (current && current.total !== lastTotal) setLastTotal(current.total);
+  const rows = current?.rows ?? null;
+  const failed = bookings.isError && !current;
+  const view = pageView(rows ?? [], params.page, PAGE, current?.total ?? 0);
 
   const choose = (next: Tab) => {
     setTab(next);
@@ -130,7 +129,7 @@ export default function BookingsTable({ load }: { load: () => Promise<Appointmen
       {failed ? (
         <div className="flex flex-wrap items-center gap-3 text-sm text-gray-red">
           We couldn&apos;t load the bookings.
-          <Button type="button" variant="secondary" onClick={() => setAttempt((n) => n + 1)}>
+          <Button type="button" variant="secondary" onClick={() => void bookings.refetch()}>
             Try again
           </Button>
         </div>
@@ -238,9 +237,9 @@ export default function BookingsTable({ load }: { load: () => Promise<Appointmen
           </div>
           )}
 
-          {shown.length === 0 && (
+          {view.rows.length === 0 && (
             <p className="text-sm text-gray-red/70">
-              {q ? "No bookings match your search." : tab === "cancelled" ? "No cancelled bookings." : tab === "upcoming" ? "No upcoming bookings." : "No bookings yet."}
+              {query.trim() ? "No bookings match your search." : tab === "cancelled" ? "No cancelled bookings." : tab === "upcoming" ? "No upcoming bookings." : "No bookings yet."}
             </p>
           )}
 

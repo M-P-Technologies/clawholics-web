@@ -1,23 +1,32 @@
 import { useAuth, useUser } from "@clerk/nextjs";
 import { Check, ChevronDown, Plus, Search, SquarePen } from "lucide-react";
 import { useEffect, useState } from "react";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import AppointmentDetailsModal from "./AppointmentDetailsModal";
 import CreateAppointmentModal from "./CreateAppointmentModal";
 import { ListSkeleton } from "./ListSkeleton";
 import { CardFields, CARDS_PER_PAGE, RowCard, RowCards } from "./RowCards";
-import TablePager, { paginate } from "./dashboard/TablePager";
+import TablePager, { pageView } from "./dashboard/TablePager";
 import Button from "../ui/Button";
 import Select from "../ui/Select";
 import Sheet from "../ui/Sheet";
 import { useToast } from "../ui/ToastProvider";
 import { Link, useSearchParams } from "@/lib/router";
 import { initialsOf, monthYear, relativeDay, type DirectoryProfile } from "./DirectoryProfileCard";
-import { usePolling } from "../../hooks/usePolling";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import { useTableLayout } from "../../hooks/useMinWidth";
 import { API_BASE_URL } from "../../apiConfig";
 import { matchesAppointmentFilter, type AppointmentFilterStatus } from "../../services/appointmentFilters";
-import { fetchAppointments, updateAppointmentStatus, type Appointment, type AppointmentStatus } from "../../services/appointmentService";
+import {
+  ADMIN_APPOINTMENTS_KEY,
+  fetchAppointmentPage,
+  updateAppointmentStatus,
+  type Appointment,
+  type AppointmentPageParams,
+  type AppointmentSort,
+  type AppointmentStatus,
+} from "../../services/appointmentService";
 import { getProofState, isProofOverdue } from "../../services/proofState";
 
 /** The status filter; the page can open on one (the dashboard links here): `?status=PENDING` */
@@ -37,6 +46,14 @@ export const parseStatusParam = (value: string | null): AppointmentFilterStatus 
   STATUS_OPTIONS.find((option) => option.value === value)?.value ?? "ALL";
 
 const SORT_OPTIONS = ["Upcoming First", "Latest First", "Recently Booked", "Oldest Booked"];
+
+// Each sort as the server names it (by appointment date and time, or by when it was booked)
+const SORT_PARAM: Record<string, AppointmentSort> = {
+  "Upcoming First": "upcoming",
+  "Latest First": "latest",
+  "Recently Booked": "booked_newest",
+  "Oldest Booked": "booked_oldest",
+};
 
 // Five to a page, like the dashboard's bookings table
 const ROWS_PER_PAGE = 5;
@@ -85,11 +102,6 @@ interface NailArtist {
 const artistName = (artist: NailArtist) => artist.name || `${artist.first_name ?? ""} ${artist.last_name ?? ""}`.trim();
 const clientName = (a: Appointment) => `${a.first_name ?? ""} ${a.last_name ?? ""}`.trim() || `User #${a.user_id}`;
 const statusOf = (a: Appointment) => (a.status?.trim().toUpperCase() || "PENDING") as AppointmentStatus;
-const timeOf = (value?: string | null) => {
-  const time = value ? new Date(value).getTime() : NaN;
-  return Number.isNaN(time) ? 0 : time;
-};
-const startOf = (a: Appointment) => timeOf(`${a.appointment_date} ${a.appointment_time}`);
 
 // The proof badge beside a client: a proof to review, or one that's overdue
 // A proof waiting for review is a button: it opens the review (the client page has no proof review)
@@ -132,8 +144,8 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
   const [searchParams] = useSearchParams();
   const asTable = useTableLayout();
 
-  const [appointments, setAppointments] = useState<Appointment[] | null>(null);
-  const [failed, setFailed] = useState(false);
+  const queryClient = useQueryClient();
+  const { isLoaded: isAuthLoaded } = useAuth();
   const [artists, setArtists] = useState<NailArtist[]>([]);
   const [status, setStatus] = useState<AppointmentFilterStatus>(() => parseStatusParam(searchParams.get("status")));
   const [artist, setArtist] = useState("All");
@@ -145,21 +157,46 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
   const [slotTaken, setSlotTaken] = useState(false);
   // Phone: which filter's drawer is open
   const [openFilter, setOpenFilter] = useState<"status" | "artist" | "sort" | null>(null);
-  // The time the proof badges and filters are worked out against, updated with each load
-  const [now, setNow] = useState(() => Date.now());
+  const [firstRender] = useState(() => Date.now());
+  // The search asks the server once typing pauses
+  const search = useDebouncedValue(query.trim());
+  const pageSize = asTable ? ROWS_PER_PAGE : CARDS_PER_PAGE;
 
-  const load = async () => {
-    try {
-      const data = await fetchAppointments(STATUSES, await getToken(), currentUser?.id);
-      setAppointments(data.filter((a) => STATUSES.includes(statusOf(a))));
-      setNow(Date.now());
-      setFailed(false);
-    } catch (error) {
-      // A failed refresh keeps the list on screen; the error shows only when there's none yet
-      console.warn("Couldn't load the appointments:", error);
-      setFailed(true);
-    }
+  // One page from the server (it used to send every appointment to show five). "Proof overdue"
+  // needs a proof deadline the database doesn't store, so, as before, it matches nothing.
+  const proofOverdue = status === "PROOF_OVERDUE";
+  const [lastTotal, setLastTotal] = useState(0);
+  const pages = Math.max(1, Math.ceil(lastTotal / pageSize));
+  const params: AppointmentPageParams = {
+    // A list that shrank (a status changed) keeps you on its last page rather than past it
+    page: Math.min(page, pages),
+    pageSize,
+    statuses: status === "ALL" || status === "PROOF_PENDING" || proofOverdue ? STATUSES : [status],
+    proofToReview: status === "PROOF_PENDING",
+    artist: artist === "All" ? undefined : artist,
+    search,
+    sort: SORT_PARAM[sort],
   };
+  const listQuery = useQuery({
+    queryKey: [...ADMIN_APPOINTMENTS_KEY, params],
+    queryFn: async () => fetchAppointmentPage(params, await getToken(), currentUser?.id),
+    enabled: isAuthLoaded && !proofOverdue,
+    // The page on screen stays (and a failed refresh keeps it) until the next one arrives
+    placeholderData: keepPreviousData,
+    // Refreshes every 30 seconds, only while this tab is on screen
+    refetchInterval: 30_000,
+  });
+  // The previous page shows while another loads; if that load fails it has no data, and the error shows
+  const result = proofOverdue ? { rows: [], total: 0 } : listQuery.data;
+  if (result && result.total !== lastTotal) setLastTotal(result.total);
+  const appointments: Appointment[] | null = result ? result.rows : null;
+  const failed = listQuery.isError;
+  // The time the proof badges are worked out against: when this page was loaded
+  const now = listQuery.dataUpdatedAt || firstRender;
+
+  // After a change: every page and the dashboard's tables load again
+  const refresh = () => queryClient.invalidateQueries({ queryKey: ADMIN_APPOINTMENTS_KEY });
+  const load = () => void listQuery.refetch();
 
   const loadArtists = async () => {
     try {
@@ -170,14 +207,10 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
     }
   };
 
+  // The artist filter's list, loaded once
   useEffect(() => {
-    load();
     loadArtists();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- loads once; the polling below refreshes
   }, []);
-
-  // Refresh every 30 seconds, only while this tab is on screen
-  usePolling(load, { intervalMs: 30000, immediate: false });
 
   // A new filter or search starts again on the first page
   const choose = <T,>(set: (value: T) => void) => (value: T) => {
@@ -190,7 +223,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
       const updated = await updateAppointmentStatus(id, next, await getToken(), currentUser?.id);
       const updatedStatus = statusOf(updated);
       toast.show("success", "Appointment updated", `Appointment #${id} is now ${updatedStatus.toLowerCase().replace(/_/g, " ")}.`);
-      setAppointments((prev) => (prev ?? []).filter((a) => a.id !== id).concat(STATUSES.includes(updatedStatus) ? [updated] : []));
+      void refresh();
       setSelected((current) => (current?.id === id ? (matchesAppointmentFilter(updated, status, now) ? updated : null) : current));
     } catch (error) {
       const message = error instanceof Error ? error.message : "";
@@ -203,24 +236,10 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
     }
   };
 
-  const q = query.trim().toLowerCase();
-  const shown = (appointments ?? [])
-    .filter((a) => matchesAppointmentFilter(a, status, now))
-    .filter((a) => artist === "All" || a.nailist_name === artist)
-    .filter((a) => !q || [String(a.id), `#${a.id}`, clientName(a), a.email, a.service_name, a.nailist_name].some((v) => (v ?? "").toLowerCase().includes(q)))
-    .sort((a, b) => {
-      if (sort === "Latest First") return startOf(b) - startOf(a);
-      if (sort === "Recently Booked") return timeOf(b.created_at) - timeOf(a.created_at);
-      if (sort === "Oldest Booked") return timeOf(a.created_at) - timeOf(b.created_at);
-      return startOf(a) - startOf(b);
-    });
-  const view = paginate(shown, page, asTable ? ROWS_PER_PAGE : CARDS_PER_PAGE);
+  const q = query.trim();
+  const shown = appointments ?? [];
+  const view = pageView(shown, params.page, pageSize, result?.total ?? 0);
 
-  // Visits: each client's completed appointments
-  const visits = new Map<number, number>();
-  for (const a of appointments ?? []) {
-    if (statusOf(a) === "COMPLETED") visits.set(a.user_id, (visits.get(a.user_id) ?? 0) + 1);
-  }
   const clientFacts = (a: Appointment) => {
     const profile = isWalkin(a) ? undefined : clients[a.user_id];
     return {
@@ -228,7 +247,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
       phone: a.phone?.trim() || "–",
       joined: monthYear(profile?.joinedAt) || "–",
       lastActive: relativeDay(profile?.lastSignInAt) || "–",
-      visits: isWalkin(a) ? "–" : String(visits.get(a.user_id) ?? 0),
+      visits: isWalkin(a) ? "–" : String(a.client_visits ?? 0),
     };
   };
 
@@ -494,7 +513,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
           onClose={() => setCreating(false)}
           onCreated={() => {
             setCreating(false);
-            load();
+            void refresh();
             toast.show("success", "Appointment created", "The walk-in appointment was added and now shows in the list.");
           }}
         />
@@ -523,7 +542,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
           clerkId={currentUser?.id}
           onProofReviewed={async () => {
             setSelected(null);
-            await load();
+            await refresh();
           }}
         />
       )}

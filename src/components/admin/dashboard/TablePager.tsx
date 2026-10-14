@@ -13,6 +13,14 @@ export function paginate<T>(items: T[], page: number, size = PAGE_SIZE) {
   return { rows, pages, current, first, last: first === 0 ? 0 : first + rows.length - 1, total: items.length };
 }
 
+/** The same for a page the server already cut: its rows, and the total it reported */
+export function pageView<T>(rows: T[], page: number, size: number, total: number): ReturnType<typeof paginate<T>> {
+  const pages = Math.max(1, Math.ceil(total / size));
+  const current = Math.min(page, pages);
+  const first = rows.length === 0 ? 0 : (current - 1) * size + 1;
+  return { rows, pages, current, first, last: first === 0 ? 0 : first + rows.length - 1, total };
+}
+
 const SHOWN_PAGES = 5;
 
 // Up to five page numbers around the current page (fewer near either end of a short list)

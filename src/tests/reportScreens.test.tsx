@@ -16,7 +16,7 @@ vi.mock("@/lib/router", () => ({
   useLocation: () => ({ pathname: "/sales" }),
 }));
 vi.mock("@clerk/nextjs", () => {
-  const auth = { getToken: async () => "tok" };
+  const auth = { getToken: async () => "tok", isLoaded: true };
   const user = { user: { id: "admin_1" } };
   return { useAuth: () => auth, useUser: () => user };
 });
