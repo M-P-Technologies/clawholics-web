@@ -561,5 +561,66 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       const ok = await callRoute(payments.updatePaymentSettings, "/api/settings/payment", { method: "PUT", body: { downpayment_amount: 300, payment_methods: ["GCASH", "MANUAL"] } });
       expect(ok.body).toEqual({ downpayment_amount: 300, payment_methods: ["GCASH", "MANUAL"] });
     });
+
+    it("TC-PAY-10: a paid booking and an uploaded proof notify the admins once each; each admin marks them read", async () => {
+      const notifications = await import("../../server/handlers/notifications");
+      await db`delete from admin_notifications`;
+      await db`insert into users (clerk_id, email, role) values ('user_admin2', 'admin2@x.test', 'admin')`;
+      await db`update site_settings set value = '["GCASH","MANUAL"]' where key = 'payment_methods'`;
+      try {
+        // Paid online: the webhook may come twice, the admins hear once
+        const paidBooking = await book("user_a", nextDate(), "9:00 AM");
+        expect(paidBooking.status).toBe(200);
+        as("user_a");
+        const invoice = await callRoute(payments.createPayment, "/api/payment/create", {
+          method: "POST",
+          body: { appointment_id: paidBooking.body.appointment_id, payment_method: "GCASH" },
+        });
+        await webhook("cb-token", { external_id: invoice.body.external_id, status: "PAID" });
+        await webhook("cb-token", { external_id: invoice.body.external_id, status: "PAID" });
+
+        // A proof uploaded for review
+        const proofBooking = await book("user_b", nextDate(), "9:00 AM");
+        expect(proofBooking.status).toBe(200);
+        as("user_b");
+        const uploaded = await callRoute(payments.uploadPaymentProof, "/api/payment/proofs", {
+          method: "POST",
+          body: proofForm(proofBooking.body.appointment_id),
+        });
+        expect(uploaded.status).toBe(201);
+        await Promise.all(background);
+
+        // Clients can't see them
+        as("user_a");
+        expect((await callRoute(notifications.getAdminNotifications, "/api/notifications")).status).toBe(403);
+
+        as("user_admin");
+        const list = await callRoute(notifications.getAdminNotifications, "/api/notifications");
+        expect(list.status).toBe(200);
+        expect(list.body.unread).toBe(2);
+        type Row = { id: number; kind: string; appointment_id: number; unread: boolean };
+        expect(list.body.notifications.map((n: Row) => [n.kind, n.appointment_id, n.unread])).toEqual([
+          ["proof_uploaded", proofBooking.body.appointment_id, true],
+          ["booking_paid", paidBooking.body.appointment_id, true],
+        ]);
+        expect(list.body.notifications[1]).toMatchObject({ client_user_id: clientA, service_name: serviceName, nailist_name: nailistName });
+
+        // Opening the bell marks them read, for this admin only
+        const read = (upTo: unknown) => callRoute(notifications.markNotificationsRead, "/api/notifications/read", { method: "POST", body: { upTo } });
+        expect((await read("x")).status).toBe(400);
+        expect((await read(list.body.notifications[0].id)).status).toBe(200);
+        const after = await callRoute(notifications.getAdminNotifications, "/api/notifications");
+        expect(after.body.unread).toBe(0);
+        expect(after.body.notifications.every((n: Row) => !n.unread)).toBe(true);
+        // An older id doesn't mark them unread again
+        expect((await read(list.body.notifications[1].id)).status).toBe(200);
+        expect((await callRoute(notifications.getAdminNotifications, "/api/notifications")).body.unread).toBe(0);
+
+        as("user_admin2");
+        expect((await callRoute(notifications.getAdminNotifications, "/api/notifications")).body.unread).toBe(2);
+      } finally {
+        await db`update site_settings set value = '["GCASH"]' where key = 'payment_methods'`;
+      }
+    });
   });
 });

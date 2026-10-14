@@ -3,6 +3,7 @@ import { cancelExpiredPendingAppointments, getAppointment, isSlotConflict } from
 import { canAccess, requireAdmin, requireUserRow, type RequesterUser } from "../auth";
 import { getSql } from "../db";
 import { sendAppointmentConfirmation, sendPaymentProofAdminEmail } from "../email";
+import { notifyAdmins } from "../notifications";
 import { inBackground, readJson, routeNotFound, toId } from "../http";
 import {
   MAX_PROOF_SIZE,
@@ -125,7 +126,11 @@ export const xenditWebhook = ported(
         }
         return paid.appointment_id;
       });
-      if (confirmedId !== null) inBackground("payment confirmation email", () => sendAppointmentConfirmation(confirmedId));
+      if (confirmedId !== null) {
+        inBackground("payment confirmation email", () => sendAppointmentConfirmation(confirmedId));
+        // The admins' bell. After the payment's transaction, so a failure here can't undo it
+        inBackground("admin notification", () => notifyAdmins("booking_paid", confirmedId, confirmedId));
+      }
     }
     return new Response("OK", { status: 200 });
   },
@@ -222,6 +227,7 @@ export const uploadPaymentProof = ported(async (req) => {
     returning *
   `;
   inBackground("payment proof email", () => sendPaymentProofAdminEmail(appt, proof.id, imageUrl));
+  inBackground("admin notification", () => notifyAdmins("proof_uploaded", proof.id, appointmentId));
   return Response.json(proof, { status: 201 });
 });
 
