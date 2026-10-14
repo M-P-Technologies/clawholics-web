@@ -2,7 +2,7 @@
 
 import CmsEditor from "@/components/features/admin/cms/CmsEditor";
 import { ItemsNote, PanelSection, SaveBar, TextField } from "@/components/features/admin/cms/fields";
-import NailArtistDropdown from "@/components/features/admin/catalog/NailArtistDropdown";
+import ArtistEditor from "@/components/features/admin/catalog/ArtistEditor";
 import { LoadingBar } from "@/components/atoms";
 import { useArtistsEditor } from "../../hooks/admin/useArtistsEditor";
 import { ARTISTS_PREVIEW_PAGES } from "../../lib/admin/cmsPages";
@@ -52,7 +52,7 @@ export default function NailArtists() {
       >
         <div className="flex flex-col gap-3">
           {nailists.map((nailist) => (
-            <NailArtistDropdown
+            <ArtistEditor
               key={nailist.id}
               nailist={nailist}
               tokenFetcher={editor.getToken}
@@ -63,7 +63,7 @@ export default function NailArtists() {
             />
           ))}
 
-          <NailArtistDropdown mode="create" tokenFetcher={editor.getToken} clerkId={editor.clerkId} onNailistCreated={editor.onNailistCreated} />
+          <ArtistEditor mode="create" tokenFetcher={editor.getToken} clerkId={editor.clerkId} onNailistCreated={editor.onNailistCreated} />
         </div>
       </PanelSection>
     </CmsEditor>

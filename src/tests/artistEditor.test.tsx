@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import NailArtistDropdown from "@/components/features/admin/catalog/NailArtistDropdown";
+import ArtistEditor from "@/components/features/admin/catalog/ArtistEditor";
 
 const show = vi.fn();
 const nailist = {
@@ -56,7 +56,7 @@ const artist = {
 const tokenFetcher = vi.fn().mockResolvedValue("tok");
 
 const renderArtist = async (onNailistUpdated = vi.fn()) => {
-  render(<NailArtistDropdown nailist={artist} tokenFetcher={tokenFetcher} clerkId="clerk_1" onNailistUpdated={onNailistUpdated} />);
+  render(<ArtistEditor nailist={artist} tokenFetcher={tokenFetcher} clerkId="clerk_1" onNailistUpdated={onNailistUpdated} />);
   fireEvent.click(screen.getByRole("button", { name: /Mara/ }));
   await screen.findByLabelText("Gel Polish");
   await screen.findByText("08:00 AM");
@@ -274,8 +274,8 @@ describe("artist editor", () => {
     nailist.fetchNailistServices.mockImplementation(async (id: number) => (id === 8 ? [2] : [1]));
     render(
       <>
-        <NailArtistDropdown nailist={artist} tokenFetcher={tokenFetcher} clerkId="clerk_1" />
-        <NailArtistDropdown nailist={other} tokenFetcher={tokenFetcher} clerkId="clerk_1" />
+        <ArtistEditor nailist={artist} tokenFetcher={tokenFetcher} clerkId="clerk_1" />
+        <ArtistEditor nailist={other} tokenFetcher={tokenFetcher} clerkId="clerk_1" />
       </>,
     );
     await screen.findByText("09:00 AM");
@@ -310,7 +310,7 @@ describe("artist editor", () => {
   describe("create mode", () => {
     const renderCreate = () => {
       const onCreated = vi.fn();
-      render(<NailArtistDropdown mode="create" tokenFetcher={tokenFetcher} clerkId="clerk_1" onNailistCreated={onCreated} />);
+      render(<ArtistEditor mode="create" tokenFetcher={tokenFetcher} clerkId="clerk_1" onNailistCreated={onCreated} />);
       fireEvent.click(screen.getByRole("button", { name: /Add Artist/ }));
       return onCreated;
     };
@@ -374,7 +374,7 @@ describe("artist editor", () => {
     it("deletes after confirming", async () => {
       const onDeleted = vi.fn();
       nailist.deleteNailist.mockResolvedValue(undefined);
-      render(<NailArtistDropdown nailist={artist} tokenFetcher={tokenFetcher} clerkId="clerk_1" onNailistDeleted={onDeleted} />);
+      render(<ArtistEditor nailist={artist} tokenFetcher={tokenFetcher} clerkId="clerk_1" onNailistDeleted={onDeleted} />);
       await screen.findByLabelText("Gel Polish");
       fireEvent.click(screen.getByRole("button", { name: "Delete" }));
       const dialog = await screen.findByRole("alertdialog");
@@ -389,7 +389,7 @@ describe("artist editor", () => {
     it("keeps the dialog open and says so when deleting fails", async () => {
       const onDeleted = vi.fn();
       nailist.deleteNailist.mockRejectedValue(new Error("x"));
-      render(<NailArtistDropdown nailist={artist} tokenFetcher={tokenFetcher} clerkId="clerk_1" onNailistDeleted={onDeleted} />);
+      render(<ArtistEditor nailist={artist} tokenFetcher={tokenFetcher} clerkId="clerk_1" onNailistDeleted={onDeleted} />);
       await screen.findByLabelText("Gel Polish");
       fireEvent.click(screen.getByRole("button", { name: "Delete" }));
       const dialog = await screen.findByRole("alertdialog");
