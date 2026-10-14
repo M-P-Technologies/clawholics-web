@@ -31,6 +31,7 @@ export default function AppointmentsSection(props: AppointmentsSectionProps) {
     <section aria-label="Appointments" className="flex flex-col gap-4">
       <SegmentedControl
         label="Which appointments"
+        fill
         className="self-start max-sm:w-full"
         options={[
           { value: "upcoming", label: "Upcoming", count: upcoming.length },
