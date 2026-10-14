@@ -1,11 +1,11 @@
 import { Gift } from "lucide-react";
 import clsx from "clsx";
-import { STAMP_TARGET, stampsToGo } from "../../utils/profileView";
+import { DEFAULT_STAMP_TARGET, stampsToGo } from "../../utils/profileView";
 import Button from "../ui/Button";
 
 // The loyalty card in short: the stamps so far and how many are left. Opens the full card.
-export default function RewardsStrip({ stamps, onOpen }: { stamps: number; onOpen: () => void }) {
-  const left = stampsToGo(stamps);
+export default function RewardsStrip({ stamps, target = DEFAULT_STAMP_TARGET, onOpen }: { stamps: number; target?: number; onOpen: () => void }) {
+  const left = stampsToGo(stamps, target);
   return (
     <Button
       variant="bare"
@@ -23,12 +23,12 @@ export default function RewardsStrip({ stamps, onOpen }: { stamps: number; onOpe
           Loyalty card
         </span>
         <span className="font-display text-xl leading-none text-berry">
-          {Math.min(stamps, STAMP_TARGET)}
-          <span className="text-sm text-gray-red/50"> / {STAMP_TARGET}</span>
+          {Math.min(stamps, target)}
+          <span className="text-sm text-gray-red/50"> / {target}</span>
         </span>
       </span>
       <span className="flex items-center gap-1.5" aria-hidden="true">
-        {Array.from({ length: STAMP_TARGET }, (_, i) => (
+        {Array.from({ length: target }, (_, i) => (
           <span
             key={i}
             data-testid="stamp-dot"

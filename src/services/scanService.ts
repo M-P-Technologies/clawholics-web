@@ -37,5 +37,9 @@ export async function fetchScannedClient(userId: string, token: string | null, c
 
 /** Adds a stamp to the client's card, or redeems the full card */
 export async function recordScanAction(userId: string, action: "stamp" | "redeem", token: string | null, clerkId?: string | null) {
-  await fetch(`${API_BASE_URL}/users/scan/${userId}/${action}`, { method: "POST", headers: headers(token, clerkId, true) });
+  const res = await fetch(`${API_BASE_URL}/users/scan/${userId}/${action}`, { method: "POST", headers: headers(token, clerkId, true) });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.message || data?.error || "The scan couldn't be saved.");
+  }
 }

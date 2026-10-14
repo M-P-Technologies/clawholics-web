@@ -35,6 +35,10 @@ export const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
       { path: "/privacy-policy", label: "Privacy Policy" },
     ],
   },
+  {
+    title: "Salon",
+    items: [{ path: "/settings", label: "Settings" }],
+  },
 ];
 
 // The phone's bottom tab bar: the screens used every day
@@ -57,6 +61,7 @@ export const MORE_GROUPS: { title: string; items: NavItem[] }[] = [
     ],
   },
   { title: "Content Management", items: NAV_GROUPS[2].items },
+  { title: "Salon", items: NAV_GROUPS[3].items },
 ];
 
 export const MORE_ITEMS: NavItem[] = MORE_GROUPS.flatMap((group) => group.items);

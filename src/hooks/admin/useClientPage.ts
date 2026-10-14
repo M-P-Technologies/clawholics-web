@@ -7,6 +7,7 @@ import { adminKeys, adminQueries } from "../../lib/adminQueries";
 import { useToast } from "../../components/ui/ToastProvider";
 import { manilaToday, type ClientTab } from "../../lib/admin/clientPage";
 import { useParams } from "../../lib/router";
+import { useStampTarget } from "../useStampTarget";
 import { addNote, deleteNote, saveNextSteps, type ClientDetails, type ClientNote } from "../../services/clientNotesService";
 import { setReviewApproval } from "../../services/reviewService";
 
@@ -25,6 +26,7 @@ export function useClientPage() {
   const { getToken, isLoaded } = useAuth();
   const { user } = useUser();
   const queryClient = useQueryClient();
+  const stampTarget = useStampTarget();
   const session = { getToken, clerkId: user?.id };
   // The client, their notes and next steps, cached per client: coming back to the page shows them
   // at once. Without the notes or next steps the page still works.
@@ -102,6 +104,8 @@ export function useClientPage() {
   const appointments = details?.appointments ?? [];
   return {
     details,
+    /** The stamps a loyalty card needs for a reward */
+    stampTarget,
     notFound,
     failed,
     today,
