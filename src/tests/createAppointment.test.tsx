@@ -38,12 +38,17 @@ const services = [
 ];
 
 // "Today" is Wednesday 2026-10-14. Mara: Sundays off, 2026-10-16 off, 10-15 has 9-10 taken,
-// 10-20 is fully booked. Jun works one slot given as an object.
+// 10-20 is fully booked. Jun works two slots, the first given as an object, has her own days off
+// (Wednesdays and 10-19) and has 3-4 PM taken on 10-15.
 const slotsFor: Record<number, unknown[]> = {
   1: ["09:00-10:00", "10:00-11:00", "13:00-14:00"],
-  2: [{ start_time: "15:00", end_time: "16:00" }],
+  2: [{ start_time: "15:00", end_time: "16:00" }, "17:00-18:00"],
 };
-let bookedByDate: Record<string, string[]> = {};
+let bookedBy: Record<number, Record<string, string[]>> = {};
+const dayOffsFor: Record<number, unknown> = {
+  1: { regularDays: [0], customDates: ["2026-10-16"] },
+  2: { regularDays: [3], customDates: ["2026-10-19"] },
+};
 
 const fetchMock = vi.fn();
 
@@ -52,16 +57,19 @@ const okJson = (data: unknown) => ({ ok: true, json: async () => data });
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ["Date"], now: new Date(2026, 9, 14, 10, 0, 0) });
   vi.spyOn(console, "error").mockImplementation(() => {});
-  bookedByDate = { "2026-10-15": ["09:00-10:00"], "2026-10-20": ["09:00-11:00", "13:00-14:00"] };
+  bookedBy = {
+    1: { "2026-10-15": ["09:00-10:00"], "2026-10-20": ["09:00-11:00", "13:00-14:00"] },
+    2: { "2026-10-15": ["15:00-16:00"] },
+  };
   fetchMock.mockReset().mockResolvedValue(okJson(services));
   vi.stubGlobal("fetch", fetchMock);
   booking.fetchNailists.mockReset().mockResolvedValue(nailists);
-  booking.fetchBookedSlotsDetailed.mockReset().mockImplementation(async (_id: number, date: string) =>
-    (bookedByDate[date] ?? []).map((appointment_time) => ({ appointment_time })),
+  booking.fetchBookedSlotsDetailed.mockReset().mockImplementation(async (id: number, date: string) =>
+    (bookedBy[id]?.[date] ?? []).map((appointment_time) => ({ appointment_time })),
   );
   booking.createAdminAppointment.mockReset().mockResolvedValue({ success: true });
   nailistApi.fetchNailistTimeSlots.mockReset().mockImplementation(async (id: number) => slotsFor[id]);
-  nailistApi.fetchNailistDayOffs.mockReset().mockResolvedValue({ regularDays: [0], customDates: ["2026-10-16"] });
+  nailistApi.fetchNailistDayOffs.mockReset().mockImplementation(async (id: number) => dayOffsFor[id]);
 });
 
 afterEach(() => {
@@ -101,13 +109,13 @@ const chooseArtist = async (name: string) => {
 };
 const chooseService = (name: string) => choose(serviceSelect(), name);
 const dayButtons = (pattern: RegExp) => screen.getAllByRole("button", { name: pattern });
-const pickDate = async (pattern: RegExp, bookedCalls?: number) => {
-  fireEvent.click(dayButtons(pattern)[0]);
-  await waitFor(() => expect(screen.getAllByText("Time").length).toBeGreaterThan(0));
-  if (bookedCalls !== undefined) await waitFor(() => expect(booking.fetchBookedSlotsDetailed.mock.calls.length).toBeGreaterThanOrEqual(bookedCalls));
+// `copy` is which of the two date-and-time blocks (phone position 0, desktop position 1) is used
+const pickDate = async (pattern: RegExp, copy = 0) => {
+  fireEvent.click(dayButtons(pattern)[copy]);
+  await waitFor(() => expect(summaryValue("Date")).not.toBe("–"));
 };
 const timeButtons = (pattern: RegExp) => screen.getAllByRole("button", { name: pattern });
-const pickTime = (pattern: RegExp) => fireEvent.click(timeButtons(pattern)[0]);
+const pickTime = (pattern: RegExp, copy = 0) => fireEvent.click(timeButtons(pattern)[copy]);
 
 const fillClient = (first = "Ana", last = "Cruz", phone = "09171234567", email = "") => {
   fireEvent.change(screen.getByPlaceholderText("First name"), { target: { value: first } });
@@ -372,7 +380,8 @@ describe("CreateAppointmentModal: date and time", () => {
     await renderModal();
     await chooseArtist("Jun");
     await pickDate(/October 15th, 2026/);
-    expect(timeButtons(/3:00 PM - 4:00 PM/)[0]).toBeEnabled();
+    expect(timeButtons(/3:00 PM - 4:00 PM/)[0]).toBeDisabled(); // taken, so the object slot was read
+    expect(timeButtons(/5:00 PM - 6:00 PM/)[0]).toBeEnabled();
   });
 
   it("drops the chosen date and time when the artist changes", async () => {
@@ -399,6 +408,62 @@ describe("CreateAppointmentModal: date and time", () => {
     await waitFor(() => expect(summaryValue("Date")).toBe("2026-10-19"));
     expect(summaryValue("Time")).toBe("–");
     await waitFor(() => expect(timeButtons(/9:00 AM - 10:00 AM/)[0]).toBeEnabled());
+  });
+});
+
+describe("CreateAppointmentModal: the two date-and-time blocks, per-artist slots and days off", () => {
+  it("draws the date and time block twice, and both copies show the same choice", async () => {
+    await renderModal();
+    await chooseArtist("Mara");
+    expect(screen.getAllByRole("heading", { name: "Date and time" })).toHaveLength(2);
+    await pickDate(/October 15th, 2026/, 1);
+    await waitFor(() => expect(timeButtons(/9:00 AM - 10:00 AM/)[0]).toBeDisabled());
+    expect(timeButtons(/10:00 AM - 11:00 AM/)).toHaveLength(2);
+    pickTime(/10:00 AM - 11:00 AM/, 1);
+    expect(timeButtons(/10:00 AM - 11:00 AM/)[0]).toHaveAttribute("aria-pressed", "true");
+    expect(timeButtons(/10:00 AM - 11:00 AM/)[1]).toHaveAttribute("aria-pressed", "true");
+    expect(timeButtons(/1:00 PM - 2:00 PM/)[0]).toHaveAttribute("aria-pressed", "false");
+    expect(summaryValue("Date")).toBe("2026-10-15");
+    expect(summaryValue("Time")).toBe("10:00 AM - 11:00 AM");
+    // and a time picked through the first copy shows in the second
+    pickTime(/1:00 PM - 2:00 PM/, 0);
+    expect(timeButtons(/1:00 PM - 2:00 PM/)[1]).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("looks up the booked slots of the chosen artist and date, then of the new artist and date", async () => {
+    await renderModal();
+    await chooseArtist("Mara");
+    await waitFor(() => expect(dayButtons(/October 20th, 2026/)[0]).toBeDisabled());
+    booking.fetchBookedSlotsDetailed.mockClear();
+    await pickDate(/October 15th, 2026/);
+    await waitFor(() => expect(timeButtons(/9:00 AM - 10:00 AM/)[0]).toBeDisabled());
+    expect(booking.fetchBookedSlotsDetailed.mock.calls).toEqual([[1, "2026-10-15"], [1, "2026-10-15"]]);
+    expect(timeButtons(/10:00 AM - 11:00 AM/)[0]).toBeEnabled();
+
+    await chooseArtist("Jun");
+    await waitFor(() => expect(dayButtons(/October 19th, 2026/)[0]).toBeDisabled());
+    booking.fetchBookedSlotsDetailed.mockClear();
+    await pickDate(/October 15th, 2026/);
+    await waitFor(() => expect(timeButtons(/3:00 PM - 4:00 PM/)[0]).toBeDisabled());
+    expect(booking.fetchBookedSlotsDetailed.mock.calls).toEqual([[2, "2026-10-15"], [2, "2026-10-15"]]);
+    expect(timeButtons(/5:00 PM - 6:00 PM/)[0]).toBeEnabled();
+    expect(screen.queryByRole("button", { name: /9:00 AM - 10:00 AM/ })).not.toBeInTheDocument();
+  });
+
+  it("applies each artist's own days off", async () => {
+    await renderModal();
+    await chooseArtist("Mara");
+    await waitFor(() => expect(dayButtons(/October 16th, 2026/)[0]).toBeDisabled());
+    expect(dayButtons(/October 19th, 2026/)[0]).toBeEnabled();
+    expect(dayButtons(/October 21st, 2026/)[0]).toBeEnabled(); // a Wednesday
+    expect(dayButtons(/October 18th, 2026/)[0]).toBeDisabled(); // a Sunday
+
+    await chooseArtist("Jun");
+    await waitFor(() => expect(dayButtons(/October 19th, 2026/)[0]).toBeDisabled());
+    expect(dayButtons(/October 16th, 2026/)[0]).toBeEnabled();
+    expect(dayButtons(/October 18th, 2026/)[0]).toBeEnabled();
+    expect(dayButtons(/October 21st, 2026/)[0]).toBeDisabled();
+    expect(nailistApi.fetchNailistDayOffs).toHaveBeenLastCalledWith(2);
   });
 });
 
@@ -456,13 +521,37 @@ describe("CreateAppointmentModal: submitting", () => {
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
+  it("books with the date and time picked through the second date-and-time block", async () => {
+    const { onCreated } = await renderModal();
+    fillClient("Ana", "Cruz", "09171234567");
+    await chooseArtist("Mara");
+    chooseService("Nail Art");
+    await pickDate(/October 15th, 2026/, 1);
+    await waitFor(() => expect(timeButtons(/9:00 AM - 10:00 AM/)[1]).toBeDisabled());
+    pickTime(/1:00 PM - 2:00 PM/, 1);
+    fireEvent.click(screen.getByRole("button", { name: "Create appointment" }));
+    await waitFor(() => expect(onCreated).toHaveBeenCalledTimes(1));
+    expect(booking.createAdminAppointment).toHaveBeenCalledWith({
+      first_name: "Ana",
+      last_name: "Cruz",
+      phone: "09171234567",
+      email: "",
+      service_id: 11,
+      service_name: "Nail Art",
+      nailist_id: 1,
+      nailist_name: "Mara",
+      appointment_date: "2026-10-15",
+      appointment_time: "13:00-14:00",
+    });
+  });
+
   it("sends an empty email when none is given", async () => {
     const { onCreated } = await renderModal();
     fillClient();
     await chooseArtist("Jun");
     chooseService("Pedicure");
     await pickDate(/October 15th, 2026/);
-    pickTime(/3:00 PM - 4:00 PM/);
+    pickTime(/5:00 PM - 6:00 PM/);
     fireEvent.click(screen.getByRole("button", { name: "Create appointment" }));
     await waitFor(() => expect(onCreated).toHaveBeenCalledTimes(1));
     expect(booking.createAdminAppointment).toHaveBeenCalledWith({
@@ -475,7 +564,7 @@ describe("CreateAppointmentModal: submitting", () => {
       nailist_id: 2,
       nailist_name: "Jun",
       appointment_date: "2026-10-15",
-      appointment_time: "15:00-16:00",
+      appointment_time: "17:00-18:00",
     });
   });
 
@@ -555,7 +644,7 @@ describe("CreateAppointmentModal: submitting", () => {
 
   it("refuses a time that was taken meanwhile, clears it and keeps the other choices", async () => {
     const { onCreated } = await renderModalWithAll();
-    bookedByDate["2026-10-15"] = ["09:00-10:00", "10:30-11:30"];
+    bookedBy[1]["2026-10-15"] = ["09:00-10:00", "10:30-11:30"];
     fireEvent.click(screen.getByRole("button", { name: "Create appointment" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("This time slot was just booked. Please select another.");
     expect(booking.createAdminAppointment).not.toHaveBeenCalled();
