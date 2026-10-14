@@ -10,3 +10,4 @@ export { ToastProvider, useToast } from "./ToastProvider";
 export { default as Pagination, paginate, PAGE_SIZE } from "./Pagination";
 export { default as EmptyState, LoadError } from "./EmptyState";
 export { default as SectionHeader } from "./SectionHeader";
+export { default as SegmentedControl } from "./SegmentedControl";

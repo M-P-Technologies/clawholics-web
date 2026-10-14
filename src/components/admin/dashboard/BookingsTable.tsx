@@ -7,7 +7,7 @@ import type { Appointment } from "../../../services/appointmentService";
 import { useTableLayout } from "../../../hooks/useMinWidth";
 import { Button } from "@/components/atoms";
 import { CardFields, RowCard, RowCards, TableFrame } from "@/components/organisms";
-import { Pagination, paginate } from "@/components/molecules";
+import { Pagination, SegmentedControl, paginate } from "@/components/molecules";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const dateLabel = (ymd: string) => {
@@ -92,23 +92,7 @@ export default function BookingsTable({ load }: { load: () => Promise<Appointmen
   return (
     <section aria-label="Bookings" className="flex min-w-0 flex-col gap-4 rounded-2xl border border-crimson-light/40 bg-milk p-5 shadow-petal">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div role="tablist" aria-label="Which bookings" className="flex gap-1 rounded-full bg-crimson-light/25 p-1">
-          {TABS.map((t) => (
-            <button
-              key={t.value}
-              type="button"
-              role="tab"
-              aria-selected={tab === t.value}
-              onClick={() => choose(t.value)}
-              className={clsx(
-                "rounded-full px-4 py-1.5 text-[13px] font-bold transition-colors",
-                tab === t.value ? "bg-milk text-berry shadow-sm" : "text-gray-red/80 hover:text-berry",
-              )}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl label="Which bookings" options={TABS} value={tab} onChange={choose} />
         <label className="relative w-full sm:w-64">
           <span className="sr-only">Search bookings</span>
           <input

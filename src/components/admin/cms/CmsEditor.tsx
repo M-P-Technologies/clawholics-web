@@ -1,8 +1,9 @@
 import { ExternalLink, Monitor, PenLine, RotateCw, Smartphone, Eye } from "lucide-react";
-import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import clsx from "clsx";
+import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import AdminShell from "../AdminShell";
 import { Button, Select } from "@/components/atoms";
+import { SegmentedControl } from "@/components/molecules";
 import { PREVIEW_FRAME_NAME, type PreviewDrafts, type PreviewMessage } from "../../../lib/cmsPreview";
 
 interface PreviewPage {
@@ -56,29 +57,16 @@ export default function CmsEditor({ title, pages, drafts, refreshKey = 0, header
     <AdminShell title={title}>
       <EditorContext.Provider value={{ showPage }}>
         {/* Phone: Edit or Preview */}
-        <div role="tablist" aria-label="Editor view" className="flex w-fit gap-1 self-start rounded-full bg-crimson-light/25 p-1 lg:hidden">
-          {(
-            [
-              { value: "edit", label: "Edit", Icon: PenLine },
-              { value: "preview", label: "Preview", Icon: Eye },
-            ] as const
-          ).map(({ value, label, Icon }) => (
-            <button
-              key={value}
-              type="button"
-              role="tab"
-              aria-selected={pane === value}
-              onClick={() => setPane(value)}
-              className={clsx(
-                "inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[13px] font-bold transition-colors",
-                pane === value ? "bg-milk text-berry shadow-sm" : "text-gray-red/80 hover:text-berry",
-              )}
-            >
-              <Icon size={14} aria-hidden="true" />
-              {label}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          label="Editor view"
+          className="w-fit self-start lg:hidden"
+          options={[
+            { value: "edit", label: "Edit", icon: PenLine },
+            { value: "preview", label: "Preview", icon: Eye },
+          ]}
+          value={pane}
+          onChange={setPane}
+        />
 
         <div className="flex min-h-0 flex-1 gap-5">
           <aside

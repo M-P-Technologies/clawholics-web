@@ -1,6 +1,6 @@
 import { useState, type ChangeEvent } from "react";
-import clsx from "clsx";
 import { Button, Select } from "@/components/atoms";
+import { SegmentedControl } from "@/components/molecules";
 import AppointmentCard, { isCompleted } from "./AppointmentCard";
 import type { AppointmentView } from "./types";
 
@@ -27,28 +27,18 @@ export default function AppointmentsSection(props: AppointmentsSectionProps) {
   const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
   const list = tab === "upcoming" ? upcoming : past;
 
-  const tabButton = (id: "upcoming" | "past", label: string, count: number) => (
-    <Button
-      variant="bare"
-      type="button"
-      role="tab"
-      aria-selected={tab === id}
-      onClick={() => setTab(id)}
-      className={clsx(
-        "flex-1 rounded-full px-4 py-1.5 text-center text-[13px] font-bold transition-colors sm:flex-none",
-        tab === id ? "bg-milk text-berry shadow-sm" : "text-gray-red/80 hover:text-berry",
-      )}
-    >
-      {label} ({count})
-    </Button>
-  );
-
   return (
     <section aria-label="Appointments" className="flex flex-col gap-4">
-      <div role="tablist" aria-label="Which appointments" className="flex gap-1 self-start rounded-full bg-crimson-light/25 p-1 max-sm:w-full">
-        {tabButton("upcoming", "Upcoming", upcoming.length)}
-        {tabButton("past", "Past", past.length)}
-      </div>
+      <SegmentedControl
+        label="Which appointments"
+        className="self-start max-sm:w-full"
+        options={[
+          { value: "upcoming", label: "Upcoming", count: upcoming.length },
+          { value: "past", label: "Past", count: past.length },
+        ]}
+        value={tab}
+        onChange={setTab}
+      />
 
       {tab === "past" && (
         <div className="flex flex-wrap gap-2">

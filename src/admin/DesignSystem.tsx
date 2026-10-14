@@ -9,6 +9,7 @@ import AdminShell from "../components/admin/AdminShell";
 import ChoiceRowDemo from "../components/admin/designSystem/ChoiceRowDemo";
 import SearchDemo from "../components/admin/designSystem/SearchDemo";
 import PaginationDemo from "../components/admin/designSystem/PaginationDemo";
+import SegmentedDemo from "../components/admin/designSystem/SegmentedDemo";
 import TabsDemo from "../components/admin/designSystem/TabsDemo";
 import ToastDemo from "../components/admin/designSystem/ToastDemo";
 import DialogDemo from "../components/admin/designSystem/DialogDemo";
@@ -84,6 +85,9 @@ export default function DesignSystem() {
           </GallerySection>
           <GallerySection title="Tabs">
             <TabsDemo />
+          </GallerySection>
+          <GallerySection title="SegmentedControl">
+            <SegmentedDemo />
           </GallerySection>
           <GallerySection title="StatCard">
             <div className="grid gap-4 sm:grid-cols-3">
