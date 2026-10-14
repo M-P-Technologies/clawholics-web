@@ -25,7 +25,7 @@ interface GlanceCardsProps {
 
 // The salon's size at a glance: how many clients, services, artists and appointments still to
 // do. Counts as of today, so they don't follow the period; each card opens its screen. Drawn
-// like the stat cards (KpiCard), with an arrow to the screen in place of the change pill, and a
+// like the stat cards (StatCard), with an arrow to the screen in place of the change pill, and a
 // small line: clients over the period, the services and artists booked in it, and the visits
 // still to come in the next days.
 export default function GlanceCards({ totals, granularity = "day", upcomingDays = [] }: GlanceCardsProps) {

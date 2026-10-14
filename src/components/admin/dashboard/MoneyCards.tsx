@@ -2,7 +2,7 @@ import { CalendarClock, CircleSlash, HandCoins, Repeat } from "lucide-react";
 import { describeChange, peso } from "../../../lib/dashboardFormat";
 import { formatBucketLabel, granularityWord, type DayValues, type Trend } from "../../../lib/dashboardTrend";
 import type { Money } from "../../../services/dashboardTypes";
-import KpiCard from "./KpiCard";
+import { StatCard } from "@/components/molecules";
 import Sparkline from "./Sparkline";
 
 const visits = (n: number) => `${n} confirmed ${n === 1 ? "visit" : "visits"} from today`;
@@ -45,7 +45,7 @@ export default function MoneyCards({ money, revenue = 0, trend }: MoneyCardsProp
 
   return (
     <section aria-label="Money" className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6 xl:grid-cols-4">
-      <KpiCard
+      <StatCard
         icon={HandCoins}
         label="Balance at the salon"
         value={peso(money.balanceAtSalon.value)}
@@ -53,7 +53,7 @@ export default function MoneyCards({ money, revenue = 0, trend }: MoneyCardsProp
         hint="estimated: list price minus downpayments"
         sparkline={line("Balance at the salon", "balanceAtSalon")}
       />
-      <KpiCard
+      <StatCard
         icon={Repeat}
         label="From returning clients"
         value={peso(money.returningRevenue.value)}
@@ -61,8 +61,8 @@ export default function MoneyCards({ money, revenue = 0, trend }: MoneyCardsProp
         hint={`${share}from clients who visited before`}
         sparkline={line("From returning clients", "returningRevenue")}
       />
-      <KpiCard icon={CalendarClock} label="Booked ahead" value={peso(money.bookedAhead.value)} hint={visits(money.bookedAhead.visits)} sparkline={aheadLine} />
-      <KpiCard
+      <StatCard icon={CalendarClock} label="Booked ahead" value={peso(money.bookedAhead.value)} hint={visits(money.bookedAhead.visits)} sparkline={aheadLine} />
+      <StatCard
         icon={CircleSlash}
         label="Lost to cancellations"
         value={peso(money.lostToCancellations.value)}

@@ -3,6 +3,7 @@ export { default as ChoiceRow } from "./ChoiceRow";
 export { default as ContactGroup } from "./ContactGroup";
 export { default as FormField } from "./FormField";
 export { default as SearchBar } from "./SearchBar";
+export { default as StatCard } from "./StatCard";
 export { default as TabSection } from "./TabSection";
 export { default as Tabs } from "./Tabs";
 export { ToastProvider, useToast } from "./ToastProvider";

@@ -5,9 +5,8 @@ import AdminShell from "../../components/admin/AdminShell";
 import BookingTracker from "../../components/admin/client/BookingTracker";
 import ClientAppointments from "../../components/admin/client/ClientAppointments";
 import ClientProfilePanel from "../../components/admin/client/ClientProfilePanel";
-import StatCard from "../../components/ui/StatCard";
 import NoteItem from "../../components/admin/client/NoteItem";
-import { TabSection, Tabs } from "@/components/molecules";
+import { StatCard, TabSection, Tabs } from "@/components/molecules";
 import { Button } from "@/components/atoms";
 import StatePanel from "../../components/ui/StatePanel";
 import { useClientPage } from "../../hooks/admin/useClientPage";
@@ -79,9 +78,9 @@ export default function ClientPage() {
                 <>
                   <TabSection title="At a glance" description="Their visits, what they've spent and their loyalty card.">
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                      <StatCard icon={CalendarCheck} label="Visits" value={String(summary.visits)} hint="completed" />
-                      <StatCard icon={Wallet} label="Total spent" value={peso(summary.totalSpent)} hint="list price of visits" />
-                      <StatCard icon={Stamp} label="Loyalty stamps" value={`${summary.stamps} / 10`} />
+                      <StatCard size="compact" icon={CalendarCheck} label="Visits" value={String(summary.visits)} hint="completed" />
+                      <StatCard size="compact" icon={Wallet} label="Total spent" value={peso(summary.totalSpent)} hint="list price of visits" />
+                      <StatCard size="compact" icon={Stamp} label="Loyalty stamps" value={`${summary.stamps} / 10`} />
                     </div>
                   </TabSection>
                   <TabSection title="Booking tracker" description="Where a booking is, from booking to the finished visit. It follows their current booking; pick another to see it.">

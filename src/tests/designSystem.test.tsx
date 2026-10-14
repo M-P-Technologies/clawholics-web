@@ -18,6 +18,6 @@ describe("design system gallery", () => {
 
   it("shows the molecules", () => {
     render(<DesignSystem />);
-    for (const c of ["FormField", "ChoiceRow", "SearchBar", "Tabs", "Toast"]) expect(screen.getByRole("heading", { level: 3, name: c })).toBeInTheDocument();
+    for (const c of ["FormField", "ChoiceRow", "SearchBar", "Tabs", "StatCard", "Toast"]) expect(screen.getByRole("heading", { level: 3, name: c })).toBeInTheDocument();
   });
 });

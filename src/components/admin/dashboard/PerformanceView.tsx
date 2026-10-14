@@ -2,7 +2,7 @@ import { describeChange, describePoints, peso, percent } from "../../../lib/dash
 import type { DashboardResponse, Utilization } from "../../../services/dashboardTypes";
 import ArtistUtilization from "./ArtistUtilization";
 import GlanceCards from "./GlanceCards";
-import KpiCard from "./KpiCard";
+import { StatCard } from "@/components/molecules";
 import RankedBars from "./RankedBars";
 import { Panel, ViewBody, WEEKDAYS } from "./dashboardParts";
 
@@ -23,14 +23,14 @@ export default function PerformanceView({ data, loading, failed, loadUtilization
       <GlanceCards totals={data.totals} granularity={data.trend.granularity} upcomingDays={data.money.bookedAhead.days} />
 
       <section aria-label="Key rates" className="grid grid-cols-2 gap-x-5 gap-y-6 rounded-2xl border border-crimson-light/40 bg-milk p-5 shadow-petal sm:grid-cols-4">
-        <KpiCard variant="bare" label="Cancellation rate" value={percent(rates.cancellation.value)} change={describePoints(rates.cancellation.value, rates.cancellation.previous)} lowerIsBetter />
-        <KpiCard variant="bare" label="Booking conversion" value={percent(rates.conversion.value)} change={describePoints(rates.conversion.value, rates.conversion.previous)} hint="started bookings that were paid" />
-        <KpiCard variant="bare" label="Lead conversion" value={percent(rates.leadConversion.value)} change={describePoints(rates.leadConversion.value, rates.leadConversion.previous)} hint={data.leads.accounts === 0 ? "new accounts that booked" : `${data.leads.booked} of ${data.leads.accounts} new accounts booked`} />
-        <KpiCard variant="bare" label="Returning clients" value={percent(rates.returning.value)} change={describePoints(rates.returning.value, rates.returning.previous)} hint="of clients who visited" />
-        <KpiCard variant="bare" label="Average sale" value={rates.averageSale.value === null ? "–" : peso(rates.averageSale.value)} change={describeChange(rates.averageSale.value, rates.averageSale.previous)} hint="per completed visit" />
-        <KpiCard variant="bare" label="Client lifetime value" value={data.clientBase.lifetimeValue === null ? "–" : peso(data.clientBase.lifetimeValue)} hint="average spent per client so far" />
-        <KpiCard variant="bare" label="Churn" value={percent(data.clientBase.churn)} hint={`${data.lapsedClients} of ${data.clientBase.clients} clients, no visit in 60 days`} />
-        <KpiCard variant="bare" label="Loyalty" value={`${data.loyalty.stamps} / ${data.loyalty.redeemed}`} hint="stamps given / rewards redeemed" />
+        <StatCard variant="bare" label="Cancellation rate" value={percent(rates.cancellation.value)} change={describePoints(rates.cancellation.value, rates.cancellation.previous)} lowerIsBetter />
+        <StatCard variant="bare" label="Booking conversion" value={percent(rates.conversion.value)} change={describePoints(rates.conversion.value, rates.conversion.previous)} hint="started bookings that were paid" />
+        <StatCard variant="bare" label="Lead conversion" value={percent(rates.leadConversion.value)} change={describePoints(rates.leadConversion.value, rates.leadConversion.previous)} hint={data.leads.accounts === 0 ? "new accounts that booked" : `${data.leads.booked} of ${data.leads.accounts} new accounts booked`} />
+        <StatCard variant="bare" label="Returning clients" value={percent(rates.returning.value)} change={describePoints(rates.returning.value, rates.returning.previous)} hint="of clients who visited" />
+        <StatCard variant="bare" label="Average sale" value={rates.averageSale.value === null ? "–" : peso(rates.averageSale.value)} change={describeChange(rates.averageSale.value, rates.averageSale.previous)} hint="per completed visit" />
+        <StatCard variant="bare" label="Client lifetime value" value={data.clientBase.lifetimeValue === null ? "–" : peso(data.clientBase.lifetimeValue)} hint="average spent per client so far" />
+        <StatCard variant="bare" label="Churn" value={percent(data.clientBase.churn)} hint={`${data.lapsedClients} of ${data.clientBase.clients} clients, no visit in 60 days`} />
+        <StatCard variant="bare" label="Loyalty" value={`${data.loyalty.stamps} / ${data.loyalty.redeemed}`} hint="stamps given / rewards redeemed" />
       </section>
 
       {loadUtilization && <ArtistUtilization load={loadUtilization} />}

@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import KpiCard from "./dashboard/KpiCard";
+import { StatCard } from "@/components/molecules";
 
 export interface DirectoryStat {
   label: string;
@@ -14,7 +14,7 @@ export default function DirectoryStats({ label, stats }: { label: string; stats:
   return (
     <section aria-label={label} className="grid grid-cols-2 gap-4 md:gap-6 lg:grid-cols-4">
       {stats.map((stat) => (
-        <KpiCard key={stat.label} label={stat.label} value={stat.value === null ? "–" : String(stat.value)} hint={stat.hint} icon={stat.icon} />
+        <StatCard key={stat.label} label={stat.label} value={stat.value === null ? "–" : String(stat.value)} hint={stat.hint} icon={stat.icon} />
       ))}
     </section>
   );

@@ -1,9 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Trash2 } from "lucide-react";
+import { CalendarHeart, Trash2, Wallet } from "lucide-react";
 import { Avatar, Badge, Blush, Button, Card, Checkbox, IconButton, Input, LoadingBar, Pearls, Select, StarPicker, Stars } from "../components/atoms";
-import { FormField } from "../components/molecules";
+import { FormField, StatCard } from "../components/molecules";
 import AdminShell from "../components/admin/AdminShell";
 import ChoiceRowDemo from "../components/admin/designSystem/ChoiceRowDemo";
 import SearchDemo from "../components/admin/designSystem/SearchDemo";
@@ -81,6 +81,13 @@ export default function DesignSystem() {
           </GallerySection>
           <GallerySection title="Tabs">
             <TabsDemo />
+          </GallerySection>
+          <GallerySection title="StatCard">
+            <div className="grid gap-4 sm:grid-cols-3">
+              <StatCard icon={Wallet} label="Collected" value="₱2,000" change={{ kind: "up", label: "+20%" }} hint="downpayments received" />
+              <StatCard size="hero" label="Estimated sales" value="₱12,500" hint="list price of completed services" />
+              <StatCard size="compact" icon={CalendarHeart} label="Visits" value="4" hint="completed" />
+            </div>
           </GallerySection>
           <GallerySection title="Toast">
             <p className="text-sm text-gray-red">A short message that slides in at the bottom right and goes away on its own. Errors stay longer.</p>

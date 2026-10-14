@@ -1,9 +1,9 @@
 import { ArrowDownRight, ArrowUpRight, Minus, Sparkles, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import clsx from "clsx";
-import type { ChangeView } from "../../../lib/dashboardFormat";
+import type { ChangeView } from "../../lib/dashboardFormat";
 
-interface KpiCardProps {
+interface StatCardProps {
   label: string;
   value: string;
   /** How it moved against the previous period; leave out for a tile with no comparison */
@@ -11,8 +11,8 @@ interface KpiCardProps {
   hint?: string;
   /** For measures where a rise is bad (cancellations) */
   lowerIsBetter?: boolean;
-  /** `hero` is the larger card the money figures use */
-  size?: "normal" | "hero";
+  /** `hero` is the larger card the money figures use; `compact` is the small tinted box */
+  size?: "compact" | "normal" | "hero";
   /** `bare` drops the card, for tiles that sit inside a card of their own */
   variant?: "card" | "bare";
   /** A decorative badge in the top-right corner */
@@ -32,11 +32,24 @@ const WORDS = {
 
 // A headline number. The change is a soft pill with an arrow, a figure and (for screen readers)
 // words, so it never relies on color alone.
-export default function KpiCard({
+export default function StatCard({
   label, value, change, hint, lowerIsBetter = false, size = "normal", variant = "card", icon: CardIcon, sparkline, className,
-}: KpiCardProps) {
+}: StatCardProps) {
   const Icon = change?.kind === "up" ? ArrowUpRight : change?.kind === "down" ? ArrowDownRight : change?.kind === "new" ? Sparkles : Minus;
   const good = change?.kind === "up" || change?.kind === "new" ? !lowerIsBetter : change?.kind === "down" ? lowerIsBetter : null;
+
+  if (size === "compact") {
+    return (
+      <div role="group" aria-label={label} className={clsx("flex min-w-0 flex-col gap-1 rounded-xl bg-crimson-light/15 p-3", className)}>
+        <span className="flex items-center gap-1.5 text-[12px] font-medium text-gray-red/80">
+          {CardIcon && <CardIcon size={14} aria-hidden="true" className="text-berry" />}
+          {label}
+        </span>
+        <span className="truncate font-display text-2xl leading-tight text-berry">{value}</span>
+        {hint && <span className="text-[11px] text-gray-red/60">{hint}</span>}
+      </div>
+    );
+  }
 
   return (
     <div

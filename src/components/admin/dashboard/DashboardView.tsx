@@ -8,7 +8,7 @@ import ActiveBookings from "./ActiveBookings";
 import BarChart from "./BarChart";
 import BookingsTable from "./BookingsTable";
 import DonutChart from "./DonutChart";
-import KpiCard from "./KpiCard";
+import { StatCard } from "@/components/molecules";
 import NextAppointments from "./NextAppointments";
 import SalonNotes from "./SalonNotes";
 import Sparkline from "./Sparkline";
@@ -59,10 +59,10 @@ export default function DashboardView({ data, loading = false, failed = false, l
   return (
     <ViewBody loading={loading} failed={failed}>
       <div className="grid grid-cols-2 gap-4 md:gap-6 lg:grid-cols-4">
-        <KpiCard icon={Wallet} label="Collected" value={peso(kpis.collected.value)} change={describeChange(kpis.collected.value, kpis.collected.previous)} hint="downpayments received" sparkline={spark("Collected", "collected", peso)} />
-        <KpiCard icon={Receipt} label="Estimated sales" value={peso(kpis.estimatedSales.value)} change={describeChange(kpis.estimatedSales.value, kpis.estimatedSales.previous)} hint="list price of completed services" sparkline={spark("Estimated sales", "estimatedSales", peso)} />
-        <KpiCard icon={CalendarHeart} label="Bookings" value={String(kpis.bookings.value)} change={describeChange(kpis.bookings.value, kpis.bookings.previous)} hint="confirmed and completed" sparkline={spark("Bookings", "bookings", String)} />
-        <KpiCard icon={UserPlus} label="New clients" value={String(kpis.newClients.value)} change={describeChange(kpis.newClients.value, kpis.newClients.previous)} hint="new accounts" sparkline={spark("New clients", "newClients", String)} />
+        <StatCard icon={Wallet} label="Collected" value={peso(kpis.collected.value)} change={describeChange(kpis.collected.value, kpis.collected.previous)} hint="downpayments received" sparkline={spark("Collected", "collected", peso)} />
+        <StatCard icon={Receipt} label="Estimated sales" value={peso(kpis.estimatedSales.value)} change={describeChange(kpis.estimatedSales.value, kpis.estimatedSales.previous)} hint="list price of completed services" sparkline={spark("Estimated sales", "estimatedSales", peso)} />
+        <StatCard icon={CalendarHeart} label="Bookings" value={String(kpis.bookings.value)} change={describeChange(kpis.bookings.value, kpis.bookings.previous)} hint="confirmed and completed" sparkline={spark("Bookings", "bookings", String)} />
+        <StatCard icon={UserPlus} label="New clients" value={String(kpis.newClients.value)} change={describeChange(kpis.newClients.value, kpis.newClients.previous)} hint="new accounts" sparkline={spark("New clients", "newClients", String)} />
       </div>
 
       {/* Words on the right, figures on the left. On a phone the notes come straight after the
