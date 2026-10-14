@@ -2,6 +2,7 @@
 
 import CmsEditor, { CmsLoadError } from "../../components/admin/cms/CmsEditor";
 import { ElsewhereNote, IconPicker, ImageField, LinkField, PanelSection, SaveBar, SelectField, SubCard, TextField } from "../../components/admin/cms/fields";
+import OffersEditor from "../../components/admin/cms/OffersEditor";
 import StripEditor from "../../components/admin/cms/StripEditor";
 import { FontPicker, PalettePicker } from "../../components/admin/cms/ThemePickers";
 import { LoadingBar } from "../../components/ui/LoadingBar";
@@ -18,7 +19,7 @@ import { BODY_FONTS, DISPLAY_FONTS, SCRIPT_FONTS } from "../../lib/siteTheme";
 // Its state, uploads and saving are in hooks/admin/useHomeEditor.
 export default function Homepage() {
   const editor = useHomeEditor();
-  const { content, sections, services, set, setText, setFeature, setStrip, upload, uploadTo, uploading } = editor;
+  const { content, sections, services, set, setText, setFeature, setStrip, setOffers, upload, uploadTo, uploading } = editor;
   const t = sections.text;
 
   if (editor.isLoading) {
@@ -83,6 +84,20 @@ export default function Homepage() {
 
       <PanelSection title="Service photo strip" description="The sliding photos of services, each with its price, hours and a Book button." page="/#service-strip" aside={sections.strip ? `${sections.strip.length}/${MAX_STRIP_SLIDES}` : undefined}>
         <StripEditor services={services} strip={sections.strip} onChange={setStrip} upload={upload} uploading={uploading} />
+      </PanelSection>
+
+      <PanelSection title="Client app" description="What signed-in clients see in their app (/my). These don't show on the public site, so the preview doesn't change.">
+        <SubCard title="Birthday banner">
+          <SelectField label="Show it" value={t.home_birthday_enabled} options={[{ value: "1", label: "In each client's birthday month" }, { value: "0", label: "Never" }]} onChange={setText("home_birthday_enabled")} />
+          <TextField label="Birthday headline" value={t.home_birthday_title} onChange={setText("home_birthday_title")} />
+          <TextField label="Line under it" value={t.home_birthday_line} onChange={setText("home_birthday_line")} />
+          <TextField label="Small print" value={t.home_birthday_note} onChange={setText("home_birthday_note")} />
+          <p className="text-[12px] text-gray-red/70">{"{name}"} becomes the client&apos;s first name. Staff apply the treat at the salon.</p>
+        </SubCard>
+        <SubCard title="Special offers">
+          <OffersEditor offers={sections.offers} services={services} onChange={setOffers} upload={upload} uploading={uploading} />
+        </SubCard>
+        <TextField label="Explore page subtitle" value={t.home_explore_subtitle} onChange={setText("home_explore_subtitle")} />
       </PanelSection>
 
       <PanelSection title="About us" description="The short story with a link to the About page." page="/#about-teaser">

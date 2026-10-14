@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { useToast } from "../../components/ui/ToastProvider";
 import { EMPTY_HOME_CONTENT, normalizeHomeContent, trimHomeSections } from "../../lib/admin/homeEditor";
-import { homeSectionsProblem, homeSectionsToContent, readHomeSections, type HomeFeature, type HomeSections, type HomeTextKey, type StripSlide } from "../../lib/homeSections";
+import { homeSectionsProblem, homeSectionsToContent, readHomeSections, type HomeFeature, type HomeOffer, type HomeSections, type HomeTextKey, type StripSlide } from "../../lib/homeSections";
 import { fetchHomeContent, updateHomeContent, type HomeCMSContent } from "../../services/contentService";
 import { fetchServices, type NailService } from "../../services/serviceService";
 import { PHOTO_UPLOAD_OPTIONS, uploadImage } from "../../services/uploadService";
@@ -119,6 +119,7 @@ export function useHomeEditor() {
     setFeature: (index: number, field: keyof HomeFeature) => (value: string) =>
       setSections((prev) => ({ ...prev, features: prev.features.map((f, i) => (i === index ? { ...f, [field]: value } : f)) })),
     setStrip: (strip: StripSlide[] | null) => setSections((prev) => ({ ...prev, strip })),
+    setOffers: (offers: HomeOffer[]) => setSections((prev) => ({ ...prev, offers })),
     uploading,
     upload,
     /** Uploads a photo into one of the plain content keys */
