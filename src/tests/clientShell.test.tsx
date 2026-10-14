@@ -33,7 +33,7 @@ describe("ClientShell", () => {
     render(<ClientShell><p>x</p></ClientShell>);
     const side = screen.getByRole("navigation", { name: "App menu" });
     expect(side.closest("aside")!.className).toContain("lg:flex");
-    expect(within(side).getByRole("link", { name: "Home" })).toHaveAttribute("aria-current", "page");
+    expect(within(side).getByRole("button", { name: "Home" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: /Back to site/ })).toHaveAttribute("href", "/");
   });
 

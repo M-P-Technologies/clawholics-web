@@ -23,6 +23,6 @@ describe("design system gallery", () => {
 
   it("shows the organisms", () => {
     render(<DesignSystem />);
-    for (const c of ["Dialog", "TopBar"]) expect(screen.getByRole("heading", { level: 3, name: c })).toBeInTheDocument();
+    for (const c of ["Dialog", "TopBar", "SideBar", "TabBar", "AppShell"]) expect(screen.getByRole("heading", { level: 3, name: c })).toBeInTheDocument();
   });
 });

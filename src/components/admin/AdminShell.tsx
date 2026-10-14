@@ -1,8 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Blush } from "@/components/atoms";
-import { TopBar } from "@/components/organisms";
+import { AppShell, TopBar } from "@/components/organisms";
 import { useAdminAccount } from "../../hooks/admin/useAdminAccount";
 import SideBar from "./SideBar";
 
@@ -24,23 +23,17 @@ export default function AdminShell({ title, titleAside, actions, children }: Adm
   const account = useAdminAccount();
 
   return (
-    <div className="relative isolate flex min-h-screen bg-light-orange px-2 py-2 max-lg:overflow-x-hidden sm:px-4 sm:py-4 lg:h-screen lg:overflow-clip">
-      <Blush tone="crimson" className="-right-28 -top-28 h-96 w-96" />
-      <Blush className="-bottom-40 left-1/3 h-[28rem] w-[28rem]" />
-      <SideBar />
+    <AppShell variant="admin" sideBar={<SideBar />}>
+      <TopBar
+        title={title}
+        titleAside={titleAside}
+        actions={actions}
+        greeting={`Welcome, ${account.firstName}!`}
+        today={account.today}
+        account={{ name: account.name, email: account.email || "Admin", imageUrl: account.imageUrl }}
+      />
 
-      <div className="flex min-w-0 flex-1 flex-col gap-5 pb-24 lg:pb-0">
-        <TopBar
-          title={title}
-          titleAside={titleAside}
-          actions={actions}
-          greeting={`Welcome, ${account.firstName}!`}
-          today={account.today}
-          account={{ name: account.name, email: account.email || "Admin", imageUrl: account.imageUrl }}
-        />
-
-        {children}
-      </div>
-    </div>
+      {children}
+    </AppShell>
   );
 }

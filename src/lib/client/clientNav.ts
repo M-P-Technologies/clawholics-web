@@ -1,4 +1,5 @@
-import { CalendarDays, Compass, House, UserRound, type LucideIcon } from "lucide-react";
+import { CalendarDays, Compass, House, UserRound } from "lucide-react";
+import type { NavItem } from "@/components/organisms";
 
 // Every address of the client app. Screens and hooks navigate with these, never with literals.
 export const CLIENT_PATHS = {
@@ -14,18 +15,14 @@ export const CLIENT_PATHS = {
 
 export const serviceDetailPath = (id: number) => `${CLIENT_PATHS.explore}/${id}`;
 
-export interface ClientTab {
-  href: string;
-  label: string;
-  Icon: LucideIcon;
-}
+export type ClientTab = NavItem & { href: string };
 
 // The phone's bottom tabs and the desktop sidebar, in the mockup's order
 export const CLIENT_TABS: ClientTab[] = [
-  { href: CLIENT_PATHS.home, label: "Home", Icon: House },
-  { href: CLIENT_PATHS.appointments, label: "Appointments", Icon: CalendarDays },
-  { href: CLIENT_PATHS.explore, label: "Explore", Icon: Compass },
-  { href: CLIENT_PATHS.profile, label: "Profile", Icon: UserRound },
+  { path: CLIENT_PATHS.home, href: CLIENT_PATHS.home, label: "Home", icon: House },
+  { path: CLIENT_PATHS.appointments, href: CLIENT_PATHS.appointments, label: "Appointments", icon: CalendarDays },
+  { path: CLIENT_PATHS.explore, href: CLIENT_PATHS.explore, label: "Explore", icon: Compass },
+  { path: CLIENT_PATHS.profile, href: CLIENT_PATHS.profile, label: "Profile", icon: UserRound },
 ];
 
 /** Home is active only on /my itself; the others also on the screens under them */

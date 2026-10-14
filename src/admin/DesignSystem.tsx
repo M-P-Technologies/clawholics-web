@@ -1,10 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { CalendarHeart, QrCode, Trash2, Wallet } from "lucide-react";
+import { CalendarDays, CalendarHeart, House, QrCode, Trash2, Wallet } from "lucide-react";
 import { Avatar, Badge, Blush, Button, Card, Checkbox, IconButton, Input, LoadingBar, Pearls, Select, StarPicker, Stars } from "../components/atoms";
 import { EmptyState, FormField, SectionHeader, StatCard } from "../components/molecules";
-import { TopBar } from "../components/organisms";
+import { SideBar, TabBar, TopBar } from "../components/organisms";
 import AdminShell from "../components/admin/AdminShell";
 import ChoiceRowDemo from "../components/admin/designSystem/ChoiceRowDemo";
 import SearchDemo from "../components/admin/designSystem/SearchDemo";
@@ -122,11 +122,29 @@ export default function DesignSystem() {
           <GallerySection title="TopBar">
             <TopBar title="Example" greeting="Welcome, Ana!" today="Wednesday, Oct 14" account={{ name: "Ana Cruz", email: "ana@example.com", imageUrl: "" }} />
           </GallerySection>
+          <GallerySection title="SideBar">
+            <div className="h-[480px]">
+              <SideBar label="Demo menu" groups={DEMO_NAV} storageKey="ds-rail" footer={() => null} />
+            </div>
+          </GallerySection>
+          <GallerySection title="TabBar">
+            <div className="relative h-24 [&_nav]:static lg:[&>div]:!block">
+              <TabBar label="Demo tabs" items={DEMO_NAV[0].items} />
+            </div>
+          </GallerySection>
+          <GallerySection title="AppShell">
+            <p className="text-sm text-gray-red">
+              The frame of a signed-in area: the sidebar on computers, the bottom tab bar on phones and the content. Live examples: the{" "}
+              <a href="/dashboard" className="underline">admin</a> and the <a href="/my" className="underline">client app</a>.
+            </p>
+          </GallerySection>
         </Group>
       </div>
     </AdminShell>
   );
 }
+
+const DEMO_NAV = [{ title: "Group", items: [{ path: "/design-system", label: "Home", icon: House }, { path: "/demo-b", label: "Schedule", icon: CalendarDays }] }];
 
 function Group({ title, children }: { title: string; children?: ReactNode }) {
   return (
