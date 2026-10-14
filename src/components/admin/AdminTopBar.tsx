@@ -4,6 +4,7 @@ import { CalendarDays, ExternalLink } from "lucide-react";
 import type { ReactNode } from "react";
 import { useAdminAccount } from "../../hooks/admin/useAdminAccount";
 import { initialsOf } from "./DirectoryProfileCard";
+import NotificationBell from "./NotificationBell";
 
 interface AdminTopBarProps {
   title: string;
@@ -14,7 +15,8 @@ interface AdminTopBarProps {
 }
 
 // The bar across the top of every admin screen: the greeting and the screen's title and controls
-// on the left; today's date, a link to the public site and who is signed in on the right.
+// on the left; today's date, a link to the public site, the new-bookings bell and who is signed in
+// on the right.
 export default function AdminTopBar({ title, titleAside, actions }: AdminTopBarProps) {
   const account = useAdminAccount();
 
@@ -28,8 +30,11 @@ export default function AdminTopBar({ title, titleAside, actions }: AdminTopBarP
             {titleAside}
           </div>
         </div>
-        {/* On a phone the account sits beside the title */}
-        <Avatar name={account.name} imageUrl={account.imageUrl} className="lg:hidden" />
+        {/* On a phone the bell and the account sit beside the title */}
+        <div className="flex shrink-0 items-center gap-2 lg:hidden">
+          <NotificationBell />
+          <Avatar name={account.name} imageUrl={account.imageUrl} />
+        </div>
       </div>
 
       {/* One row on a computer: the screen's controls give way (and scroll sideways) before anything wraps */}
@@ -52,6 +57,10 @@ export default function AdminTopBar({ title, titleAside, actions }: AdminTopBarP
           View site
           <ExternalLink size={14} aria-hidden="true" />
         </a>
+
+        <div className="hidden lg:block">
+          <NotificationBell />
+        </div>
 
         <div className="hidden shrink-0 items-center gap-2.5 border-l border-crimson-light/60 pl-3 lg:flex">
           <Avatar name={account.name} imageUrl={account.imageUrl} />

@@ -6,6 +6,7 @@ import { fetchMonthlySchedule } from "../services/scheduleService";
 import { fetchClient, fetchNextSteps, fetchNotes } from "../services/clientNotesService";
 import { fetchScanHistory } from "../services/scanService";
 import { fetchNailists, type Nailist } from "../services/nailistService";
+import { fetchAdminNotifications } from "../services/notificationService";
 import type { DashboardRange } from "./dashboardPeriods";
 
 // The admin screens' data as TanStack Query queries. Screens that show the same data share one
@@ -41,6 +42,8 @@ export const adminKeys = {
   clientNextSteps: (clientId: number) => [ADMIN, "clients", clientId, "nextSteps"] as const,
   scanHistory: () => [ADMIN, "scanHistory"] as const,
   nailists: () => [ADMIN, "nailists"] as const,
+  /** The bell's notifications of new bookings */
+  notifications: () => [ADMIN, "notifications"] as const,
   /** An appointment's payment proofs */
   proofs: (appointmentId: number) => [ADMIN, "proofs", appointmentId] as const,
 };
@@ -74,6 +77,8 @@ export const adminQueries = {
       queryKey: adminKeys.clientNextSteps(clientId),
       queryFn: async () => fetchNextSteps(clientId, { token: await getToken(), clerkId }),
     }),
+  notifications: ({ getToken, clerkId }: AdminSession) =>
+    queryOptions({ queryKey: adminKeys.notifications(), queryFn: async () => fetchAdminNotifications(await getToken(), clerkId) }),
   /** Every artist (the Artists editor, the appointment list's artist filter) */
   nailists: () => queryOptions({ queryKey: adminKeys.nailists(), queryFn: (): Promise<Nailist[]> => fetchNailists() }),
   scanHistory: ({ getToken, clerkId }: AdminSession) =>
