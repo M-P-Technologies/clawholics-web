@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
+import { Select } from "@/components/atoms";
 import { ConfirmDialog, Dialog, FeedbackDialog } from "@/components/organisms";
 
 function Opener({ dismissible = true }: { dismissible?: boolean }) {
@@ -70,5 +71,62 @@ describe("dialog presets", () => {
     render(<FeedbackDialog open title="Saved" message="All done." isError={false} onClose={onClose} />);
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
     expect(onClose).toHaveBeenCalled();
+  });
+});
+
+describe("stacked dialogs", () => {
+  function Stack({ outer = true, inner = true }: { outer?: boolean; inner?: boolean }) {
+    return (
+      <>
+        <Dialog open={outer} onClose={() => document.dispatchEvent(new Event("outer-closed"))} title="Outer"><button>a</button></Dialog>
+        <Dialog open={inner} onClose={() => document.dispatchEvent(new Event("inner-closed"))} title="Inner"><button>b</button></Dialog>
+      </>
+    );
+  }
+  function Controlled() {
+    const [outer, setOuter] = useState(true);
+    const [inner, setInner] = useState(true);
+    return (
+      <>
+        <Dialog open={outer} onClose={() => setOuter(false)} title="Outer"><button>a</button></Dialog>
+        <Dialog open={inner} onClose={() => setInner(false)} title="Inner"><button>b</button></Dialog>
+      </>
+    );
+  }
+
+  it("Escape closes only the top dialog, then the next", () => {
+    render(<Controlled />);
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(screen.queryByRole("dialog", { name: "Inner" })).toBeNull();
+    expect(screen.getByRole("dialog", { name: "Outer" })).toBeInTheDocument();
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("restores the page's scroll when both close in the same render", () => {
+    const { rerender } = render(<Stack />);
+    expect(document.body.style.overflow).toBe("hidden");
+    rerender(<Stack outer={false} inner={false} />);
+    expect(document.body.style.overflow).toBe("");
+  });
+});
+
+describe("Select inside a Dialog", () => {
+  function Host() {
+    const [open, setOpen] = useState(true);
+    return (
+      <Dialog open={open} onClose={() => setOpen(false)} title="Pick">
+        <Select aria-label="Colour" value="" onChange={() => {}} options={[{ value: "a", label: "Alpha" }, { value: "b", label: "Beta" }]} />
+      </Dialog>
+    );
+  }
+  it("Escape closes only the list", () => {
+    render(<Host />);
+    const trigger = screen.getByRole("button", { name: "Colour" });
+    fireEvent.click(trigger);
+    expect(screen.getByRole("listbox")).toBeInTheDocument();
+    fireEvent.keyDown(trigger, { key: "Escape" });
+    expect(screen.queryByRole("listbox")).toBeNull();
+    expect(screen.getByRole("dialog", { name: "Pick" })).toBeInTheDocument();
   });
 });

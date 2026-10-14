@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { Check, X } from "lucide-react";
 import clsx from "clsx";
 import { Button } from "../atoms";
@@ -9,6 +9,20 @@ const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 const SIZE = { sm: "lg:max-w-sm", md: "lg:max-w-md", lg: "lg:max-w-lg" } as const;
+
+// Open dialogs, oldest first: only the last one answers Escape, and the page's scroll is
+// locked once for all of them and given back when the last one closes.
+const openStack: object[] = [];
+let savedOverflow = "";
+
+function lockScroll() {
+  if (openStack.length === 0) savedOverflow = document.body.style.overflow;
+  document.body.style.overflow = "hidden";
+}
+
+function unlockScroll() {
+  if (openStack.length === 0) document.body.style.overflow = savedOverflow;
+}
 
 interface DialogProps {
   open: boolean;
@@ -32,6 +46,7 @@ interface DialogProps {
 export default function Dialog({ open, onClose, title, placement = "sheet", size = "lg", role = "dialog", dismissible = true, hideClose = false, header, children }: DialogProps) {
   const panelRef = useRef<HTMLDivElement | null>(null);
   const closeRef = useRef(onClose);
+  const [token] = useState(() => ({}));
   useEffect(() => {
     closeRef.current = onClose;
   }, [onClose]);
@@ -41,20 +56,23 @@ export default function Dialog({ open, onClose, title, placement = "sheet", size
     const opener = document.activeElement as HTMLElement | null;
     const panel = panelRef.current;
     (panel?.querySelector<HTMLElement>("[data-autofocus]") ?? panel?.querySelector<HTMLElement>(FOCUSABLE))?.focus();
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    lockScroll();
+    openStack.push(token);
     return () => {
-      document.body.style.overflow = overflow;
+      openStack.splice(openStack.indexOf(token), 1);
+      unlockScroll();
       opener?.focus?.();
     };
-  }, [open]);
+  }, [open, token]);
 
   useEffect(() => {
     if (!open || !dismissible) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && closeRef.current();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && openStack[openStack.length - 1] === token) closeRef.current();
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, dismissible]);
+  }, [open, dismissible, token]);
 
   const keepFocusInside = (e: ReactKeyboardEvent) => {
     if (e.key !== "Tab") return;

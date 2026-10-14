@@ -127,7 +127,7 @@ export function SubCard({ title, children }: { title: string; children: ReactNod
 interface IconPickerProps {
   label: string;
   value: string;
-  /** Lucide icons, or the brand icons in ui/SocialIcons */
+  /** Lucide icons, or the brand icons in atoms/SocialIcons */
   icons: { key: string; label: string; Icon: ComponentType<{ className?: string; strokeWidth?: number }> }[];
   onChange: (key: string) => void;
 }

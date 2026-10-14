@@ -109,6 +109,7 @@ export default function Select({
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
+      if (open) e.stopPropagation(); // closes the list only, not a Dialog around it
       setOpen(false);
     } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       e.preventDefault();
