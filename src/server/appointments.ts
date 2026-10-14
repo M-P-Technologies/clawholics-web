@@ -66,6 +66,17 @@ export interface AppointmentRow {
 // APPOINTMENT_SELECT is a constant with no input in it; values are always bound separately.
 const sqlFragment = () => getSql().unsafe(APPOINTMENT_SELECT);
 
+/**
+ * SQL text: the appointment (its status column, e.g. "a.status") holds its slot. A booking holds
+ * it until it's cancelled or refunded: while it waits for payment or for a payment proof to be
+ * checked, once confirmed and once completed. This is the rule of the idx_unique_active_slot
+ * index, which refuses a second booking of a held slot, so every reader of held slots (the
+ * booking calendar's endpoints, the booking checks, the Schedule, utilization) uses it: under any
+ * other rule the calendar offers times that booking then refuses.
+ */
+export const holdsSlot = (statusColumn = "status") =>
+  `lower(trim(${statusColumn})) not in ('cancelled', 'canceled', 'refunded')`;
+
 export async function getAppointment(id: number): Promise<AppointmentRow | null> {
   const sql = getSql();
   const [row] = await sql<AppointmentRow[]>`${sqlFragment()} where a.id = ${id}`;
@@ -181,8 +192,7 @@ export function listAppointmentsBetween(start: string, end: string) {
   return sql<AppointmentRow[]>`
     ${sqlFragment()}
     where a.appointment_date between ${start} and ${end}
-      -- Awaiting proof too: the booking holds its slot while the proof is checked
-      and upper(trim(a.status)) in ('PENDING', 'AWAITING_PROOF', 'CONFIRMED', 'COMPLETED')
+      and ${sql.unsafe(holdsSlot("a.status"))}
   `;
 }
 

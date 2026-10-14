@@ -272,7 +272,10 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       expect(range.body.map((s: { appointment_time: string }) => s.appointment_time).sort()).toEqual(["1:00 PM", "4:00 PM"]);
 
       // What the slots show is what booking allows: the held slot is refused, the refunded one isn't
-      expect((await book("user_b", date, "1:00 PM")).status).toBe(409);
+      const refused = await book("user_b", date, "1:00 PM");
+      expect(refused.status).toBe(409);
+      // The taken slot's refusal, not another 409 (such as an unpaid booking already open)
+      expect(refused.body).toEqual({ error: true, message: "Time slot already booked" });
       const freed = await book("user_b", date, "6:00 PM");
       expect(freed.status).toBe(200);
       expect(freed.body.appointment_id).toBeDefined();
@@ -285,6 +288,21 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       expect(ids).toContain(proof.appointment_id);
       expect(ids).toContain(done.appointment_id);
       expect(ids).not.toContain(refunded.appointment_id);
+
+      // Leave no active booking behind for the tests after this one
+      await db`update appointments set status = 'CANCELLED' where id in ${db([proof.appointment_id, done.appointment_id])}`;
+    });
+
+    it("TC-BK-08e: an unpaid hold past its 5 minutes is released before the slots are listed", async () => {
+      const date = nextDate();
+      const { body } = await book("user_a", date, "2:00 PM");
+      await db`update appointments set expires_at = '2000-01-01T00:00:00.000Z' where id = ${body.appointment_id}`;
+      as(null);
+      const day = await callRoute(booking.getBookedSlots, `/api/booking/slots-detailed?nailist_id=${nailistId}&date=${date}`);
+      expect(day.body).toEqual([]);
+      expect(await statusOf(body.appointment_id)).toBe("CANCELLED");
+      const range = await callRoute(booking.getBookedSlotsRange, `/api/booking/slots-range?nailist_id=${nailistId}&from=${date}&to=${date}`);
+      expect(range.body).toEqual([]);
     });
 
     it("TC-BK-09: reschedule is owner-only and refuses a taken slot", async () => {
