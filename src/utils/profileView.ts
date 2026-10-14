@@ -1,7 +1,8 @@
 import type { AppointmentView } from "../components/profile/types";
 
-export const STAMP_TARGET = 10;
-export const stampsToGo = (stamps: number) => Math.max(0, STAMP_TARGET - stamps);
+/** The stamps a loyalty card needs for a reward until the salon's setting loads (hooks/useStampTarget) */
+export const DEFAULT_STAMP_TARGET = 10;
+export const stampsToGo = (stamps: number, target = DEFAULT_STAMP_TARGET) => Math.max(0, target - stamps);
 
 /** Start of an appointment in ms. Times are Philippine time whatever the visitor's timezone. */
 export function startOf(dateStr: string, timeStr: string): number {

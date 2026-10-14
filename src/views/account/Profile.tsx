@@ -81,7 +81,7 @@ export default function Profile() {
           <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
             <aside aria-label="Your profile" className={`${panelClass} gap-5 p-5 lg:sticky lg:top-24 lg:max-h-[80vh] lg:overflow-y-auto`}>
               <ProfileHeader firstName={dbUser.first_name ?? ""} imageUrl={p.clerkUser?.imageUrl ?? ""} memberSince={memberSince} />
-              <RewardsStrip stamps={p.stamps} onOpen={() => setRewardsOpen(true)} />
+              <RewardsStrip stamps={p.stamps} target={p.stampTarget} onOpen={() => setRewardsOpen(true)} />
               <DetailsCard rows={detailRows} onEdit={p.handleEditClick} />
               <div className="flex flex-col gap-2 border-t border-crimson-light/50 pt-4">
                 <Button variant="secondary" type="button" onClick={() => openUserProfile()} className="w-full">Manage account</Button>
@@ -134,7 +134,7 @@ export default function Profile() {
                       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                         <StatCard icon={CalendarClock} label="Coming up" value={String(p.upcoming.length)} hint={p.upcoming.length === 1 ? "appointment" : "appointments"} />
                         <StatCard icon={CalendarCheck} label="Visits" value={String(completedVisits)} hint="completed" />
-                        <StatCard icon={Stamp} label="Loyalty stamps" value={`${Math.min(p.stamps, 10)} / 10`} />
+                        <StatCard icon={Stamp} label="Loyalty stamps" value={`${Math.min(p.stamps, p.stampTarget)} / ${p.stampTarget}`} />
                       </div>
                     </TabSection>
                   </>
@@ -187,6 +187,7 @@ export default function Profile() {
         open={rewardsOpen}
         onClose={() => setRewardsOpen(false)}
         stamps={p.stamps}
+        target={p.stampTarget}
         cardNumber={p.loyaltyCardNumber}
         clerkId={p.clerkUser?.id}
         onRedeem={() => {

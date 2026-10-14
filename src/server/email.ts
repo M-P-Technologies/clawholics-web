@@ -299,16 +299,16 @@ export async function sendPaymentProofAdminEmail(appt: AppointmentRow, proofId: 
 }
 
 /** After a full loyalty card is redeemed: the client and the salon are told, independently. */
-export async function sendLoyaltyRewardEmails(clientEmail: string, clientName: string, userId: number) {
+export async function sendLoyaltyRewardEmails(clientEmail: string, clientName: string, userId: number, stampsRequired: number) {
   const customerHtml = baseEmailTemplate(
     "Loyalty Card Complete!",
     clientName,
-    "Congratulations! You've successfully collected <strong>10 stamps</strong> on your loyalty card. You are now eligible for a special reward on your next visit!",
-    clientRow("Stamps Collected", "10 / 10", HIGHLIGHT),
+    `Congratulations! You've successfully collected <strong>${stampsRequired} stamps</strong> on your loyalty card. You are now eligible for a special reward on your next visit!`,
+    clientRow("Stamps Collected", `${stampsRequired} / ${stampsRequired}`, HIGHLIGHT),
     false,
   );
   const adminRows = [
-    adminRow("Milestone", "10 STAMPS REACHED", " color: #CC798B; font-weight: bold;"),
+    adminRow("Milestone", `${stampsRequired} STAMPS REACHED`, " color: #CC798B; font-weight: bold;"),
     adminRow("Customer Name", escapeHtml(clientName)),
     adminRow("User ID", escapeHtml(userId)),
     adminRow("Email", `<a href="mailto:${escapeHtml(clientEmail)}">${escapeHtml(clientEmail)}</a>`),
@@ -323,7 +323,7 @@ export async function sendLoyaltyRewardEmails(clientEmail: string, clientName: s
       : null,
     sendEmail(
       adminEmail(),
-      `CLAWHOLICS: Loyalty Reward - ${clientName} reached 10 stamps!`,
+      `CLAWHOLICS: Loyalty Reward - ${clientName} reached ${stampsRequired} stamps!`,
       baseAdminEmailTemplate(`Loyalty Milestone Reached - ${clientName}`, adminRows),
     ).catch((e) => console.error("Admin loyalty email failed to send:", e)),
   ]);

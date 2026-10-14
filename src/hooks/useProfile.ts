@@ -10,6 +10,7 @@ import { isActiveAppointmentStatus } from "../services/proofState";
 import { PROFILE_FIELDS } from "../data/profile";
 import { useToast } from "../components/ui/ToastProvider";
 import { pickNext, sortSoonest } from "../utils/profileView";
+import { useStampTarget } from "./useStampTarget";
 import type { AppointmentView } from "../components/profile/types";
 
 export function useProfile() {
@@ -36,6 +37,7 @@ export function useProfile() {
   const appointmentsQuery = useQuery({ ...accountQueries.appointments(clerkId, getToken), enabled: isClient, refetchInterval: 30_000 });
   const dbUser = profileQuery.data ?? null;
   const stamps = dbUser?.stamps ?? 0;
+  const stampTarget = useStampTarget();
   const appointments = useMemo(() => appointmentsQuery.data ?? [], [appointmentsQuery.data]);
   // Changes the cached list, e.g. once an appointment is cancelled
   const setAppointments = useCallback(
@@ -284,7 +286,7 @@ export function useProfile() {
   };
 
   const handleClientRedeem = async () => {
-    if (stamps >= 10 && clerkUser?.id) {
+    if (stamps >= stampTarget && clerkUser?.id) {
       try {
         setShowRewardModal(true);
         const key = accountKeys.profile(clerkUser.id);
@@ -512,8 +514,8 @@ export function useProfile() {
   const upcoming: AppointmentView[] = sortSoonest(currentAppointments);
   const nextAppointment = pickNext(upcoming);
 
-  // The ten stamp boxes of the loyalty card
-  const stampCells = Array.from({ length: 10 }, (_, index) => ({ number: index + 1, isEarned: index + 1 <= stamps }));
+  // The stamp boxes of the loyalty card
+  const stampCells = Array.from({ length: stampTarget }, (_, index) => ({ number: index + 1, isEarned: index + 1 <= stamps }));
 
   // Cancelling a confirmed appointment less than 3 days ahead is not refundable
   const isLateCancellation =
@@ -528,5 +530,5 @@ export function useProfile() {
   const toggleHistory = () => setShowAllHistory(!showAllHistory);
   const closeRewardModal = () => setShowRewardModal(false);
 
-  return { toggleGender, toggleHistory, closeRewardModal, loyaltyCardNumber, isBusy, genderLabel, history, hasMoreHistory, noHistory, stampCells, isLateCancellation, selectedApptDateLabel, profileFields, isLoaded, clerkUser, getToken, navigate, highlightedAppointmentId, upcoming, nextAppointment, pastViews, dbUser, isEditing, formData, error, appointments, setAppointments, stamps, isGenderOpen, setIsGenderOpen, showRewardModal, setShowRewardModal, selectedAppt, setSelectedAppt, isCancelModalOpen, setIsCancelModalOpen, actionError, setActionError, currentTime, showAllHistory, setShowAllHistory, isCancelling, historySortBy, setHistorySortBy, historyFilter, setHistoryFilter, processedPastAppointments, todayFormatted, formatDisplayDate, handleEditClick, genderOptions, handleGenderSelect, handleContactMethodSelect, formatTime, handleChange, handleSave, handleCancel, handleClientRedeem, handleCancelAppointment, isEligibleForChanges, formatSlot, getStatusDotColor, todayIso, currentAppointments, payForAppointment, rescheduleAppointment, startCancel, closeCancelModal, handleProofUploaded, handleHistoryFilterChange, handleHistorySortChange };
+  return { toggleGender, toggleHistory, closeRewardModal, loyaltyCardNumber, isBusy, genderLabel, history, hasMoreHistory, noHistory, stampCells, stampTarget, isLateCancellation, selectedApptDateLabel, profileFields, isLoaded, clerkUser, getToken, navigate, highlightedAppointmentId, upcoming, nextAppointment, pastViews, dbUser, isEditing, formData, error, appointments, setAppointments, stamps, isGenderOpen, setIsGenderOpen, showRewardModal, setShowRewardModal, selectedAppt, setSelectedAppt, isCancelModalOpen, setIsCancelModalOpen, actionError, setActionError, currentTime, showAllHistory, setShowAllHistory, isCancelling, historySortBy, setHistorySortBy, historyFilter, setHistoryFilter, processedPastAppointments, todayFormatted, formatDisplayDate, handleEditClick, genderOptions, handleGenderSelect, handleContactMethodSelect, formatTime, handleChange, handleSave, handleCancel, handleClientRedeem, handleCancelAppointment, isEligibleForChanges, formatSlot, getStatusDotColor, todayIso, currentAppointments, payForAppointment, rescheduleAppointment, startCancel, closeCancelModal, handleProofUploaded, handleHistoryFilterChange, handleHistorySortChange };
 }

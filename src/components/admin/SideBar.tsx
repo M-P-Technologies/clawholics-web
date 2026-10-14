@@ -15,6 +15,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   QrCode,
+  Settings,
   ShieldCheck,
   TrendingUp,
   Wallet,
@@ -48,6 +49,7 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   "/faqs": CircleHelp,
   "/terms-and-conditions": FileText,
   "/privacy-policy": Lock,
+  "/settings": Settings,
 };
 
 const COLLAPSED_KEY = "clawholics-admin-sidebar-collapsed";
