@@ -1,0 +1,61 @@
+# Applies new files in supabase/migrations/ to the production database when they reach main.
+# Needs the repo secret SUPABASE_DB_URL: Supabase's *session* pooler string (port 5432), not the
+# transaction pooler in DATABASE_URL (port 6543) and not the direct host (IPv6 only, which
+# GitHub's runners can't reach).
+name: Database migrations
+
+on:
+  push:
+    branches: [main]
+    paths: ["supabase/migrations/**"]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only list the migrations that would run"
+        type: boolean
+        default: true
+
+# One run at a time, and never cancel one halfway through.
+concurrency:
+  group: db-migrations
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.120.0
+
+      - name: Check the secret
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "::error::The SUPABASE_DB_URL secret isn't set."
+            exit 1
+          fi
+
+      - name: List pending migrations
+        run: |
+          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run | tee pending.txt
+
+      # A database whose schema was made outside the CLI (copy-from-d1.mjs, the SQL editor) has no
+      # migration history, so the CLI would run every file again from init. Stop instead.
+      - name: Refuse to re-run init on an existing schema
+        run: |
+          if grep -q "20261010000000_init.sql" pending.txt &&
+             [ "$(psql "$SUPABASE_DB_URL" -Atc "select to_regclass('public.content') is not null")" = "t" ]; then
+            echo "::error::The database already has the schema but no migration history. Record what's already applied first: supabase migration repair --db-url \"\$SUPABASE_DB_URL\" --status applied <version>..."
+            exit 1
+          fi
+
+      - name: Apply migrations
+        if: github.event_name == 'push' || inputs.dry_run == false
+        run: supabase db push --db-url "$SUPABASE_DB_URL" --yes
