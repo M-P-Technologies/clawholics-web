@@ -45,7 +45,9 @@ export function useAdminNotifications() {
   const markRead = async () => {
     const newest = data?.notifications[0]?.id;
     if (!data || !newest || data.unread === 0) return;
-    // Shown read at once; if saving fails, the next answer puts them back
+    // Shown read at once (a poll already on its way would bring the old count back); if saving
+    // fails, the next answer puts them back
+    await queryClient.cancelQueries({ queryKey: adminKeys.notifications() });
     queryClient.setQueryData<AdminNotifications>(adminKeys.notifications(), (current) =>
       current && { unread: 0, notifications: current.notifications.map((n) => ({ ...n, unread: false })) },
     );
@@ -63,9 +65,9 @@ export function useAdminNotifications() {
     loading: query.isPending,
     failed: query.isError && !data,
     open,
-    /** Opens or closes the list; opening it marks everything read */
     /** Unread when the list was opened */
     isNew: (id: number) => newIds.has(id),
+    /** Opens or closes the list; opening it marks everything read */
     toggle: () => {
       if (!open) {
         setNewIds(new Set((data?.notifications ?? []).filter((n) => n.unread).map((n) => n.id)));

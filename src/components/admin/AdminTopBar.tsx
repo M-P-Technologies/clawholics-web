@@ -3,6 +3,7 @@
 import { CalendarDays, ExternalLink } from "lucide-react";
 import type { ReactNode } from "react";
 import { useAdminAccount } from "../../hooks/admin/useAdminAccount";
+import { useAdminWideLayout } from "../../hooks/useMinWidth";
 import { initialsOf } from "./DirectoryProfileCard";
 import NotificationBell from "./NotificationBell";
 
@@ -19,6 +20,9 @@ interface AdminTopBarProps {
 // on the right.
 export default function AdminTopBar({ title, titleAside, actions }: AdminTopBarProps) {
   const account = useAdminAccount();
+  // The bell is drawn once, in the place for the screen's width: two (one hidden by CSS) would
+  // each ask for the notifications and each announce a new one
+  const wide = useAdminWideLayout();
 
   return (
     <header className="flex w-full flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk/80 px-4 py-3 shadow-petal backdrop-blur-sm sm:px-5 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
@@ -32,7 +36,7 @@ export default function AdminTopBar({ title, titleAside, actions }: AdminTopBarP
         </div>
         {/* On a phone the bell and the account sit beside the title */}
         <div className="flex shrink-0 items-center gap-2 lg:hidden">
-          <NotificationBell />
+          {!wide && <NotificationBell />}
           <Avatar name={account.name} imageUrl={account.imageUrl} />
         </div>
       </div>
@@ -58,9 +62,11 @@ export default function AdminTopBar({ title, titleAside, actions }: AdminTopBarP
           <ExternalLink size={14} aria-hidden="true" />
         </a>
 
-        <div className="hidden lg:block">
-          <NotificationBell />
-        </div>
+        {wide && (
+          <div className="hidden lg:block">
+            <NotificationBell />
+          </div>
+        )}
 
         <div className="hidden shrink-0 items-center gap-2.5 border-l border-crimson-light/60 pl-3 lg:flex">
           <Avatar name={account.name} imageUrl={account.imageUrl} />
