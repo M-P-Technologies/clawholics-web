@@ -8,7 +8,7 @@ interface SectionHeaderProps {
   /** Controls under the title (page size only), e.g. filters */
   children?: ReactNode;
   align?: "left" | "center";
-  /** page: the inner page's h1 · section: a heading with an action on the right · card: a card's title with its icon � label: a small grey label over a group of controls (h3) */
+  /** page: the inner page's h1 · section: a heading with an action on the right · card: a card's title with its icon · label: a small grey label over a group of controls (h3) */
   size?: "page" | "section" | "card" | "label";
   level?: 1 | 2 | 3;
   icon?: LucideIcon;
