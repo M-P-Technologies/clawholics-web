@@ -6,7 +6,7 @@ import AppointmentDetailsModal from "./AppointmentDetailsModal";
 import CreateAppointmentModal from "./CreateAppointmentModal";
 import { CardFields, CARDS_PER_PAGE, RowCard, RowCards } from "./RowCards";
 import { Button, Select, initialsOf } from "@/components/atoms";
-import { Dialog } from "@/components/organisms";
+import { AlertDialog, Dialog } from "@/components/organisms";
 import { Pagination, paginate, useToast } from "@/components/molecules";
 import { Link, useSearchParams } from "@/lib/router";
 import { monthYear, relativeDay, type DirectoryProfile } from "./DirectoryProfileCard";
@@ -497,20 +497,6 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
         />
       )}
 
-      {slotTaken && (
-        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-gray-red/40 px-4 drawer-backdrop sm:items-center max-sm:p-0">
-          <div role="alertdialog" aria-label="Slot already taken" className="flex w-full max-w-[380px] flex-col gap-4 rounded-2xl bg-milk px-8 py-4 shadow-lg drawer-panel max-sm:max-w-none max-sm:rounded-b-none max-sm:rounded-t-md">
-            <h3 className="text-center font-display text-xl text-gray-red">Slot already taken</h3>
-            <p className="text-center text-[14px] text-gray-red">This appointment slot has already been taken by another active appointment.</p>
-            <div className="flex justify-center">
-              <Button type="button" onClick={() => setSlotTaken(false)}>
-                Okay
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {selected && (
         <AppointmentDetailsModal
           appointment={selected}
@@ -524,6 +510,16 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
           }}
         />
       )}
+
+      {/* After the drawer, so it stacks above it */}
+      <AlertDialog
+        open={slotTaken}
+        title="Slot already taken"
+        message="This appointment slot has already been taken by another active appointment."
+        buttonText="Okay"
+        onClose={() => setSlotTaken(false)}
+        onAction={() => setSlotTaken(false)}
+      />
     </section>
   );
 }

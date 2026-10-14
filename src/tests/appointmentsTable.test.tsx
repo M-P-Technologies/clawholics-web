@@ -17,9 +17,17 @@ vi.mock("@clerk/nextjs", () => {
 const show = vi.fn();
 vi.mock("@/components/molecules", async (orig) => ({ ...(await orig<object>()), useToast: () => ({ show }) }));
 vi.mock("@/hooks/usePolling", () => ({ usePolling: () => {} }));
-vi.mock("@/components/admin/AppointmentDetailsModal", () => ({
-  default: ({ appointment }: { appointment: Appointment }) => <div role="dialog" aria-label="Appointment details">Details of #{appointment.id}</div>,
-}));
+vi.mock("@/components/admin/AppointmentDetailsModal", async () => {
+  const { Dialog } = await import("@/components/organisms");
+  return {
+    default: ({ appointment, onClose, onStatusChange }: { appointment: Appointment; onClose: () => void; onStatusChange: (id: number, s: string) => void }) => (
+      <Dialog open onClose={onClose} title="Appointment details" placement="drawer">
+        Details of #{appointment.id}
+        <button onClick={() => onStatusChange(appointment.id, "CONFIRMED")}>Set confirmed</button>
+      </Dialog>
+    ),
+  };
+});
 vi.mock("@/components/admin/CreateAppointmentModal", () => ({ default: () => <div role="dialog" aria-label="New appointment" /> }));
 
 const fetchAppointments = vi.fn();
@@ -115,6 +123,17 @@ describe("Appointments table", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Review the payment proof for appointment #4" }));
     expect(screen.getByRole("dialog", { name: "Appointment details" })).toHaveTextContent("Details of #4");
+  });
+
+  it("shows the slot-taken alert above the open drawer", async () => {
+    updateAppointmentStatus.mockRejectedValue(new Error("SLOT_TAKEN"));
+    render(<AppointmentsTable />);
+    await screen.findByRole("table", { name: "Appointments" });
+    fireEvent.click(screen.getByRole("button", { name: "Review the payment proof for appointment #4" }));
+    const drawer = screen.getByRole("dialog", { name: "Appointment details" });
+    fireEvent.click(screen.getByRole("button", { name: "Set confirmed" }));
+    const alert = await screen.findByRole("alertdialog", { name: "Slot already taken" });
+    expect(drawer.compareDocumentPosition(alert.parentElement!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("turns Manage off for a walk-in, who has no client page", async () => {
