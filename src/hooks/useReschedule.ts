@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "@/lib/router";
 import { useUser, useAuth } from "@clerk/nextjs";
-import { fetchBookedSlotsDetailed } from "../services/bookingService";
-import { fetchNailistDayOffs, fetchNailistTimeSlots } from "../services/nailistService";
+import { useQueryClient } from "@tanstack/react-query";
 import { rescheduleAppointment } from "../services/bookingService";
+import { ACCOUNT } from "@/lib/accountQueries";
 import { isOverlapping, toLocalDate, toLocalDateString } from "../utils/reschedule";
+import { useArtistAvailability } from "./useArtistAvailability";
 
 export function useReschedule() {
   const navigate = useNavigate();
@@ -19,11 +20,11 @@ export function useReschedule() {
   const [month, setMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
-  const [timeSlots, setTimeSlots] = useState<string[]>([]);
-  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
-  const [dayOffs, setDayOffs] = useState<number[]>([]);
-  const [customOffs, setCustomOffs] = useState<string[]>([]);
-  const [fullyBookedDates, setFullyBookedDates] = useState<string[]>([]);
+  const queryClient = useQueryClient();
+  // The artist's hours, days off, the next month's fully booked days (one request) and the chosen
+  // day's taken times, shared with booking (lib/bookingQueries)
+  const { timeSlots, dayOffs, customOffs, fullyBookedDates, bookedSlots, isDayFullyBooked, fetchTakenTimes } =
+    useArtistAvailability(appointment?.nailist_id, selectedDate);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
@@ -79,53 +80,6 @@ export function useReschedule() {
       navigate("/profile", { replace: true });
     }
   }, [isLoaded, isSignedIn, appointment, navigate]);
-
-  useEffect(() => {
-    if (!appointment) return;
-
-    fetchNailistTimeSlots(appointment.nailist_id).then(setTimeSlots);
-
-    fetchNailistDayOffs(appointment.nailist_id).then((data) => {
-      setDayOffs(data.regularDays || []);
-      setCustomOffs(data.customDates || []);
-    });
-  }, [appointment]);
-
-  useEffect(() => {
-    if (!appointment || timeSlots.length === 0) return;
-
-    const loadMonthAvailability = async () => {
-      const start = new Date();
-      const end = new Date();
-      end.setMonth(end.getMonth() + 1);
-
-      const promises = [];
-      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        const formatted = toLocalDateString(d);
-        promises.push(
-          fetchBookedSlotsDetailed(appointment.nailist_id, formatted).then(
-            (slots) => ({
-              date: formatted,
-              times: slots.map((s: any) => s.appointment_time),
-            }),
-          ),
-        );
-      }
-
-      const results = await Promise.all(promises);
-      const dates = results
-        .filter((r) =>
-          timeSlots.every((slot) =>
-            r.times.some((b: string) => isOverlapping(b, slot)),
-          ),
-        )
-        .map((r) => r.date);
-
-      setFullyBookedDates(dates);
-    };
-
-    loadMonthAvailability();
-  }, [appointment, timeSlots]);
 
   const isDisabledDate = (date: Date) => {
     const today = new Date();
@@ -191,14 +145,9 @@ export function useReschedule() {
         throw new Error("Authentication failed. Please log in again.");
       }
 
-      const latest = await fetchBookedSlotsDetailed(
-        appointment.nailist_id,
-        selectedDate,
-      );
+      const latest = await fetchTakenTimes(selectedDate);
 
-      const conflict = latest.some((s: any) =>
-        isOverlapping(selectedTime, s.appointment_time),
-      );
+      const conflict = latest.some((taken) => isOverlapping(selectedTime, taken));
 
       if (conflict) {
         showModal(
@@ -215,6 +164,8 @@ export function useReschedule() {
         selectedTime,
         token,
       );
+      // The client's appointments (and every cached booking view of them) show the new time
+      void queryClient.invalidateQueries({ queryKey: [ACCOUNT] });
 
       showModal(
         "Appointment rescheduled",
@@ -236,19 +187,18 @@ export function useReschedule() {
 
     const formatted = toLocalDateString(date);
 
-    const slots = await fetchBookedSlotsDetailed(appointment.nailist_id, formatted);
-    const times = slots.map((s: any) => s.appointment_time);
+    const times = await fetchTakenTimes(formatted);
 
     if (timeSlots.length === 0) return;
-    const fullyBooked = timeSlots.every((slot) => times.some((b: string) => isOverlapping(b, slot)));
+    const fullyBooked = isDayFullyBooked(times);
 
     if (fullyBooked) {
       showModal("Fully booked", "There are no times left on this day. Please choose another date.");
       return;
     }
 
+    // The day's taken times are now cached for its time list
     setSelectedDate(formatted);
-    setBookedSlots(times);
     setSelectedTime("");
   };
 
@@ -262,5 +212,5 @@ export function useReschedule() {
     if (modalAction) modalAction();
   };
 
-  return { isLoaded, appointment, isSubmitting, month, setMonth, selectedDate, setSelectedDate, selectedTime, setSelectedTime, timeSlots, setBookedSlots, fullyBookedDates, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, isDisabledDate, formatDisplayDate, isTimeBlocked, isPastTimeToday, showModal, handleConfirmReschedule, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, uniqueTimeSlots, handleModalClose };
+  return { isLoaded, appointment, isSubmitting, month, setMonth, selectedDate, setSelectedDate, selectedTime, setSelectedTime, timeSlots, fullyBookedDates, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, isDisabledDate, formatDisplayDate, isTimeBlocked, isPastTimeToday, showModal, handleConfirmReschedule, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, uniqueTimeSlots, handleModalClose };
 }

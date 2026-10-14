@@ -1,7 +1,10 @@
 import { useEffect, useState, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { publicQueries } from "@/lib/publicQueries";
+import { ACCOUNT } from "@/lib/accountQueries";
 import { useNavigate, useLocation } from "@/lib/router";
 import { useAuth } from "@clerk/nextjs";
-import { createPayment, fetchPaymentSettings } from "../services/paymentService";
+import { createPayment } from "../services/paymentService";
 import { OFFERED_PAYMENT_METHODS, PAYMENT_METHOD_HINTS, PAYMENT_METHOD_LABELS } from "../data/payment";
 import { fetchAppointmentById } from "../services/appointmentService";
 import { type AppointmentState, explainPaymentFailure, explainStatusChange } from "../utils/payment";
@@ -13,9 +16,9 @@ export function usePayment() {
 
   // With a single way to pay, it is already chosen
   const [method, setMethod] = useState(OFFERED_PAYMENT_METHODS[0] ?? "");
-  const [enabledMethods, setEnabledMethods] = useState<string[]>(OFFERED_PAYMENT_METHODS); // until the settings load; the server still checks the method
   const [agree, setAgree] = useState(false);
-  const [loading, setLoading] = useState(true);
+  // Set once the hold runs out, which ends the wait for the check
+  const [expired, setExpired] = useState(false);
   const [isInvalid, setIsInvalid] = useState(false);
   const [timeLeft, setTimeLeft] = useState("");
   const isProcessing = useRef(false);
@@ -29,60 +32,62 @@ export function usePayment() {
 
   const appointment = location.state as AppointmentState | null;
 
-  useEffect(() => {
-    if (!appointment?.appointment_id) {
-      setLoading(false);
-      return;
-    }
+  // The appointment as the server has it now: never answered from the cache, since paying for a
+  // slot that's no longer held must not happen
+  const appointmentId = appointment?.appointment_id;
+  const latest = useQuery({
+    queryKey: [ACCOUNT, "payment", appointmentId],
+    queryFn: async () => fetchAppointmentById(appointmentId!, await getToken()),
+    enabled: !!appointmentId,
+    staleTime: 0,
+    gcTime: 0,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+  const verifying = !!appointmentId && latest.isPending;
+  const loading = verifying && !expired;
 
-    const verifyAppointment = async () => {
-      try {
-        const token = await getToken();
-        const latestAppt = await fetchAppointmentById(appointment.appointment_id, token);
-        
-        const status = String(latestAppt.status || "").toUpperCase();
-        
-        if (status !== "PENDING") {
-          setIsInvalid(true);
-          setLoading(false); // We stop loading but isInvalid=true will keep the LoadingBar visible
-          showModal(
-            "This appointment can't be paid",
-            explainStatusChange(status),
-            () => navigate("/profile", { state: { activeTab: "schedule" } }),
-            "View my schedule",
-            false // Not dismissible
-          );
-        } else {
-          setLoading(false);
-        }
-      } catch (err) {
-        console.error("Failed to verify appointment:", err);
-        setIsInvalid(true);
-        setLoading(false);
+  useEffect(() => {
+    if (latest.data) {
+      const status = String(latest.data.status || "").toUpperCase();
+      if (status !== "PENDING") {
+        setIsInvalid(true); // keeps the LoadingBar visible
         showModal(
-          "We couldn't check your reservation",
-          "We couldn't confirm that your slot is still held, so we've paused the payment to keep you from paying for the wrong thing. You haven't been charged. Please go back to booking and try again.",
-          () => navigate("/booking"),
-          "Back to booking",
-          false,
+          "This appointment can't be paid",
+          explainStatusChange(status),
+          () => navigate("/profile", { state: { activeTab: "schedule" } }),
+          "View my schedule",
+          false // Not dismissible
         );
       }
-    };
+    } else if (latest.isError) {
+      console.error("Failed to verify appointment:", latest.error);
+      setIsInvalid(true);
+      showModal(
+        "We couldn't check your reservation",
+        "We couldn't confirm that your slot is still held, so we've paused the payment to keep you from paying for the wrong thing. You haven't been charged. Please go back to booking and try again.",
+        () => navigate("/booking"),
+        "Back to booking",
+        false,
+      );
+    }
+  }, [latest.data, latest.isError, latest.error, navigate]);
 
-    verifyAppointment();
-  }, [appointment, getToken, navigate]);
-
-  // The Xendit channels the salon has enabled. MANUAL (payment proof) isn't paid from this screen.
+  // The Xendit channels the salon has enabled (shared with the other public content). MANUAL
+  // (payment proof) isn't paid from this screen. Until they load, every offered method shows;
+  // the server still checks the method.
+  const settings = useQuery(publicQueries.paymentSettings());
   useEffect(() => {
-    fetchPaymentSettings()
-      .then((settings) => {
-        const online = settings.payment_methods.filter((m) => OFFERED_PAYMENT_METHODS.includes(m) && Object.hasOwn(PAYMENT_METHOD_LABELS, m));
-        if (online.length === 0) return;
-        setEnabledMethods(online);
-        setMethod((current) => (online.includes(current) ? current : online.length === 1 ? online[0] : ""));
-      })
-      .catch((err) => console.error("Failed to load payment methods:", err));
-  }, []);
+    if (settings.isError) console.error("Failed to load payment methods:", settings.error);
+  }, [settings.isError, settings.error]);
+  const online = (settings.data?.payment_methods ?? []).filter((m) => OFFERED_PAYMENT_METHODS.includes(m) && Object.hasOwn(PAYMENT_METHOD_LABELS, m));
+  const enabledMethods = online.length > 0 ? online : OFFERED_PAYMENT_METHODS;
+  const enabledKey = enabledMethods.join(",");
+
+  useEffect(() => {
+    const enabled = enabledKey.split(",");
+    setMethod((current) => (enabled.includes(current) ? current : enabled.length === 1 ? enabled[0] : ""));
+  }, [enabledKey]);
 
   useEffect(() => {
     if (!appointment?.expires_at) {
@@ -98,7 +103,7 @@ export function usePayment() {
       if (diff <= 0) {
         setTimeLeft("00:00");
         setIsInvalid(true);
-        setLoading(false);
+        setExpired(true);
 
         showModal(
           "Reservation expired",

@@ -1,7 +1,8 @@
 import { useAuth, useUser } from "@clerk/nextjs";
 import { Check, ChevronDown, Plus, Search, SquarePen } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
+import { adminDataChanged, adminQueries } from "../../lib/adminQueries";
 import clsx from "clsx";
 import AppointmentDetailsModal from "./AppointmentDetailsModal";
 import CreateAppointmentModal from "./CreateAppointmentModal";
@@ -16,7 +17,6 @@ import { Link, useSearchParams } from "@/lib/router";
 import { initialsOf, monthYear, relativeDay, type DirectoryProfile } from "./DirectoryProfileCard";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import { useTableLayout } from "../../hooks/useMinWidth";
-import { API_BASE_URL } from "../../apiConfig";
 import { matchesAppointmentFilter, type AppointmentFilterStatus } from "../../services/appointmentFilters";
 import {
   ADMIN_APPOINTMENTS_KEY,
@@ -146,7 +146,9 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
 
   const queryClient = useQueryClient();
   const { isLoaded: isAuthLoaded } = useAuth();
-  const [artists, setArtists] = useState<NailArtist[]>([]);
+  // The artist filter's list (shared with the Artists editor); without it the filter lists no artists
+  const artistList = useQuery(adminQueries.nailists()).data;
+  const artists = (Array.isArray(artistList) ? artistList : []) as unknown as NailArtist[];
   const [status, setStatus] = useState<AppointmentFilterStatus>(() => parseStatusParam(searchParams.get("status")));
   const [artist, setArtist] = useState("All");
   const [sort, setSort] = useState(SORT_OPTIONS[0]);
@@ -194,23 +196,9 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
   // The time the proof badges are worked out against: when this page was loaded
   const now = listQuery.dataUpdatedAt || firstRender;
 
-  // After a change: every page and the dashboard's tables load again
-  const refresh = () => queryClient.invalidateQueries({ queryKey: ADMIN_APPOINTMENTS_KEY });
+  // After a change: every page, the dashboard, the schedule and the client pages load again
+  const refresh = () => adminDataChanged(queryClient);
   const load = () => void listQuery.refetch();
-
-  const loadArtists = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/nailists`, { headers: { "x-clawholics-origin": "frontend" } });
-      if (res.ok) setArtists(await res.json());
-    } catch {
-      // the artist filter just lists no artists
-    }
-  };
-
-  // The artist filter's list, loaded once
-  useEffect(() => {
-    loadArtists();
-  }, []);
 
   // A new filter or search starts again on the first page
   const choose = <T,>(set: (value: T) => void) => (value: T) => {

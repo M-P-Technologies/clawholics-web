@@ -1,8 +1,12 @@
 import { ArrowLeft as BackButtonIcon, Check as CheckIcon, ChevronDown as DropdownIcon, Plus as PlusIcon, Upload as UploadIcon, X as XIcon } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ADMIN } from "../../lib/adminQueries";
+import { bookingQueries } from "../../lib/bookingQueries";
+import { useFillForm } from "../../hooks/admin/useFillForm";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
-import { fetchAppointments } from "../../services/appointmentService";
+import { ADMIN_APPOINTMENTS_KEY, fetchAppointments } from "../../services/appointmentService";
 
 import ImagePreviewModal from "./ImagePreviewModal";
 import NailArtistGallery from "./NailArtistGallery";
@@ -10,9 +14,7 @@ import NailArtistGallery from "./NailArtistGallery";
 import {
   createNailist,
   deleteNailist,
-  fetchNailistDayOffs,
   fetchNailistServices,
-  fetchNailistTimeSlots,
   updateNailist,
   updateNailistDayOffs,
   updateNailistServices,
@@ -151,18 +153,15 @@ const splitTimeSlot = (timeSlot: string) => {
 };
 
 // Every artist's calendar marks booked days from the same appointment list, so the cards opened
-// together share one request instead of each asking for all the appointments
-let sharedAppointments: { at: number; list: ReturnType<typeof fetchAppointments> } | null = null;
-const appointmentsForCalendars = () => {
-  if (!sharedAppointments || Date.now() - sharedAppointments.at > 30_000) {
-    const list = fetchAppointments();
-    sharedAppointments = { at: Date.now(), list };
-    list.catch(() => {
-      if (sharedAppointments?.list === list) sharedAppointments = null;
-    });
-  }
-  return sharedAppointments.list;
+// together share one cached query instead of each asking for all the appointments
+const allAppointmentsQuery = {
+  queryKey: [...ADMIN_APPOINTMENTS_KEY, "all"],
+  queryFn: () => fetchAppointments(),
+  staleTime: 30_000,
 };
+
+// The artist's services, as the editor shows them, cached per artist
+const artistServicesKey = (nailistId: number) => [ADMIN, "nailists", nailistId, "services"] as const;
 
 const DayOffCard = ({
   nailistId,
@@ -186,55 +185,33 @@ const DayOffCard = ({
   const [month, setMonth] = useState(
     new Date(today.getFullYear(), today.getMonth(), 1)
   );
-  const [bookedDates, setBookedDates] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
+  // The days off, the same cached query the booking pages read
+  const dayOffsQuery = useQuery({ ...bookingQueries.dayOffs(nailistId ?? 0), enabled: !!nailistId });
+  const isLoading = !!nailistId && dayOffsQuery.isPending;
+  useFillForm(dayOffsQuery.data, !disabled, onDayOffsLoaded);
   useEffect(() => {
-    if (!nailistId) return;
+    if (dayOffsQuery.isError) console.error("Failed to fetch day offs:", dayOffsQuery.error);
+  }, [dayOffsQuery.isError, dayOffsQuery.error]);
 
-    const loadDayOffs = async () => {
-      try {
-        setIsLoading(true);
-        const data = await fetchNailistDayOffs(nailistId);
-        onDayOffsLoaded(data);
-      } catch (error) {
-        console.error("Failed to fetch day offs:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadDayOffs();
-  }, [nailistId]);
-
+  const appointmentsQuery = useQuery({ ...allAppointmentsQuery, enabled: !!nailistId });
   useEffect(() => {
-    if (!nailistId) return;
+    if (appointmentsQuery.isError) console.error("Failed to fetch booked dates:", appointmentsQuery.error);
+  }, [appointmentsQuery.isError, appointmentsQuery.error]);
+  const bookedDates = useMemo(() => {
+    const dates = (appointmentsQuery.data ?? [])
+      .filter((appointment) => {
+        const status = appointment.status.toLowerCase();
 
-    const loadBookedDates = async () => {
-      try {
-        const appointments = await appointmentsForCalendars();
-
-        const dates = appointments
-          .filter((appointment) => {
-            const status = appointment.status.toLowerCase();
-
-            return (
-              appointment.nailist_id === nailistId &&
-              status !== "cancelled" &&
-              status !== "canceled" &&
-              status !== "rejected"
-            );
-          })
-          .map((appointment) => appointment.appointment_date);
-
-        setBookedDates(Array.from(new Set(dates)));
-      } catch (error) {
-        console.error("Failed to fetch booked dates:", error);
-      }
-    };
-
-    loadBookedDates();
-  }, [nailistId]);
+        return (
+          appointment.nailist_id === nailistId &&
+          status !== "cancelled" &&
+          status !== "canceled" &&
+          status !== "rejected"
+        );
+      })
+      .map((appointment) => appointment.appointment_date);
+    return Array.from(new Set(dates));
+  }, [appointmentsQuery.data, nailistId]);
 
   const isDayOff = (date: Date) => {
     const dateKey = formatDateKey(date);
@@ -412,27 +389,16 @@ const TimeSlotCard = ({
   onTimeSlotsLoaded: (timeSlots: NailistTimeSlots) => void;
 }) => {
   const toast = useToast();
-  const [isLoading, setIsLoading] = useState(false);
   const [newStartTime, setNewStartTime] = useState("");
   const [newEndTime, setNewEndTime] = useState("");
 
+  // The hours, the same cached query the booking pages read
+  const timeSlotsQuery = useQuery({ ...bookingQueries.timeSlots(nailistId ?? 0), enabled: !!nailistId });
+  const isLoading = !!nailistId && timeSlotsQuery.isPending;
+  useFillForm(timeSlotsQuery.data, !disabled, onTimeSlotsLoaded);
   useEffect(() => {
-    if (!nailistId) return;
-
-    const loadTimeSlots = async () => {
-      try {
-        setIsLoading(true);
-        const data = await fetchNailistTimeSlots(nailistId);
-        onTimeSlotsLoaded(data);
-      } catch (error) {
-        console.error("Failed to fetch time slots:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadTimeSlots();
-  }, [nailistId]);
+    if (timeSlotsQuery.isError) console.error("Failed to fetch time slots:", timeSlotsQuery.error);
+  }, [timeSlotsQuery.isError, timeSlotsQuery.error]);
 
   const openTimePicker = (wrapper: HTMLDivElement) => {
     const input = wrapper.querySelector("input");
@@ -647,6 +613,7 @@ const NailArtistDropdown: React.FC<NailArtistDropdownProps> = ({
   clerkId,
 }) => {
   const toast = useToast();
+  const queryClient = useQueryClient();
   const isCreateMode = mode === "create";
 
   const [isOpen, setIsOpen] = useState(false);
@@ -663,7 +630,9 @@ const NailArtistDropdown: React.FC<NailArtistDropdownProps> = ({
   const [bio, setBio] = useState(nailist?.bio ?? "");
   const [image, setImage] = useState(nailist?.image ?? "");
 
-  const [availableServices, setAvailableServices] = useState<NailService[]>([]);
+  // Every artist card offers the same services: one cached request for all of them
+  const servicesQuery = useQuery({ queryKey: [ADMIN, "services"], queryFn: (): Promise<NailService[]> => fetchServices() });
+  const availableServices = servicesQuery.data ?? [];
   const [selectedServiceIds, setSelectedServiceIds] = useState<number[]>(
     nailist?.service_ids ?? []
   );
@@ -691,17 +660,8 @@ const NailArtistDropdown: React.FC<NailArtistDropdownProps> = ({
   const [originalImage, setOriginalImage] = useState(nailist?.image ?? "");
 
   useEffect(() => {
-    const loadServices = async () => {
-      try {
-        const services = await fetchServices();
-        setAvailableServices(services);
-      } catch (error) {
-        console.error("Failed to fetch services:", error);
-      }
-    };
-
-    loadServices();
-  }, []);
+    if (servicesQuery.isError) console.error("Failed to fetch services:", servicesQuery.error);
+  }, [servicesQuery.isError, servicesQuery.error]);
 
   useEffect(() => {
     if (!isCreateMode && nailist) {
@@ -722,21 +682,18 @@ const NailArtistDropdown: React.FC<NailArtistDropdownProps> = ({
     }
   }, [nailist, isCreateMode]);
 
+  const nailistServicesQuery = useQuery({
+    queryKey: artistServicesKey(nailist?.id ?? 0),
+    queryFn: () => fetchNailistServices(nailist?.id ?? 0),
+    enabled: !isCreateMode && !!nailist,
+  });
+  useFillForm(nailistServicesQuery.data, isEditing, (serviceIds: number[]) => {
+    setSelectedServiceIds(serviceIds);
+    setOriginalSelectedServiceIds(serviceIds);
+  });
   useEffect(() => {
-    if (!isCreateMode && nailist) {
-      const loadNailistServices = async () => {
-        try {
-          const serviceIds = await fetchNailistServices(nailist.id);
-          setSelectedServiceIds(serviceIds);
-          setOriginalSelectedServiceIds(serviceIds);
-        } catch (error) {
-          console.error("Failed to fetch artist services:", error);
-        }
-      };
-
-      loadNailistServices();
-    }
-  }, [nailist, isCreateMode]);
+    if (nailistServicesQuery.isError) console.error("Failed to fetch artist services:", nailistServicesQuery.error);
+  }, [nailistServicesQuery.isError, nailistServicesQuery.error]);
 
   const handleDayOffsLoaded = (dayOffs: NailistDayOffs) => {
     setRegularDays(dayOffs.regularDays);
@@ -930,6 +887,11 @@ const NailArtistDropdown: React.FC<NailArtistDropdownProps> = ({
 
       setTimeSlots(updatedTimeSlots);
       setOriginalTimeSlots(updatedTimeSlots);
+
+      // The cached copies now match what was saved
+      queryClient.setQueryData(artistServicesKey(nailist.id), updatedServiceIds);
+      queryClient.setQueryData(bookingQueries.dayOffs(nailist.id).queryKey, updatedDayOffs);
+      queryClient.setQueryData(bookingQueries.timeSlots(nailist.id).queryKey, updatedTimeSlots);
 
       setIsEditing(false);
       onNailistUpdated?.({

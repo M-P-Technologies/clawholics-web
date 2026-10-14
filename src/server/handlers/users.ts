@@ -289,16 +289,52 @@ export const promoteAdmin = ported(async (req) => {
   return Response.json({ message: "User successfully promoted to admin", status: "promoted", email });
 });
 
-export const listAdmins = ported(async () => {
+export const MAX_ADMIN_PAGE_SIZE = 50;
+
+// GET /users/admins: every admin, by name. With ?page=N (and pageSize 1-50, default 5) it answers
+// one page as { rows, total, page, pageSize, clerkIds }: clerkIds are every admin's Clerk id (null
+// for one without), for
+// the directory's stat cards (active, inactive, new), which count all admins by their Clerk dates.
+export const listAdmins = ported(async (req) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
-  const rows = await getSql()`
-    select u.id, u.clerk_id, coalesce(ap.first_name, '') as "firstName", coalesce(ap.last_name, '') as "lastName", u.email, u.role
-    from users u join admin_profiles ap on u.id = ap.user_id
-    where u.role = 'admin'
-    order by coalesce(ap.first_name, '') collate "C" asc, coalesce(ap.last_name, '') collate "C" asc, u.id asc
-  `;
-  return Response.json(rows);
+  const sql = getSql();
+  const params = new URL(req.url).searchParams;
+  const order = sql`order by coalesce(ap.first_name, '') collate "C" asc, coalesce(ap.last_name, '') collate "C" asc, u.id asc`;
+  if (!params.has("page")) {
+    const rows = await sql`
+      select u.id, u.clerk_id, coalesce(ap.first_name, '') as "firstName", coalesce(ap.last_name, '') as "lastName", u.email, u.role
+      from users u join admin_profiles ap on u.id = ap.user_id
+      where u.role = 'admin'
+      ${order}
+    `;
+    return Response.json(rows);
+  }
+
+  const page = Number(params.get("page"));
+  const pageSize = params.has("pageSize") ? Number(params.get("pageSize")) : 5;
+  if (!Number.isInteger(page) || page < 1 || !Number.isInteger(pageSize) || pageSize < 1 || pageSize > MAX_ADMIN_PAGE_SIZE) {
+    return Response.json({ error: `page must be 1 or more, and pageSize 1 to ${MAX_ADMIN_PAGE_SIZE}` }, { status: 400 });
+  }
+  const [rows, all] = await Promise.all([
+    sql`
+      select u.id, u.clerk_id, coalesce(ap.first_name, '') as "firstName", coalesce(ap.last_name, '') as "lastName", u.email, u.role
+      from users u join admin_profiles ap on u.id = ap.user_id
+      where u.role = 'admin'
+      ${order}
+      limit ${pageSize} offset ${(page - 1) * pageSize}
+    `,
+    sql<{ clerk_id: string | null }[]>`
+      select u.clerk_id from users u join admin_profiles ap on u.id = ap.user_id where u.role = 'admin'
+    `,
+  ]);
+  return Response.json({
+    rows,
+    total: all.length,
+    page,
+    pageSize,
+    clerkIds: all.map((row) => row.clerk_id),
+  });
 });
 
 // --- PROFILES (the signed-in user, or an admin) ----------------------------------------------

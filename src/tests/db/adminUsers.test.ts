@@ -278,6 +278,43 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
     expect(admins.body.map((a: { email: string }) => a.email)).toContain("cust@x.test");
   });
 
+  it("TC-USR-04b: the admin list pages with ?page, keeping every admin's Clerk id for the stats", async () => {
+    as("user_admin");
+    for (const n of [1, 2, 3, 4, 5, 6]) {
+      const [row] = await db<{ id: number }[]>`
+        insert into users (clerk_id, email, role) values (${`user_pg${n}`}, ${`pg${n}@x.test`}, 'admin') returning id
+      `;
+      await db`insert into admin_profiles (user_id, first_name, last_name) values (${row.id}, ${`Paged${n}`}, 'Lee')`;
+    }
+    const all = (await call(users.listAdmins, "/api/users/admins")).body as { clerk_id: string; firstName: string }[];
+    const first = await call(users.listAdmins, "/api/users/admins?page=1&pageSize=5");
+    expect(first.status).toBe(200);
+    expect(first.body.total).toBe(all.length);
+    expect(first.body.page).toBe(1);
+    expect(first.body.pageSize).toBe(5);
+    // The same order as the full list
+    expect(first.body.rows.map((a: { clerk_id: string }) => a.clerk_id)).toEqual(all.slice(0, 5).map((a) => a.clerk_id));
+    expect([...first.body.clerkIds].sort()).toEqual(all.map((a) => a.clerk_id).sort());
+
+    const second = await call(users.listAdmins, "/api/users/admins?page=2&pageSize=5");
+    expect(second.body.rows.map((a: { clerk_id: string }) => a.clerk_id)).toEqual(all.slice(5, 10).map((a) => a.clerk_id));
+    // Past the end: no rows, the same total
+    const past = await call(users.listAdmins, "/api/users/admins?page=99&pageSize=5");
+    expect(past.body.rows).toEqual([]);
+    expect(past.body.total).toBe(all.length);
+    // The default page size is 5
+    expect((await call(users.listAdmins, "/api/users/admins?page=1")).body.pageSize).toBe(5);
+
+    for (const bad of ["page=0", "page=x", "page=1&pageSize=0", "page=1&pageSize=51", "page=1.5"]) {
+      expect((await call(users.listAdmins, `/api/users/admins?${bad}`)).status).toBe(400);
+    }
+    // (user_cust was made an admin above)
+    await db`insert into users (clerk_id, email, role) values ('user_pgclient', 'pgclient@x.test', 'customer')`;
+    as("user_pgclient");
+    expect((await call(users.listAdmins, "/api/users/admins?page=1")).status).toBe(403);
+    as("user_admin");
+  });
+
   it("TC-USR-05: promotion follows the Clerk id, not a row that holds the same email", async () => {
     as("user_admin");
     await db`insert into users (clerk_id, email, role) values ('user_attacker', 'new.hire@x.test', 'customer')`;

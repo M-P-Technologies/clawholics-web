@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useEditorSource } from "./useEditorSource";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { useToast } from "../../components/ui/ToastProvider";
 import { contactProblem, pickContactValues } from "../../lib/admin/contactEditor";
@@ -16,29 +17,27 @@ export function useContactEditor() {
   const [values, setValues] = useState<Record<string, string>>(() => pickContactValues({}));
   const [links, setLinks] = useState<SocialLink[]>([]);
   const [saved, setSaved] = useState<{ values: Record<string, string>; links: SocialLink[] }>(() => ({ values: pickContactValues({}), links: [] }));
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [attempt, setAttempt] = useState(0);
-
+  const dirty = JSON.stringify({ values, links }) !== JSON.stringify(saved);
+  // The saved details, cached: coming back to the editor shows them at once
+  const source = useEditorSource({
+    name: "contact",
+    load: async () => {
+      const data = await fetchHomeContent();
+      return { values: pickContactValues(data), links: readSocialLinks(data) };
+    },
+    dirty,
+    onLoad: (loaded) => {
+      setValues(loaded.values);
+      setLinks(loaded.links);
+      setSaved(loaded);
+    },
+  });
+  const error = source.failed ? "We couldn't load the contact details." : "";
   useEffect(() => {
-    (async () => {
-      try {
-        const data = await fetchHomeContent();
-        const loaded = { values: pickContactValues(data), links: readSocialLinks(data) };
-        setValues(loaded.values);
-        setLinks(loaded.links);
-        setSaved(loaded);
-        setError("");
-      } catch (err) {
-        console.warn("Couldn't load the contact details:", err);
-        setError("We couldn't load the contact details.");
-      } finally {
-        setIsLoading(false);
-      }
-    })();
-  }, [attempt]);
+    if (source.error) console.warn("Couldn't load the contact details:", source.error);
+  }, [source.error]);
 
   const save = async () => {
     const trimmed = Object.fromEntries(Object.entries(values).map(([key, value]) => [key, value.trim()]));
@@ -54,6 +53,7 @@ export function useContactEditor() {
       setValues(trimmed);
       setLinks(trimmedLinks);
       setSaved({ values: trimmed, links: trimmedLinks });
+      source.saved({ values: trimmed, links: trimmedLinks });
       setRefreshKey((n) => n + 1);
       toast.show("success", "Contact details saved", "Your changes are now live on the website.");
     } catch (err) {
@@ -65,12 +65,9 @@ export function useContactEditor() {
   };
 
   return {
-    isLoading,
+    isLoading: source.isLoading,
     error,
-    retry: () => {
-      setIsLoading(true);
-      setAttempt((n) => n + 1);
-    },
+    retry: source.retry,
     values,
     set: (key: string) => (value: string) => setValues((prev) => ({ ...prev, [key]: value })),
     links,
@@ -85,7 +82,7 @@ export function useContactEditor() {
     addLink: () => setLinks((prev) => [...prev, { platform: "website", name: "", url: "" }]),
     /** What the preview shows: the form as it stands, as home content */
     draft: { ...values, ...socialLinksToContent(links) },
-    dirty: JSON.stringify({ values, links }) !== JSON.stringify(saved),
+    dirty,
     isSaving,
     refreshKey,
     save,

@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { DEFAULT_RANGE, type DashboardRange } from "../../lib/dashboardPeriods";
 import { fetchAppointmentPage, type AppointmentPage, type AppointmentPageParams } from "../../services/appointmentService";
+import { adminKeys } from "@/lib/adminQueries";
 import { fetchDashboard, fetchUtilization } from "../../services/dashboardService";
 import type { DashboardResponse } from "../../services/dashboardTypes";
 
@@ -28,7 +29,7 @@ export function useDashboardReport(title: string) {
   const [range, setRange] = useState<DashboardRange>(DEFAULT_RANGE);
 
   const query = useQuery({
-    queryKey: ["dashboard", range],
+    queryKey: adminKeys.dashboard(range),
     queryFn: async () => {
       try {
         return await fetchDashboard(range, await getToken(), user?.id);

@@ -1,3 +1,4 @@
+import { ADMIN } from "@/lib/adminQueries";
 import { API_BASE_URL } from "../apiConfig";
 import type { ProofSummary } from "./proofService";
 
@@ -66,7 +67,7 @@ export interface AppointmentPage {
 
 /** The first part of every admin appointment-page query's key: invalidating it refreshes all of
  *  them (Clients & Bookings and the dashboard's tables) after a change */
-export const ADMIN_APPOINTMENTS_KEY = ["admin", "appointments"] as const;
+export const ADMIN_APPOINTMENTS_KEY = [ADMIN, "appointments"] as const;
 
 /** One page of the admin appointment list, filtered, searched and sorted by the server */
 export const fetchAppointmentPage = async (

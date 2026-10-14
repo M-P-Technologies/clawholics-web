@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { normalizeCarousel } from "../../components/admin/cms/CarouselEditor";
 import { useToast } from "../../components/ui/ToastProvider";
@@ -8,6 +8,7 @@ import { EMPTY_ABOUT_CONTENT, aboutWithDefaults } from "../../lib/admin/aboutEdi
 import { fetchAboutContent, updateAboutContent, uploadAboutImage, type AboutContent } from "../../services/aboutService";
 import { fetchCarousel, updateCarousel, type CarouselItem } from "../../services/carouselService";
 import { PHOTO_UPLOAD_OPTIONS, uploadImage } from "../../services/uploadService";
+import { useEditorSource } from "./useEditorSource";
 
 const loadAll = () => Promise.all([fetchAboutContent().then(aboutWithDefaults), fetchCarousel().then(normalizeCarousel)]);
 
@@ -19,9 +20,6 @@ export function useAboutEditor() {
   const { user: currentUser } = useUser();
   const [content, setContent] = useState<AboutContent>(EMPTY_ABOUT_CONTENT);
   const [saved, setSaved] = useState<AboutContent>(EMPTY_ABOUT_CONTENT);
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadFailed, setLoadFailed] = useState(false);
-  const [attempt, setAttempt] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   // The studio gallery's photos (the carousel), saved with the rest
@@ -37,19 +35,9 @@ export function useAboutEditor() {
     setSavedGallery(photos);
   };
 
-  useEffect(() => {
-    (async () => {
-      try {
-        show(await loadAll());
-        setLoadFailed(false);
-      } catch (error) {
-        console.warn("Couldn't load the About us content:", error);
-        setLoadFailed(true);
-      } finally {
-        setIsLoading(false);
-      }
-    })();
-  }, [attempt]);
+  const dirty = JSON.stringify(content) !== JSON.stringify(saved) || JSON.stringify(gallery) !== JSON.stringify(savedGallery);
+  // The saved content and gallery, cached: coming back to the editor shows them at once
+  const source = useEditorSource({ name: "about", load: loadAll, dirty, onLoad: show });
 
   const set = (key: keyof AboutContent) => (value: string) => setContent((prev) => ({ ...prev, [key]: value }));
 
@@ -97,7 +85,9 @@ export function useAboutEditor() {
       const token = await getToken();
       await updateAboutContent(trimmed, token, currentUser?.id);
       await updateCarousel(normalizeCarousel(gallery), token, currentUser?.id);
-      show(await loadAll());
+      const fresh = await loadAll();
+      show(fresh);
+      source.saved(fresh);
       setRefreshKey((n) => n + 1);
       toast.show("success", "About us saved", "Your changes are now live on the website.");
     } catch (error) {
@@ -109,17 +99,14 @@ export function useAboutEditor() {
   };
 
   return {
-    isLoading,
-    loadFailed,
-    retry: () => {
-      setIsLoading(true);
-      setAttempt((n) => n + 1);
-    },
+    isLoading: source.isLoading,
+    loadFailed: source.failed,
+    retry: source.retry,
     content,
     set,
     gallery,
     setGallery,
-    dirty: JSON.stringify(content) !== JSON.stringify(saved) || JSON.stringify(gallery) !== JSON.stringify(savedGallery),
+    dirty,
     isSaving,
     isUploading,
     galleryUploading,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useEditorSource } from "./useEditorSource";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { useToast } from "../../components/ui/ToastProvider";
 import { PRIVACY_POLICY_HTML } from "../../data/privacyPolicyHtml";
@@ -20,30 +21,25 @@ export function usePrivacyEditor() {
   const [isOriginal, setIsOriginal] = useState(true);
   // Bumped to put new text into the editor (on load, and for "Put back the original")
   const [resetKey, setResetKey] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadFailed, setLoadFailed] = useState(false);
-  const [attempt, setAttempt] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
+  // The saved policy, cached: coming back to the editor shows it at once
+  const source = useEditorSource({
+    name: "privacy",
+    load: fetchLegalContent,
+    dirty: html !== saved,
+    onLoad: (content: Record<string, string>) => {
+      const current = content[PRIVACY_KEY]?.trim() ? content[PRIVACY_KEY] : PRIVACY_POLICY_HTML;
+      setHtml(current);
+      setSaved(current);
+      setIsOriginal(!content[PRIVACY_KEY]?.trim());
+      setResetKey((n) => n + 1);
+    },
+  });
   useEffect(() => {
-    (async () => {
-      try {
-        const content = await fetchLegalContent();
-        const current = content[PRIVACY_KEY]?.trim() ? content[PRIVACY_KEY] : PRIVACY_POLICY_HTML;
-        setHtml(current);
-        setSaved(current);
-        setIsOriginal(!content[PRIVACY_KEY]?.trim());
-        setResetKey((n) => n + 1);
-        setLoadFailed(false);
-      } catch (error) {
-        console.warn("Couldn't load the privacy policy:", error);
-        setLoadFailed(true);
-      } finally {
-        setIsLoading(false);
-      }
-    })();
-  }, [attempt]);
+    if (source.error) console.warn("Couldn't load the privacy policy:", source.error);
+  }, [source.error]);
 
   const replaceWith = (next: string) => {
     setHtml(next);
@@ -62,6 +58,7 @@ export function usePrivacyEditor() {
       setHtml(clean);
       setSaved(clean);
       setIsOriginal(false);
+      source.saved({ [PRIVACY_KEY]: clean });
       setRefreshKey((n) => n + 1);
       toast.show("success", "Privacy policy saved", "Your changes are now live on the privacy policy page.");
     } catch (error) {
@@ -73,12 +70,9 @@ export function usePrivacyEditor() {
   };
 
   return {
-    isLoading,
-    loadFailed,
-    retry: () => {
-      setIsLoading(true);
-      setAttempt((n) => n + 1);
-    },
+    isLoading: source.isLoading,
+    loadFailed: source.failed,
+    retry: source.retry,
     html,
     setHtml,
     resetKey,
