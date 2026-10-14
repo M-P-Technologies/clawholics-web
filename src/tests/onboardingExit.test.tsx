@@ -17,7 +17,7 @@ vi.mock("@clerk/nextjs", () => {
   };
 });
 vi.mock("@/lib/router", () => ({ useNavigate: () => navigate }));
-vi.mock("@/components/ui/ToastProvider", () => ({ useToast: () => ({ show }) }));
+vi.mock("@/components/molecules", async (orig) => ({ ...(await orig<object>()), useToast: () => ({ show }) }));
 vi.mock("@/services/userService", async () => ({
   ...(await vi.importActual<typeof import("@/services/userService")>("@/services/userService")),
   fetchProfile: (...args: unknown[]) => fetchProfile(...args),

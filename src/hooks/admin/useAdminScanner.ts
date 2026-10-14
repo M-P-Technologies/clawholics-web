@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
-import { useToast } from "../../components/ui/ToastProvider";
+import { useToast } from "@/components/molecules";
 import { isDesktopWidth } from "../../lib/viewport";
 import { fetchScanHistory, fetchScannedClient, recordScanAction, type ScanRecord, type ScannedClient } from "../../services/scanService";
 

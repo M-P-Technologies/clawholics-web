@@ -15,4 +15,9 @@ describe("design system gallery", () => {
     render(<DesignSystem />);
     for (const c of ["Button", "Badge", "Avatar", "Card", "IconButton", "Input", "Checkbox", "Select", "LoadingBar", "Blush", "StarRating", "Pearls"]) expect(screen.getByRole("heading", { level: 3, name: c })).toBeInTheDocument();
   });
+
+  it("shows the molecules", () => {
+    render(<DesignSystem />);
+    for (const c of ["FormField", "ChoiceRow", "Toast"]) expect(screen.getByRole("heading", { level: 3, name: c })).toBeInTheDocument();
+  });
 });

@@ -5,7 +5,7 @@ import { useNavIndicator } from "../../hooks/useNavIndicator";
 import { useScrolled } from "../../hooks/useScrolled";
 
 import Logo from "../../assets/logo/logo-primary.svg";
-import { userButtonAppearance } from "../ui/clerkAppearance";
+import { userButtonAppearance } from "@/lib/clerkAppearance";
 import { Button } from "@/components/atoms";
 import { CLIENT_PATHS } from "../../lib/client/clientNav";
 import { BACK_SLOT_ID } from "./BackButton";

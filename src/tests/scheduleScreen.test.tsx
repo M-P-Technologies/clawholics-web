@@ -18,7 +18,7 @@ vi.mock("@/services/scheduleService", async (importOriginal) => ({
   fetchMonthlySchedule: (month: string) => fetchMonthlySchedule(month),
 }));
 vi.mock("@/components/admin/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
-vi.mock("@/components/ui/ToastProvider", () => ({ useToast: () => ({ show: vi.fn() }) }));
+vi.mock("@/components/molecules", async (orig) => ({ ...(await orig<object>()), useToast: () => ({ show: vi.fn() }) }));
 
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ["Date"] });

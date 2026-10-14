@@ -8,7 +8,7 @@ import { CardFields, CARDS_PER_PAGE, RowCard, RowCards } from "./RowCards";
 import TablePager, { paginate } from "./dashboard/TablePager";
 import { Button, Select, initialsOf } from "@/components/atoms";
 import Sheet from "../ui/Sheet";
-import { useToast } from "../ui/ToastProvider";
+import { useToast } from "@/components/molecules";
 import { Link, useSearchParams } from "@/lib/router";
 import { monthYear, relativeDay, type DirectoryProfile } from "./DirectoryProfileCard";
 import { usePolling } from "../../hooks/usePolling";

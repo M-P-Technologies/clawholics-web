@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
-import { useToast } from "../../components/ui/ToastProvider";
+import { useToast } from "@/components/molecules";
 import { EMPTY_HOME_CONTENT, normalizeHomeContent, trimHomeSections } from "../../lib/admin/homeEditor";
 import { homeSectionsProblem, homeSectionsToContent, readHomeSections, type HomeFeature, type HomeOffer, type HomeSections, type HomeTextKey, type StripSlide } from "../../lib/homeSections";
 import { fetchHomeContent, updateHomeContent, type HomeCMSContent } from "../../services/contentService";

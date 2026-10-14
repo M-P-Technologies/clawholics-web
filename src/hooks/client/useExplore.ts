@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "@/lib/router";
-import { useToast } from "../../components/ui/ToastProvider";
+import { useToast } from "@/components/molecules";
 import { filterServices } from "../../lib/client/explore";
 import { readHomeSections } from "../../lib/homeSections";
 import { fetchCategories, type ServiceCategory } from "../../services/catalogService";

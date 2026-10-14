@@ -8,7 +8,7 @@ import {
 } from "../../services/nailistService";
 import { PHOTO_UPLOAD_OPTIONS, uploadImage } from "../../services/uploadService";
 import { Button } from "@/components/atoms";
-import { useToast } from "../ui/ToastProvider";
+import { useToast } from "@/components/molecules";
 
 const MAX_IMAGES = 10;
 

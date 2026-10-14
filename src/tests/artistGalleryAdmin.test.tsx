@@ -8,7 +8,7 @@ const addNailistGalleryImage = vi.fn();
 const deleteNailistGalleryImage = vi.fn();
 const uploadImage = vi.fn();
 
-vi.mock("@/components/ui/ToastProvider", () => ({ useToast: () => ({ show }) }));
+vi.mock("@/components/molecules", async (orig) => ({ ...(await orig<object>()), useToast: () => ({ show }) }));
 vi.mock("@/services/nailistService", () => ({
   fetchNailistGallery: (...a: unknown[]) => fetchNailistGallery(...a),
   addNailistGalleryImage: (...a: unknown[]) => addNailistGalleryImage(...a),

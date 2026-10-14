@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
-import { useToast } from "../../components/ui/ToastProvider";
+import { useToast } from "@/components/molecules";
 import { contactProblem, pickContactValues } from "../../lib/admin/contactEditor";
 import { readSocialLinks, socialLinksToContent, type SocialLink } from "../../lib/socialLinks";
 import { fetchHomeContent, updateHomeContent } from "../../services/contentService";

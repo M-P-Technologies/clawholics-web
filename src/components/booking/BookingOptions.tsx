@@ -1,4 +1,4 @@
-import ChoiceRow from "../ui/ChoiceRow";
+import { ChoiceRow } from "@/components/molecules";
 
 type Props = {
   variants: { id: number; name: string; price: number }[];

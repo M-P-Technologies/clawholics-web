@@ -13,7 +13,7 @@ vi.setConfig({ testTimeout: 15_000 });
 
 vi.mock("@/components/admin/SideBar", () => ({ default: () => <div /> }));
 const show = vi.fn();
-vi.mock("@/components/ui/ToastProvider", () => ({ useToast: () => ({ show }) }));
+vi.mock("@/components/molecules", async (orig) => ({ ...(await orig<object>()), useToast: () => ({ show }) }));
 vi.mock("@clerk/nextjs", () => {
   const auth = { getToken: async () => "tok" };
   const user = { user: { id: "admin_1" } };

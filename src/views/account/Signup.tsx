@@ -1,10 +1,10 @@
 "use client";
 
 import { SignUp } from "@clerk/nextjs";
-import AuthTabs from "../../components/ui/AuthTabs";
+import { AuthTabs } from "@/components/molecules";
 import PageShell from "../../components/layout/PageShell";
 import Section from "../../components/layout/Section";
-import { clerkAppearance } from "../../components/ui/clerkAppearance";
+import { clerkAppearance } from "@/lib/clerkAppearance";
 import { useRedirectIfSignedIn } from "../../hooks/useRedirectIfSignedIn";
 
 export default function Signup() {

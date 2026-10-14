@@ -5,7 +5,7 @@ import { CLIENT_PATHS } from "../lib/client/clientNav";
 import { updateProfile, fetchProfile, isEmailTaken, isMissingProfile } from "../services/userService";
 import type { ChangeEvent } from "react";
 import { ONBOARDING_CONTACT_FIELDS, ONBOARDING_NAME_FIELDS } from "../data/onboarding";
-import { useToast } from "../components/ui/ToastProvider";
+import { useToast } from "@/components/molecules";
 
 export function useOnboarding() {
   const { user, isLoaded } = useUser();

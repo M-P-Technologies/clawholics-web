@@ -4,7 +4,7 @@ import FAQDropdown from "@/components/admin/FAQDropdown";
 import TACDropdown from "@/components/admin/TACDropdown";
 import type { SortableHandleProps } from "@/components/admin/SortableList";
 
-vi.mock("@/components/ui/ToastProvider", () => ({ useToast: () => ({ show: vi.fn() }) }));
+vi.mock("@/components/molecules", async (orig) => ({ ...(await orig<object>()), useToast: () => ({ show: vi.fn() }) }));
 
 const handle = { listeners: {}, attributes: { role: "button", tabIndex: 0 }, setActivatorNodeRef: () => {} } as unknown as SortableHandleProps;
 

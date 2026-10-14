@@ -2,7 +2,7 @@
 
 import { useAuth, useUser } from "@clerk/nextjs";
 import { useCallback, useEffect, useState } from "react";
-import { useToast } from "../../components/ui/ToastProvider";
+import { useToast } from "@/components/molecules";
 import { manilaToday, type ClientTab } from "../../lib/admin/clientPage";
 import { useParams } from "../../lib/router";
 import {

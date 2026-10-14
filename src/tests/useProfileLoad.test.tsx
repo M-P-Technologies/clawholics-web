@@ -12,7 +12,7 @@ vi.mock("@clerk/nextjs", () => ({
 const navigate = vi.fn();
 const params = [new URLSearchParams()];
 vi.mock("@/lib/router", () => ({ useNavigate: () => navigate, useSearchParams: () => params }));
-vi.mock("@/components/ui/ToastProvider", () => ({ useToast: () => ({ show: vi.fn() }) }));
+vi.mock("@/components/molecules", async (orig) => ({ ...(await orig<object>()), useToast: () => ({ show: vi.fn() }) }));
 vi.mock("@/hooks/usePolling", () => ({ startPolling: () => () => {} }));
 const fetchProfile = vi.fn();
 vi.mock("@/services/userService", () => ({

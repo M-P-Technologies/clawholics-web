@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "@/lib/router";
-import { useToast } from "../../components/ui/ToastProvider";
+import { useToast } from "@/components/molecules";
 import { fetchServiceById, fetchServiceGallery, type NailService } from "../../services/serviceService";
 import { useStartBooking } from "../useStartBooking";
 

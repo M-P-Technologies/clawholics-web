@@ -5,7 +5,7 @@ import { Link } from "@/lib/router";
 import qrPhLogo from "../../assets/logo/qr_ph.png";
 import AlertModal from "../../components/ui/AlertModal";
 import { Button } from "@/components/atoms";
-import ChoiceRow from "../../components/ui/ChoiceRow";
+import { ChoiceRow } from "@/components/molecules";
 import { LoadingBar } from "@/components/atoms";
 import PageHeader from "../../components/layout/PageHeader";
 import ClientPage from "../../components/client/ClientPage";

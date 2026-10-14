@@ -12,7 +12,7 @@ vi.mock("@/lib/router", () => ({
 }));
 const startBooking = vi.fn();
 vi.mock("@/hooks/useStartBooking", () => ({ useStartBooking: () => startBooking }));
-vi.mock("@/components/ui/ToastProvider", () => ({ useToast: () => ({ show: vi.fn() }) }));
+vi.mock("@/components/molecules", async (orig) => ({ ...(await orig<object>()), useToast: () => ({ show: vi.fn() }) }));
 const svc = (id: number, name: string, category: string, description = "", image = "") =>
   ({ id, name, category, description, image, pricing_type: "flat", price: 500, master_price: 0, junior_price: 0, variants: [] });
 const services = [svc(1, "Gel manicure", "Nails", "Glossy gel", "https://x/1.jpg"), svc(2, "Lash lift", "Lashes", "Curl"), svc(3, "Softgel extensions", "Nails", "Long wear")];

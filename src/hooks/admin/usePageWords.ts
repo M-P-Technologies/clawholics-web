@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useToast } from "../../components/ui/ToastProvider";
+import { useToast } from "@/components/molecules";
 
 interface PageWordsOptions<K extends string> {
   /** Loads the saved words (with their defaults filled in) */

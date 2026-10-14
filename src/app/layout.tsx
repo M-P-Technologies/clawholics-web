@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Gloock, Luxurious_Script, Noto_Sans } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
-import { ToastProvider } from "@/components/ui/ToastProvider";
+import { ToastProvider } from "@/components/molecules";
 import ScrollToTop from "@/components/layout/ScrollToTop";
 import "./globals.css";
 

@@ -10,7 +10,7 @@ vi.mock("@/lib/router", () => ({
 }));
 const startBooking = vi.fn();
 vi.mock("@/hooks/useStartBooking", () => ({ useStartBooking: () => startBooking }));
-vi.mock("@/components/ui/ToastProvider", () => ({ useToast: () => ({ show: vi.fn() }) }));
+vi.mock("@/components/molecules", async (orig) => ({ ...(await orig<object>()), useToast: () => ({ show: vi.fn() }) }));
 const service = {
   id: 7, name: "Softgel extensions", description: "Long-wear extensions in your shape.", category: "Nails", image: "https://x/7.jpg",
   pricing_type: "tiered", master_price: 1200, junior_price: 900, price: 0, duration: "2 hrs", variants: [],

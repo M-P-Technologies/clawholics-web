@@ -15,7 +15,7 @@ vi.mock("@clerk/nextjs", () => {
   const user = { user: { id: "admin_1" } };
   return { useAuth: () => auth, useUser: () => user };
 });
-vi.mock("@/components/ui/ToastProvider", () => ({ useToast: () => ({ show: vi.fn() }) }));
+vi.mock("@/components/molecules", async (orig) => ({ ...(await orig<object>()), useToast: () => ({ show: vi.fn() }) }));
 vi.mock("@/hooks/usePolling", () => ({ usePolling: () => {} }));
 vi.mock("@/services/directoryService", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/services/directoryService")>()),

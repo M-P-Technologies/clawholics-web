@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { normalizeCarousel } from "../../components/admin/cms/CarouselEditor";
-import { useToast } from "../../components/ui/ToastProvider";
+import { useToast } from "@/components/molecules";
 import { EMPTY_ABOUT_CONTENT, aboutWithDefaults } from "../../lib/admin/aboutEditor";
 import { fetchAboutContent, updateAboutContent, uploadAboutImage, type AboutContent } from "../../services/aboutService";
 import { fetchCarousel, updateCarousel, type CarouselItem } from "../../services/carouselService";

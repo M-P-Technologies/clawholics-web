@@ -10,7 +10,7 @@ import {
   handleBulletEnter,
   toggleBulletList,
 } from "./ListFormatting";
-import { useToast } from "../ui/ToastProvider";
+import { useToast } from "@/components/molecules";
 import EditActions from "./EditActions";
 import { Button } from "@/components/atoms";
 import ConfirmModal from "../ui/ConfirmModal";

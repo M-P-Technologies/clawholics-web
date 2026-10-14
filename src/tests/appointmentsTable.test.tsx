@@ -15,7 +15,7 @@ vi.mock("@clerk/nextjs", () => {
   return { useAuth: () => auth, useUser: () => user };
 });
 const show = vi.fn();
-vi.mock("@/components/ui/ToastProvider", () => ({ useToast: () => ({ show }) }));
+vi.mock("@/components/molecules", async (orig) => ({ ...(await orig<object>()), useToast: () => ({ show }) }));
 vi.mock("@/hooks/usePolling", () => ({ usePolling: () => {} }));
 vi.mock("@/components/admin/AppointmentDetailsModal", () => ({
   default: ({ appointment }: { appointment: Appointment }) => <div role="dialog" aria-label="Appointment details">Details of #{appointment.id}</div>,

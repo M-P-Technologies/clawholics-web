@@ -7,7 +7,7 @@ import type { ChangeEvent } from "react";
 import { isActiveAppointmentStatus } from "../services/proofState";
 import { startPolling } from "./usePolling";
 import { PROFILE_FIELDS } from "../data/profile";
-import { useToast } from "../components/ui/ToastProvider";
+import { useToast } from "@/components/molecules";
 import { pickNext, sortSoonest } from "../utils/profileView";
 import type { AppointmentView } from "../components/profile/types";
 import { CLIENT_PATHS } from "../lib/client/clientNav";

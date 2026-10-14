@@ -23,7 +23,7 @@ import ServicePricingFields, {
 } from "./ServicePricingFields";
 
 import { PHOTO_UPLOAD_OPTIONS, uploadImage } from "../../services/uploadService";
-import { useToast } from "../ui/ToastProvider";
+import { useToast } from "@/components/molecules";
 import EditActions from "./EditActions";
 import { Button } from "@/components/atoms";
 import ConfirmModal from "../ui/ConfirmModal";

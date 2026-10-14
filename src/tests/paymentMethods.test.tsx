@@ -36,7 +36,7 @@ describe("payment methods", () => {
 
 describe("choice row alignment", () => {
   it("centres the radio on the payment method row, and keeps the top alignment elsewhere", async () => {
-    const { default: ChoiceRow } = await import("@/components/ui/ChoiceRow");
+    const { ChoiceRow } = await import("@/components/molecules");
     const { rerender } = render(<ChoiceRow selected onClick={() => {}} align="center">x</ChoiceRow>);
     expect(screen.getByRole("radio")).toHaveClass("items-center");
     rerender(<ChoiceRow selected onClick={() => {}}>x</ChoiceRow>);
@@ -46,7 +46,7 @@ describe("choice row alignment", () => {
 
 describe("choice row text", () => {
   it("wraps long text instead of running out of the row", async () => {
-    const { default: ChoiceRow } = await import("@/components/ui/ChoiceRow");
+    const { ChoiceRow } = await import("@/components/molecules");
     render(<ChoiceRow selected onClick={() => {}}><span>Scan with any bank or e-wallet app</span></ChoiceRow>);
     const row = screen.getByRole("radio");
     expect(row).toHaveClass("whitespace-normal");
