@@ -4,9 +4,8 @@ import { useEffect, useState } from "react";
 import clsx from "clsx";
 import AppointmentDetailsModal from "./AppointmentDetailsModal";
 import CreateAppointmentModal from "./CreateAppointmentModal";
-import { CardFields, CARDS_PER_PAGE, RowCard, RowCards } from "./RowCards";
+import { AlertDialog, CardFields, CARDS_PER_PAGE, Dialog, RowCard, RowCards, TableFrame } from "@/components/organisms";
 import { Button, Select, initialsOf } from "@/components/atoms";
-import { AlertDialog, Dialog } from "@/components/organisms";
 import { Pagination, paginate, useToast } from "@/components/molecules";
 import { Link, useSearchParams } from "@/lib/router";
 import { monthYear, relativeDay, type DirectoryProfile } from "./DirectoryProfileCard";
@@ -433,45 +432,42 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
           ))}
         </RowCards>
       ) : (
-        <div className="-mx-5 overflow-x-auto px-5">
-          <table aria-label="Appointments" className="w-full min-w-[1220px] border-separate border-spacing-0 text-sm text-gray-red">
-            <thead>
-              <tr className="text-left text-[12px] text-gray-red/70">
-                {["Client", "Phone", "Joined", "Last active", "Visits", "Service", "Artist", "Date", "Time", "Status", "Manage"].map((h) => (
-                  <th key={h} scope="col" className={clsx("pb-2 pr-3 font-medium", h === "Manage" && "pr-0 text-center", h === "Visits" && "text-right")}>
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {view.rows.map((a) => {
-                const facts = clientFacts(a);
-                const cell = "border-t border-dotted border-crimson-light py-3 pr-3";
-                return (
-                  <tr key={a.id}>
-                    <th scope="row" className={clsx(cell, "max-w-[240px] text-left font-normal")}>
-                      {clientCell(a, "row")}
-                    </th>
-                    <td className={clsx(cell, "whitespace-nowrap")}>{facts.phone}</td>
-                    <td className={clsx(cell, "whitespace-nowrap")}>{facts.joined}</td>
-                    <td className={clsx(cell, "whitespace-nowrap")}>{facts.lastActive}</td>
-                    <td className={clsx(cell, "text-right font-bold")}>{facts.visits}</td>
-                    <td className={cell}>
-                      {a.service_name || "–"}
-                      <span className="block text-[12px] text-gray-red/60">#{a.id}</span>
-                    </td>
-                    <td className={cell}>{a.nailist_name || "–"}</td>
-                    <td className={clsx(cell, "whitespace-nowrap")}>{dateLabel(a.appointment_date)}</td>
-                    <td className={clsx(cell, "whitespace-nowrap")}>{a.appointment_time || "–"}</td>
-                    <td className={cell}>{statusSelect(a)}</td>
-                    <td className={clsx(cell, "pr-0 text-center")}>{manageButton(a)}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <TableFrame label="Appointments" minWidthClass="min-w-[1220px]"
+          head={
+            <tr className="text-left text-[12px] text-gray-red/70">
+              {["Client", "Phone", "Joined", "Last active", "Visits", "Service", "Artist", "Date", "Time", "Status", "Manage"].map((h) => (
+                <th key={h} scope="col" className={clsx("pb-2 pr-3 font-medium", h === "Manage" && "pr-0 text-center", h === "Visits" && "text-right")}>
+                  {h}
+                </th>
+              ))}
+            </tr>
+          }
+        >
+        {view.rows.map((a) => {
+          const facts = clientFacts(a);
+          const cell = "border-t border-dotted border-crimson-light py-3 pr-3";
+          return (
+            <tr key={a.id}>
+              <th scope="row" className={clsx(cell, "max-w-[240px] text-left font-normal")}>
+                {clientCell(a, "row")}
+              </th>
+              <td className={clsx(cell, "whitespace-nowrap")}>{facts.phone}</td>
+              <td className={clsx(cell, "whitespace-nowrap")}>{facts.joined}</td>
+              <td className={clsx(cell, "whitespace-nowrap")}>{facts.lastActive}</td>
+              <td className={clsx(cell, "text-right font-bold")}>{facts.visits}</td>
+              <td className={cell}>
+                {a.service_name || "–"}
+                <span className="block text-[12px] text-gray-red/60">#{a.id}</span>
+              </td>
+              <td className={cell}>{a.nailist_name || "–"}</td>
+              <td className={clsx(cell, "whitespace-nowrap")}>{dateLabel(a.appointment_date)}</td>
+              <td className={clsx(cell, "whitespace-nowrap")}>{a.appointment_time || "–"}</td>
+              <td className={cell}>{statusSelect(a)}</td>
+              <td className={clsx(cell, "pr-0 text-center")}>{manageButton(a)}</td>
+            </tr>
+          );
+        })}
+        </TableFrame>
       )}
 
       {appointments !== null && <Pagination page={view.current} totalPages={view.pages} onPageChange={setPage} summary={view} />}

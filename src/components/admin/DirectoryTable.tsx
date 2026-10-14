@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import clsx from "clsx";
 import { useTableLayout } from "../../hooks/useMinWidth";
-import { CardFields, RowCard, RowCards } from "./RowCards";
+import { CardFields, RowCard, RowCards, TableFrame } from "@/components/organisms";
 import { initialsOf } from "@/components/atoms";
 import { monthYear, nameOf, relativeDay, roleOf, type DirectoryProfile, type DirectoryUser } from "./DirectoryProfileCard";
 import { Pagination, paginate } from "@/components/molecules";
@@ -92,69 +92,66 @@ export default function DirectoryTable({ label, users, profiles, selectedId, onS
   return (
     <section aria-label={`${label} list`} className="flex min-w-0 flex-col gap-4 rounded-2xl border border-crimson-light/40 bg-milk p-5 shadow-petal lg:h-full">
       {/* Grows with the card beside it, keeping the pager at the bottom */}
-      <div className="-mx-5 flex-1 overflow-x-auto px-5">
-        <table aria-label={label} className="w-full min-w-[640px] border-separate border-spacing-0 text-sm text-gray-red">
-          <thead>
-            <tr className="text-left text-[12px] text-gray-red/70">
-              {["Name", "Phone", "Joined", "Last active", showVisits ? "Visits" : "Role"].map((h) => (
-                <th key={h} scope="col" className={clsx("pb-2 pr-3 font-medium", h === "Visits" && "text-right")}>
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {view.rows.map((user) => {
-              const name = nameOf(user);
-              const profile = profiles[user.clerk_id ?? user.id];
-              const selected = user.id === selectedId;
-              return (
-                <tr
-                  key={user.id}
-                  aria-selected={selected}
-                  onClick={() => onSelect(user)}
-                  className={clsx("cursor-pointer transition-colors", selected ? "bg-crimson-light/20" : "hover:bg-crimson-light/10")}
-                >
-                  <th scope="row" className={clsx(cell, "pl-2 text-left font-normal")}>
-                    <span className="flex items-center gap-3">
-                      {photo(user, name)}
-                      <span className="min-w-0">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onSelect(user);
-                          }}
-                          className="block max-w-full truncate text-left font-bold text-gray-red hover:text-berry focus-visible:outline-2 focus-visible:outline-crimson"
-                        >
-                          {name}
-                        </button>
-                        {user.email && <span className="block truncate text-[12px] text-gray-red/70">{user.email}</span>}
-                      </span>
-                    </span>
-                  </th>
-                  <td className={clsx(cell, "whitespace-nowrap")}>{user.phoneNumber || "–"}</td>
-                  <td className={clsx(cell, "whitespace-nowrap")}>{monthYear(profile?.joinedAt) || "–"}</td>
-                  <td className={clsx(cell, "whitespace-nowrap")}>{relativeDay(profile?.lastSignInAt) || "–"}</td>
-                  <td className={clsx(cell, showVisits && "text-right font-bold")}>
-                    {showVisits ? (typeof user.visit_count === "number" ? user.visit_count : "–") : roleBadge(user)}
-                  </td>
-                </tr>
-              );
-            })}
-            {/* A short last page keeps room for five rows, so the table, the pager and the profile card
-                beside it keep their height from page to page */}
-            {view.pages > 1 &&
-              Array.from({ length: ROWS - view.rows.length }, (_, i) => (
-                <tr key={`filler-${i}`} data-filler aria-hidden="true">
-                  <td colSpan={5} className="border-t border-dotted border-transparent py-3">
-                    <span className="block h-9" />
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
-      </div>
+      <TableFrame label={label} minWidthClass="min-w-[640px]" className="flex-1"
+        head={
+          <tr className="text-left text-[12px] text-gray-red/70">
+            {["Name", "Phone", "Joined", "Last active", showVisits ? "Visits" : "Role"].map((h) => (
+              <th key={h} scope="col" className={clsx("pb-2 pr-3 font-medium", h === "Visits" && "text-right")}>
+                {h}
+              </th>
+            ))}
+          </tr>
+        }
+      >
+      {view.rows.map((user) => {
+        const name = nameOf(user);
+        const profile = profiles[user.clerk_id ?? user.id];
+        const selected = user.id === selectedId;
+        return (
+          <tr
+            key={user.id}
+            aria-selected={selected}
+            onClick={() => onSelect(user)}
+            className={clsx("cursor-pointer transition-colors", selected ? "bg-crimson-light/20" : "hover:bg-crimson-light/10")}
+          >
+            <th scope="row" className={clsx(cell, "pl-2 text-left font-normal")}>
+              <span className="flex items-center gap-3">
+                {photo(user, name)}
+                <span className="min-w-0">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelect(user);
+                    }}
+                    className="block max-w-full truncate text-left font-bold text-gray-red hover:text-berry focus-visible:outline-2 focus-visible:outline-crimson"
+                  >
+                    {name}
+                  </button>
+                  {user.email && <span className="block truncate text-[12px] text-gray-red/70">{user.email}</span>}
+                </span>
+              </span>
+            </th>
+            <td className={clsx(cell, "whitespace-nowrap")}>{user.phoneNumber || "–"}</td>
+            <td className={clsx(cell, "whitespace-nowrap")}>{monthYear(profile?.joinedAt) || "–"}</td>
+            <td className={clsx(cell, "whitespace-nowrap")}>{relativeDay(profile?.lastSignInAt) || "–"}</td>
+            <td className={clsx(cell, showVisits && "text-right font-bold")}>
+              {showVisits ? (typeof user.visit_count === "number" ? user.visit_count : "–") : roleBadge(user)}
+            </td>
+          </tr>
+        );
+      })}
+      {/* A short last page keeps room for five rows, so the table, the pager and the profile card
+          beside it keep their height from page to page */}
+      {view.pages > 1 &&
+        Array.from({ length: ROWS - view.rows.length }, (_, i) => (
+          <tr key={`filler-${i}`} data-filler aria-hidden="true">
+            <td colSpan={5} className="border-t border-dotted border-transparent py-3">
+              <span className="block h-9" />
+            </td>
+          </tr>
+        ))}
+      </TableFrame>
       <Pagination page={view.current} totalPages={view.pages} onPageChange={setPage} summary={view} />
     </section>
   );

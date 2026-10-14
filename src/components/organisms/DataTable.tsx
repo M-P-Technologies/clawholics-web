@@ -41,3 +41,25 @@ export function CardFields({ fields }: { fields: [label: string, value: ReactNod
     </dl>
   );
 }
+
+interface TableFrameProps {
+  label: string;
+  /** A literal Tailwind class such as "min-w-[720px]", so narrow screens scroll instead of squeezing */
+  minWidthClass: string;
+  /** The header row (`<tr>` with `<th scope="col">`s) */
+  head: ReactNode;
+  className?: string;
+  children: ReactNode;
+}
+
+// The admin's table: it scrolls sideways inside its card, with the card's padding kept at the edges
+export function TableFrame({ label, minWidthClass, head, className, children }: TableFrameProps) {
+  return (
+    <div className={clsx("-mx-5 overflow-x-auto px-5", className)}>
+      <table aria-label={label} className={clsx("w-full border-separate border-spacing-0 text-sm text-gray-red", minWidthClass)}>
+        <thead>{head}</thead>
+        <tbody>{children}</tbody>
+      </table>
+    </div>
+  );
+}

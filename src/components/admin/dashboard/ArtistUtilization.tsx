@@ -6,7 +6,7 @@ import { percent } from "../../../lib/dashboardFormat";
 import { addDays, manilaToday, resolvePeriod } from "../../../lib/dashboardPeriods";
 import type { ArtistUtilization as ArtistRow, Utilization, UtilizationDay } from "../../../services/dashboardTypes";
 import { Button } from "@/components/atoms";
-import { CARDS_PER_PAGE, RowCard, RowCards } from "../RowCards";
+import { CARDS_PER_PAGE, RowCard, RowCards } from "@/components/organisms";
 import { Pagination, paginate } from "@/components/molecules";
 
 const DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];

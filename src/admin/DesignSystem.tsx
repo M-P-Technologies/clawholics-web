@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { CalendarDays, CalendarHeart, House, QrCode, Trash2, Wallet } from "lucide-react";
 import { Avatar, Badge, Blush, Button, Card, Checkbox, IconButton, Input, LoadingBar, Pearls, Select, StarPicker, Stars } from "../components/atoms";
 import { EmptyState, FormField, SectionHeader, StatCard } from "../components/molecules";
-import { SideBar, TabBar, TopBar } from "../components/organisms";
+import { CardFields, RowCard, RowCards, SideBar, TabBar, TableFrame, TopBar } from "../components/organisms";
 import AdminShell from "../components/admin/AdminShell";
 import ChoiceRowDemo from "../components/admin/designSystem/ChoiceRowDemo";
 import SearchDemo from "../components/admin/designSystem/SearchDemo";
@@ -137,6 +137,17 @@ export default function DesignSystem() {
               The frame of a signed-in area: the sidebar on computers, the bottom tab bar on phones and the content. Live examples: the{" "}
               <a href="/dashboard" className="underline">admin</a> and the <a href="/my" className="underline">client app</a>.
             </p>
+          </GallerySection>
+          <GallerySection title="DataTable">
+            <TableFrame label="Example bookings" minWidthClass="min-w-[480px]" head={<tr className="text-left text-[12px] text-gray-red/70"><th scope="col" className="pb-2 pr-3 font-medium">Client</th><th scope="col" className="pb-2 pr-3 font-medium">When</th></tr>}>
+              <tr><th scope="row" className="py-2 pr-3 text-left font-normal">Ana</th><td className="py-2 pr-3">Oct 20</td></tr>
+              <tr><th scope="row" className="py-2 pr-3 text-left font-normal">Bea</th><td className="py-2 pr-3">Oct 22</td></tr>
+            </TableFrame>
+            <p className="mt-4 text-sm text-gray-red">The same rows as cards, which phones show instead of the table.</p>
+            <RowCards label="Example cards">
+              <RowCard><CardFields fields={[["Client", "Ana"], ["When", "Oct 20"]]} /></RowCard>
+              <RowCard><CardFields fields={[["Client", "Bea"], ["When", "Oct 22"]]} /></RowCard>
+            </RowCards>
           </GallerySection>
         </Group>
       </div>

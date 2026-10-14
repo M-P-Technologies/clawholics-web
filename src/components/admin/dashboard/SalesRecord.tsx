@@ -3,7 +3,7 @@ import { useTableLayout } from "../../../hooks/useMinWidth";
 import { peso } from "../../../lib/dashboardFormat";
 import { Link } from "../../../lib/router";
 import type { DashboardResponse } from "../../../services/dashboardTypes";
-import { CARDS_PER_PAGE, CardFields, RowCard, RowCards } from "../RowCards";
+import { CARDS_PER_PAGE, CardFields, RowCard, RowCards, TableFrame } from "@/components/organisms";
 import { Pagination, paginate, PAGE_SIZE } from "@/components/molecules";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -63,38 +63,35 @@ export default function SalesRecord({ sales }: { sales: DashboardResponse["sales
               ))}
             </RowCards>
           ) : (
-          <div className="-mx-5 overflow-x-auto px-5">
-            <table aria-label="Sales record" className="w-full min-w-[640px] border-separate border-spacing-0 text-sm text-gray-red">
-              <thead>
-                <tr className="text-left text-[12px] text-gray-red/70">
-                  {["Service", "Customer", "Artist", "Date", "Fee"].map((h) => (
-                    <th key={h} scope="col" className={h === "Fee" ? "pb-2 text-right font-medium" : "pb-2 font-medium"}>
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {view.rows.map((s) => (
-                  <tr key={s.id}>
-                    <th scope="row" className={`${cell} text-left font-bold`}>{s.service_name}</th>
-                    <td className={cell}>
-                      {s.user_id === null ? (
-                        s.client_name
-                      ) : (
-                        <Link to={`/clients/${s.user_id}`} className="font-medium text-berry underline decoration-crimson-light underline-offset-4">
-                          {s.client_name}
-                        </Link>
-                      )}
-                    </td>
-                    <td className={cell}>{s.nailist_name}</td>
-                    <td className={`${cell} whitespace-nowrap`}>{dateLabel(s.date)}</td>
-                    <td className={`${cell} pr-0 text-right font-bold`}>{s.fee === null ? "–" : peso(s.fee)}</td>
-                  </tr>
+          <TableFrame label="Sales record" minWidthClass="min-w-[640px]"
+            head={
+              <tr className="text-left text-[12px] text-gray-red/70">
+                {["Service", "Customer", "Artist", "Date", "Fee"].map((h) => (
+                  <th key={h} scope="col" className={h === "Fee" ? "pb-2 text-right font-medium" : "pb-2 font-medium"}>
+                    {h}
+                  </th>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </tr>
+            }
+          >
+          {view.rows.map((s) => (
+            <tr key={s.id}>
+              <th scope="row" className={`${cell} text-left font-bold`}>{s.service_name}</th>
+              <td className={cell}>
+                {s.user_id === null ? (
+                  s.client_name
+                ) : (
+                  <Link to={`/clients/${s.user_id}`} className="font-medium text-berry underline decoration-crimson-light underline-offset-4">
+                    {s.client_name}
+                  </Link>
+                )}
+              </td>
+              <td className={cell}>{s.nailist_name}</td>
+              <td className={`${cell} whitespace-nowrap`}>{dateLabel(s.date)}</td>
+              <td className={`${cell} pr-0 text-right font-bold`}>{s.fee === null ? "–" : peso(s.fee)}</td>
+            </tr>
+          ))}
+          </TableFrame>
           )}
           <Pagination page={view.current} totalPages={view.pages} onPageChange={setPage} summary={view} />
         </>

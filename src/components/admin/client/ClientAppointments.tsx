@@ -7,7 +7,7 @@ import { peso } from "../../../lib/dashboardFormat";
 import type { ClientAppointment, ClientNote } from "../../../services/clientNotesService";
 import { Badge, Button } from "@/components/atoms";
 import ImagePreviewModal from "../ImagePreviewModal";
-import { CARDS_PER_PAGE, CardFields, RowCard, RowCards } from "../RowCards";
+import { CARDS_PER_PAGE, CardFields, RowCard, RowCards } from "@/components/organisms";
 import VisitNotes from "./VisitNotes";
 import { ReviewPhoto, ReviewText } from "./VisitReview";
 import { Pagination, paginate } from "@/components/molecules";

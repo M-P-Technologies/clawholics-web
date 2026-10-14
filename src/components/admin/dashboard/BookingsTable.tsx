@@ -6,7 +6,7 @@ import { Link } from "../../../lib/router";
 import type { Appointment } from "../../../services/appointmentService";
 import { useTableLayout } from "../../../hooks/useMinWidth";
 import { Button } from "@/components/atoms";
-import { CardFields, RowCard, RowCards } from "../RowCards";
+import { CardFields, RowCard, RowCards, TableFrame } from "@/components/organisms";
 import { Pagination, paginate } from "@/components/molecules";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -180,61 +180,58 @@ export default function BookingsTable({ load }: { load: () => Promise<Appointmen
               })}
             </RowCards>
           ) : (
-          <div className="-mx-5 overflow-x-auto px-5">
-            <table aria-label="Bookings" className="w-full min-w-[720px] border-separate border-spacing-0 text-sm text-gray-red">
-              <thead>
-                <tr className="text-left text-[12px] text-gray-red/70">
-                  {["Client", "Service", "Artist", "Date", "Time", "Status", "Manage"].map((h) => (
-                    <th key={h} scope="col" className={clsx("pb-2 font-medium", h === "Manage" && "text-center")}>
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {view.rows.map((a) => {
-                  const name = clientName(a);
-                  const status = STATUS[statusOf(a)] ?? { label: a.status, className: "bg-sand text-gray-red" };
-                  const cell = "border-t border-dotted border-crimson-light py-3 pr-3";
-                  return (
-                    <tr key={a.id}>
-                      <th scope="row" className={clsx(cell, "text-left font-normal")}>
-                        <span className="flex items-center gap-2.5">
-                          <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-crimson-light/50 font-display text-base text-berry">
-                            {name.charAt(0).toUpperCase()}
-                          </span>
-                          <span className="min-w-0">
-                            <span className="block truncate font-bold">{name}</span>
-                            {a.email && !isWalkin(a) && <span className="block truncate text-[12px] text-gray-red/70">{a.email}</span>}
-                          </span>
-                        </span>
-                      </th>
-                      <td className={cell}>{a.service_name}</td>
-                      <td className={cell}>{a.nailist_name}</td>
-                      <td className={clsx(cell, "whitespace-nowrap")}>{dateLabel(a.appointment_date)}</td>
-                      <td className={clsx(cell, "whitespace-nowrap")}>{a.appointment_time}</td>
-                      <td className={cell}>
-                        <span className={clsx("whitespace-nowrap rounded-full px-2.5 py-0.5 text-[12px] font-bold", status.className)}>{status.label}</span>
-                      </td>
-                      <td className={clsx(cell, "pr-0 text-center")}>
-                        {isWalkin(a) ? (
-                          <span className="text-[12px] text-gray-red/60">Walk-in</span>
-                        ) : (
-                          <Link
-                            to={`/clients/${a.user_id}`}
-                            aria-label={`Open ${name}`}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-berry text-pearl transition-colors hover:bg-gray-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson"
-                          >
-                            <SquarePen size={15} aria-hidden="true" />
-                          </Link>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <TableFrame label="Bookings" minWidthClass="min-w-[720px]"
+            head={
+              <tr className="text-left text-[12px] text-gray-red/70">
+                {["Client", "Service", "Artist", "Date", "Time", "Status", "Manage"].map((h) => (
+                  <th key={h} scope="col" className={clsx("pb-2 font-medium", h === "Manage" && "text-center")}>
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            }
+          >
+          {view.rows.map((a) => {
+            const name = clientName(a);
+            const status = STATUS[statusOf(a)] ?? { label: a.status, className: "bg-sand text-gray-red" };
+            const cell = "border-t border-dotted border-crimson-light py-3 pr-3";
+            return (
+              <tr key={a.id}>
+                <th scope="row" className={clsx(cell, "text-left font-normal")}>
+                  <span className="flex items-center gap-2.5">
+                    <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-crimson-light/50 font-display text-base text-berry">
+                      {name.charAt(0).toUpperCase()}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate font-bold">{name}</span>
+                      {a.email && !isWalkin(a) && <span className="block truncate text-[12px] text-gray-red/70">{a.email}</span>}
+                    </span>
+                  </span>
+                </th>
+                <td className={cell}>{a.service_name}</td>
+                <td className={cell}>{a.nailist_name}</td>
+                <td className={clsx(cell, "whitespace-nowrap")}>{dateLabel(a.appointment_date)}</td>
+                <td className={clsx(cell, "whitespace-nowrap")}>{a.appointment_time}</td>
+                <td className={cell}>
+                  <span className={clsx("whitespace-nowrap rounded-full px-2.5 py-0.5 text-[12px] font-bold", status.className)}>{status.label}</span>
+                </td>
+                <td className={clsx(cell, "pr-0 text-center")}>
+                  {isWalkin(a) ? (
+                    <span className="text-[12px] text-gray-red/60">Walk-in</span>
+                  ) : (
+                    <Link
+                      to={`/clients/${a.user_id}`}
+                      aria-label={`Open ${name}`}
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-berry text-pearl transition-colors hover:bg-gray-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson"
+                    >
+                      <SquarePen size={15} aria-hidden="true" />
+                    </Link>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+          </TableFrame>
           )}
 
           {shown.length === 0 && (
