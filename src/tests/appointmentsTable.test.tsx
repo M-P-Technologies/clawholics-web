@@ -28,7 +28,7 @@ vi.mock("@/components/features/admin/bookings/AppointmentDetailsModal", async ()
     ),
   };
 });
-vi.mock("@/components/features/admin/bookings/CreateAppointmentModal", () => ({ default: () => <div role="dialog" aria-label="New appointment" /> }));
+vi.mock("@/components/features/admin/bookings/CreateAppointmentDialog", () => ({ default: () => <div role="dialog" aria-label="New appointment" /> }));
 
 const fetchAppointments = vi.fn();
 const updateAppointmentStatus = vi.fn();

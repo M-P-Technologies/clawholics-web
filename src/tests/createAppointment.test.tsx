@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import CreateAppointmentModal from "@/components/features/admin/bookings/CreateAppointmentModal";
+import CreateAppointmentDialog from "@/components/features/admin/bookings/CreateAppointmentDialog";
 
 // The modal is one form (no steps, no walk-in/registered switch, no toasts: the caller toasts after
 // onCreated). Its date and time block is drawn twice (phone and desktop position), so those controls
@@ -81,7 +81,7 @@ afterEach(() => {
 const renderModal = async () => {
   const onClose = vi.fn();
   const onCreated = vi.fn();
-  const view = render(<CreateAppointmentModal onClose={onClose} onCreated={onCreated} />);
+  const view = render(<CreateAppointmentDialog onClose={onClose} onCreated={onCreated} />);
   await waitFor(() => expect(artistSelect()).toBeEnabled());
   await waitFor(() => expect(serviceSelect()).toBeEnabled());
   return { onClose, onCreated, ...view };
@@ -140,7 +140,7 @@ const renderModalWithAll = async () => {
   return handlers;
 };
 
-describe("CreateAppointmentModal: opening and closing", () => {
+describe("CreateAppointmentDialog: opening and closing", () => {
   it("shows the heading, the client form, empty selects and an empty summary", async () => {
     await renderModal();
     expect(screen.getByRole("heading", { name: "Create appointment" })).toBeInTheDocument();
@@ -176,20 +176,46 @@ describe("CreateAppointmentModal: opening and closing", () => {
   });
 
   it("closes when the backdrop is clicked but not when the panel is", async () => {
-    const { onClose, container } = await renderModal();
+    const { onClose } = await renderModal();
     fireEvent.click(screen.getByRole("heading", { name: "Create appointment" }));
     fireEvent.click(screen.getByPlaceholderText("First name"));
     expect(onClose).not.toHaveBeenCalled();
-    fireEvent.click(container.firstElementChild as HTMLElement);
+    // the backdrop is the dialog panel's parent (Dialog)
+    fireEvent.click(screen.getByRole("dialog", { name: "Create appointment" }).parentElement as HTMLElement);
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("is a modal dialog named by its title, with focus moved inside on open", async () => {
+    await renderModal();
+    const dialog = screen.getByRole("dialog", { name: "Create appointment" });
+    expect(dialog).toHaveAttribute("aria-modal", "true");
+    expect(dialog).toContainElement(document.activeElement as HTMLElement);
+  });
+
+  it("calls onClose once on Escape", async () => {
+    const { onClose } = await renderModal();
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("can still be closed by Close, Escape and the backdrop while the booking is sent (only Cancel is locked)", async () => {
+    booking.createAdminAppointment.mockReturnValue(new Promise(() => {}));
+    const { onClose } = await renderModalWithAll();
+    fireEvent.click(screen.getByRole("button", { name: "Create appointment" }));
+    await screen.findByRole("button", { name: /Creating/ });
+    expect(screen.getByRole("button", { name: "Cancel" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    fireEvent.keyDown(window, { key: "Escape" });
+    fireEvent.click(screen.getByRole("dialog", { name: "Create appointment" }).parentElement as HTMLElement);
+    expect(onClose).toHaveBeenCalledTimes(3);
   });
 });
 
-describe("CreateAppointmentModal: loading and loading failures", () => {
+describe("CreateAppointmentDialog: loading and loading failures", () => {
   it("disables the selects and says Loading while the artists and services load", async () => {
     booking.fetchNailists.mockReturnValue(new Promise(() => {}));
     fetchMock.mockReturnValue(new Promise(() => {}));
-    render(<CreateAppointmentModal onClose={vi.fn()} onCreated={vi.fn()} />);
+    render(<CreateAppointmentDialog onClose={vi.fn()} onCreated={vi.fn()} />);
     expect(artistSelect()).toHaveTextContent("Loading nail artists...");
     expect(serviceSelect()).toHaveTextContent("Loading services...");
     expect(artistSelect()).toBeDisabled();
@@ -204,14 +230,14 @@ describe("CreateAppointmentModal: loading and loading failures", () => {
 
   it("shows a message when the services can't be loaded", async () => {
     fetchMock.mockResolvedValue({ ok: false, json: async () => ({}) });
-    render(<CreateAppointmentModal onClose={vi.fn()} onCreated={vi.fn()} />);
+    render(<CreateAppointmentDialog onClose={vi.fn()} onCreated={vi.fn()} />);
     expect(await screen.findByRole("alert")).toHaveTextContent("Failed to load services.");
     expect(serviceSelect()).toHaveTextContent("Select service");
   });
 
   it("shows a message when the artists can't be loaded", async () => {
     booking.fetchNailists.mockRejectedValue(new Error("down"));
-    render(<CreateAppointmentModal onClose={vi.fn()} onCreated={vi.fn()} />);
+    render(<CreateAppointmentDialog onClose={vi.fn()} onCreated={vi.fn()} />);
     expect(await screen.findByRole("alert")).toHaveTextContent("Failed to load nail artists.");
     expect(artistSelect()).toHaveTextContent("Select nail artist");
   });
@@ -244,7 +270,7 @@ describe("CreateAppointmentModal: loading and loading failures", () => {
   });
 });
 
-describe("CreateAppointmentModal: client fields", () => {
+describe("CreateAppointmentDialog: client fields", () => {
   it("accepts only digits in the phone number, up to 11", async () => {
     await renderModal();
     const phone = screen.getByPlaceholderText("Phone number");
@@ -267,7 +293,7 @@ describe("CreateAppointmentModal: client fields", () => {
   });
 });
 
-describe("CreateAppointmentModal: artist and service", () => {
+describe("CreateAppointmentDialog: artist and service", () => {
   it("offers every service until an artist is chosen, then only that artist's services", async () => {
     await renderModal();
     await chooseArtist("Jun");
@@ -302,7 +328,7 @@ describe("CreateAppointmentModal: artist and service", () => {
   });
 });
 
-describe("CreateAppointmentModal: date and time", () => {
+describe("CreateAppointmentDialog: date and time", () => {
   it("asks for an artist before showing any time", async () => {
     await renderModal();
     expect(screen.getAllByText("Select a nail artist to view available time slots.").length).toBeGreaterThan(0);
@@ -411,7 +437,7 @@ describe("CreateAppointmentModal: date and time", () => {
   });
 });
 
-describe("CreateAppointmentModal: the two date-and-time blocks, per-artist slots and days off", () => {
+describe("CreateAppointmentDialog: the two date-and-time blocks, per-artist slots and days off", () => {
   it("draws the date and time block twice, and both copies show the same choice", async () => {
     await renderModal();
     await chooseArtist("Mara");
@@ -467,7 +493,7 @@ describe("CreateAppointmentModal: the two date-and-time blocks, per-artist slots
   });
 });
 
-describe("CreateAppointmentModal: summary and price", () => {
+describe("CreateAppointmentDialog: summary and price", () => {
   it("shows the master price for a master artist", async () => {
     await renderModal();
     await chooseArtist("Mara");
@@ -499,7 +525,7 @@ describe("CreateAppointmentModal: summary and price", () => {
   });
 });
 
-describe("CreateAppointmentModal: submitting", () => {
+describe("CreateAppointmentDialog: submitting", () => {
   it("books the appointment with the trimmed client details and the chosen options", async () => {
     const { onCreated, onClose } = await renderModalWithAll();
     fireEvent.click(screen.getByRole("button", { name: "Create appointment" }));

@@ -3,7 +3,7 @@ import { Check, ChevronDown, Plus, Search, SquarePen } from "lucide-react";
 import { useEffect, useState } from "react";
 import clsx from "clsx";
 import AppointmentDetailsModal from "@/components/features/admin/bookings/AppointmentDetailsModal";
-import CreateAppointmentModal from "@/components/features/admin/bookings/CreateAppointmentModal";
+import CreateAppointmentDialog from "@/components/features/admin/bookings/CreateAppointmentDialog";
 import { AlertDialog, CardFields, CARDS_PER_PAGE, Dialog, RowCard, RowCards, TableFrame } from "@/components/organisms";
 import { Button, Select, initialsOf } from "@/components/atoms";
 import { Pagination, paginate, useToast } from "@/components/molecules";
@@ -483,7 +483,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
       </Button>
 
       {creating && (
-        <CreateAppointmentModal
+        <CreateAppointmentDialog
           onClose={() => setCreating(false)}
           onCreated={() => {
             setCreating(false);
