@@ -60,8 +60,10 @@ export default function BookingsTable({ load }: { load: BookingsLoader }) {
 
   // One page from the server for the tab: Upcoming soonest first, the others newest first
   const today = manilaToday(new Date());
+  const [lastTotal, setLastTotal] = useState(0);
   const params: AppointmentPageParams = {
-    page,
+    // A list that shrank keeps you on its last page rather than past it
+    page: Math.min(page, Math.max(1, Math.ceil(lastTotal / PAGE))),
     pageSize: PAGE,
     search,
     ...(tab === "upcoming"
@@ -75,10 +77,12 @@ export default function BookingsTable({ load }: { load: BookingsLoader }) {
     queryFn: () => load(params),
     placeholderData: keepPreviousData,
   });
-  const rows = bookings.data?.rows ?? null;
-  // A failed refresh keeps the page on screen
-  const failed = bookings.isError && !bookings.data;
-  const view = pageView(rows ?? [], page, PAGE, bookings.data?.total ?? 0);
+  // A failed refresh keeps the page on screen; a failed load of another tab or page has no data
+  const current = bookings.data;
+  if (current && current.total !== lastTotal) setLastTotal(current.total);
+  const rows = current?.rows ?? null;
+  const failed = bookings.isError && !current;
+  const view = pageView(rows ?? [], params.page, PAGE, current?.total ?? 0);
 
   const choose = (next: Tab) => {
     setTab(next);

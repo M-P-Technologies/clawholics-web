@@ -186,6 +186,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
     // Refreshes every 30 seconds, only while this tab is on screen
     refetchInterval: 30_000,
   });
+  // The previous page shows while another loads; if that load fails it has no data, and the error shows
   const result = proofOverdue ? { rows: [], total: 0 } : listQuery.data;
   if (result && result.total !== lastTotal) setLastTotal(result.total);
   const appointments: Appointment[] | null = result ? result.rows : null;

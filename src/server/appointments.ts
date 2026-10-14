@@ -82,10 +82,14 @@ export function listAppointments(statuses: string[] | null) {
   `;
 }
 
-/** The orders the admin lists offer; times are zero-padded "HH:MM-HH:MM" and dates YYYY-MM-DD */
+// An appointment's start time, zero-padded ("9:00-10:00" sorts as "09:00"), as dashboard.ts orders
+// them: bookings store the time they were sent, so it can't be sorted as text
+const START_TIME = "lpad(split_part(a.appointment_time, '-', 1), 5, '0')";
+
+/** The orders the admin lists offer (dates are YYYY-MM-DD text) */
 export const APPOINTMENT_SORTS = {
-  upcoming: "a.appointment_date asc, a.appointment_time asc, a.id asc",
-  latest: "a.appointment_date desc, a.appointment_time desc, a.id asc",
+  upcoming: `a.appointment_date asc, ${START_TIME} asc, a.id asc`,
+  latest: `a.appointment_date desc, ${START_TIME} desc, a.id asc`,
   booked_newest: "a.created_at desc, a.id desc",
   booked_oldest: "a.created_at asc, a.id asc",
 } as const;
@@ -120,6 +124,15 @@ const CLIENT_VISITS = `(select count(*)::int from appointments v where v.user_id
 // columns plus the two above. All constants: no input goes into them.
 const FROM_START = APPOINTMENT_SELECT.indexOf("from appointments a");
 const APPOINTMENT_FROM = APPOINTMENT_SELECT.slice(FROM_START);
+// The count only needs the joins the filters read (the artist, and the client for the search):
+// the latest-payment lookup and the service joins add no rows and nothing to filter on
+const COUNT_FROM = `
+  from appointments a
+  left join nailists n on a.nailist_id = n.id
+  left join users u on a.user_id = u.id
+  left join admin_profiles ap on u.id = ap.user_id
+  left join customer_profiles cp on a.user_id = cp.user_id
+`;
 const PAGE_SELECT = `${APPOINTMENT_SELECT.slice(0, FROM_START)}, ${LATEST_PROOF} as latest_proof, ${CLIENT_VISITS} as client_visits
   ${APPOINTMENT_FROM}`;
 
@@ -158,7 +171,7 @@ export async function listAppointmentPage(query: AppointmentPageQuery) {
       order by ${sql.unsafe(APPOINTMENT_SORTS[query.sort])}
       limit ${query.pageSize} offset ${(query.page - 1) * query.pageSize}
     `,
-    sql<{ total: number }[]>`select count(*)::int as total ${sql.unsafe(APPOINTMENT_FROM)} ${where}`,
+    sql<{ total: number }[]>`select count(*)::int as total ${sql.unsafe(COUNT_FROM)} ${where}`,
   ]);
   return { rows: [...rows], total };
 }

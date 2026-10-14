@@ -249,7 +249,8 @@ export const listAllAppointments = ported(async (req) => {
   await cancelExpiredPendingAppointments();
   const params = new URL(req.url).searchParams;
   const status = params.get("status");
-  const statuses = status ? status.split(",").map((s) => s.trim().toUpperCase()).filter(Boolean) : null;
+  const listed = (status ?? "").split(",").map((s) => s.trim().toUpperCase()).filter(Boolean);
+  const statuses = listed.length > 0 ? listed : null;
   if (!params.has("page")) return Response.json(await listAppointments(statuses));
 
   const page = Number(params.get("page"));

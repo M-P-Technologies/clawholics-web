@@ -5,11 +5,11 @@ import { useCallback, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { DEFAULT_RANGE, type DashboardRange } from "../../lib/dashboardPeriods";
 import { fetchAppointmentPage, type AppointmentPage, type AppointmentPageParams } from "../../services/appointmentService";
+import { fetchDashboard, fetchUtilization } from "../../services/dashboardService";
+import type { DashboardResponse } from "../../services/dashboardTypes";
 
 /** Loads one page of the admin appointment list */
 export type BookingsLoader = (params: AppointmentPageParams) => Promise<AppointmentPage>;
-import { fetchDashboard, fetchUtilization } from "../../services/dashboardService";
-import type { DashboardResponse } from "../../services/dashboardTypes";
 
 /** What a report page draws from: the period's numbers, and whether they're being reloaded */
 export interface ReportProps {

@@ -202,8 +202,18 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       const ana = (await list(`page=1&on=${day1}`)).body.rows[0];
       expect(ana.client_visits).toBeGreaterThanOrEqual(1);
 
-      // Without page, the full list as before
+      // Times are ordered by their padded start: "9:00-10:00" comes before "13:00-14:00"
+      const day3 = nextDate();
+      await db`update appointments set appointment_date = ${day3}, appointment_time = '13:00-14:00' where id = ${a1.appointment_id}`;
+      await db`update appointments set appointment_date = ${day3}, appointment_time = '9:00-10:00' where id = ${a2.appointment_id}`;
+      expect(ids((await list(`page=1&on=${day3}&sort=upcoming`)).body)).toEqual([a2.appointment_id, a1.appointment_id]);
+      expect(ids((await list(`page=1&on=${day3}&sort=latest`)).body)).toEqual([a1.appointment_id, a2.appointment_id]);
+
+      // Without page, the full list as before; an empty status list means no status filter
       expect(Array.isArray((await list("status=CONFIRMED")).body)).toBe(true);
+      const blank = await list("status=%2C");
+      expect(blank.status).toBe(200);
+      expect(Array.isArray(blank.body)).toBe(true);
 
       // Bad paging or sort is refused, and only admins may list
       for (const bad of ["page=0", "page=1&pageSize=51", "page=1&sort=price", "page=1&on=tomorrow"]) {

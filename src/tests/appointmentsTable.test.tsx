@@ -83,6 +83,18 @@ describe("Appointments table", () => {
     });
   });
 
+  it("shows the error, not the previous filter's rows, when a new filter can't load", async () => {
+    render(<AppointmentsTable />);
+    await screen.findByRole("table", { name: "Appointments" });
+    expect(rows()).toHaveLength(4);
+    fetchAppointmentPage.mockRejectedValueOnce(new Error("down"));
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Status" }));
+    await user.click(screen.getByRole("option", { name: "Cancelled" }));
+    expect(await screen.findByText(/couldn't load the appointments/i)).toBeInTheDocument();
+    expect(screen.queryByRole("table", { name: "Appointments" })).toBeNull();
+  });
+
   it("opens on the status in the link, and filters with the status dropdown", async () => {
     params = new URLSearchParams("status=PENDING");
     render(<AppointmentsTable />);
