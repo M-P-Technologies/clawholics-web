@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { useNavigate } from "@/lib/router";
+import { CLIENT_PATHS } from "../lib/client/clientNav";
 import { updateProfile, fetchProfile, isEmailTaken, isMissingProfile } from "../services/userService";
 import type { ChangeEvent } from "react";
 import { ONBOARDING_CONTACT_FIELDS, ONBOARDING_NAME_FIELDS } from "../data/onboarding";
@@ -59,7 +60,7 @@ export function useOnboarding() {
         }
 
         if (existingProfile && existingProfile.onboarded) {
-          navigate("/profile", { replace: true });
+          navigate(CLIENT_PATHS.home, { replace: true });
         } else {
           setIsChecking(false);
         }
@@ -191,7 +192,7 @@ export function useOnboarding() {
       await updateProfile(user.id, completeUserData, token);
       saved.current = true;
       toast.show("success", "Profile saved", "Thank you! You can now book appointments. You can change these details any time from your profile.");
-      navigate("/profile");
+      navigate(CLIENT_PATHS.home);
     } catch (error) {
       if (isEmailTaken(error)) {
         // Not a connection problem, so retrying won't help

@@ -64,12 +64,12 @@ describe("leaving /onboarding without saving", () => {
   });
 
   it("stays quiet when the user is sent away before the form was ever shown", async () => {
-    // A finished profile is redirected to /profile, so there is nothing to remind them about
+    // A finished profile is redirected to the client app, so there is nothing to remind them about
     fetchProfile.mockResolvedValue({ role: "customer", onboarded: true });
     const { unmount } = renderHook(() => useOnboarding());
-    await waitFor(() => expect(navigate).toHaveBeenCalledWith("/profile", { replace: true }));
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith("/my", { replace: true }));
 
-    window.history.pushState({}, "", "/profile");
+    window.history.pushState({}, "", "/my");
     unmount();
     await settle();
 
@@ -86,9 +86,9 @@ describe("leaving /onboarding without saving", () => {
       await result.current.handleSubmit({ preventDefault() {} } as React.SyntheticEvent<HTMLFormElement>);
     });
     expect(updateProfile).toHaveBeenCalled();
-    expect(navigate).toHaveBeenCalledWith("/profile");
+    expect(navigate).toHaveBeenCalledWith("/my");
 
-    window.history.pushState({}, "", "/profile");
+    window.history.pushState({}, "", "/my");
     unmount();
     await settle();
 
@@ -107,6 +107,6 @@ describe("leaving /onboarding without saving", () => {
 
     expect(result.current.submitError).toMatch(/already used by another account/i);
     expect(result.current.submitError).not.toMatch(/connection/i);
-    expect(navigate).not.toHaveBeenCalledWith("/profile");
+    expect(navigate).not.toHaveBeenCalledWith("/my");
   });
 });

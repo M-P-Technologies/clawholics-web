@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { Link, useLocation } from "@/lib/router";
 import { useScrolled } from "../../hooks/useScrolled";
 import Button from "../ui/Button";
+import { CLIENT_PATHS } from "../../lib/client/clientNav";
 
 // The phone's main navigation: a bar fixed to the bottom of the screen (hidden from `lg` up,
 // where the top bar has the links). Four tabs go straight to a page and the middle one starts a
@@ -13,7 +14,7 @@ import Button from "../ui/Button";
 // whole screen. (The floating Facebook button uses the same value to drop into the corner.)
 export const TAB_BAR_REVEAL_PX = 40;
 
-const MORE_PATHS = ["/about", "/faq", "/contact", "/profile", "/login", "/signup"];
+const MORE_PATHS = ["/about", "/faq", "/contact", "/login", "/signup"];
 
 const tabClass = (active: boolean) =>
   clsx(
@@ -104,7 +105,7 @@ export default function MobileTabBar() {
           </Show>
 
           <Show when="signed-in">
-            <Link to="/profile" className={sheetLink(pathname === "/profile")}>My profile</Link>
+            <Link to={CLIENT_PATHS.home} className={sheetLink(false)}>My account</Link>
             <Button
               variant="bare"
               type="button"

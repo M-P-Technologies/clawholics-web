@@ -1,6 +1,7 @@
 import { useUser } from "@clerk/nextjs";
 import { useEffect } from "react";
 import { useNavigate } from "@/lib/router";
+import { CLIENT_PATHS } from "../lib/client/clientNav";
 
 export function useRedirectIfSignedIn() {
   const { isSignedIn, isLoaded, user } = useUser();
@@ -8,8 +9,8 @@ export function useRedirectIfSignedIn() {
 
   useEffect(() => {
     if (isLoaded && isSignedIn && user) {
-      // Send to home page which handles role-based routing correctly
-      navigate("/", { replace: true });
+      // The client app; its layout sends an admin on to the dashboard
+      navigate(CLIENT_PATHS.home, { replace: true });
     }
   }, [isLoaded, isSignedIn, user, navigate]);
 

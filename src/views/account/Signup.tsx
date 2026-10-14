@@ -18,8 +18,8 @@ export default function Signup() {
           routing="path"
           path="/signup"
           signInUrl="/login"
-          fallbackRedirectUrl="/"
-          forceRedirectUrl="/"
+          fallbackRedirectUrl="/my"
+          forceRedirectUrl="/my"
           appearance={clerkAppearance}
         />
       </Section>

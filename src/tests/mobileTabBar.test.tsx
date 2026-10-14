@@ -57,7 +57,7 @@ describe("phone tab bar", () => {
     signedIn = true;
     render(<MobileTabBar />);
     fireEvent.click(screen.getByRole("button", { name: "More" }));
-    expect(screen.getByRole("link", { name: "My profile" })).toHaveAttribute("href", "/profile");
+    expect(screen.getByRole("link", { name: "My account" })).toHaveAttribute("href", "/my");
     expect(screen.queryByRole("link", { name: "Account" })).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "Manage account" }));

@@ -31,7 +31,7 @@ describe("footer on phones", () => {
     },
   );
 
-  it.each(["/login", "/signup", "/onboarding", "/profile"])("is not rendered at all on %s", (path) => {
+  it.each(["/login", "/signup", "/onboarding"])("is not rendered at all on %s", (path) => {
     expect(wrapperClass(path)).toBeNull();
   });
 });
