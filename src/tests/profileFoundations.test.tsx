@@ -1,6 +1,6 @@
 import { fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import Sheet from "@/components/ui/Sheet";
+import { Dialog } from "@/components/organisms";
 import { Badge } from "@/components/atoms";
 import { pickNext, relativeDay, sortSoonest, stampsToGo, startOf } from "@/utils/profileView";
 import type { AppointmentView } from "@/components/profile/types";
@@ -18,15 +18,15 @@ const view = (over: Partial<AppointmentView> & { date?: string } = {}): Appointm
 
 describe("Sheet", () => {
   it("renders nothing when closed, and a labelled dialog when open", () => {
-    const { rerender } = render(<Sheet open={false} title="Details" onClose={() => {}}>body</Sheet>);
+    const { rerender } = render(<Dialog open={false} title="Details" onClose={() => {}}>body</Dialog>);
     expect(screen.queryByRole("dialog")).toBeNull();
-    rerender(<Sheet open title="Details" onClose={() => {}}>body</Sheet>);
+    rerender(<Dialog open title="Details" onClose={() => {}}>body</Dialog>);
     expect(screen.getByRole("dialog", { name: "Details" })).toHaveTextContent("body");
   });
 
   it("closes from the X, the backdrop and Escape, but not from a click inside", () => {
     const onClose = vi.fn();
-    const { container } = render(<Sheet open title="T" onClose={onClose}>body</Sheet>);
+    const { container } = render(<Dialog open title="T" onClose={onClose}>body</Dialog>);
     fireEvent.click(screen.getByText("body"));
     expect(onClose).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "Close" }));

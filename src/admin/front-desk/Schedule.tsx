@@ -11,7 +11,7 @@ import ScheduleWeekGrid from "../../components/admin/ScheduleWeekGrid";
 import { Button } from "@/components/atoms";
 import { LoadingBar } from "@/components/atoms";
 import { Select } from "@/components/atoms";
-import Sheet from "../../components/ui/Sheet";
+import { Dialog } from "@/components/organisms";
 import { useSchedule } from "../../hooks/admin/useSchedule";
 import type { Appointment } from "../../services/appointmentService";
 import { toDateKey } from "../../services/scheduleAgenda";
@@ -142,7 +142,7 @@ export default function Schedule() {
         <AppointmentDetailsModal appointment={s.selectedAppointment as Appointment} onClose={s.closeAppointment} onStatusChange={s.changeAppointmentStatus} />
       )}
 
-      <Sheet open={s.filterOpen} title="Filter schedule" onClose={() => s.setFilterOpen(false)}>
+      <Dialog open={s.filterOpen} title="Filter schedule" onClose={() => s.setFilterOpen(false)}>
         <div className="flex flex-col gap-2">
           <p className="text-sm text-gray-red/80">Artist</p>
           <Select aria-label="Artist" value={s.filterBy} onChange={(e) => s.setFilterBy(e.target.value)}>
@@ -153,7 +153,7 @@ export default function Schedule() {
         <Button type="button" fullWidth onClick={() => s.setFilterOpen(false)}>
           Done
         </Button>
-      </Sheet>
+      </Dialog>
     </AdminShell>
   );
 }

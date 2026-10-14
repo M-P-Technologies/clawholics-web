@@ -1,8 +1,9 @@
 import { ArrowUpRight, X as CloseIconLucide } from "lucide-react";
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 import type { Appointment, AppointmentStatus } from "../../services/appointmentService";
 import { Link } from "../../lib/router";
 import { Button, Select, initialsOf } from "@/components/atoms";
+import { Dialog } from "@/components/organisms";
 import ClientNotesPanel from "./ClientNotesPanel";
 import ProofReviewPanel from "./ProofReviewPanel";
 
@@ -37,40 +38,23 @@ const dateLabel = (ymd?: string) => {
 };
 
 // One appointment's details, in a drawer that slides in from the right: the client, the
-// appointment (with its status), the payment, the proof review and the private notes. Escape or
-// a click outside closes it.
+// appointment (with its status), the payment, the proof review and the private notes. The
+// Dialog handles focus, Escape and a click outside.
 const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFetcher, clerkId, onProofReviewed }: AppointmentDetailsModalProps) => {
   const titleId = useId();
-  const closeRef = useRef<HTMLButtonElement>(null);
   const customerName = `${appointment.first_name ?? ""} ${appointment.last_name ?? ""}`.trim() || `User #${appointment.user_id}`;
   const currentStatus = (appointment.status?.trim().toUpperCase() || "PENDING") as AppointmentStatus;
   const showProofPanel = currentStatus === "AWAITING_PROOF" || Boolean(appointment.latest_proof);
   // Walk-in bookings have no real client account, so there is nobody to keep notes on.
   const isWalkin = Boolean(appointment.is_walkin);
 
-  // Focus the drawer once when it opens, and close it on Escape (the latest onClose, without
-  // running again when the screen behind re-renders)
-  const closeHandler = useRef(onClose);
-  useEffect(() => {
-    closeHandler.current = onClose;
-  }, [onClose]);
-  useEffect(() => {
-    closeRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && closeHandler.current();
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, []);
-
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-gray-red/40 drawer-backdrop" onClick={onClose}>
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        className="flex h-full w-full max-w-[480px] flex-col bg-milk shadow-2xl drawer-right"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header: who and which appointment */}
+    <Dialog
+      open
+      onClose={onClose}
+      title={customerName}
+      placement="drawer"
+      header={
         <div className="flex shrink-0 items-start gap-3 border-b border-crimson-light/50 px-5 py-4">
           <span aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-crimson-light/60 font-display text-lg text-berry">
             {initialsOf(customerName)}
@@ -90,11 +74,12 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
               )}
             </div>
           </div>
-          <Button ref={closeRef} variant="bare" aria-label="Close" onClick={onClose} className="shrink-0 rounded-full p-1.5 text-gray-red/70 hover:bg-crimson-light/30 hover:text-berry">
+          <Button variant="bare" data-autofocus aria-label="Close" onClick={onClose} className="shrink-0 rounded-full p-1.5 text-gray-red/70 hover:bg-crimson-light/30 hover:text-berry">
             <CloseIconLucide size={22} aria-hidden="true" />
           </Button>
         </div>
-
+      }
+    >
         {/* Body: scrolls on its own */}
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 py-5 text-gray-red">
           <Section title="Client" aside={`Client #${appointment.user_id}`}>
@@ -149,8 +134,7 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
             <ClientNotesPanel clientUserId={appointment.user_id} tokenFetcher={tokenFetcher} clerkId={clerkId} />
           )}
         </div>
-      </div>
-    </div>
+    </Dialog>
   );
 };
 

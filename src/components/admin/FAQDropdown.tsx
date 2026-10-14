@@ -13,7 +13,7 @@ import {
 import { useToast } from "@/components/molecules";
 import EditActions from "./EditActions";
 import { Button } from "@/components/atoms";
-import ConfirmModal from "../ui/ConfirmModal";
+import { ConfirmDialog } from "@/components/organisms";
 
 type DropdownProps = {
   faq?: Faq;
@@ -413,7 +413,7 @@ const FAQDropdown: React.FC<DropdownProps> = ({
       </div>
 
       {!isCreateMode && !isDragOverlay && (
-        <ConfirmModal
+        <ConfirmDialog
           open={isDeleteModalOpen}
           title="Delete FAQ?"
           confirmLabel="Delete FAQ"
@@ -423,7 +423,7 @@ const FAQDropdown: React.FC<DropdownProps> = ({
           onConfirm={handleDelete}
         >
           Are you sure you want to delete this FAQ? This action cannot be undone.
-        </ConfirmModal>
+        </ConfirmDialog>
       )}
     </>
   );

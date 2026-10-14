@@ -1,6 +1,6 @@
 "use client";
 
-import AlertModal from "../../components/ui/AlertModal";
+import { AlertDialog } from "@/components/organisms";
 import { Button } from "@/components/atoms";
 import { LoadingBar } from "@/components/atoms";
 import DayCalendar from "../../components/booking/DayCalendar";
@@ -103,7 +103,7 @@ export default function Reschedule() {
         </div>
       </Section>
 
-      <AlertModal
+      <AlertDialog
         open={modalOpen}
         title={modalTitle}
         message={modalMessage}

@@ -13,7 +13,7 @@ import {
 import { useToast } from "@/components/molecules";
 import EditActions from "./EditActions";
 import { Button } from "@/components/atoms";
-import ConfirmModal from "../ui/ConfirmModal";
+import { ConfirmDialog } from "@/components/organisms";
 
 type DropdownProps = {
   tac?: Tac;
@@ -414,7 +414,7 @@ const TACDropdown: React.FC<DropdownProps> = ({
       </div>
 
       {!isCreateMode && !isDragOverlay && (
-        <ConfirmModal
+        <ConfirmDialog
           open={isDeleteModalOpen}
           title="Delete section?"
           confirmLabel="Delete section"
@@ -424,7 +424,7 @@ const TACDropdown: React.FC<DropdownProps> = ({
           onConfirm={handleDelete}
         >
           Are you sure you want to delete this section? This action cannot be undone.
-        </ConfirmModal>
+        </ConfirmDialog>
       )}
     </>
   );

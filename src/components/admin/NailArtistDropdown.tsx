@@ -27,7 +27,7 @@ import { uploadImage } from "../../services/uploadService";
 import { useToast } from "@/components/molecules";
 import EditActions from "./EditActions";
 import { Button } from "@/components/atoms";
-import ConfirmModal from "../ui/ConfirmModal";
+import { ConfirmDialog } from "@/components/organisms";
 import { Select } from "@/components/atoms";
 
 type NailArtistDropdownProps = {
@@ -1217,7 +1217,7 @@ const NailArtistDropdown: React.FC<NailArtistDropdownProps> = ({
       </div>
 
       {!isCreateMode && (
-        <ConfirmModal
+        <ConfirmDialog
           open={isDeleteModalOpen}
           title="Delete artist?"
           confirmLabel="Delete artist"
@@ -1227,7 +1227,7 @@ const NailArtistDropdown: React.FC<NailArtistDropdownProps> = ({
           onConfirm={handleDelete}
         >
           Are you sure you want to delete this artist? This action cannot be undone.
-        </ConfirmModal>
+        </ConfirmDialog>
       )}
 
       <ImagePreviewModal

@@ -6,7 +6,7 @@ import AppointmentDetailsModal from "./AppointmentDetailsModal";
 import CreateAppointmentModal from "./CreateAppointmentModal";
 import { CardFields, CARDS_PER_PAGE, RowCard, RowCards } from "./RowCards";
 import { Button, Select, initialsOf } from "@/components/atoms";
-import Sheet from "../ui/Sheet";
+import { Dialog } from "@/components/organisms";
 import { Pagination, paginate, useToast } from "@/components/molecules";
 import { Link, useSearchParams } from "@/lib/router";
 import { monthYear, relativeDay, type DirectoryProfile } from "./DirectoryProfileCard";
@@ -369,7 +369,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
 
       {!asTable &&
         filters.map((filter) => (
-          <Sheet key={filter.key} open={openFilter === filter.key} title={filter.title} onClose={() => setOpenFilter(null)}>
+          <Dialog key={filter.key} open={openFilter === filter.key} title={filter.title} onClose={() => setOpenFilter(null)}>
             <ul role="listbox" aria-label={filter.title} className="flex flex-col gap-1">
               {filter.options.map((option) => {
                 const chosen = option.value === filter.value;
@@ -393,7 +393,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
                 );
               })}
             </ul>
-          </Sheet>
+          </Dialog>
         ))}
 
       {failed && appointments === null ? (

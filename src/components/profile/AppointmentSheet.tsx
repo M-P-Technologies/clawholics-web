@@ -2,7 +2,7 @@ import { CalendarDays, Clock } from "lucide-react";
 import PaymentProofCard from "../payment/PaymentProofCard";
 import { Badge, Button } from "@/components/atoms";
 import { statusDotTone } from "../../utils/profileView";
-import Sheet from "../ui/Sheet";
+import { Dialog } from "@/components/organisms";
 import { AppointmentThumb, isCompleted } from "./AppointmentCard";
 import ReviewCard from "./ReviewCard";
 import type { AppointmentView } from "./types";
@@ -28,7 +28,7 @@ interface AppointmentSheetProps {
 // One appointment in full: what, who, when, its payment proof and every action that applies.
 export default function AppointmentSheet({ view, photo, now, tokenFetcher, clerkId, onClose, onPay, onReschedule, onCancel, onProofUploaded, review, onSubmitReview }: AppointmentSheetProps) {
   return (
-    <Sheet open={view !== null} title="Appointment" onClose={onClose}>
+    <Dialog open={view !== null} title="Appointment" onClose={onClose}>
       {view && (
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-4 rounded-xl border border-crimson-light/60 bg-light-orange/40 p-3">
@@ -71,6 +71,6 @@ export default function AppointmentSheet({ view, photo, now, tokenFetcher, clerk
           </div>
         </div>
       )}
-    </Sheet>
+    </Dialog>
   );
 }

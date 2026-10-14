@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import AlertModal from "../../components/ui/AlertModal";
+import { AlertDialog } from "@/components/organisms";
 import BookingOptions from "../../components/booking/BookingOptions";
 import { Button } from "@/components/atoms";
 import ArtistSelect from "../../components/booking/ArtistSelect";
@@ -161,7 +161,7 @@ export default function Booking() {
         </div>
       </Section>
 
-      <AlertModal
+      <AlertDialog
         open={modalOpen}
         title={modalTitle}
         message={modalMessage}

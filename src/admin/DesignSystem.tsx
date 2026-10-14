@@ -10,6 +10,7 @@ import SearchDemo from "../components/admin/designSystem/SearchDemo";
 import PaginationDemo from "../components/admin/designSystem/PaginationDemo";
 import TabsDemo from "../components/admin/designSystem/TabsDemo";
 import ToastDemo from "../components/admin/designSystem/ToastDemo";
+import DialogDemo from "../components/admin/designSystem/DialogDemo";
 
 // Every shared component and its variants, for checking the look. Admins only; not in the sidebar.
 export default function DesignSystem() {
@@ -113,7 +114,11 @@ export default function DesignSystem() {
             </div>
           </GallerySection>
         </Group>
-        <Group title="Organisms">{/* Task 11+ */}</Group>
+        <Group title="Organisms">
+          <GallerySection title="Dialog">
+            <DialogDemo />
+          </GallerySection>
+        </Group>
       </div>
     </AdminShell>
   );

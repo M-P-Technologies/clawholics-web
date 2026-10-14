@@ -2,7 +2,7 @@ import { Check } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { themeColor } from "../../services/themeColor";
 import { Button } from "@/components/atoms";
-import Sheet from "../ui/Sheet";
+import { Dialog } from "@/components/organisms";
 import { STAMP_TARGET, stampsToGo } from "../../utils/profileView";
 
 interface RewardsSheetProps {
@@ -21,7 +21,7 @@ export default function RewardsSheet({ open, onClose, stamps, cardNumber, clerkI
   const full = left === 0;
 
   return (
-    <Sheet open={open} title="Loyalty card" onClose={onClose}>
+    <Dialog open={open} title="Loyalty card" onClose={onClose}>
       <div className="flex flex-col gap-4">
         <div
           className={`flex flex-col overflow-hidden rounded-2xl border ${
@@ -71,6 +71,6 @@ export default function RewardsSheet({ open, onClose, stamps, cardNumber, clerkI
           <p className="max-w-[16rem] text-[12px] text-gray-red/70">Show this QR code at the salon to earn stamps and redeem rewards.</p>
         </div>
       </div>
-    </Sheet>
+    </Dialog>
   );
 }

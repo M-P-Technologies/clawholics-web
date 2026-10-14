@@ -26,7 +26,7 @@ import { PHOTO_UPLOAD_OPTIONS, uploadImage } from "../../services/uploadService"
 import { useToast } from "@/components/molecules";
 import EditActions from "./EditActions";
 import { Button } from "@/components/atoms";
-import ConfirmModal from "../ui/ConfirmModal";
+import { ConfirmDialog } from "@/components/organisms";
 
 type NailServiceDropdownProps = {
   service?: NailService;
@@ -571,7 +571,7 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
       </div>
 
       {!isCreateMode && (
-        <ConfirmModal
+        <ConfirmDialog
           open={isDeleteModalOpen}
           title="Delete service?"
           confirmLabel="Delete service"
@@ -581,7 +581,7 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
           onConfirm={handleDelete}
         >
           Are you sure you want to delete this service? This action cannot be undone.
-        </ConfirmModal>
+        </ConfirmDialog>
       )}
 
       <ImagePreviewModal

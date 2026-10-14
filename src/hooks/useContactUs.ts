@@ -1,7 +1,7 @@
 import { usePreviewVersion } from "@/lib/cmsPreview";
 import { lastSeen } from "../utils/lastSeen";
 import React, { useEffect, useState } from "react";
-import { type ModalType } from "../components/ui/FeedbackModal";
+import { type ContactFeedback } from "@/lib/contactFeedback";
 import { fetchHomeContent } from "../services/contentService";
 import { fetchAboutContent } from "../services/aboutService";
 import { withSalonLocation } from "../lib/homeSections";
@@ -24,7 +24,7 @@ export function useContactUs() {
 
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
-    type: ModalType;
+    type: ContactFeedback;
   }>({ isOpen: false, type: "success" });
 
   const [isSubmitting, setIsSubmitting] = useState(false);

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { Link } from "@/lib/router";
 import qrPhLogo from "../../assets/logo/qr_ph.png";
-import AlertModal from "../../components/ui/AlertModal";
+import { AlertDialog } from "@/components/organisms";
 import { Button } from "@/components/atoms";
 import { ChoiceRow, SectionHeader } from "@/components/molecules";
 import { LoadingBar } from "@/components/atoms";
@@ -24,7 +24,7 @@ export default function Payment() {
         <div className="flex min-h-[70vh] items-center justify-center">
           <LoadingBar label="Loading your payment details" />
         </div>
-        <AlertModal
+        <AlertDialog
           open={modalOpen}
           title={modalTitle}
           message={modalMessage}
@@ -141,7 +141,7 @@ export default function Payment() {
         </div>
       </Section>
 
-      <AlertModal
+      <AlertDialog
         open={modalOpen}
         title={modalTitle}
         message={modalMessage}

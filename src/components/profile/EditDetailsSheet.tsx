@@ -2,7 +2,7 @@ import type { ComponentProps } from "react";
 import { Button } from "@/components/atoms";
 import { FormField } from "@/components/molecules";
 import { Select } from "@/components/atoms";
-import Sheet from "../ui/Sheet";
+import { Dialog } from "@/components/organisms";
 
 interface EditDetailsSheetProps {
   open: boolean;
@@ -25,7 +25,7 @@ interface EditDetailsSheetProps {
 // The details form, in a sheet. Same fields, validation and save as before; email stays locked.
 export default function EditDetailsSheet(p: EditDetailsSheetProps) {
   return (
-    <Sheet open={p.open} title="Edit details" onClose={p.onCancel}>
+    <Dialog open={p.open} title="Edit details" onClose={p.onCancel}>
       <div className="flex flex-col gap-4">
         {p.error && <div role="alert" className="rounded-xl bg-danger/10 px-4 py-3 text-[13px] font-bold text-danger">{p.error}</div>}
 
@@ -79,6 +79,6 @@ export default function EditDetailsSheet(p: EditDetailsSheetProps) {
           <Button type="button" variant="secondary" onClick={p.onCancel} className="w-full sm:w-auto">Cancel</Button>
         </div>
       </div>
-    </Sheet>
+    </Dialog>
   );
 }

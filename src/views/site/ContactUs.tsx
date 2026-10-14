@@ -2,7 +2,8 @@
 
 import { Mail,MapPin,Phone } from "lucide-react";
 import { Button } from "@/components/atoms";
-import FeedbackModal from "../../components/ui/FeedbackModal";
+import { FeedbackDialog } from "@/components/organisms";
+import { CONTACT_FEEDBACK } from "@/lib/contactFeedback";
 import { LoadingBar } from "@/components/atoms";
 import { ContactGroup, FormField, SectionHeader } from "@/components/molecules";
 import PageShell from "../../components/layout/PageShell";
@@ -131,7 +132,13 @@ export default function ContactUs() {
         </ImageBanner>
       </Section>
 
-      <FeedbackModal isOpen={modalState.isOpen} type={modalState.type} onClose={closeModal} />
+      <FeedbackDialog
+        open={modalState.isOpen && !!modalState.type}
+        title={modalState.type ? CONTACT_FEEDBACK[modalState.type].title : ""}
+        message={modalState.type ? CONTACT_FEEDBACK[modalState.type].message : ""}
+        isError={modalState.type !== "success"}
+        onClose={closeModal}
+      />
     </PageShell>
   );
 }

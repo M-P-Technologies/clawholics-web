@@ -20,4 +20,9 @@ describe("design system gallery", () => {
     render(<DesignSystem />);
     for (const c of ["FormField", "ChoiceRow", "SearchBar", "Tabs", "StatCard", "Pagination", "Toast", "EmptyState", "SectionHeader"]) expect(screen.getByRole("heading", { level: 3, name: c })).toBeInTheDocument();
   });
+
+  it("shows the organisms", () => {
+    render(<DesignSystem />);
+    for (const c of ["Dialog"]) expect(screen.getByRole("heading", { level: 3, name: c })).toBeInTheDocument();
+  });
 });

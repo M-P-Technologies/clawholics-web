@@ -6,9 +6,8 @@ import DirectoryProfileCard from "../../components/admin/DirectoryProfileCard";
 import DirectoryStats from "../../components/admin/DirectoryStats";
 import DirectoryTable from "../../components/admin/DirectoryTable";
 import EditAdminModal from "../../components/admin/EditAdminModal";
-import FeedbackModal from "../../components/admin/FeedbackModal";
+import { ConfirmDialog, FeedbackDialog } from "@/components/organisms";
 import { Button } from "@/components/atoms";
-import ConfirmModal from "../../components/ui/ConfirmModal";
 import { LoadingBar } from "@/components/atoms";
 import { useAdminDirectory } from "../../hooks/admin/useAdminDirectory";
 
@@ -60,7 +59,7 @@ export default function AdminDirectory() {
 
       <EditAdminModal open={d.isEditModalOpen} form={d.editForm} saving={d.isSaving} onChange={d.setEditForm} onClose={d.closeEdit} onSave={d.confirmEdit} />
 
-      <ConfirmModal
+      <ConfirmDialog
         open={d.isDeleteModalOpen && !!selectedAdmin}
         title="Remove admin?"
         confirmLabel="Remove admin"
@@ -74,9 +73,9 @@ export default function AdminDirectory() {
           {selectedAdmin?.firstName} {selectedAdmin?.lastName}
         </strong>{" "}
         from the Admin Directory? They will lose all administrative privileges immediately.
-      </ConfirmModal>
+      </ConfirmDialog>
 
-      <FeedbackModal open={d.feedback.isOpen} title={d.feedback.title} message={d.feedback.message} isError={d.feedback.isError} onClose={d.closeFeedback} />
+      <FeedbackDialog open={d.feedback.isOpen} title={d.feedback.title} message={d.feedback.message} isError={d.feedback.isError} onClose={d.closeFeedback} />
     </AdminShell>
   );
 }

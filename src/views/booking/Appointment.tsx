@@ -1,6 +1,6 @@
 "use client";
 
-import AlertModal from "../../components/ui/AlertModal";
+import { AlertDialog } from "@/components/organisms";
 import { Button } from "@/components/atoms";
 import BackButton from "../../components/layout/BackButton";
 import { SectionHeader } from "@/components/molecules";
@@ -129,7 +129,7 @@ export default function Appointment() {
         </div>
       </Section>
 
-      <AlertModal
+      <AlertDialog
         open={modalOpen}
         title={modalTitle}
         message={modalMessage}

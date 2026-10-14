@@ -1,6 +1,6 @@
 "use client";
 
-import AlertModal from "../../components/ui/AlertModal";
+import { AlertDialog } from "@/components/organisms";
 import ArtistOverview from "../../components/booking/ArtistOverview";
 import PhotoCarousel from "../../components/booking/PhotoCarousel";
 import BackButton from "../../components/layout/BackButton";
@@ -126,7 +126,7 @@ export default function ArtistDetail() {
         onClose={() => setPickerOpen(false)}
       />
 
-      <AlertModal
+      <AlertDialog
         open={modalOpen}
         title={modalTitle}
         message={modalMessage}
