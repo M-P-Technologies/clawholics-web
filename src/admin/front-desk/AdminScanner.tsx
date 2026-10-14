@@ -3,10 +3,8 @@
 import { Scanner } from "@yudiel/react-qr-scanner";
 import { Camera, Check, History, QrCode, Stamp, XCircle } from "lucide-react";
 import AdminShell from "../../components/admin/AdminShell";
-import { initialsOf } from "@/components/atoms";
+import { initialsOf, Button, LoadingBar } from "@/components/atoms";
 import CardTitle from "../../components/admin/scanner/CardTitle";
-import { Button } from "@/components/atoms";
-import { LoadingBar } from "@/components/atoms";
 import { useAdminScanner } from "../../hooks/admin/useAdminScanner";
 
 // The loyalty QR scanner: the camera, the scanned client's card with its stamps, and the recent

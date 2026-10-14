@@ -30,7 +30,7 @@ export default function DesignSystem() {
             <IconButton label="Disabled" icon={Trash2} disabled />
           </GallerySection>
           <GallerySection title="Avatar">
-            <Avatar name="Ana Cruz" imageUrl="/favicon.ico" />
+            <Avatar name="Ana Cruz" imageUrl="/bow.svg" />
             <Avatar name="Ana Maria Cruz" />
             <Avatar name="" />
             {(["sm", "md", "lg", "xl"] as const).map((size) => <Avatar key={size} name="Ana Cruz" size={size} />)}

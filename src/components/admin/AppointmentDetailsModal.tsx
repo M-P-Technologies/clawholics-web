@@ -2,11 +2,9 @@ import { ArrowUpRight, X as CloseIconLucide } from "lucide-react";
 import { useEffect, useId, useRef, type ReactNode } from "react";
 import type { Appointment, AppointmentStatus } from "../../services/appointmentService";
 import { Link } from "../../lib/router";
-import { Button } from "@/components/atoms";
-import { Select } from "@/components/atoms";
+import { Button, Select, initialsOf } from "@/components/atoms";
 import ClientNotesPanel from "./ClientNotesPanel";
 import ProofReviewPanel from "./ProofReviewPanel";
-import { initialsOf } from "@/components/atoms";
 
 interface AppointmentDetailsModalProps {
   appointment: Appointment;
