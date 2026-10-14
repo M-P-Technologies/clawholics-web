@@ -2,24 +2,54 @@
 
 import { Bell, CalendarCheck, Receipt } from "lucide-react";
 import clsx from "clsx";
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useAdminNotifications } from "../../hooks/admin/useAdminNotifications";
 import { notificationAge, notificationLine, notificationLink, notificationTitle } from "../../lib/admin/notifications";
 import { Link } from "@/lib/router";
 
+/** Where the list sits: under the bell, its right edge in line with the bell's (on screen) */
+interface Place {
+  top: number;
+  right: number;
+}
+
 // The bell in the admin top bar: how many new bookings the signed-in admin hasn't seen, and the
 // newest ones in a list (opening it marks them seen). Each opens where it's handled: a payment
 // proof the list of proofs to review, a paid booking its client's page.
+// The list is drawn on the page's body, fixed under the bell: inside the top bar it would sit
+// below the screen's cards (the bar's blur makes it a layer of its own) or be cut off by it.
 export default function NotificationBell() {
   const bell = useAdminNotifications();
-  const box = useRef<HTMLDivElement>(null);
+  const button = useRef<HTMLButtonElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
+  const [place, setPlace] = useState<Place | null>(null);
   const { open, close } = bell;
 
-  // A click outside the list, or Escape, closes it
+  // Placed under the bell when opened, and again when the window is resized or scrolled
+  useLayoutEffect(() => {
+    if (!open) return;
+    const measure = () => {
+      const rect = button.current?.getBoundingClientRect();
+      if (!rect) return;
+      // At least 16px from the screen's right edge, as the admin's gutter
+      setPlace({ top: rect.bottom + 8, right: Math.max(16, window.innerWidth - rect.right) });
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    window.addEventListener("scroll", measure, true);
+    return () => {
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", measure, true);
+    };
+  }, [open]);
+
+  // A click outside the bell and its list, or Escape, closes it
   useEffect(() => {
     if (!open) return;
     const onPointer = (event: PointerEvent) => {
-      if (box.current && !box.current.contains(event.target as Node)) close();
+      const target = event.target as Node;
+      if (!button.current?.contains(target) && !panel.current?.contains(target)) close();
     };
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") close();
@@ -35,8 +65,9 @@ export default function NotificationBell() {
   const label = bell.unread > 0 ? `Notifications, ${bell.unread} new` : "Notifications";
 
   return (
-    <div ref={box} className="relative shrink-0">
+    <div className="relative shrink-0">
       <button
+        ref={button}
         type="button"
         aria-label={label}
         aria-expanded={open}
@@ -52,11 +83,13 @@ export default function NotificationBell() {
         )}
       </button>
 
-      {open && (
+      {open && place && createPortal(
         <div
+          ref={panel}
           role="region"
           aria-label="New bookings"
-          className="absolute right-0 top-full z-50 mt-2 flex w-[min(22rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-crimson-light/40 bg-milk shadow-petal"
+          style={{ top: place.top, right: place.right }}
+          className="fixed z-[60] flex w-[min(22rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-crimson-light/40 bg-milk shadow-xl shadow-crimson/20"
         >
           <p className="border-b border-crimson-light/40 px-4 py-3 font-display text-lg text-gray-red">New bookings</p>
           {bell.failed ? (
@@ -93,7 +126,8 @@ export default function NotificationBell() {
               })}
             </ul>
           )}
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );
