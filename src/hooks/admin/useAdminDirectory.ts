@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Activity, Moon, ShieldCheck, UserPlus } from "lucide-react";
 import type { DirectoryProfile, DirectoryUser } from "../../components/admin/DirectoryProfileCard";
 import { useToast } from "../../components/ui/ToastProvider";
 import { countIdle, countWithin } from "../../lib/directoryStats";
-import { deleteDirectoryUser, fetchAdmins, fetchDirectoryProfiles, promoteAdmin, updateDirectoryUser } from "../../services/directoryService";
+import { adminDataChanged, adminQueries } from "../../lib/adminQueries";
+import { deleteDirectoryUser, promoteAdmin, updateDirectoryUser } from "../../services/directoryService";
 
 export interface AdminEditForm {
   firstName: string;
@@ -22,22 +24,34 @@ export interface AdminFeedback {
   isError: boolean;
 }
 
+const NO_USERS: DirectoryUser[] = [];
+const NO_PROFILES: Record<string, DirectoryProfile> = {};
+
 const errorMessage = (error: unknown) => (error instanceof Error ? error.message : "");
 
 // The Admin Directory's data and actions: the admins, their Clerk details and stat cards, the
 // chosen admin, and adding, editing and removing one.
 export function useAdminDirectory() {
   const toast = useToast();
-  const { getToken } = useAuth();
+  const { getToken, isLoaded } = useAuth();
   const { user: currentUser } = useUser();
-  const [users, setUsers] = useState<DirectoryUser[]>([]);
+  const queryClient = useQueryClient();
+  const session = { getToken, clerkId: currentUser?.id };
+  // The admins, and the cards' photos and dates from Clerk (shared with Clients & Bookings);
+  // without those the cards show initials, and the stats that need Clerk dates show a dash
+  const adminsQuery = useQuery({ ...adminQueries.admins(session), enabled: isLoaded && !!currentUser });
+  const profilesQuery = useQuery({ ...adminQueries.directoryProfiles(session), enabled: isLoaded && !!currentUser });
+  const users = adminsQuery.data ?? NO_USERS;
+  const profiles = profilesQuery.data ?? NO_PROFILES;
+  const profilesLoaded = profilesQuery.data !== undefined;
+  const loading = adminsQuery.isPending;
+  // A failed refresh keeps the list already loaded
+  const error = adminsQuery.isError && !adminsQuery.data ? errorMessage(adminsQuery.error) || "Failed to load admin profiles." : "";
   // The admin whose profile shows beside the table (the first one until another is chosen)
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = users.find((u) => u.id === selectedId) ?? users[0] ?? null;
   // The profile card on the page, so choosing an admin can bring it into view
   const [profileElement, setProfileElement] = useState<HTMLDivElement | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [isAddAdminOpen, setIsAddAdminOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -47,44 +61,8 @@ export function useAdminDirectory() {
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const loadUsers = async () => {
-    try {
-      setLoading(true);
-      setError("");
-      setUsers(await fetchAdmins(await getToken(), currentUser?.id));
-    } catch (err) {
-      setError(errorMessage(err) || "Failed to load admin profiles.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser]); // Refresh when user is identified
-
-  // The cards' photos and dates from Clerk; without them the cards show initials
-  const [profiles, setProfiles] = useState<Record<string, DirectoryProfile>>({});
-  const [profilesLoaded, setProfilesLoaded] = useState(false);
-  useEffect(() => {
-    if (!currentUser) return;
-    let live = true;
-    (async () => {
-      try {
-        const { profiles: loaded } = await fetchDirectoryProfiles(await getToken(), currentUser?.id);
-        if (live) {
-          setProfiles(loaded);
-          setProfilesLoaded(true);
-        }
-      } catch {
-        // the cards keep their initials, and the stats that need Clerk dates show a dash
-      }
-    })();
-    return () => {
-      live = false;
-    };
-  }, [currentUser, getToken]);
+  // After a change, every admin screen's data is fetched again (this list included)
+  const loadUsers = () => adminDataChanged(queryClient);
 
   const createAdmin = async (data: { email: string }) => {
     setIsSaving(true);

@@ -1,9 +1,10 @@
 "use client";
 
 import { useAuth,useUser } from "@clerk/nextjs";
-import React,{ useEffect,useState } from "react";
+import React,{ useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@/lib/router";
-import { fetchProfile,isMissingProfile } from "../../services/userService";
+import { accountQueries, isAdminProfile } from "@/lib/accountQueries";
 import Button from "../ui/Button";
 import { LoadingBar } from "../ui/LoadingBar";
 import PageHeader from "../layout/PageHeader";
@@ -14,72 +15,37 @@ interface OnboardingGateProps {
   children: React.ReactNode;
 }
 
-// Users who already passed the check. Every gated page mounts its own gate, so without
-// this each page change would show the loading screen again while the profile is re-fetched.
-const verifiedUsers = new Set<string>();
-
+// Every gated page mounts its own gate. The profile is one cached query (lib/accountQueries), so
+// after the first check a page change shows the page at once, while the profile is refreshed
+// behind it when it's no longer fresh.
 export const OnboardingGate: React.FC<OnboardingGateProps> = ({ children }) => {
   const { isLoaded, isSignedIn, user } = useUser();
   const { getToken } = useAuth();
   const navigate = useNavigate();
-  const alreadyVerified = !!user && verifiedUsers.has(user.id);
-  const [checking, setChecking] = useState(!alreadyVerified);
-  const [failed, setFailed] = useState(false);
-  const [retry, setRetry] = useState(0);
+  // An admin in Clerk is let through without asking the directory
+  const clerkAdmin = String(user?.publicMetadata?.role || "").toLowerCase() === "admin";
+  const profileQuery = useQuery({
+    ...accountQueries.profile(user?.id ?? "", getToken),
+    enabled: isLoaded && !!isSignedIn && !!user && !clerkAdmin,
+  });
+  const profile = profileQuery.data;
+  // Only a missing or unfinished profile means onboarding. Any other failure shows a retry
+  // screen instead of bouncing the user into /onboarding.
+  const needsOnboarding = profile !== undefined && !isAdminProfile(profile) && !profile?.onboarded;
 
   useEffect(() => {
-    const checkOnboarding = async () => {
-      if (!isLoaded) return;
-      setFailed(false);
+    if (needsOnboarding) navigate("/onboarding", { replace: true });
+  }, [needsOnboarding, navigate]);
 
-      if (!isSignedIn || !user) {
-        setChecking(false);
-        return;
-      }
+  useEffect(() => {
+    if (profileQuery.isError && profile === undefined) console.error("Onboarding Gate Error:", profileQuery.error);
+  }, [profileQuery.isError, profileQuery.error, profile]);
 
-      // 1. Clerk-side check
-      const clerkRole = String(user.publicMetadata?.role || "").toLowerCase();
-      if (clerkRole === "admin") {
-        verifiedUsers.add(user.id);
-        setChecking(false);
-        return;
-      }
+  // "Try again" shows the loading screen while it asks
+  const failed = profileQuery.isError && profile === undefined && !profileQuery.isFetching;
+  const checking = isSignedIn && !!user && !clerkAdmin && (profile === undefined || needsOnboarding);
 
-      try {
-        const token = await getToken();
-        const profile = await fetchProfile(user.id, token);
-
-        // 2. Backend-side check (Fallback)
-        if (profile && String(profile.role || "").toLowerCase() === "admin") {
-          verifiedUsers.add(user.id);
-          setChecking(false);
-          return;
-        }
-
-        if (!profile || !profile.onboarded) {
-          navigate("/onboarding", { replace: true });
-        } else {
-          verifiedUsers.add(user.id);
-          setChecking(false);
-        }
-      } catch (err) {
-        // Only a missing profile means onboarding (expected for a new account, so not
-        // logged). Any other failure shows a retry screen instead of bouncing the user
-        // into /onboarding.
-        if (isMissingProfile(err)) {
-          navigate("/onboarding", { replace: true });
-        } else {
-          console.error("Onboarding Gate Error:", err);
-          setFailed(true);
-          setChecking(false);
-        }
-      }
-    };
-
-    checkOnboarding();
-  }, [isLoaded, isSignedIn, user, getToken, navigate, retry]);
-
-  if (!alreadyVerified && (!isLoaded || checking)) {
+  if (!isLoaded || (checking && !failed)) {
     return <LoadingBar label="Checking your account" />;
   }
 
@@ -95,11 +61,7 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ children }) => {
           <div className="mt-8 flex gap-4">
             <Button
               type="button"
-              onClick={() => {
-                setChecking(true);
-                setRetry((n) => n + 1);
-              }}
-              
+              onClick={() => void profileQuery.refetch()}
             >
               Try again
             </Button>

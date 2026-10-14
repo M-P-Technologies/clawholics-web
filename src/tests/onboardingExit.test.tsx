@@ -18,13 +18,22 @@ vi.mock("@clerk/nextjs", () => {
 });
 vi.mock("@/lib/router", () => ({ useNavigate: () => navigate }));
 vi.mock("@/components/ui/ToastProvider", () => ({ useToast: () => ({ show }) }));
+const { ProfileError } = await vi.importActual<typeof import("@/services/userService")>("@/services/userService");
 vi.mock("@/services/userService", async () => ({
   ...(await vi.importActual<typeof import("@/services/userService")>("@/services/userService")),
-  fetchProfile: (...args: unknown[]) => fetchProfile(...args),
+  // The profile query (lib/accountQueries) asks through fetchProfileIfExists: a 404 is no profile
+  fetchProfileIfExists: async (...args: unknown[]) => {
+    try {
+      return await fetchProfile(...args);
+    } catch (err) {
+      if (err instanceof ProfileError && err.status === 404) return null;
+      throw err;
+    }
+  },
   updateProfile: (...args: unknown[]) => updateProfile(...args),
 }));
 
-const { ProfileError, ProfileSaveError } = await import("@/services/userService");
+const { ProfileSaveError } = await import("@/services/userService");
 
 // The warning is sent on a timer, once the browser has moved off /onboarding
 const settle = () => act(() => new Promise((resolve) => setTimeout(resolve, 10)));

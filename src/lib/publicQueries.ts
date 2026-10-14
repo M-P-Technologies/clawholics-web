@@ -20,6 +20,7 @@ import {
   type NailistGalleryImage,
 } from "../services/nailistService";
 import { fetchPublicReviews, type PublicReview } from "../services/reviewService";
+import { fetchPaymentSettings } from "../services/paymentService";
 import type { HomeContent, TeamContent } from "../types";
 
 // The public site's content as TanStack Query queries. Pages that show the same content share
@@ -88,4 +89,6 @@ export const publicQueries = {
   nailistGallery: (id: number) =>
     queryOptions({ queryKey: [PUBLIC, "nailists", id, "gallery"], queryFn: (): Promise<NailistGalleryImage[]> => fetchNailistGallery(id) }),
   reviews: () => queryOptions({ queryKey: [PUBLIC, "reviews"], queryFn: (): Promise<PublicReview[]> => fetchPublicReviews() }),
+  /** The downpayment and the payment methods the salon has turned on */
+  paymentSettings: () => queryOptions({ queryKey: [PUBLIC, "paymentSettings"], queryFn: fetchPaymentSettings }),
 };

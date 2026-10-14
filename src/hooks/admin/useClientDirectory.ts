@@ -1,63 +1,36 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useAuth, useUser } from "@clerk/nextjs";
+import { useQuery } from "@tanstack/react-query";
 import { Activity, Flame, UserPlus, Users } from "lucide-react";
 import type { DirectoryProfile, DirectoryUser } from "../../components/admin/DirectoryProfileCard";
+import { adminQueries } from "../../lib/adminQueries";
 import { countWithin, isClientRole } from "../../lib/directoryStats";
 import { useSearchParams } from "../../lib/router";
-import { fetchWarmLeads } from "../../services/dashboardService";
-import { fetchDirectoryProfiles, fetchDirectoryUsers } from "../../services/directoryService";
+import { useAdminSession } from "./useAdminSession";
 
-// Clients & Bookings: the clients, their Clerk details, the warm leads and the stat cards
+const NO_PROFILES: Record<string, DirectoryProfile> = {};
+
+// Clients & Bookings: the clients, their Clerk details, the warm leads and the stat cards. The
+// directory and its Clerk details are the cached queries the Admin Directory shares.
 export function useClientDirectory() {
-  const { getToken, isLoaded: isAuthLoaded } = useAuth();
-  const { user: currentUser } = useUser();
+  const { session, ready } = useAdminSession();
   const [searchParams] = useSearchParams();
 
-  const [users, setUsers] = useState<DirectoryUser[] | null>(null);
-  const [usersFailed, setUsersFailed] = useState(false);
+  const usersQuery = useQuery({ ...adminQueries.directoryUsers(session), enabled: ready });
   // The clients' photos and dates from Clerk, by Clerk id; without them the rows show initials
-  const [profiles, setProfiles] = useState<Record<string, DirectoryProfile>>({});
-  const [profilesLoaded, setProfilesLoaded] = useState(false);
-  const [leadIds, setLeadIds] = useState<Set<string> | null>(null);
-  const [leadsError, setLeadsError] = useState(false);
-  // All three requests answered (or failed): until then the cards and lists show placeholders
-  const [settled, setSettled] = useState(false);
+  const profilesQuery = useQuery({ ...adminQueries.directoryProfiles(session), enabled: ready });
+  const leadsQuery = useQuery({ ...adminQueries.leads(session), enabled: ready });
 
-  useEffect(() => {
-    if (!isAuthLoaded) return;
-    let live = true;
-    (async () => {
-      // Without a session token nothing can load: show the failure rather than placeholders forever
-      const token = await getToken().catch(() => undefined);
-      if (token === undefined) {
-        if (!live) return;
-        setUsersFailed(true);
-        setLeadsError(true);
-        setSettled(true);
-        return;
-      }
-      const [usersResult, profilesResult, leadsResult] = await Promise.allSettled([
-        fetchDirectoryUsers(token, currentUser?.id),
-        fetchDirectoryProfiles(token, currentUser?.id),
-        fetchWarmLeads(token, currentUser?.id),
-      ]);
-      if (!live) return;
-      if (usersResult.status === "fulfilled") setUsers(usersResult.value.filter((user) => isClientRole(user.role)));
-      else setUsersFailed(true);
-      if (profilesResult.status === "fulfilled") {
-        setProfiles(profilesResult.value.profiles);
-        setProfilesLoaded(true);
-      }
-      if (leadsResult.status === "fulfilled") setLeadIds(new Set(leadsResult.value.clerkIds));
-      else setLeadsError(true);
-      setSettled(true);
-    })();
-    return () => {
-      live = false;
-    };
-  }, [isAuthLoaded, getToken, currentUser?.id]);
+  const allUsers = usersQuery.data as DirectoryUser[] | undefined;
+  const users = allUsers ? allUsers.filter((user) => isClientRole(user.role)) : null;
+  // A failed refresh keeps the copy already loaded
+  const usersFailed = usersQuery.isError && !allUsers;
+  const profiles = profilesQuery.data ?? NO_PROFILES;
+  const profilesLoaded = profilesQuery.data !== undefined;
+  const leadIds = leadsQuery.data ? new Set(leadsQuery.data) : null;
+  const leadsError = leadsQuery.isError && !leadsQuery.data;
+  // All three requests answered (or failed): until then the cards and lists show placeholders
+  const settled = !usersQuery.isPending && !profilesQuery.isPending && !leadsQuery.isPending;
 
   const clients = users ?? [];
   const leads = leadIds ? clients.filter((u) => leadIds.has(u.id)) : [];
