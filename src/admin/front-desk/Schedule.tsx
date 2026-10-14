@@ -2,12 +2,12 @@
 
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import clsx from "clsx";
-import AdminShell from "../../components/admin/AdminShell";
-import AppointmentDetailsModal from "../../components/admin/AppointmentDetailsModal";
-import ScheduleDayDetails from "../../components/admin/schedule/ScheduleDayDetails";
-import ScheduleMonthGrid from "../../components/admin/schedule/ScheduleMonthGrid";
-import ScheduleAgenda from "../../components/admin/ScheduleAgenda";
-import ScheduleWeekGrid from "../../components/admin/ScheduleWeekGrid";
+import AdminShell from "@/components/features/admin/shell/AdminShell";
+import AppointmentDetailsModal from "@/components/features/admin/bookings/AppointmentDetailsModal";
+import ScheduleDayDetails from "@/components/features/admin/schedule/ScheduleDayDetails";
+import ScheduleMonthGrid from "@/components/features/admin/schedule/ScheduleMonthGrid";
+import ScheduleAgenda from "@/components/features/admin/schedule/ScheduleAgenda";
+import ScheduleWeekGrid from "@/components/features/admin/schedule/ScheduleWeekGrid";
 import { Button, LoadingBar, Select } from "@/components/atoms";
 import { Dialog } from "@/components/organisms";
 import { useSchedule } from "../../hooks/admin/useSchedule";

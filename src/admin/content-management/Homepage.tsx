@@ -1,10 +1,10 @@
 "use client";
 
-import CmsEditor, { CmsLoadError } from "../../components/admin/cms/CmsEditor";
-import { ElsewhereNote, IconPicker, ImageField, LinkField, PanelSection, SaveBar, SelectField, SubCard, TextField } from "../../components/admin/cms/fields";
-import OffersEditor from "../../components/admin/cms/OffersEditor";
-import StripEditor from "../../components/admin/cms/StripEditor";
-import { FontPicker, PalettePicker } from "../../components/admin/cms/ThemePickers";
+import CmsEditor, { CmsLoadError } from "@/components/features/admin/cms/CmsEditor";
+import { ElsewhereNote, IconPicker, ImageField, LinkField, PanelSection, SaveBar, SelectField, SubCard, TextField } from "@/components/features/admin/cms/fields";
+import OffersEditor from "@/components/features/admin/cms/OffersEditor";
+import StripEditor from "@/components/features/admin/cms/StripEditor";
+import { FontPicker, PalettePicker } from "@/components/features/admin/cms/ThemePickers";
 import { LoadingBar } from "@/components/atoms";
 import emblem from "../../assets/logo/emblem-pink.png";
 import footerLogo from "../../assets/logo/logo-pink-transparent.png";

@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import PerformanceView from "@/components/admin/dashboard/PerformanceView";
+import PerformanceView from "@/components/features/admin/dashboard/PerformanceView";
 import { dashboardData as data } from "./dashboardFixture";
 
 vi.mock("@/lib/router", () => ({

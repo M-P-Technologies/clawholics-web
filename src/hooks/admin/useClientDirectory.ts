@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { Activity, Flame, UserPlus, Users } from "lucide-react";
-import type { DirectoryProfile, DirectoryUser } from "../../components/admin/DirectoryProfileCard";
+import type { DirectoryProfile, DirectoryUser } from "@/components/features/admin/directory/DirectoryProfileCard";
 import { countWithin, isClientRole } from "../../lib/directoryStats";
 import { useSearchParams } from "../../lib/router";
 import { fetchWarmLeads } from "../../services/dashboardService";

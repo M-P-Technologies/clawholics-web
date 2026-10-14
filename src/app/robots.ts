@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { NAV_GROUPS } from "@/components/admin/adminNav";
+import { NAV_GROUPS } from "@/components/features/admin/shell/adminNav";
 
 // The public site may be crawled; the admin screens and the client app may not (they also say
 // noindex themselves).

@@ -1,8 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import AdminShell from "@/components/admin/AdminShell";
+import AdminShell from "@/components/features/admin/shell/AdminShell";
 
-vi.mock("@/components/admin/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
+vi.mock("@/components/features/admin/shell/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
 
 describe("AdminShell", () => {
   it("renders the sidebar, the title, both slots and the content", () => {

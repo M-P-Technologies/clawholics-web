@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { Activity, Moon, ShieldCheck, UserPlus } from "lucide-react";
-import type { DirectoryProfile, DirectoryUser } from "../../components/admin/DirectoryProfileCard";
+import type { DirectoryProfile, DirectoryUser } from "@/components/features/admin/directory/DirectoryProfileCard";
 import { useToast } from "@/components/molecules";
 import { countIdle, countWithin } from "../../lib/directoryStats";
 import { deleteDirectoryUser, fetchAdmins, fetchDirectoryProfiles, promoteAdmin, updateDirectoryUser } from "../../services/directoryService";

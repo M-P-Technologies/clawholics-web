@@ -17,7 +17,7 @@ vi.mock("@/services/scheduleService", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/services/scheduleService")>()),
   fetchMonthlySchedule: (month: string) => fetchMonthlySchedule(month),
 }));
-vi.mock("@/components/admin/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
+vi.mock("@/components/features/admin/shell/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
 vi.mock("@/components/molecules", async (orig) => ({ ...(await orig<object>()), useToast: () => ({ show: vi.fn() }) }));
 
 beforeEach(() => {

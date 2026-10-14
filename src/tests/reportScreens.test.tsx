@@ -10,7 +10,7 @@ vi.mock("@/services/dashboardService", () => ({
   fetchDashboard: (...args: unknown[]) => fetchDashboard(...args),
   fetchUtilization: (...args: unknown[]) => fetchUtilization(...(args as [])),
 }));
-vi.mock("@/components/admin/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
+vi.mock("@/components/features/admin/shell/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
 vi.mock("@/lib/router", () => ({
   Link: ({ to, children, ...rest }: { to: string; children: React.ReactNode }) => <a href={to} {...rest}>{children}</a>,
   useLocation: () => ({ pathname: "/sales" }),

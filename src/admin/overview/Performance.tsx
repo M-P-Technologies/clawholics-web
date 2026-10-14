@@ -1,7 +1,7 @@
 "use client";
 
-import PerformanceView from "../../components/admin/dashboard/PerformanceView";
-import ReportPage from "../../components/admin/dashboard/ReportPage";
+import PerformanceView from "@/components/features/admin/dashboard/PerformanceView";
+import ReportPage from "@/components/features/admin/dashboard/ReportPage";
 import { useUtilizationLoader } from "../../hooks/admin/useReports";
 
 // How the salon is doing with its clients and its team: the salon's size, the key rates, artist

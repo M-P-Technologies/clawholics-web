@@ -1,8 +1,8 @@
 "use client";
 
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
-import CmsEditor from "../../components/admin/cms/CmsEditor";
-import { ElsewhereNote, IconPicker, PanelSection, SaveBar, SubCard, TextField } from "../../components/admin/cms/fields";
+import CmsEditor from "@/components/features/admin/cms/CmsEditor";
+import { ElsewhereNote, IconPicker, PanelSection, SaveBar, SubCard, TextField } from "@/components/features/admin/cms/fields";
 import { Button, LoadingBar } from "@/components/atoms";
 import { useContactEditor } from "../../hooks/admin/useContactEditor";
 import { CONTACT_BUSINESS_FIELDS, CONTACT_PREVIEW_PAGES } from "../../lib/admin/contactEditor";

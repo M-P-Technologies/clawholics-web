@@ -23,7 +23,7 @@ vi.mock("@/lib/router", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/router")>()),
   useParams: () => ({ id: "7" }),
 }));
-vi.mock("@/components/admin/SideBar", () => ({ default: () => <div /> }));
+vi.mock("@/components/features/admin/shell/SideBar", () => ({ default: () => <div /> }));
 vi.mock("@/components/molecules", async (orig) => ({ ...(await orig<object>()), useToast: () => ({ show: vi.fn() }) }));
 vi.mock("@clerk/nextjs", () => {
   const auth = { getToken: async () => "tok" };

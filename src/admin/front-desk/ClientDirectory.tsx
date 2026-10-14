@@ -1,9 +1,9 @@
 "use client";
 
-import AdminShell from "../../components/admin/AdminShell";
-import AppointmentsTable from "../../components/admin/AppointmentsTable";
-import DirectoryStats from "../../components/admin/DirectoryStats";
-import DirectoryTable from "../../components/admin/DirectoryTable";
+import AdminShell from "@/components/features/admin/shell/AdminShell";
+import AppointmentsTable from "@/components/features/admin/bookings/AppointmentsTable";
+import DirectoryStats from "@/components/features/admin/directory/DirectoryStats";
+import DirectoryTable from "@/components/features/admin/directory/DirectoryTable";
 import { useClientDirectory } from "../../hooks/admin/useClientDirectory";
 import { Link, useNavigate } from "../../lib/router";
 

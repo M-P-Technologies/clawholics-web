@@ -2,7 +2,7 @@
 
 import { Scanner } from "@yudiel/react-qr-scanner";
 import { Camera, Check, History, QrCode, Stamp, XCircle } from "lucide-react";
-import AdminShell from "../../components/admin/AdminShell";
+import AdminShell from "@/components/features/admin/shell/AdminShell";
 import { initialsOf, Button, LoadingBar } from "@/components/atoms";
 import { SectionHeader } from "@/components/molecules";
 import { useAdminScanner } from "../../hooks/admin/useAdminScanner";

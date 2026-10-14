@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import SalesRecord from "@/components/admin/dashboard/SalesRecord";
+import SalesRecord from "@/components/features/admin/dashboard/SalesRecord";
 import type { DashboardResponse } from "@/services/dashboardTypes";
 
 vi.mock("@/lib/router", () => ({

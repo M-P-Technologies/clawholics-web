@@ -1,11 +1,11 @@
 "use client";
 
-import AddAdminModal from "../../components/admin/AddAdminModal";
-import AdminShell from "../../components/admin/AdminShell";
-import DirectoryProfileCard from "../../components/admin/DirectoryProfileCard";
-import DirectoryStats from "../../components/admin/DirectoryStats";
-import DirectoryTable from "../../components/admin/DirectoryTable";
-import EditAdminModal from "../../components/admin/EditAdminModal";
+import AddAdminModal from "@/components/features/admin/directory/AddAdminModal";
+import AdminShell from "@/components/features/admin/shell/AdminShell";
+import DirectoryProfileCard from "@/components/features/admin/directory/DirectoryProfileCard";
+import DirectoryStats from "@/components/features/admin/directory/DirectoryStats";
+import DirectoryTable from "@/components/features/admin/directory/DirectoryTable";
+import EditAdminModal from "@/components/features/admin/directory/EditAdminModal";
 import { ConfirmDialog, FeedbackDialog } from "@/components/organisms";
 import { Button, LoadingBar } from "@/components/atoms";
 import { useAdminDirectory } from "../../hooks/admin/useAdminDirectory";

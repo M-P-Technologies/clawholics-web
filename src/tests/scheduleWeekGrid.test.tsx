@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import ScheduleWeekGrid from "@/components/admin/ScheduleWeekGrid";
+import ScheduleWeekGrid from "@/components/features/admin/schedule/ScheduleWeekGrid";
 import { weekDays } from "@/services/scheduleAgenda";
 import type { MonthlySchedule, ScheduleAppointment } from "@/services/scheduleService";
 

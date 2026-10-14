@@ -1,8 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import AddAdminModal from "@/components/admin/AddAdminModal";
-import EditAdminModal from "@/components/admin/EditAdminModal";
-import ImagePreviewModal from "@/components/admin/ImagePreviewModal";
+import AddAdminModal from "@/components/features/admin/directory/AddAdminModal";
+import EditAdminModal from "@/components/features/admin/directory/EditAdminModal";
+import ImagePreviewModal from "@/components/features/admin/cms/ImagePreviewModal";
 import { Dialog } from "@/components/organisms";
 
 const form = { firstName: "Ana", lastName: "Cruz", email: "ana@example.com" };

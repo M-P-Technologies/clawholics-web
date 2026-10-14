@@ -1,8 +1,8 @@
 "use client";
 
-import CarouselEditor, { MAX_CAROUSEL_IMAGES } from "../../components/admin/cms/CarouselEditor";
-import CmsEditor, { CmsLoadError } from "../../components/admin/cms/CmsEditor";
-import { ImageField, PanelSection, SaveBar, TextField } from "../../components/admin/cms/fields";
+import CarouselEditor, { MAX_CAROUSEL_IMAGES } from "@/components/features/admin/cms/CarouselEditor";
+import CmsEditor, { CmsLoadError } from "@/components/features/admin/cms/CmsEditor";
+import { ImageField, PanelSection, SaveBar, TextField } from "@/components/features/admin/cms/fields";
 import { LoadingBar } from "@/components/atoms";
 import { useAboutEditor } from "../../hooks/admin/useAboutEditor";
 import { ABOUT_DAYS, ABOUT_PREVIEW_PAGES } from "../../lib/admin/aboutEditor";

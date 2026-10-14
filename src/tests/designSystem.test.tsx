@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import DesignSystem from "@/admin/DesignSystem";
 
-vi.mock("@/components/admin/AdminShell", () => ({ default: ({ title, children }: { title: string; children: React.ReactNode }) => <main><h1>{title}</h1>{children}</main> }));
+vi.mock("@/components/features/admin/shell/AdminShell", () => ({ default: ({ title, children }: { title: string; children: React.ReactNode }) => <main><h1>{title}</h1>{children}</main> }));
 
 describe("design system gallery", () => {
   it("shows the three groups", () => {

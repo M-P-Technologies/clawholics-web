@@ -11,7 +11,7 @@ vi.mock("@/services/contentService", () => ({
   updateLegalContent: (...a: unknown[]) => updateLegalContent(...a),
 }));
 vi.mock("@/data/privacyPolicyHtml", () => ({ PRIVACY_POLICY_HTML: "<h1>PRIVACY POLICY</h1><p>The original text.</p>" }));
-vi.mock("@/components/admin/SideBar", () => ({ default: () => <div /> }));
+vi.mock("@/components/features/admin/shell/SideBar", () => ({ default: () => <div /> }));
 const show = vi.fn();
 vi.mock("@/components/molecules", async (orig) => ({ ...(await orig<object>()), useToast: () => ({ show }) }));
 vi.mock("@clerk/nextjs", () => {

@@ -1,12 +1,12 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import ProofReviewPanel from "../components/admin/ProofReviewPanel";
+import ProofReviewPanel from "@/components/features/admin/bookings/ProofReviewPanel";
 import { ApiError } from "../services/catalogService";
 import * as proofs from "../services/proofService";
 
 // The real preview modal imports an svg component that the test setup does not mock.
-vi.mock("../components/admin/ImagePreviewModal", () => ({
+vi.mock("@/components/features/admin/cms/ImagePreviewModal", () => ({
   default: ({ imageUrl }: { imageUrl: string | null }) =>
     imageUrl ? <div data-testid="zoom">{imageUrl}</div> : null,
 }));

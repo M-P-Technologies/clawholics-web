@@ -1,9 +1,9 @@
 "use client";
 
 import { RotateCcw } from "lucide-react";
-import CmsEditor, { CmsLoadError } from "../../components/admin/cms/CmsEditor";
-import { PanelSection, SaveBar } from "../../components/admin/cms/fields";
-import RichTextField from "../../components/admin/cms/RichTextField";
+import CmsEditor, { CmsLoadError } from "@/components/features/admin/cms/CmsEditor";
+import { PanelSection, SaveBar } from "@/components/features/admin/cms/fields";
+import RichTextField from "@/components/features/admin/cms/RichTextField";
 import { Button, LoadingBar } from "@/components/atoms";
 import { usePrivacyEditor } from "../../hooks/admin/usePrivacyEditor";
 import { PRIVACY_KEY, PRIVACY_PREVIEW_PAGES } from "../../lib/admin/cmsPages";

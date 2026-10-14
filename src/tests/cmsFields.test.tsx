@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { TextField, SelectField } from "@/components/admin/cms/fields";
+import { TextField, SelectField } from "@/components/features/admin/cms/fields";
 
 // Marks what the atoms render, so the test can tell the fields use them
 vi.mock("@/components/atoms", async (orig) => {
@@ -12,7 +12,7 @@ vi.mock("@/components/atoms", async (orig) => {
     Textarea: (props: object) => createElement(real.Textarea as never, { "data-atom": "textarea", ...props }),
   };
 });
-vi.mock("@/components/admin/cms/CmsEditor", () => ({ useCmsEditor: () => ({ showPage: () => {} }) }));
+vi.mock("@/components/features/admin/cms/CmsEditor", () => ({ useCmsEditor: () => ({ showPage: () => {} }) }));
 
 describe("CMS fields on the form atoms", () => {
   it("TextField renders the Input atom", () => {

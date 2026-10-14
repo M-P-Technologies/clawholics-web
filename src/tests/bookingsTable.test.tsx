@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import BookingsTable from "@/components/admin/dashboard/BookingsTable";
+import BookingsTable from "@/components/features/admin/dashboard/BookingsTable";
 import type { Appointment } from "@/services/appointmentService";
 
 vi.mock("@/lib/router", () => ({

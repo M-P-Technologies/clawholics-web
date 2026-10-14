@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import ActiveBookings from "@/components/admin/dashboard/ActiveBookings";
+import ActiveBookings from "@/components/features/admin/dashboard/ActiveBookings";
 import type { Appointment } from "@/services/appointmentService";
 
 vi.mock("@/lib/router", () => ({

@@ -5,15 +5,15 @@ import { CalendarDays, CalendarHeart, House, QrCode, Trash2, Wallet } from "luci
 import { Avatar, Badge, Blush, Button, Card, Checkbox, IconButton, Input, LoadingBar, Pearls, Select, StarPicker, Stars } from "../components/atoms";
 import { EditActions, EmptyState, FormField, SectionHeader, StatCard } from "../components/molecules";
 import { CardFields, RowCard, RowCards, SideBar, TabBar, TableFrame, TopBar } from "../components/organisms";
-import AdminShell from "../components/admin/AdminShell";
-import ChoiceRowDemo from "../components/admin/designSystem/ChoiceRowDemo";
-import SearchDemo from "../components/admin/designSystem/SearchDemo";
-import PaginationDemo from "../components/admin/designSystem/PaginationDemo";
-import SegmentedDemo from "../components/admin/designSystem/SegmentedDemo";
-import TabsDemo from "../components/admin/designSystem/TabsDemo";
-import SortableDemo from "../components/admin/designSystem/SortableDemo";
-import ToastDemo from "../components/admin/designSystem/ToastDemo";
-import DialogDemo from "../components/admin/designSystem/DialogDemo";
+import AdminShell from "@/components/features/admin/shell/AdminShell";
+import ChoiceRowDemo from "@/components/features/admin/design-system/ChoiceRowDemo";
+import SearchDemo from "@/components/features/admin/design-system/SearchDemo";
+import PaginationDemo from "@/components/features/admin/design-system/PaginationDemo";
+import SegmentedDemo from "@/components/features/admin/design-system/SegmentedDemo";
+import TabsDemo from "@/components/features/admin/design-system/TabsDemo";
+import SortableDemo from "@/components/features/admin/design-system/SortableDemo";
+import ToastDemo from "@/components/features/admin/design-system/ToastDemo";
+import DialogDemo from "@/components/features/admin/design-system/DialogDemo";
 
 // Every shared component and its variants, for checking the look. Admins only; not in the sidebar.
 export default function DesignSystem() {

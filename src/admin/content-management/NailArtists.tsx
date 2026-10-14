@@ -1,8 +1,8 @@
 "use client";
 
-import CmsEditor from "../../components/admin/cms/CmsEditor";
-import { ItemsNote, PanelSection, SaveBar, TextField } from "../../components/admin/cms/fields";
-import NailArtistDropdown from "../../components/admin/NailArtistDropdown";
+import CmsEditor from "@/components/features/admin/cms/CmsEditor";
+import { ItemsNote, PanelSection, SaveBar, TextField } from "@/components/features/admin/cms/fields";
+import NailArtistDropdown from "@/components/features/admin/catalog/NailArtistDropdown";
 import { LoadingBar } from "@/components/atoms";
 import { useArtistsEditor } from "../../hooks/admin/useArtistsEditor";
 import { ARTISTS_PREVIEW_PAGES } from "../../lib/admin/cmsPages";

@@ -1,9 +1,9 @@
 "use client";
 
-import CategoryPanel from "../../components/admin/CategoryPanel";
-import CmsEditor from "../../components/admin/cms/CmsEditor";
-import { ItemsNote, LinkField, PanelSection, SaveBar, SubCard, TextField } from "../../components/admin/cms/fields";
-import NailServiceDropdown from "../../components/admin/NailServiceDropdown";
+import CategoryPanel from "@/components/features/admin/catalog/CategoryPanel";
+import CmsEditor from "@/components/features/admin/cms/CmsEditor";
+import { ItemsNote, LinkField, PanelSection, SaveBar, SubCard, TextField } from "@/components/features/admin/cms/fields";
+import NailServiceDropdown from "@/components/features/admin/catalog/NailServiceDropdown";
 import { LoadingBar } from "@/components/atoms";
 import { useServicesEditor } from "../../hooks/admin/useServicesEditor";
 import { SERVICES_PREVIEW_PAGES } from "../../lib/admin/cmsPages";

@@ -16,7 +16,7 @@ vi.mock("@/services/appointmentService", async (importOriginal) => ({
 const fetchAppointments = vi.fn(async (..._args: unknown[]) => [
   { id: 8, user_id: 4, service_name: "Gel Manicure", nailist_name: "Maxine", appointment_date: "2099-01-05", appointment_time: "15:00-16:00", status: "CONFIRMED", first_name: "Dana", last_name: "D" },
 ]);
-vi.mock("@/components/admin/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
+vi.mock("@/components/features/admin/shell/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
 vi.mock("@/lib/router", () => ({
   Link: ({ to, children, ...rest }: { to: string; children: React.ReactNode }) => <a href={to} {...rest}>{children}</a>,
   useLocation: () => ({ pathname: "/dashboard" }),

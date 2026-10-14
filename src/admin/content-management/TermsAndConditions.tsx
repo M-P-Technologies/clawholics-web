@@ -1,9 +1,9 @@
 "use client";
 
-import CmsEditor from "../../components/admin/cms/CmsEditor";
-import { ItemsNote, PanelSection } from "../../components/admin/cms/fields";
+import CmsEditor from "@/components/features/admin/cms/CmsEditor";
+import { ItemsNote, PanelSection } from "@/components/features/admin/cms/fields";
 import { SortableList } from "@/components/molecules";
-import TACDropdown from "../../components/admin/TACDropdown";
+import TACDropdown from "@/components/features/admin/cms/TACDropdown";
 import { LoadingBar } from "@/components/atoms";
 import { useTermsEditor } from "../../hooks/admin/useTermsEditor";
 import { TERMS_PREVIEW_PAGES } from "../../lib/admin/cmsPages";

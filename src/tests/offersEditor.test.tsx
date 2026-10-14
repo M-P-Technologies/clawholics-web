@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import OffersEditor from "@/components/admin/cms/OffersEditor";
+import OffersEditor from "@/components/features/admin/cms/OffersEditor";
 
 const services = [{ id: 4, name: "Gel manicure" }] as never;
 const offer = { title: "20% off", line: "On gel", note: "", image: "", buttonLabel: "Book now", link: "/my/explore" };

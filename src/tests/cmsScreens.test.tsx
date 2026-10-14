@@ -11,7 +11,7 @@ import FAQs from "@/admin/content-management/FAQs";
 // pass the default 5s
 vi.setConfig({ testTimeout: 15_000 });
 
-vi.mock("@/components/admin/SideBar", () => ({ default: () => <div /> }));
+vi.mock("@/components/features/admin/shell/SideBar", () => ({ default: () => <div /> }));
 const show = vi.fn();
 vi.mock("@/components/molecules", async (orig) => ({ ...(await orig<object>()), useToast: () => ({ show }) }));
 vi.mock("@clerk/nextjs", () => {

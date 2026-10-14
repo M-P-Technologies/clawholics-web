@@ -1,8 +1,8 @@
 "use client";
 
-import CmsEditor from "../../components/admin/cms/CmsEditor";
-import { ItemsNote, LinkField, PanelSection, SaveBar, SubCard, TextField } from "../../components/admin/cms/fields";
-import Dropdown from "../../components/admin/FAQDropdown";
+import CmsEditor from "@/components/features/admin/cms/CmsEditor";
+import { ItemsNote, LinkField, PanelSection, SaveBar, SubCard, TextField } from "@/components/features/admin/cms/fields";
+import Dropdown from "@/components/features/admin/cms/FAQDropdown";
 import { SortableList } from "@/components/molecules";
 import { LoadingBar } from "@/components/atoms";
 import { useFaqsEditor } from "../../hooks/admin/useFaqsEditor";

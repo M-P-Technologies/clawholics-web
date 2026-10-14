@@ -8,7 +8,7 @@ vi.mock("@/lib/router", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/router")>()),
   useSearchParams: () => [params] as const,
 }));
-vi.mock("@/components/admin/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
+vi.mock("@/components/features/admin/shell/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
 // A stable getToken, as the real Clerk hook has
 vi.mock("@clerk/nextjs", () => {
   const auth = { getToken: async () => "tok", isLoaded: true };

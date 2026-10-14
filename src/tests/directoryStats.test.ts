@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { countIdle, countWithin } from "@/lib/directoryStats";
-import type { DirectoryUser } from "@/components/admin/DirectoryProfileCard";
+import type { DirectoryUser } from "@/components/features/admin/directory/DirectoryProfileCard";
 
 const now = Date.parse("2026-10-12T00:00:00Z");
 const user = (id: string): DirectoryUser => ({ id, clerk_id: id, firstName: id, lastName: "", phoneNumber: "" });

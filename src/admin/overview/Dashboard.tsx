@@ -1,7 +1,7 @@
 "use client";
 
-import DashboardView from "../../components/admin/dashboard/DashboardView";
-import ReportPage from "../../components/admin/dashboard/ReportPage";
+import DashboardView from "@/components/features/admin/dashboard/DashboardView";
+import ReportPage from "@/components/features/admin/dashboard/ReportPage";
 import { useBookingsLoader } from "../../hooks/admin/useReports";
 
 // The admin landing page: what the salon checks every day

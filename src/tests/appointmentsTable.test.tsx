@@ -1,7 +1,7 @@
 import userEvent from "@testing-library/user-event";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import AppointmentsTable, { parseStatusParam } from "@/components/admin/AppointmentsTable";
+import AppointmentsTable, { parseStatusParam } from "@/components/features/admin/bookings/AppointmentsTable";
 import type { Appointment } from "@/services/appointmentService";
 
 let params = new URLSearchParams();
@@ -17,7 +17,7 @@ vi.mock("@clerk/nextjs", () => {
 const show = vi.fn();
 vi.mock("@/components/molecules", async (orig) => ({ ...(await orig<object>()), useToast: () => ({ show }) }));
 vi.mock("@/hooks/usePolling", () => ({ usePolling: () => {} }));
-vi.mock("@/components/admin/AppointmentDetailsModal", async () => {
+vi.mock("@/components/features/admin/bookings/AppointmentDetailsModal", async () => {
   const { Dialog } = await import("@/components/organisms");
   return {
     default: ({ appointment, onClose, onStatusChange }: { appointment: Appointment; onClose: () => void; onStatusChange: (id: number, s: string) => void }) => (
@@ -28,7 +28,7 @@ vi.mock("@/components/admin/AppointmentDetailsModal", async () => {
     ),
   };
 });
-vi.mock("@/components/admin/CreateAppointmentModal", () => ({ default: () => <div role="dialog" aria-label="New appointment" /> }));
+vi.mock("@/components/features/admin/bookings/CreateAppointmentModal", () => ({ default: () => <div role="dialog" aria-label="New appointment" /> }));
 
 const fetchAppointments = vi.fn();
 const updateAppointmentStatus = vi.fn();

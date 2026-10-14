@@ -1,11 +1,11 @@
 "use client";
 
 import { ArrowLeft, CalendarCheck, Stamp, Wallet } from "lucide-react";
-import AdminShell from "../../components/admin/AdminShell";
-import BookingTracker from "../../components/admin/client/BookingTracker";
-import ClientAppointments from "../../components/admin/client/ClientAppointments";
-import ClientProfilePanel from "../../components/admin/client/ClientProfilePanel";
-import NoteItem from "../../components/admin/client/NoteItem";
+import AdminShell from "@/components/features/admin/shell/AdminShell";
+import BookingTracker from "@/components/features/admin/clients/BookingTracker";
+import ClientAppointments from "@/components/features/admin/clients/ClientAppointments";
+import ClientProfilePanel from "@/components/features/admin/clients/ClientProfilePanel";
+import NoteItem from "@/components/features/admin/clients/NoteItem";
 import { StatCard, TabSection, Tabs, EmptyState } from "@/components/molecules";
 import { Button } from "@/components/atoms";
 import { useClientPage } from "../../hooks/admin/useClientPage";
