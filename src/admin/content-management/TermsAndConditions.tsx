@@ -2,7 +2,7 @@
 
 import CmsEditor from "../../components/admin/cms/CmsEditor";
 import { ItemsNote, PanelSection } from "../../components/admin/cms/fields";
-import SortableList from "../../components/admin/SortableList";
+import { SortableList } from "@/components/molecules";
 import TACDropdown from "../../components/admin/TACDropdown";
 import { LoadingBar } from "@/components/atoms";
 import { useTermsEditor } from "../../hooks/admin/useTermsEditor";

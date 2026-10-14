@@ -18,7 +18,7 @@ describe("design system gallery", () => {
 
   it("shows the molecules", () => {
     render(<DesignSystem />);
-    for (const c of ["FormField", "ChoiceRow", "SearchBar", "Tabs", "SegmentedControl", "StatCard", "Pagination", "Toast", "EmptyState", "SectionHeader"]) expect(screen.getByRole("heading", { level: 3, name: c })).toBeInTheDocument();
+    for (const c of ["FormField", "ChoiceRow", "SearchBar", "Tabs", "SegmentedControl", "StatCard", "Pagination", "Toast", "EmptyState", "SectionHeader", "SortableList", "EditActions"]) expect(screen.getByRole("heading", { level: 3, name: c })).toBeInTheDocument();
   });
 
   it("shows the organisms", () => {

@@ -1,8 +1,10 @@
+"use client";
+
 import { GripVertical as DragSvg } from "lucide-react";
 import type { SortableHandleProps } from "./SortableList";
 import { Button } from "@/components/atoms";
 
-const DragIcon = ({
+const DragHandle = ({
   listeners,
   attributes,
   setActivatorNodeRef,
@@ -23,4 +25,4 @@ const DragIcon = ({
   );
 };
 
-export default DragIcon;
+export default DragHandle;

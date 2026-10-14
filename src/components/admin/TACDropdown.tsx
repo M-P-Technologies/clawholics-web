@@ -1,8 +1,8 @@
 import { ChevronDown as DropdownIcon, List as ListIcon, Plus as PlusIcon } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { IconButton, Button } from "@/components/atoms";
-import DragIcon from "./DragIcon";
-import type { SortableHandleProps } from "./SortableList";
+import { DragHandle, useToast, EditActions } from "@/components/molecules";
+import type { SortableHandleProps } from "@/components/molecules";
 import type { Tac } from "../../services/tacService";
 import { createTac, deleteTac, updateTac } from "../../services/tacService";
 import {
@@ -10,8 +10,6 @@ import {
   handleBulletEnter,
   toggleBulletList,
 } from "./ListFormatting";
-import { useToast } from "@/components/molecules";
-import EditActions from "./EditActions";
 import { ConfirmDialog } from "@/components/organisms";
 
 type DropdownProps = {
@@ -345,7 +343,7 @@ const TACDropdown: React.FC<DropdownProps> = ({
       >
         {/* The drag handle sits beside the toggle, not inside it: a button can't hold a button */}
         <div className="flex min-h-[35px] items-center gap-2 sm:gap-3">
-          {!isCreateMode && <DragIcon {...(dragHandleProps ?? {})} />}
+          {!isCreateMode && <DragHandle {...(dragHandleProps ?? {})} />}
 
           <Button
             variant="bare"

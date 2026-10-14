@@ -11,3 +11,7 @@ export { default as Pagination, paginate, PAGE_SIZE } from "./Pagination";
 export { default as EmptyState, LoadError } from "./EmptyState";
 export { default as SectionHeader } from "./SectionHeader";
 export { default as SegmentedControl } from "./SegmentedControl";
+export { default as SortableList } from "./SortableList";
+export type { SortableHandleProps } from "./SortableList";
+export { default as DragHandle } from "./DragHandle";
+export { default as EditActions } from "./EditActions";

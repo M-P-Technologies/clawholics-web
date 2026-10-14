@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import FAQDropdown from "@/components/admin/FAQDropdown";
 import TACDropdown from "@/components/admin/TACDropdown";
-import type { SortableHandleProps } from "@/components/admin/SortableList";
+import type { SortableHandleProps } from "@/components/molecules";
 
 vi.mock("@/components/molecules", async (orig) => ({ ...(await orig<object>()), useToast: () => ({ show: vi.fn() }) }));
 

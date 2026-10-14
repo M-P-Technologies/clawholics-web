@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { CalendarDays, CalendarHeart, House, QrCode, Trash2, Wallet } from "lucide-react";
 import { Avatar, Badge, Blush, Button, Card, Checkbox, IconButton, Input, LoadingBar, Pearls, Select, StarPicker, Stars } from "../components/atoms";
-import { EmptyState, FormField, SectionHeader, StatCard } from "../components/molecules";
+import { EditActions, EmptyState, FormField, SectionHeader, StatCard } from "../components/molecules";
 import { CardFields, RowCard, RowCards, SideBar, TabBar, TableFrame, TopBar } from "../components/organisms";
 import AdminShell from "../components/admin/AdminShell";
 import ChoiceRowDemo from "../components/admin/designSystem/ChoiceRowDemo";
@@ -11,6 +11,7 @@ import SearchDemo from "../components/admin/designSystem/SearchDemo";
 import PaginationDemo from "../components/admin/designSystem/PaginationDemo";
 import SegmentedDemo from "../components/admin/designSystem/SegmentedDemo";
 import TabsDemo from "../components/admin/designSystem/TabsDemo";
+import SortableDemo from "../components/admin/designSystem/SortableDemo";
 import ToastDemo from "../components/admin/designSystem/ToastDemo";
 import DialogDemo from "../components/admin/designSystem/DialogDemo";
 
@@ -109,6 +110,13 @@ export default function DesignSystem() {
               <EmptyState kind="empty" title="Nothing yet" message="Book a visit to see it here." />
               <EmptyState kind="success" title="All done" message="Your changes were saved." />
               <EmptyState kind="info" title="Good to know" message="Bookings close one day ahead." />
+            </div>
+          </GallerySection>
+          <GallerySection title="SortableList"><SortableDemo /></GallerySection>
+          <GallerySection title="EditActions">
+            <div className="flex flex-col gap-4">
+              <EditActions isEditing={false} isSaving={false} onEdit={() => {}} onCancel={() => {}} onSave={() => {}} onDelete={() => {}} />
+              <EditActions isEditing isSaving={false} onEdit={() => {}} onCancel={() => {}} onSave={() => {}} />
             </div>
           </GallerySection>
           <GallerySection title="SectionHeader">

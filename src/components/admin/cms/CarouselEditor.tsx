@@ -1,7 +1,6 @@
 import { X } from "lucide-react";
 import { useId, type ReactNode } from "react";
-import DragIcon from "../DragIcon";
-import SortableList from "../SortableList";
+import { DragHandle, SortableList } from "@/components/molecules";
 import { Button } from "@/components/atoms";
 import { DropArea } from "./fields";
 import type { CarouselItem } from "../../../services/carouselService";
@@ -43,7 +42,7 @@ export default function CarouselEditor({ photos, onChange, uploading, upload }: 
           onReorder={(items) => onChange(normalizeCarousel(items))}
           className="flex flex-col gap-2"
           renderItem={(item, { dragHandleProps, isDragging }) => (
-            <CarouselRow item={item} dragHandle={<DragIcon {...dragHandleProps} />} faded={isDragging} onRemove={() => onChange(normalizeCarousel(photos.filter((p) => p.id !== item.id)))} />
+            <CarouselRow item={item} dragHandle={<DragHandle {...dragHandleProps} />} faded={isDragging} onRemove={() => onChange(normalizeCarousel(photos.filter((p) => p.id !== item.id)))} />
           )}
           renderOverlay={(item) => <CarouselRow item={item} />}
         />

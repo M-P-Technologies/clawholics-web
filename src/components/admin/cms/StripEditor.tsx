@@ -2,8 +2,7 @@ import { ListChecks, Plus, RotateCcw, X } from "lucide-react";
 import { MAX_STRIP_SLIDES, type StripSlide } from "../../../lib/homeSections";
 import type { NailService } from "../../../services/serviceService";
 import { Button } from "@/components/atoms";
-import DragIcon from "../DragIcon";
-import SortableList from "../SortableList";
+import { DragHandle, SortableList } from "@/components/molecules";
 import { fieldClass, fieldLabelClass } from "./fields";
 
 interface StripEditorProps {
@@ -62,7 +61,7 @@ export default function StripEditor({ services, strip, onChange, upload, uploadi
             return (
               <div className={`flex flex-col gap-2 rounded-xl border border-crimson-light/50 bg-milk p-2.5 ${isDragging ? "opacity-0" : ""}`}>
                 <div className="flex items-center gap-2">
-                  <DragIcon {...dragHandleProps} />
+                  <DragHandle {...dragHandleProps} />
                   {photo ? (
                     // eslint-disable-next-line @next/next/no-img-element -- R2 images, sized by CSS like the rest of the admin
                     <img src={photo} alt="" className="h-12 w-16 shrink-0 rounded-md object-cover" />

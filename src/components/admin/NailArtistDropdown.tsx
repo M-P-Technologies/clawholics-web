@@ -24,8 +24,7 @@ import {
 
 import { fetchServices, type NailService } from "../../services/serviceService";
 import { uploadImage } from "../../services/uploadService";
-import { useToast } from "@/components/molecules";
-import EditActions from "./EditActions";
+import { useToast, EditActions } from "@/components/molecules";
 import { Button, Select } from "@/components/atoms";
 import { ConfirmDialog } from "@/components/organisms";
 
