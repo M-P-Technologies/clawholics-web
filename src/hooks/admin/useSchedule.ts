@@ -28,7 +28,7 @@ function combineMonths(results: UseQueryResult<MonthlySchedule>[]) {
 // (phone) on show, the filters, and the open day and appointment.
 export function useSchedule() {
   const toast = useToast();
-  const { getToken } = useAuth();
+  const { getToken, isLoaded } = useAuth();
   const { user: currentUser } = useUser();
   const [month, setMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -66,7 +66,8 @@ export function useSchedule() {
   const weekKey = weekMonthKeys(agendaDate).join(",");
   // On desktop, the month(s) the grid's week touches
   const deskKey = weekMonthKeys(weekDate).join(",");
-  const monthKeys = !layoutKnown ? [] : desktop ? deskKey.split(",") : [...new Set([formatLocalMonth(month), ...weekKey.split(",")])];
+  // Nothing is asked before Clerk's session has loaded (a request without it is refused)
+  const monthKeys = !layoutKnown || !isLoaded ? [] : desktop ? deskKey.split(",") : [...new Set([formatLocalMonth(month), ...weekKey.split(",")])];
 
   // Each month is a cached query: a month already seen shows at once, and the grid keeps the
   // previous week up while the next one loads
@@ -79,7 +80,7 @@ export function useSchedule() {
   if (months.schedule && months.schedule !== shown) setShown(months.schedule);
   const scheduleData = months.schedule ?? shown;
   // The full-screen loader is for the first load only; moving to another month keeps the screen up
-  const isLoading = !scheduleData && (months.pending || !layoutKnown);
+  const isLoading = !scheduleData && (months.pending || !layoutKnown || !isLoaded);
 
   useEffect(() => {
     if (!months.error) return;

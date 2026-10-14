@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ADMIN } from "../../lib/adminQueries";
 import { bookingQueries } from "../../lib/bookingQueries";
+import { useFillForm } from "../../hooks/admin/useFillForm";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import { ADMIN_APPOINTMENTS_KEY, fetchAppointments } from "../../services/appointmentService";
@@ -162,20 +163,6 @@ const allAppointmentsQuery = {
 // The artist's services, as the editor shows them, cached per artist
 const artistServicesKey = (nailistId: number) => [ADMIN, "nailists", nailistId, "services"] as const;
 
-/**
- * Hands a query's data to an editor's form once it arrives, and again when it changes on the
- * server, but never while the form is being edited (that would overwrite the unsaved changes).
- */
-function useSeedForm<T>(data: T | undefined, editing: boolean, seed: (data: T) => void) {
-  const seeded = useRef<T | undefined>(undefined);
-  useEffect(() => {
-    if (data === undefined || data === seeded.current || (editing && seeded.current !== undefined)) return;
-    seeded.current = data;
-    seed(data);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, editing]);
-}
-
 const DayOffCard = ({
   nailistId,
   disabled,
@@ -201,7 +188,7 @@ const DayOffCard = ({
   // The days off, the same cached query the booking pages read
   const dayOffsQuery = useQuery({ ...bookingQueries.dayOffs(nailistId ?? 0), enabled: !!nailistId });
   const isLoading = !!nailistId && dayOffsQuery.isPending;
-  useSeedForm(dayOffsQuery.data, !disabled, onDayOffsLoaded);
+  useFillForm(dayOffsQuery.data, !disabled, onDayOffsLoaded);
   useEffect(() => {
     if (dayOffsQuery.isError) console.error("Failed to fetch day offs:", dayOffsQuery.error);
   }, [dayOffsQuery.isError, dayOffsQuery.error]);
@@ -408,7 +395,7 @@ const TimeSlotCard = ({
   // The hours, the same cached query the booking pages read
   const timeSlotsQuery = useQuery({ ...bookingQueries.timeSlots(nailistId ?? 0), enabled: !!nailistId });
   const isLoading = !!nailistId && timeSlotsQuery.isPending;
-  useSeedForm(timeSlotsQuery.data, !disabled, onTimeSlotsLoaded);
+  useFillForm(timeSlotsQuery.data, !disabled, onTimeSlotsLoaded);
   useEffect(() => {
     if (timeSlotsQuery.isError) console.error("Failed to fetch time slots:", timeSlotsQuery.error);
   }, [timeSlotsQuery.isError, timeSlotsQuery.error]);
@@ -700,7 +687,7 @@ const NailArtistDropdown: React.FC<NailArtistDropdownProps> = ({
     queryFn: () => fetchNailistServices(nailist?.id ?? 0),
     enabled: !isCreateMode && !!nailist,
   });
-  useSeedForm(nailistServicesQuery.data, isEditing, (serviceIds: number[]) => {
+  useFillForm(nailistServicesQuery.data, isEditing, (serviceIds: number[]) => {
     setSelectedServiceIds(serviceIds);
     setOriginalSelectedServiceIds(serviceIds);
   });

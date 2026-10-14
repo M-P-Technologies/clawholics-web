@@ -17,7 +17,15 @@ export const BOOKED_STALE_MS = 15_000;
 export const bookingQueries = {
   /** The artists who offer a service */
   artists: (serviceId: number) =>
-    queryOptions({ queryKey: [BOOKING, "artists", serviceId], queryFn: (): Promise<Nailist[]> => fetchNailists(serviceId) }),
+    queryOptions({
+      queryKey: [BOOKING, "artists", serviceId],
+      // The endpoint can answer with an error object, so anything but a list counts as a failure
+      queryFn: async (): Promise<Nailist[]> => {
+        const list: unknown = await fetchNailists(serviceId);
+        if (!Array.isArray(list)) throw new Error("Unexpected artist list");
+        return list;
+      },
+    }),
   timeSlots: (nailistId: number) =>
     queryOptions({ queryKey: [BOOKING, "timeSlots", nailistId], queryFn: (): Promise<NailistTimeSlots> => fetchNailistTimeSlots(nailistId) }),
   dayOffs: (nailistId: number) =>

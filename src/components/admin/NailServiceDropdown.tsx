@@ -2,6 +2,7 @@ import { ChevronDown as DropdownIcon, Plus as PlusIcon, Star as StarIcon, Upload
 import React, { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ADMIN } from "../../lib/adminQueries";
+import { useFillForm } from "../../hooks/admin/useFillForm";
 import ImagePreviewModal from "./ImagePreviewModal";
 import { pickMainPhoto } from "../../utils/mainPhoto";
 
@@ -152,14 +153,10 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
     queryFn: async () => [...(await fetchServiceGallery(service?.id ?? 0))].sort((a, b) => a.position - b.position),
   };
   const loadedGallery = useQuery({ ...galleryQuery, enabled: !isCreateMode && !!service });
-  const seededGallery = useRef<ServiceGalleryImage[] | undefined>(undefined);
-  useEffect(() => {
-    const data = loadedGallery.data;
-    if (!data || data === seededGallery.current || (isEditing && seededGallery.current !== undefined)) return;
-    seededGallery.current = data;
+  const galleryShown = useFillForm(loadedGallery.data, isEditing, (data) => {
     setGallery(data);
     setOriginalGallery(data);
-  }, [loadedGallery.data, isEditing]);
+  });
   useEffect(() => {
     if (!loadedGallery.isError) return;
     console.error("Failed to fetch service gallery:", loadedGallery.error);
@@ -361,7 +358,7 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
 
       // Asked fresh, and kept as the cached copy
       const sortedGallery = await queryClient.fetchQuery({ ...galleryQuery, staleTime: 0 });
-      seededGallery.current = sortedGallery;
+      galleryShown(sortedGallery);
 
       setName(updatedService.name);
       setDescription(updatedService.description);

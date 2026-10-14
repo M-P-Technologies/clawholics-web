@@ -80,11 +80,20 @@ export const adminQueries = {
     queryOptions({ queryKey: adminKeys.scanHistory(), queryFn: async () => fetchScanHistory(await getToken(), clerkId) }),
 };
 
+// The admin data that shows appointments, a client's stamps or their visits
+const APPOINTMENT_VIEWS = new Set<unknown>(["appointments", "dashboard", "utilization", "schedule", "clients", "proofs", "leads"]);
+
 /**
- * After an admin changes an appointment, a client or an account: every admin screen's data may
- * show it (the lists, the schedule, the dashboard, a client's page), so all of it is marked stale
- * and what's on screen is fetched again.
+ * After an admin changes an appointment or a client's stamps: what shows them (the lists, the
+ * schedule, the dashboard and artist utilization, a client's page, the proofs, the warm leads) is
+ * marked stale, and what's on screen is fetched again. The directory and its Clerk details aren't:
+ * they don't change with an appointment, and fetching them asks Clerk.
  */
 export function adminDataChanged(queryClient: QueryClient) {
-  return queryClient.invalidateQueries({ queryKey: [ADMIN] });
+  return queryClient.invalidateQueries({ queryKey: [ADMIN], predicate: (query) => APPOINTMENT_VIEWS.has(query.queryKey[1]) });
+}
+
+/** After an admin is added, edited or removed: the directory's lists are fetched again */
+export function directoryChanged(queryClient: QueryClient) {
+  return queryClient.invalidateQueries({ queryKey: [ADMIN, "directory"] });
 }

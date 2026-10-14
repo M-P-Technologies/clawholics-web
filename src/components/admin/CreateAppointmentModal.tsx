@@ -62,8 +62,10 @@ const CreateAppointmentModal = ({
 
   const queryClient = useQueryClient();
   // The services and artists, shared with the booking pages (cached)
-  const servicesQuery = useQuery(publicQueries.services());
-  const nailistsQuery = useQuery(bookingQueries.artists(0));
+  // Fetched again each time the form opens (the cached copy shows meanwhile): an artist or service
+  // added in the editors a moment ago must be offered
+  const servicesQuery = useQuery({ ...publicQueries.services(), refetchOnMount: "always" });
+  const nailistsQuery = useQuery({ ...bookingQueries.artists(0), refetchOnMount: "always" });
   const services = useMemo(() => (servicesQuery.data ?? []) as unknown as Service[], [servicesQuery.data]);
   const nailists = useMemo(() => (Array.isArray(nailistsQuery.data) ? nailistsQuery.data : []) as unknown as NailArtist[], [nailistsQuery.data]);
   const loadingServices = servicesQuery.isPending;
@@ -91,8 +93,16 @@ const CreateAppointmentModal = ({
 
   // The artist's hours, days off, fully booked days (one request) and the chosen day's taken
   // times, the same queries the booking pages use
-  const { timeSlots, loadingTimes: loadingSlots, dayOffs, customOffs, fullyBookedDates, bookedSlots, isDayFullyBooked, fetchTakenTimes } =
+  const { timeSlots, loadingTimes: loadingSlots, availabilityFailed, takenTimesFailed, dayOffs, customOffs, fullyBookedDates, bookedSlots, isDayFullyBooked, fetchTakenTimes } =
     useArtistAvailability(selectedNailist?.id, appointmentDate);
+
+  useEffect(() => {
+    if (availabilityFailed) setMessage("Failed to load nail artist availability.");
+  }, [availabilityFailed]);
+
+  useEffect(() => {
+    if (takenTimesFailed) setMessage("Failed to load booked slots.");
+  }, [takenTimesFailed]);
 
   const artistServices = useMemo(() => {
     if (!selectedNailist) return services;

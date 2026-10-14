@@ -295,6 +295,8 @@ export function useProfile() {
         void queryClient.invalidateQueries({ queryKey: key });
       } catch (error) {
         console.error("Failed to self-redeem reward:", error);
+        // The stamps weren't used: show them again
+        void queryClient.invalidateQueries({ queryKey: accountKeys.profile(clerkUser.id) });
         toast.show(
           "error",
           "We couldn't record your reward",

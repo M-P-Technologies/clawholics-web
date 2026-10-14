@@ -376,7 +376,8 @@ export interface AdminPage {
   total: number;
   page: number;
   pageSize: number;
-  clerkIds: string[];
+  /** Every admin's Clerk id, null for one without */
+  clerkIds: (string | null)[];
 }
 
 /** One page of the admin accounts, for the Admin Directory */

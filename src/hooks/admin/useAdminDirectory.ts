@@ -7,7 +7,7 @@ import { Activity, Moon, ShieldCheck, UserPlus } from "lucide-react";
 import type { DirectoryProfile, DirectoryUser } from "../../components/admin/DirectoryProfileCard";
 import { useToast } from "../../components/ui/ToastProvider";
 import { countIdle, countWithin } from "../../lib/directoryStats";
-import { adminDataChanged, adminQueries } from "../../lib/adminQueries";
+import { adminQueries, directoryChanged } from "../../lib/adminQueries";
 import { deleteDirectoryUser, promoteAdmin, updateDirectoryUser } from "../../services/directoryService";
 
 export interface AdminEditForm {
@@ -56,7 +56,10 @@ export function useAdminDirectory() {
   if (adminsQuery.data && total !== lastTotal) setLastTotal(total);
   const users = adminsQuery.data?.rows ?? NO_USERS;
   // Every admin, by Clerk id, for the stat cards
-  const everyAdmin = (adminsQuery.data?.clerkIds ?? []).map((id) => ({ id, clerk_id: id }) as DirectoryUser);
+  // (one without a Clerk id has no Clerk dates, so counts as never signed in)
+  const everyAdmin = (adminsQuery.data?.clerkIds ?? []).map(
+    (id, i) => ({ id: id ?? `no-clerk-id-${i}`, clerk_id: id ?? undefined }) as DirectoryUser,
+  );
   const profiles = profilesQuery.data ?? NO_PROFILES;
   const profilesLoaded = profilesQuery.data !== undefined;
   const loading = adminsQuery.isPending;
@@ -77,8 +80,8 @@ export function useAdminDirectory() {
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // After a change, every admin screen's data is fetched again (this list included)
-  const loadUsers = () => adminDataChanged(queryClient);
+  // After a change, the directory's lists are fetched again (this one included)
+  const loadUsers = () => directoryChanged(queryClient);
 
   const createAdmin = async (data: { email: string }) => {
     setIsSaving(true);

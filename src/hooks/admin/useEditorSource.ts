@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+
 import { useQuery, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { ADMIN } from "../../lib/adminQueries";
+import { useFillForm } from "./useFillForm";
 
 interface EditorSourceOptions<T> {
   /** Under the editor's own name: [ADMIN, "editor", name] */
@@ -24,16 +25,9 @@ interface EditorSourceOptions<T> {
 export function useEditorSource<T>({ name, load, dirty, onLoad }: EditorSourceOptions<T>) {
   const queryClient = useQueryClient();
   const queryKey: QueryKey = [ADMIN, "editor", name];
-  const query = useQuery({ queryKey, queryFn: load });
-  const filledWith = useRef<T | undefined>(undefined);
-
-  useEffect(() => {
-    const data = query.data;
-    if (data === undefined || data === filledWith.current || (dirty && filledWith.current !== undefined)) return;
-    filledWith.current = data;
-    onLoad(data);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- onLoad only sets the form's state
-  }, [query.data, dirty]);
+  // Fetched again each time the editor opens: the cached copy only shows meanwhile
+  const query = useQuery({ queryKey, queryFn: load, refetchOnMount: "always" });
+  const filledWith = useFillForm(query.data, dirty, onLoad);
 
   return {
     isLoading: query.isPending,
@@ -43,7 +37,7 @@ export function useEditorSource<T>({ name, load, dirty, onLoad }: EditorSourceOp
     retry: () => void query.refetch(),
     /** Keeps what was just saved as the cached copy (the form already shows it) */
     saved: (data: T) => {
-      filledWith.current = data;
+      filledWith(data);
       queryClient.setQueryData(queryKey, data);
     },
   };

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ADMIN, adminKeys, adminQueries } from "../../lib/adminQueries";
+import { adminDataChanged, adminKeys, adminQueries } from "../../lib/adminQueries";
 import { useToast } from "../../components/ui/ToastProvider";
 import { isDesktopWidth } from "../../lib/viewport";
 import { fetchScannedClient, recordScanAction, type ScanRecord, type ScannedClient } from "../../services/scanService";
@@ -97,9 +97,8 @@ export function useAdminScanner() {
 
     try {
       await recordScanAction(lastScan.userId, action, await getToken(), currentUser?.id);
-      // The client's stamps show on their page and in the directory (the recent scans already
-      // show this one)
-      void queryClient.invalidateQueries({ queryKey: [ADMIN], predicate: (query) => query.queryKey[1] !== adminKeys.scanHistory()[1] });
+      // The client's stamps show on their page (the recent scans already show this one)
+      void adminDataChanged(queryClient);
       // Show the new count for a moment, then go back to scanning
       setTimeout(() => {
         setLastScan(null);

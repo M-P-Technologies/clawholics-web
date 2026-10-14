@@ -294,7 +294,7 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
     expect(first.body.pageSize).toBe(5);
     // The same order as the full list
     expect(first.body.rows.map((a: { clerk_id: string }) => a.clerk_id)).toEqual(all.slice(0, 5).map((a) => a.clerk_id));
-    expect([...first.body.clerkIds].sort()).toEqual(all.map((a) => a.clerk_id).filter(Boolean).sort());
+    expect([...first.body.clerkIds].sort()).toEqual(all.map((a) => a.clerk_id).sort());
 
     const second = await call(users.listAdmins, "/api/users/admins?page=2&pageSize=5");
     expect(second.body.rows.map((a: { clerk_id: string }) => a.clerk_id)).toEqual(all.slice(5, 10).map((a) => a.clerk_id));

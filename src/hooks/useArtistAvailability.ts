@@ -23,11 +23,13 @@ export function useArtistAvailability(nailistId: number | null | undefined, sele
   const id = nailistId ?? 0;
   const timeSlotsQuery = useQuery({ ...bookingQueries.timeSlots(id), enabled: !!nailistId });
   const timeSlots = timeSlotsQuery.data ?? NONE;
-  const dayOffs = useQuery({ ...bookingQueries.dayOffs(id), enabled: !!nailistId }).data;
+  const dayOffsQuery = useQuery({ ...bookingQueries.dayOffs(id), enabled: !!nailistId });
+  const dayOffs = dayOffsQuery.data;
   const { from, to } = bookableRange();
   // Without it the calendar just marks no day as full: picking one still checks that day
   const booked = useQuery({ ...bookingQueries.bookedRange(id, from, to), enabled: !!nailistId && timeSlots.length > 0 }).data;
-  const bookedSlots = useQuery({ ...bookingQueries.bookedDay(id, selectedDate), enabled: !!nailistId && !!selectedDate }).data ?? NONE;
+  const bookedDayQuery = useQuery({ ...bookingQueries.bookedDay(id, selectedDate), enabled: !!nailistId && !!selectedDate });
+  const bookedSlots = bookedDayQuery.data ?? NONE;
 
   /** Every one of the artist's times overlaps one of these taken times */
   const isDayFullyBooked = useCallback(
@@ -54,6 +56,10 @@ export function useArtistAvailability(nailistId: number | null | undefined, sele
     timeSlots,
     /** The chosen artist's hours are on their way */
     loadingTimes: !!nailistId && timeSlotsQuery.isPending,
+    /** The artist's hours or days off couldn't be loaded */
+    availabilityFailed: (timeSlotsQuery.isError && !timeSlotsQuery.data) || (dayOffsQuery.isError && !dayOffsQuery.data),
+    /** The chosen day's taken times couldn't be loaded */
+    takenTimesFailed: bookedDayQuery.isError && !bookedDayQuery.data,
     dayOffs: dayOffs?.regularDays ?? NONE,
     customOffs: dayOffs?.customDates ?? NONE,
     fullyBookedDates,

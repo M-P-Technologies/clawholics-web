@@ -292,7 +292,8 @@ export const promoteAdmin = ported(async (req) => {
 export const MAX_ADMIN_PAGE_SIZE = 50;
 
 // GET /users/admins: every admin, by name. With ?page=N (and pageSize 1-50, default 5) it answers
-// one page as { rows, total, page, pageSize, clerkIds }: clerkIds are every admin's Clerk id, for
+// one page as { rows, total, page, pageSize, clerkIds }: clerkIds are every admin's Clerk id (null
+// for one without), for
 // the directory's stat cards (active, inactive, new), which count all admins by their Clerk dates.
 export const listAdmins = ported(async (req) => {
   const admin = await requireAdmin();
@@ -332,7 +333,7 @@ export const listAdmins = ported(async (req) => {
     total: all.length,
     page,
     pageSize,
-    clerkIds: all.flatMap((row) => (row.clerk_id ? [row.clerk_id] : [])),
+    clerkIds: all.map((row) => row.clerk_id),
   });
 });
 
