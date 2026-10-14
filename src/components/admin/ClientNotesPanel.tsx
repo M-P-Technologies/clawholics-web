@@ -52,7 +52,7 @@ export default function ClientNotesPanel({ clientUserId, tokenFetcher, clerkId }
   );
 
   // The client's notes and next steps: the same cached queries as the client's page
-  const session = { getToken: () => tokenRef.current(), clerkId: clerkId ?? undefined };
+  const session = { getToken: tokenFetcher, clerkId: clerkId ?? undefined };
   const notesQuery = useQuery(adminQueries.clientNotes(clientUserId, session));
   const stepsQuery = useQuery(adminQueries.clientNextSteps(clientUserId, session));
   const notes = notesQuery.data ?? [];

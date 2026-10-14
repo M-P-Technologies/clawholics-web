@@ -1,21 +1,18 @@
 import { X as CloseIconLucide,Plus as PlusIcon } from "lucide-react";
 import { useEffect,useMemo,useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 
 
-import { API_BASE_URL } from "../../apiConfig";
 import {
 createAdminAppointment,
-fetchBookedSlotsDetailed,
-fetchNailists,
 type AdminAppointmentPayload,
 } from "../../services/bookingService";
-
-import {
-fetchNailistDayOffs,
-fetchNailistTimeSlots,
-} from "../../services/nailistService";
+import { publicQueries } from "../../lib/publicQueries";
+import { bookingQueries } from "../../lib/bookingQueries";
+import { adminDataChanged } from "../../lib/adminQueries";
+import { useArtistAvailability } from "../../hooks/useArtistAvailability";
 import Button from "../ui/Button";
 import Select from "../ui/Select";
 
@@ -63,13 +60,14 @@ const CreateAppointmentModal = ({
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
 
-  const [services, setServices] = useState<Service[]>([]);
-  const [nailists, setNailists] = useState<NailArtist[]>([]);
-  const [timeSlots, setTimeSlots] = useState<string[]>([]);
-  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
-  const [dayOffs, setDayOffs] = useState<number[]>([]);
-  const [customOffs, setCustomOffs] = useState<string[]>([]);
-  const [fullyBookedDates, setFullyBookedDates] = useState<string[]>([]);
+  const queryClient = useQueryClient();
+  // The services and artists, shared with the booking pages (cached)
+  const servicesQuery = useQuery(publicQueries.services());
+  const nailistsQuery = useQuery(bookingQueries.artists(0));
+  const services = useMemo(() => (servicesQuery.data ?? []) as unknown as Service[], [servicesQuery.data]);
+  const nailists = useMemo(() => (Array.isArray(nailistsQuery.data) ? nailistsQuery.data : []) as unknown as NailArtist[], [nailistsQuery.data]);
+  const loadingServices = servicesQuery.isPending;
+  const loadingNailists = nailistsQuery.isPending;
 
   const [serviceId, setServiceId] = useState("");
   const [nailistId, setNailistId] = useState("");
@@ -77,9 +75,6 @@ const CreateAppointmentModal = ({
   const [appointmentTime, setAppointmentTime] = useState("");
   const [month, setMonth] = useState(new Date());
 
-  const [loadingServices, setLoadingServices] = useState(false);
-  const [loadingNailists, setLoadingNailists] = useState(false);
-  const [loadingSlots, setLoadingSlots] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const [message, setMessage] = useState("");
@@ -93,6 +88,11 @@ const CreateAppointmentModal = ({
     () => nailists.find((nailist) => nailist.id === Number(nailistId)),
     [nailists, nailistId],
   );
+
+  // The artist's hours, days off, fully booked days (one request) and the chosen day's taken
+  // times, the same queries the booking pages use
+  const { timeSlots, loadingTimes: loadingSlots, dayOffs, customOffs, fullyBookedDates, bookedSlots, isDayFullyBooked, fetchTakenTimes } =
+    useArtistAvailability(selectedNailist?.id, appointmentDate);
 
   const artistServices = useMemo(() => {
     if (!selectedNailist) return services;
@@ -139,14 +139,6 @@ const CreateAppointmentModal = ({
     return rangeA.start < rangeB.end && rangeB.start < rangeA.end;
   };
 
-  const isDayFullyBooked = (booked: string[]) => {
-    if (timeSlots.length === 0) return false;
-  
-    return timeSlots.every((slot) =>
-      booked.some((bookedSlot) => isOverlapping(bookedSlot, slot))
-    );
-  };
-
   const isDisabledDate = (date: Date) => {
     if (selectedNailist) {
       if (dayOffs.includes(date.getDay())) return true;
@@ -182,154 +174,24 @@ const CreateAppointmentModal = ({
   };
 
   useEffect(() => {
-    const loadServices = async () => {
-      try {
-        setLoadingServices(true);
-
-        const res = await fetch(`${API_BASE_URL}/services`, {
-          headers: { "x-clawholics-origin": "frontend" }
-        });
-
-        if (!res.ok) {
-          throw new Error("Failed to fetch services");
-        }
-
-        const data = await res.json();
-
-        setServices(data);
-      } catch (err) {
-        console.error(err);
-        setMessage("Failed to load services.");
-      } finally {
-        setLoadingServices(false);
-      }
-    };
-
-    const loadNailists = async () => {
-      try {
-        setLoadingNailists(true);
-
-        const data = await fetchNailists();
-
-        setNailists(data);
-      } catch (err) {
-        console.error(err);
-        setMessage("Failed to load nail artists.");
-      } finally {
-        setLoadingNailists(false);
-      }
-    };
-
-    loadServices();
-    loadNailists();
-  }, []);
+    if (servicesQuery.isError) {
+      console.error(servicesQuery.error);
+      setMessage("Failed to load services.");
+    }
+  }, [servicesQuery.isError, servicesQuery.error]);
 
   useEffect(() => {
-    const loadNailistAvailability = async () => {
-      try {
-        setAppointmentDate("");
-        setAppointmentTime("");
-        setBookedSlots([]);
-        setTimeSlots([]);
-        setDayOffs([]);
-        setCustomOffs([]);
-        setFullyBookedDates([]);
+    if (nailistsQuery.isError) {
+      console.error(nailistsQuery.error);
+      setMessage("Failed to load nail artists.");
+    }
+  }, [nailistsQuery.isError, nailistsQuery.error]);
 
-        if (!selectedNailist) return;
-
-        setLoadingSlots(true);
-
-        const slots = await fetchNailistTimeSlots(selectedNailist.id);
-        const offs = await fetchNailistDayOffs(selectedNailist.id);
-
-        setTimeSlots(
-          slots.map((slot: any) =>
-            typeof slot === "string"
-              ? slot
-              : `${slot.start_time}-${slot.end_time}`
-          )
-        );        setDayOffs(offs.regularDays || []);
-        setCustomOffs(offs.customDates || []);
-      } catch (err) {
-        console.error(err);
-        setMessage("Failed to load nail artist availability.");
-      } finally {
-        setLoadingSlots(false);
-      }
-    };
-
-    loadNailistAvailability();
-  }, [selectedNailist]);
-
+  // Another artist: their days and times are different
   useEffect(() => {
-    const loadMonthAvailability = async () => {
-      if (!selectedNailist || timeSlots.length === 0) return;
-
-      const start = new Date();
-      const end = new Date();
-
-      end.setMonth(end.getMonth() + 1);
-
-      const promises = [];
-
-      for (
-        let date = new Date(start);
-        date <= end;
-        date.setDate(date.getDate() + 1)
-      ) {
-        const formatted = toLocalDateString(date);
-
-        promises.push(
-          fetchBookedSlotsDetailed(selectedNailist.id, formatted).then(
-            (slots) => ({
-              date: formatted,
-              times: slots.map(
-                (slot: { appointment_time: string }) =>
-                  slot.appointment_time,
-              ),
-            }),
-          ),
-        );
-      }
-
-      const results = await Promise.all(promises);
-
-      const dates = results
-      .filter((result) => isDayFullyBooked(result.times))
-      .map((result) => result.date);
-
-      setFullyBookedDates(dates);
-    };
-
-    loadMonthAvailability();
-  }, [selectedNailist, timeSlots]);
-
-  useEffect(() => {
-    const loadBookedSlots = async () => {
-      try {
-        setAppointmentTime("");
-        setBookedSlots([]);
-
-        if (!selectedNailist || !appointmentDate) return;
-
-        const booked = await fetchBookedSlotsDetailed(
-          selectedNailist.id,
-          appointmentDate,
-        );
-
-        setBookedSlots(
-          booked.map(
-            (slot: { appointment_time: string }) => slot.appointment_time,
-          ),
-        );
-      } catch (err) {
-        console.error(err);
-        setMessage("Failed to load booked slots.");
-      }
-    };
-
-    loadBookedSlots();
-  }, [selectedNailist, appointmentDate]);
+    setAppointmentDate("");
+    setAppointmentTime("");
+  }, [selectedNailist?.id]);
 
   const resetMessage = () => {
     if (message) setMessage("");
@@ -344,22 +206,14 @@ const CreateAppointmentModal = ({
     setAppointmentTime("");
     resetMessage();
   
-    if (!selectedNailist || timeSlots.length === 0) {
-      setBookedSlots([]);
-      return;
-    }
-  
-    const slots = await fetchBookedSlotsDetailed(selectedNailist.id, formatted);
-    const times = slots.map(
-      (slot: { appointment_time: string }) => slot.appointment_time,
-    );
-  
+    if (!selectedNailist || timeSlots.length === 0) return;
+
+    // Asked fresh, and kept for the day's time list
+    const times = await fetchTakenTimes(formatted);
+
     if (isDayFullyBooked(times)) {
       setMessage("This day is already fully booked.");
-      return;
     }
-  
-    setBookedSlots(times);
   };
 
   const handleSubmit = async () => {
@@ -382,14 +236,9 @@ const CreateAppointmentModal = ({
         return;
       }
 
-      const latest = await fetchBookedSlotsDetailed(
-        selectedNailist.id,
-        appointmentDate,
-      );
+      const latest = await fetchTakenTimes(appointmentDate);
 
-      const conflict = latest.some((slot: { appointment_time: string }) =>
-        isOverlapping(appointmentTime, slot.appointment_time),
-      );
+      const conflict = latest.some((taken) => isOverlapping(appointmentTime, taken));
 
       if (conflict) {
         setMessage("This time slot was just booked. Please select another.");
@@ -411,6 +260,8 @@ const CreateAppointmentModal = ({
       };
 
       await createAdminAppointment(payload);
+      // The new booking shows on every admin screen
+      void adminDataChanged(queryClient);
 
       onCreated();
     } catch (err: any) {

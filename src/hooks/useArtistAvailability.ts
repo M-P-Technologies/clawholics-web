@@ -21,7 +21,8 @@ function bookableRange() {
 export function useArtistAvailability(nailistId: number | null | undefined, selectedDate: string) {
   const queryClient = useQueryClient();
   const id = nailistId ?? 0;
-  const timeSlots = useQuery({ ...bookingQueries.timeSlots(id), enabled: !!nailistId }).data ?? NONE;
+  const timeSlotsQuery = useQuery({ ...bookingQueries.timeSlots(id), enabled: !!nailistId });
+  const timeSlots = timeSlotsQuery.data ?? NONE;
   const dayOffs = useQuery({ ...bookingQueries.dayOffs(id), enabled: !!nailistId }).data;
   const { from, to } = bookableRange();
   // Without it the calendar just marks no day as full: picking one still checks that day
@@ -51,6 +52,8 @@ export function useArtistAvailability(nailistId: number | null | undefined, sele
 
   return {
     timeSlots,
+    /** The chosen artist's hours are on their way */
+    loadingTimes: !!nailistId && timeSlotsQuery.isPending,
     dayOffs: dayOffs?.regularDays ?? NONE,
     customOffs: dayOffs?.customDates ?? NONE,
     fullyBookedDates,
