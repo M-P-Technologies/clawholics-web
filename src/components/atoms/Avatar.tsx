@@ -5,6 +5,7 @@ const SIZE = {
   md: "h-9 w-9 text-sm",
   lg: "h-12 w-12 text-lg",
   xl: "h-16 w-16 text-2xl",
+  hero: "aspect-square h-24 w-24 text-3xl shadow-petal ring-4 ring-milk",
 } as const;
 
 /** "Ana Maria Cruz" → "AM" */

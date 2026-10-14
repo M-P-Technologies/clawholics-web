@@ -4,8 +4,8 @@ import clsx from "clsx";
 import { useTableLayout } from "../../../hooks/useMinWidth";
 import { percent } from "../../../lib/dashboardFormat";
 import { addDays, manilaToday, resolvePeriod } from "../../../lib/dashboardPeriods";
-import type { ArtistUtilization as ArtistRow, Utilization, UtilizationDay } from "../../../services/dashboardTypes";
-import { Button } from "@/components/atoms";
+import type { Utilization, UtilizationDay } from "../../../services/dashboardTypes";
+import { Avatar, Button } from "@/components/atoms";
 import { CARDS_PER_PAGE, RowCard, RowCards } from "@/components/organisms";
 import { Pagination, paginate } from "@/components/molecules";
 
@@ -36,18 +36,6 @@ function describe(day: UtilizationDay, dayName: string) {
     return { label: `${dayName}: no slots${day.booked > 0 ? `, ${day.booked} booked` : ""}`, text: day.booked > 0 ? `${day.booked} booked` : "–" };
   }
   return { label: `${dayName}: ${day.booked} of ${day.offered} slots booked`, text: `${day.booked}/${day.offered}` };
-}
-
-function Avatar({ artist }: { artist: ArtistRow }) {
-  if (artist.image) {
-    // eslint-disable-next-line @next/next/no-img-element -- R2 images, sized by CSS like the rest of the admin
-    return <img src={artist.image} alt={artist.name} className="h-9 w-9 shrink-0 rounded-full object-cover" />;
-  }
-  return (
-    <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-crimson-light/50 font-display text-base text-berry">
-      {artist.name.charAt(0).toUpperCase()}
-    </span>
-  );
 }
 
 // How full each artist's week is: booked of offered slots per day, a week rate per artist and
@@ -129,7 +117,7 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
                 {cards.rows.map((artist) => (
                   <RowCard key={artist.id}>
                     <div className="flex items-center gap-2.5">
-                      <Avatar artist={artist} />
+                      <Avatar name={artist.name} imageUrl={artist.image ?? ""} size="md" decorative={!artist.image} />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-bold">{artist.name}</span>
                         {artist.title && <span className="block truncate text-[12px] text-gray-red/70">{artist.title}</span>}
@@ -192,7 +180,7 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
                   <tr key={artist.id}>
                     <th scope="row" className="sticky left-0 z-10 border-t border-dotted border-crimson-light bg-milk py-3 pr-3 text-left font-normal">
                       <span className="flex items-center gap-2.5">
-                        <Avatar artist={artist} />
+                        <Avatar name={artist.name} imageUrl={artist.image ?? ""} size="md" decorative={!artist.image} />
                         <span className="min-w-0">
                           <span className="block truncate font-bold">{artist.name}</span>
                           {artist.title && <span className="block truncate text-[12px] text-gray-red/70">{artist.title}</span>}

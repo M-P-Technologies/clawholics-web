@@ -7,7 +7,7 @@ import clsx from "clsx";
 import { Link } from "../../lib/router";
 import type { DirectoryUser } from "../../services/directoryService";
 import { parseServerTime } from "../../services/serverTime";
-import { Button, initialsOf } from "@/components/atoms";
+import { Avatar, Button } from "@/components/atoms";
 
 export type { DirectoryUser };
 
@@ -138,21 +138,7 @@ export default function DirectoryProfileCard({
 
       <div className="flex w-full flex-col items-center gap-4 px-6 pb-6">
         <div className="-mt-12">
-          {profile?.imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element -- Clerk's image host, sized by CSS like the rest of the admin
-            <img
-              src={profile.imageUrl}
-              alt={name}
-              className="aspect-square w-24 rounded-full object-cover shadow-petal ring-4 ring-milk"
-            />
-          ) : (
-            <span
-              aria-hidden="true"
-              className="flex aspect-square w-24 items-center justify-center rounded-full bg-crimson-light font-display text-3xl text-berry shadow-petal ring-4 ring-milk"
-            >
-              {initialsOf(name)}
-            </span>
-          )}
+          <Avatar name={name} imageUrl={profile?.imageUrl ?? ""} size="hero" decorative={!profile?.imageUrl} />
         </div>
 
         <div className="flex flex-col items-center gap-1.5">

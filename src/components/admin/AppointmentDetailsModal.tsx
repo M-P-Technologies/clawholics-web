@@ -2,7 +2,7 @@ import { ArrowUpRight, X as CloseIconLucide } from "lucide-react";
 import { useId, type ReactNode } from "react";
 import type { Appointment, AppointmentStatus } from "../../services/appointmentService";
 import { Link } from "../../lib/router";
-import { Button, Select, initialsOf } from "@/components/atoms";
+import { Avatar, Button, Select } from "@/components/atoms";
 import { Dialog } from "@/components/organisms";
 import ClientNotesPanel from "./ClientNotesPanel";
 import ProofReviewPanel from "./ProofReviewPanel";
@@ -56,9 +56,7 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
       placement="drawer"
       header={
         <div className="flex shrink-0 items-start gap-3 border-b border-crimson-light/50 px-5 py-4">
-          <span aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-crimson-light/60 font-display text-lg text-berry">
-            {initialsOf(customerName)}
-          </span>
+          <Avatar name={customerName} size="lg" decorative />
           <div className="min-w-0 flex-1">
             <p className="text-[12px] font-medium text-gray-red/70">Appointment #{appointment.id}</p>
             <h3 id={titleId} className="truncate font-display text-2xl font-normal normal-case leading-tight tracking-normal text-gray-red">

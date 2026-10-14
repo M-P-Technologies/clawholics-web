@@ -26,6 +26,12 @@ describe("Avatar", () => {
     const { container } = render(<Avatar name="Ana" size="xl" />);
     expect((container.firstChild as HTMLElement).className).toContain("h-16");
   });
+  it("has a hero size with a ring", () => {
+    const { container } = render(<Avatar name="Ana Cruz" size="hero" />);
+    const cls = (container.firstChild as HTMLElement).className;
+    expect(cls).toContain("h-24");
+    expect(cls).toContain("ring-4");
+  });
   it("makes initials from up to two words", () => {
     expect(initialsOf("ana maria cruz")).toBe("AM");
     expect(initialsOf("  ")).toBe("");
