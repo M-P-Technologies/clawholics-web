@@ -7,6 +7,7 @@ import {
   type AppointmentSort,
   cancelExpiredPendingAppointments,
   getAppointment,
+  holdsSlot,
   isEligibleForChanges,
   isServiceBookable,
   isSlotConflict,
@@ -58,15 +59,19 @@ export const getBookingNailists = ported(async (req) => {
   `);
 });
 
-// GET /booking/slots-detailed and /appointments/booked-slots (public): taken times only.
+// GET /booking/slots-detailed and /appointments/booked-slots (public): taken times only, by
+// holdsSlot. Unpaid holds past their 5 minutes are released first, as booking does before its
+// check, so the calendar offers what booking allows.
 export const getBookedSlots = ported(async (req) => {
   const params = new URL(req.url).searchParams;
   const nailistId = toId(params.get("nailist_id"));
   const date = params.get("date");
   if (nailistId === null || !date) return Response.json([]);
-  return Response.json(await getSql()`
+  await cancelExpiredPendingAppointments();
+  const sql = getSql();
+  return Response.json(await sql`
     select appointment_time from appointments
-    where nailist_id = ${nailistId} and appointment_date = ${date} and upper(status) in ('PENDING', 'CONFIRMED')
+    where nailist_id = ${nailistId} and appointment_date = ${date} and ${sql.unsafe(holdsSlot())}
   `);
 });
 
@@ -89,10 +94,11 @@ export const getBookedSlotsRange = ported(async (req) => {
   if (!(days <= MAX_SLOTS_RANGE_DAYS)) {
     return Response.json({ error: `The range can be at most ${MAX_SLOTS_RANGE_DAYS} days` }, { status: 400 });
   }
-  return Response.json(await getSql()`
+  await cancelExpiredPendingAppointments();
+  const sql = getSql();
+  return Response.json(await sql`
     select appointment_date, appointment_time from appointments
-    where nailist_id = ${nailistId} and appointment_date between ${from} and ${to}
-      and upper(status) in ('PENDING', 'CONFIRMED')
+    where nailist_id = ${nailistId} and appointment_date between ${from} and ${to} and ${sql.unsafe(holdsSlot())}
     order by appointment_date, appointment_time
   `);
 });
@@ -131,7 +137,7 @@ export const createBooking = ported(async (req) => {
   const [taken] = await sql`
     select 1 from appointments
     where nailist_id = ${nailistId} and appointment_date = ${String(b.appointment_date)} and appointment_time = ${String(b.appointment_time)}
-      and upper(trim(status)) not in ('CANCELLED', 'CANCELED', 'REFUNDED')
+      and ${sql.unsafe(holdsSlot())}
   `;
   if (taken) return Response.json(SLOT_TAKEN, { status: 409 });
 
@@ -180,7 +186,7 @@ export const createAdminBooking = ported(async (req) => {
   const [taken] = await sql`
     select 1 from appointments
     where nailist_id = ${nailistId} and appointment_date = ${String(appointment_date)} and appointment_time = ${String(appointment_time)}
-      and upper(trim(status)) not in ('CANCELLED', 'CANCELED', 'REFUNDED')
+      and ${sql.unsafe(holdsSlot())}
   `;
   if (taken) return Response.json(slotTaken, { status: 409 });
 

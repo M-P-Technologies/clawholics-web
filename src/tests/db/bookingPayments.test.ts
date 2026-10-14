@@ -256,6 +256,55 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       }
     });
 
+    it("TC-BK-08d: a booking awaiting proof (or completed) holds its slot, as booking it again is refused", async () => {
+      const date = nextDate();
+      const { body: proof } = await book("user_a", date, "1:00 PM");
+      await db`update appointments set status = 'AWAITING_PROOF' where id = ${proof.appointment_id}`;
+      const { body: done } = await book("user_b", date, "4:00 PM");
+      await db`update appointments set status = 'COMPLETED' where id = ${done.appointment_id}`;
+      const { body: refunded } = await book("user_a", date, "6:00 PM");
+      await db`update appointments set status = 'REFUNDED' where id = ${refunded.appointment_id}`;
+
+      as(null);
+      const day = await callRoute(booking.getBookedSlots, `/api/booking/slots-detailed?nailist_id=${nailistId}&date=${date}`);
+      expect(day.body.map((s: { appointment_time: string }) => s.appointment_time).sort()).toEqual(["1:00 PM", "4:00 PM"]);
+      const range = await callRoute(booking.getBookedSlotsRange, `/api/booking/slots-range?nailist_id=${nailistId}&from=${date}&to=${date}`);
+      expect(range.body.map((s: { appointment_time: string }) => s.appointment_time).sort()).toEqual(["1:00 PM", "4:00 PM"]);
+
+      // What the slots show is what booking allows: the held slot is refused, the refunded one isn't
+      const refused = await book("user_b", date, "1:00 PM");
+      expect(refused.status).toBe(409);
+      // The taken slot's refusal, not another 409 (such as an unpaid booking already open)
+      expect(refused.body).toEqual({ error: true, message: "Time slot already booked" });
+      const freed = await book("user_b", date, "6:00 PM");
+      expect(freed.status).toBe(200);
+      expect(freed.body.appointment_id).toBeDefined();
+      await db`update appointments set status = 'CANCELLED' where id = ${freed.body.appointment_id}`;
+
+      // The admin's Schedule shows the booking awaiting proof
+      as("user_admin");
+      const schedule = await callRoute(booking.getSchedule, `/api/booking/schedule?month=${date.slice(0, 7)}`);
+      const ids = schedule.body.appointments.map((a: { id: number }) => a.id);
+      expect(ids).toContain(proof.appointment_id);
+      expect(ids).toContain(done.appointment_id);
+      expect(ids).not.toContain(refunded.appointment_id);
+
+      // Leave no active booking behind for the tests after this one
+      await db`update appointments set status = 'CANCELLED' where id in ${db([proof.appointment_id, done.appointment_id])}`;
+    });
+
+    it("TC-BK-08e: an unpaid hold past its 5 minutes is released before the slots are listed", async () => {
+      const date = nextDate();
+      const { body } = await book("user_a", date, "2:00 PM");
+      await db`update appointments set expires_at = '2000-01-01T00:00:00.000Z' where id = ${body.appointment_id}`;
+      as(null);
+      const day = await callRoute(booking.getBookedSlots, `/api/booking/slots-detailed?nailist_id=${nailistId}&date=${date}`);
+      expect(day.body).toEqual([]);
+      expect(await statusOf(body.appointment_id)).toBe("CANCELLED");
+      const range = await callRoute(booking.getBookedSlotsRange, `/api/booking/slots-range?nailist_id=${nailistId}&from=${date}&to=${date}`);
+      expect(range.body).toEqual([]);
+    });
+
     it("TC-BK-09: reschedule is owner-only and refuses a taken slot", async () => {
       const takenDate = nextDate();
       await book("user_b", takenDate, "11:00 AM");
