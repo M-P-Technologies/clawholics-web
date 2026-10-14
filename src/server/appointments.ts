@@ -82,6 +82,87 @@ export function listAppointments(statuses: string[] | null) {
   `;
 }
 
+/** The orders the admin lists offer; times are zero-padded "HH:MM-HH:MM" and dates YYYY-MM-DD */
+export const APPOINTMENT_SORTS = {
+  upcoming: "a.appointment_date asc, a.appointment_time asc, a.id asc",
+  latest: "a.appointment_date desc, a.appointment_time desc, a.id asc",
+  booked_newest: "a.created_at desc, a.id desc",
+  booked_oldest: "a.created_at asc, a.id asc",
+} as const;
+export type AppointmentSort = keyof typeof APPOINTMENT_SORTS;
+
+export interface AppointmentPageQuery {
+  /** Upper-case statuses to include; none means every status */
+  statuses: string[];
+  /** Only appointments whose payment proof is waiting for review (the dashboard's "Proofs to review") */
+  proofToReview: boolean;
+  /** Only this day, or this day and later (YYYY-MM-DD) */
+  on: string | null;
+  from: string | null;
+  /** The artist's name, as the list shows it */
+  artist: string | null;
+  /** Matched against the id ("12" or "#12"), the client's name and email, the service and the artist */
+  search: string | null;
+  sort: AppointmentSort;
+  page: number;
+  pageSize: number;
+}
+
+/** The latest proof, as the proof badge reads it (latest_proof on the frontend's Appointment) */
+const LATEST_PROOF = `(
+  select json_build_object('id', pp.id, 'status', pp.status, 'image_url', pp.image_url, 'admin_note', pp.admin_note, 'created_at', pp.created_at)
+  from payment_proofs pp where pp.appointment_id = a.id order by pp.created_at desc, pp.id desc limit 1
+)`;
+/** The client's completed visits, which the list used to count from every appointment it loaded */
+const CLIENT_VISITS = `(select count(*)::int from appointments v where v.user_id = a.user_id and upper(trim(v.status)) = 'COMPLETED')`;
+
+// APPOINTMENT_SELECT's FROM and joins (for the count, so it filters the same rows), and its
+// columns plus the two above. All constants: no input goes into them.
+const FROM_START = APPOINTMENT_SELECT.indexOf("from appointments a");
+const APPOINTMENT_FROM = APPOINTMENT_SELECT.slice(FROM_START);
+const PAGE_SELECT = `${APPOINTMENT_SELECT.slice(0, FROM_START)}, ${LATEST_PROOF} as latest_proof, ${CLIENT_VISITS} as client_visits
+  ${APPOINTMENT_FROM}`;
+
+/**
+ * One page of the admin appointment list, filtered, searched and sorted here instead of in the
+ * browser (the list used to send every appointment to show five), with the total that matches.
+ * Each row also carries `latest_proof` and `client_visits`.
+ */
+export async function listAppointmentPage(query: AppointmentPageQuery) {
+  const sql = getSql();
+  const like = query.search ? `%${query.search.replace(/[\\%_]/g, (c) => `\\${c}`)}%` : null;
+  const conditions = [
+    query.statuses.length > 0 ? sql`upper(trim(a.status)) in ${sql(query.statuses)}` : null,
+    // As the dashboard counts them: waiting for proof, with the latest proof still pending
+    query.proofToReview
+      ? sql`upper(trim(a.status)) = 'AWAITING_PROOF' and (select pp.status from payment_proofs pp where pp.appointment_id = a.id order by pp.created_at desc, pp.id desc limit 1) = 'PENDING'`
+      : null,
+    query.on ? sql`a.appointment_date = ${query.on}` : null,
+    query.from ? sql`a.appointment_date >= ${query.from}` : null,
+    query.artist ? sql`coalesce(n.name, a.nailist_name) = ${query.artist}` : null,
+    like
+      ? sql`(
+          a.id::text ilike ${like} or ('#' || a.id::text) ilike ${like}
+          or trim(coalesce(a.walkin_first_name, ap.first_name, cp.first_name, '') || ' ' || coalesce(a.walkin_last_name, ap.last_name, cp.last_name, '')) ilike ${like}
+          or coalesce(a.walkin_email, u.email, '') ilike ${like}
+          or a.service_name ilike ${like}
+          or coalesce(n.name, a.nailist_name) ilike ${like}
+        )`
+      : null,
+  ].filter((condition) => condition !== null);
+  const where = conditions.length > 0 ? sql`where ${conditions.reduce((acc, c) => sql`${acc} and ${c}`)}` : sql``;
+
+  const [rows, [{ total }]] = await Promise.all([
+    sql<AppointmentRow[]>`
+      ${sql.unsafe(PAGE_SELECT)} ${where}
+      order by ${sql.unsafe(APPOINTMENT_SORTS[query.sort])}
+      limit ${query.pageSize} offset ${(query.page - 1) * query.pageSize}
+    `,
+    sql<{ total: number }[]>`select count(*)::int as total ${sql.unsafe(APPOINTMENT_FROM)} ${where}`,
+  ]);
+  return { rows: [...rows], total };
+}
+
 export function listAppointmentsBetween(start: string, end: string) {
   const sql = getSql();
   return sql<AppointmentRow[]>`

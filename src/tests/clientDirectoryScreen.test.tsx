@@ -2,6 +2,8 @@ import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ClientDirectory from "@/admin/front-desk/ClientDirectory";
 import type { Appointment } from "@/services/appointmentService";
+import { pageOf } from "./fakeAppointmentPages";
+import type { AppointmentPageParams } from "@/services/appointmentService";
 
 let params = new URLSearchParams();
 vi.mock("@/lib/router", async (importOriginal) => ({
@@ -32,9 +34,13 @@ vi.mock("@/services/dashboardService", async (importOriginal) => ({
 }));
 vi.mock("@/services/appointmentService", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/services/appointmentService")>()),
-  fetchAppointments: async (): Promise<Appointment[]> => [
-    { id: 11, user_id: 5, first_name: "Ana", last_name: "Cruz", email: "ana@x.test", phone: "09171234567", service_name: "Gel", nailist_name: "Maxine", appointment_date: "2026-11-02", appointment_time: "10:00-11:00", status: "CONFIRMED" },
-  ],
+  fetchAppointmentPage: async (params: AppointmentPageParams) =>
+    pageOf(
+      [
+        { id: 11, user_id: 5, first_name: "Ana", last_name: "Cruz", email: "ana@x.test", phone: "09171234567", service_name: "Gel", nailist_name: "Maxine", appointment_date: "2026-11-02", appointment_time: "10:00-11:00", status: "CONFIRMED" },
+      ] as Appointment[],
+      params,
+    ),
 }));
 
 beforeEach(() => {

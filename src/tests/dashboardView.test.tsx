@@ -2,6 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import DashboardView from "@/components/admin/dashboard/DashboardView";
 import { dashboardData } from "./dashboardFixture";
+import { paged } from "./fakeAppointmentPages";
 
 vi.mock("@/lib/router", () => ({
   Link: ({ to, children, ...rest }: { to: string; children: React.ReactNode }) => <a href={to} {...rest}>{children}</a>,
@@ -95,7 +96,7 @@ describe("DashboardView layout", () => {
   });
 
   it("keeps only the essentials: the stat cards, the notes, two charts and the bookings", async () => {
-    render(<DashboardView data={data} loadBookings={async () => []} />);
+    render(<DashboardView data={data} loadBookings={paged(async () => [])} />);
     for (const name of ["Salon notes", "Bookings per month", "Service mix"]) expect(screen.getByRole("region", { name })).toBeInTheDocument();
     expect(await screen.findByRole("region", { name: "Bookings" })).toBeInTheDocument();
     expect(await screen.findByRole("region", { name: "Active bookings" })).toBeInTheDocument();
@@ -116,7 +117,7 @@ describe("DashboardView layout", () => {
 describe("DashboardView: bookings", () => {
   it("shows the bookings table in place of the next-appointments list, and today's bookings under the notes", async () => {
     const load = async () => [];
-    render(<DashboardView data={data} loadBookings={load} />);
+    render(<DashboardView data={data} loadBookings={paged(load)} />);
     expect(await screen.findByRole("region", { name: "Bookings" })).toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "Next appointments" })).toBeNull();
     const notes = screen.getByRole("region", { name: "Salon notes" });

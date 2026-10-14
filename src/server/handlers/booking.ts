@@ -1,7 +1,10 @@
 import "server-only";
 import {
+  APPOINTMENT_SORTS,
   ARTIST_SERVICE_MISMATCH,
   SERVICE_PRICE_SQL,
+  listAppointmentPage,
+  type AppointmentSort,
   cancelExpiredPendingAppointments,
   getAppointment,
   isEligibleForChanges,
@@ -232,14 +235,50 @@ export const createAdminBooking = ported(async (req) => {
   return Response.json(appt, { status: 201 });
 });
 
+/** The most rows one page of the admin list returns */
+export const MAX_APPOINTMENT_PAGE_SIZE = 50;
+const DAY = /^\d{4}-\d{2}-\d{2}$/;
+
 // GET /booking/appointments and /appointments[?status=A,B] (admin): every appointment.
+// With ?page=N it answers one page instead, as { rows, total, page, pageSize }, filtered by
+// status (A,B), proof=review, on or from (YYYY-MM-DD), artist and q, and sorted by
+// sort=upcoming|latest|booked_newest|booked_oldest; pageSize is 1-50 (default 10).
 export const listAllAppointments = ported(async (req) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   await cancelExpiredPendingAppointments();
-  const status = new URL(req.url).searchParams.get("status");
-  const statuses = status ? status.split(",").map((s) => s.trim().toUpperCase()) : null;
-  return Response.json(await listAppointments(statuses));
+  const params = new URL(req.url).searchParams;
+  const status = params.get("status");
+  const statuses = status ? status.split(",").map((s) => s.trim().toUpperCase()).filter(Boolean) : null;
+  if (!params.has("page")) return Response.json(await listAppointments(statuses));
+
+  const page = Number(params.get("page"));
+  const pageSize = params.has("pageSize") ? Number(params.get("pageSize")) : 10;
+  const sort = params.get("sort") ?? "upcoming";
+  const on = params.get("on");
+  const from = params.get("from");
+  if (!Number.isInteger(page) || page < 1 || !Number.isInteger(pageSize) || pageSize < 1 || pageSize > MAX_APPOINTMENT_PAGE_SIZE) {
+    return Response.json({ error: `page must be 1 or more, and pageSize 1 to ${MAX_APPOINTMENT_PAGE_SIZE}` }, { status: 400 });
+  }
+  if (!Object.hasOwn(APPOINTMENT_SORTS, sort)) {
+    return Response.json({ error: `sort must be one of ${Object.keys(APPOINTMENT_SORTS).join(", ")}` }, { status: 400 });
+  }
+  if ((on && !DAY.test(on)) || (from && !DAY.test(from))) {
+    return Response.json({ error: "on and from must be dates (YYYY-MM-DD)" }, { status: 400 });
+  }
+
+  const result = await listAppointmentPage({
+    statuses: statuses ?? [],
+    proofToReview: params.get("proof") === "review",
+    on,
+    from,
+    artist: params.get("artist")?.trim() || null,
+    search: params.get("q")?.trim() || null,
+    sort: sort as AppointmentSort,
+    page,
+    pageSize,
+  });
+  return Response.json({ ...result, page, pageSize });
 });
 
 // GET /booking/appointments/:id and /appointments/:id (owner or admin)

@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Dashboard from "@/admin/overview/Dashboard";
 import Sales from "@/admin/overview/Sales";
 import type { DashboardResponse } from "@/services/dashboardTypes";
+import { pageOf } from "./fakeAppointmentPages";
+import type { Appointment, AppointmentPageParams } from "@/services/appointmentService";
 
 const fetchDashboard = vi.fn();
 vi.mock("@/services/dashboardService", () => ({
@@ -14,6 +16,7 @@ vi.mock("@/services/dashboardService", () => ({
 vi.mock("@/services/appointmentService", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/services/appointmentService")>()),
   fetchAppointments: (...args: unknown[]) => fetchAppointments(...args),
+  fetchAppointmentPage: async (params: AppointmentPageParams) => pageOf((await fetchAppointments()) as Appointment[], params),
 }));
 // The bookings table: Dana's upcoming visit (far ahead, so it is upcoming whatever today is)
 const fetchAppointments = vi.fn(async (..._args: unknown[]) => [
@@ -184,7 +187,7 @@ describe("Dashboard", () => {
         outcomes: { confirmed: 0, completed: 0, pending: 0, cancelled: 0, refunded: 0 },
       }),
     );
-    fetchAppointments.mockResolvedValueOnce([]);
+    fetchAppointments.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
     render(<Dashboard />);
     expect(await screen.findByText("No upcoming bookings.")).toBeInTheDocument();
     expect(screen.getAllByText(/Nothing to show yet|No bookings/).length).toBeGreaterThan(0);

@@ -1,10 +1,13 @@
 "use client";
 
 import { useAuth, useUser } from "@clerk/nextjs";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { DEFAULT_RANGE, type DashboardRange } from "../../lib/dashboardPeriods";
-import { fetchAppointments, type Appointment } from "../../services/appointmentService";
+import { fetchAppointmentPage, type AppointmentPage, type AppointmentPageParams } from "../../services/appointmentService";
+
+/** Loads one page of the admin appointment list */
+export type BookingsLoader = (params: AppointmentPageParams) => Promise<AppointmentPage>;
 import { fetchDashboard, fetchUtilization } from "../../services/dashboardService";
 import type { DashboardResponse } from "../../services/dashboardTypes";
 
@@ -53,18 +56,15 @@ export function useDashboardReport(title: string) {
   };
 }
 
-// The dashboard's bookings table and today's bookings share one request; a failed one is asked again
+// Loads one page of bookings for the dashboard's bookings table and today's bookings (each asks
+// the server for just what it shows, instead of sharing the whole list)
 export function useBookingsLoader() {
   const { getToken } = useAuth();
   const { user } = useUser();
-  const bookings = useRef<Promise<Appointment[]> | null>(null);
-  return useCallback(() => {
-    bookings.current ??= (async () => fetchAppointments(undefined, await getToken(), user?.id))().catch((error) => {
-      bookings.current = null;
-      throw error;
-    });
-    return bookings.current;
-  }, [getToken, user?.id]);
+  return useCallback(
+    async (params: AppointmentPageParams) => fetchAppointmentPage(params, await getToken(), user?.id),
+    [getToken, user?.id],
+  );
 }
 
 /** Loads the artist utilization of the week holding a date */

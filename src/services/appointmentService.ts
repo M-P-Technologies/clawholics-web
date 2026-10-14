@@ -35,7 +35,61 @@ export interface Appointment {
   proof_due_at?: string | null;
   latest_proof?: ProofSummary | null;
   is_walkin?: boolean | number | null;
+  /** The client's completed appointments (on rows of a page from fetchAppointmentPage) */
+  client_visits?: number;
 }
+
+export type AppointmentSort = "upcoming" | "latest" | "booked_newest" | "booked_oldest";
+
+/** One page of the admin list: which page, its size, and what narrows it */
+export interface AppointmentPageParams {
+  page: number;
+  pageSize: number;
+  /** Statuses to include; none means every status */
+  statuses?: string[];
+  /** Only appointments whose payment proof waits for review */
+  proofToReview?: boolean;
+  /** Only this day, or this day and later (YYYY-MM-DD) */
+  on?: string;
+  from?: string;
+  artist?: string;
+  search?: string;
+  sort?: AppointmentSort;
+}
+
+export interface AppointmentPage {
+  rows: Appointment[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+/** The first part of every admin appointment-page query's key: invalidating it refreshes all of
+ *  them (Clients & Bookings and the dashboard's tables) after a change */
+export const ADMIN_APPOINTMENTS_KEY = ["admin", "appointments"] as const;
+
+/** One page of the admin appointment list, filtered, searched and sorted by the server */
+export const fetchAppointmentPage = async (
+  params: AppointmentPageParams,
+  token?: string | null,
+  clerkId?: string | null,
+): Promise<AppointmentPage> => {
+  const query = new URLSearchParams({ page: String(params.page), pageSize: String(params.pageSize) });
+  if (params.statuses?.length) query.set("status", params.statuses.join(","));
+  if (params.proofToReview) query.set("proof", "review");
+  if (params.on) query.set("on", params.on);
+  if (params.from) query.set("from", params.from);
+  if (params.artist) query.set("artist", params.artist);
+  if (params.search?.trim()) query.set("q", params.search.trim());
+  if (params.sort) query.set("sort", params.sort);
+
+  const res = await fetch(`${BASE_URL}?${query}`, { headers: getHeaders(token, clerkId), cache: "no-store" });
+  if (!res.ok) {
+    if (res.status === 403) window.location.href = "/";
+    throw new Error("Failed to fetch appointments");
+  }
+  return res.json();
+};
 
 const getHeaders = (token?: string | null, clerkId?: string | null) => {
   const headers: Record<string, string> = {
