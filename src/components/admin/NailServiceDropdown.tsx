@@ -23,7 +23,7 @@ import ServicePricingFields, {
 } from "./ServicePricingFields";
 
 import { PHOTO_UPLOAD_OPTIONS, uploadImage } from "../../services/uploadService";
-import { useToast, EditActions } from "@/components/molecules";
+import { useToast, EditActions, SectionHeader } from "@/components/molecules";
 import { Button } from "@/components/atoms";
 import { ConfirmDialog } from "@/components/organisms";
 
@@ -46,17 +46,6 @@ type InputFieldProps = {
 };
 
 const MAX_IMAGES = 10;
-
-const CardTitle = ({ label }: { label: string }) => {
-  return (
-    <>
-      <div className="flex items-center justify-between">
-        <h3 className="text-[13px] font-medium text-gray-red/80">{label}</h3>
-      </div>
-
-    </>
-  );
-};
 
 const InputField = ({ label, value, onChange, isEditing }: InputFieldProps) => {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -476,7 +465,7 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
             />
 
             <div className="flex flex-col gap-1.5">
-              <CardTitle label={`Photos (${gallery.length}/${MAX_IMAGES})`} />
+              <SectionHeader size="card" level={3} title={`Photos (${gallery.length}/${MAX_IMAGES})`} />
               {gallery.length > 0 && (
                 <p className="mb-2 text-[13px] text-gray-red/80">The starred photo is the one shown for this service on the website.</p>
               )}

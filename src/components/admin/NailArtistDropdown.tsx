@@ -24,7 +24,7 @@ import {
 
 import { fetchServices, type NailService } from "../../services/serviceService";
 import { uploadImage } from "../../services/uploadService";
-import { useToast, EditActions } from "@/components/molecules";
+import { useToast, EditActions, SectionHeader } from "@/components/molecules";
 import { Button, Select } from "@/components/atoms";
 import { ConfirmDialog } from "@/components/organisms";
 
@@ -61,17 +61,6 @@ const WEEK_DAYS = [
   { label: "Sat", value: 6 },
   { label: "Sun", value: 0 },
 ];
-
-const CardTitle = ({ label }: { label: string }) => {
-  return (
-    <>
-      <div className="flex items-center justify-between">
-        <h3 className="text-[13px] font-medium text-gray-red/80">{label}</h3>
-      </div>
-
-    </>
-  );
-};
 
 const InputField = ({ label, value, onChange, isEditing }: InputFieldProps) => {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -267,7 +256,7 @@ const DayOffCard = ({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <CardTitle label="Day Off" />
+      <SectionHeader size="card" level={3} title="Day Off" />
 
       {isLoading ? (
         <p className="text-[15px] text-gray-red">Loading day offs...</p>
@@ -529,7 +518,7 @@ const TimeSlotCard = ({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <CardTitle label="Time Slots" />
+      <SectionHeader size="card" level={3} title="Time Slots" />
 
       {isLoading ? (
         <p className="text-[15px] text-gray-red">Loading time slots...</p>
@@ -1047,7 +1036,7 @@ const NailArtistDropdown: React.FC<NailArtistDropdownProps> = ({
             />
 
             <div className="flex flex-col gap-1.5">
-              <CardTitle label="Services Offered" />
+              <SectionHeader size="card" level={3} title="Services Offered" />
 
               {availableServices.length === 0 ? (
                 <p className="text-[15px] text-gray-red">
@@ -1095,7 +1084,7 @@ const NailArtistDropdown: React.FC<NailArtistDropdownProps> = ({
             />
 
             <div className="flex flex-col gap-1.5">
-              <CardTitle label="Photo" />
+              <SectionHeader size="card" level={3} title="Photo" />
 
               {image && (
                 <div className="flex items-center justify-between w-full min-h-[36px] bg-milk rounded-md px-4 py-1 mt-4 mb-1 overflow-visible border border-crimson-light">

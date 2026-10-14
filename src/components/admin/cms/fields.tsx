@@ -1,7 +1,7 @@
 import { ArrowUpRight, ImagePlus, Loader2, RefreshCw, Trash2 } from "lucide-react";
 import { useEffect, useId, type ComponentType, type ReactNode } from "react";
 import clsx from "clsx";
-import { Button, Select } from "@/components/atoms";
+import { Button, Input, Select, Textarea } from "@/components/atoms";
 import { Link } from "../../../lib/router";
 import { field } from "../../tokens";
 import { useCmsEditor } from "./CmsEditor";
@@ -60,9 +60,9 @@ export function TextField({ label, value, onChange, rows, hint, placeholder, typ
         {label}
       </label>
       {rows ? (
-        <textarea id={id} rows={rows} value={value} placeholder={placeholder} disabled={disabled} onChange={(e) => onChange(e.target.value)} className={clsx(fieldClass, "resize-y leading-relaxed")} />
+        <Textarea id={id} rows={rows} value={value} placeholder={placeholder} disabled={disabled} onChange={(e) => onChange(e.target.value)} className="min-h-0! resize-y leading-relaxed" />
       ) : (
-        <input id={id} type={type} value={value} placeholder={placeholder} disabled={disabled} onChange={(e) => onChange(e.target.value)} className={fieldClass} />
+        <Input id={id} type={type} value={value} placeholder={placeholder} disabled={disabled} onChange={(e) => onChange(e.target.value)} />
       )}
       {hint && <p className="text-[12px] leading-snug text-gray-red/60">{hint}</p>}
     </div>
