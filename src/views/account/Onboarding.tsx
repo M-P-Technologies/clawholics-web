@@ -8,7 +8,7 @@ import PageShell from "../../components/layout/PageShell";
 import Panel from "../../components/layout/Panel";
 import Section from "../../components/layout/Section";
 import FormField from "../../components/ui/FormField";
-import { errorTextClass, inputClass, labelClass } from "../../components/ui/styles";
+import { errorTextClass, inputClass, labelClass } from "@/components/tokens";
 import { LoadingBar } from "../../components/ui/LoadingBar";
 import { useOnboarding } from "../../hooks/useOnboarding";
 

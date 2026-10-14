@@ -4,15 +4,14 @@ import clsx from "clsx";
 import Button from "../../ui/Button";
 import Select from "../../ui/Select";
 import { Link } from "../../../lib/router";
+import { field } from "../../tokens";
 import { useCmsEditor } from "./CmsEditor";
 
 // The controls in a content editor's side panel, in the same look as the rest of the admin:
 // small grey labels, bordered milk inputs, display-font section headings.
 
-export const fieldClass =
-  "w-full rounded-md border border-crimson-light bg-milk px-3 py-2 text-sm text-gray-red outline-none placeholder:text-gray-red/50 focus:ring-2 focus:ring-crimson disabled:cursor-not-allowed disabled:opacity-60";
-
-export const fieldLabelClass = "text-[13px] font-medium text-gray-red/80";
+export const fieldClass = field.input;
+export const fieldLabelClass = field.label;
 
 interface PanelSectionProps {
   title: string;

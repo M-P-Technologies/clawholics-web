@@ -7,7 +7,7 @@ import PageHeader from "../../components/layout/PageHeader";
 import PageShell from "../../components/layout/PageShell";
 import Panel from "../../components/layout/Panel";
 import Section from "../../components/layout/Section";
-import { infoLabelClass } from "../../components/ui/styles";
+import { infoLabelClass } from "@/components/tokens";
 import { LoadingBar } from "../../components/ui/LoadingBar";
 import PhotoCarousel from "../../components/booking/PhotoCarousel";
 import ServiceGallery from "../../components/booking/ServiceGallery";

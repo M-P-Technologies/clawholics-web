@@ -12,7 +12,7 @@ import PageShell from "../../components/layout/PageShell";
 import Section from "../../components/layout/Section";
 import ServiceGallery from "../../components/booking/ServiceGallery";
 import ServicePickerModal from "../../components/booking/ServicePickerModal";
-import { infoLabelClass } from "../../components/ui/styles";
+import { infoLabelClass } from "@/components/tokens";
 import { useArtistDetail } from "../../hooks/useArtistDetail";
 
 // One artist's page, laid out like a service's page: details, a gallery of their work, and a

@@ -13,7 +13,7 @@ import PageShell from "../../components/layout/PageShell";
 import Section from "../../components/layout/Section";
 import Pagination from "../../components/ui/Pagination";
 import StatePanel from "../../components/ui/StatePanel";
-import { chipClass,inputClass } from "../../components/ui/styles";
+import { chipClass, inputClass } from "@/components/tokens";
 import { usePagination } from "../../hooks/usePagination";
 import { servicePath } from "../../utils/slug";
 import { useServices } from "../../hooks/useServices";

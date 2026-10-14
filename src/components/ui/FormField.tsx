@@ -1,6 +1,6 @@
 import type { ChangeEvent, ReactNode } from "react";
 import clsx from "clsx";
-import { errorTextClass, inputClass, labelClass } from "./styles";
+import { errorTextClass, inputClass, labelClass } from "@/components/tokens";
 
 interface FormFieldProps {
   id: string;

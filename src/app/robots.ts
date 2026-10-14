@@ -7,5 +7,5 @@ import { NAV_GROUPS } from "@/components/admin/adminNav";
 const ADMIN_PATHS = ["/admin", ...NAV_GROUPS.flatMap((group) => group.items.map((item) => item.path))];
 
 export default function robots(): MetadataRoute.Robots {
-  return { rules: { userAgent: "*", allow: "/", disallow: [...ADMIN_PATHS, "/my"] } };
+  return { rules: { userAgent: "*", allow: "/", disallow: [...ADMIN_PATHS, "/design-system", "/my"] } };
 }

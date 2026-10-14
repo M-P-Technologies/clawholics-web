@@ -18,7 +18,7 @@ import CtaBand from "../../components/home/CtaBand";
 import Section from "../../components/layout/Section";
 import { DEFAULT_HERO_IMAGE,FACEBOOK_URL } from "../../data/home";
 import { ctaLink, iconFor, readHomeSections } from "../../lib/homeSections";
-import { sectionTitleClass } from "../../components/ui/styles";
+import { sectionTitleClass } from "@/components/tokens";
 import { useHome } from "../../hooks/useHome";
 import { useTestimonials } from "../../hooks/useTestimonials";
 import Testimonials from "../../components/home/Testimonials";

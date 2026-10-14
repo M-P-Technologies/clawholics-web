@@ -12,7 +12,7 @@ import {
 } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import clsx from "clsx";
-import { inputClass } from "./styles";
+import { inputClass } from "@/components/tokens";
 
 export interface SelectOption {
   value: string;

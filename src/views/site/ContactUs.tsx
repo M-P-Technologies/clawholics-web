@@ -13,7 +13,7 @@ import ImageBanner from "../../components/home/ImageBanner";
 import { DEFAULT_HERO_IMAGE } from "../../data/home";
 import Section from "../../components/layout/Section";
 import { platformOf, readSocialLinks, socialHref } from "../../lib/socialLinks";
-import { contactLinkLightClass, inputClass, labelClass } from "../../components/ui/styles";
+import { contactLinkLightClass, inputClass, labelClass } from "@/components/tokens";
 import { useContactUs } from "../../hooks/useContactUs";
 
 export default function ContactUs() {
