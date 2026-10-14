@@ -8,8 +8,8 @@ interface SectionHeaderProps {
   /** Controls under the title (page size only), e.g. filters */
   children?: ReactNode;
   align?: "left" | "center";
-  /** page: the inner page's h1 · section: a heading with an action on the right · card: a card's title with its icon */
-  size?: "page" | "section" | "card";
+  /** page: the inner page's h1 · section: a heading with an action on the right · card: a card's title with its icon � label: a small grey label over a group of controls (h3) */
+  size?: "page" | "section" | "card" | "label";
   level?: 1 | 2 | 3;
   icon?: LucideIcon;
   /** On the right of a section heading, e.g. a "See all" link */
@@ -18,7 +18,15 @@ interface SectionHeaderProps {
 }
 
 export default function SectionHeader({ title, subtitle, children, align = "left", size = "page", level, icon: Icon, action, className }: SectionHeaderProps) {
-  const Tag = (`h${level ?? (size === "page" ? 1 : 2)}`) as "h1" | "h2" | "h3";
+  const Tag = (`h${level ?? (size === "page" ? 1 : size === "label" ? 3 : 2)}`) as "h1" | "h2" | "h3";
+
+  if (size === "label") {
+    return (
+      <div className={clsx("flex items-center justify-between", className)}>
+        <Tag className="text-[13px] font-medium text-gray-red/80">{title}</Tag>
+      </div>
+    );
+  }
 
   if (size === "card") {
     return (

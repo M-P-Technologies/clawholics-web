@@ -124,6 +124,7 @@ export default function DesignSystem() {
               <SectionHeader level={3} title="Page title" subtitle="A short line under the page's heading." />
               <SectionHeader size="section" title="Section with an action" action={<a href="#section-header">See all</a>} />
               <SectionHeader size="card" icon={QrCode} title="Card title" />
+              <SectionHeader size="label" title="Label over a group of controls" />
             </div>
           </GallerySection>
         </Group>

@@ -256,7 +256,7 @@ const DayOffCard = ({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <SectionHeader size="card" level={3} title="Day Off" />
+      <SectionHeader size="label" title="Day Off" />
 
       {isLoading ? (
         <p className="text-[15px] text-gray-red">Loading day offs...</p>
@@ -518,7 +518,7 @@ const TimeSlotCard = ({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <SectionHeader size="card" level={3} title="Time Slots" />
+      <SectionHeader size="label" title="Time Slots" />
 
       {isLoading ? (
         <p className="text-[15px] text-gray-red">Loading time slots...</p>
@@ -1036,7 +1036,7 @@ const NailArtistDropdown: React.FC<NailArtistDropdownProps> = ({
             />
 
             <div className="flex flex-col gap-1.5">
-              <SectionHeader size="card" level={3} title="Services Offered" />
+              <SectionHeader size="label" title="Services Offered" />
 
               {availableServices.length === 0 ? (
                 <p className="text-[15px] text-gray-red">
@@ -1084,7 +1084,7 @@ const NailArtistDropdown: React.FC<NailArtistDropdownProps> = ({
             />
 
             <div className="flex flex-col gap-1.5">
-              <SectionHeader size="card" level={3} title="Photo" />
+              <SectionHeader size="label" title="Photo" />
 
               {image && (
                 <div className="flex items-center justify-between w-full min-h-[36px] bg-milk rounded-md px-4 py-1 mt-4 mb-1 overflow-visible border border-crimson-light">

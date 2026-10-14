@@ -465,7 +465,7 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
             />
 
             <div className="flex flex-col gap-1.5">
-              <SectionHeader size="card" level={3} title={`Photos (${gallery.length}/${MAX_IMAGES})`} />
+              <SectionHeader size="label" title={`Photos (${gallery.length}/${MAX_IMAGES})`} />
               {gallery.length > 0 && (
                 <p className="mb-2 text-[13px] text-gray-red/80">The starred photo is the one shown for this service on the website.</p>
               )}
