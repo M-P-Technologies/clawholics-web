@@ -1,6 +1,7 @@
 import { useAuth, useUser } from "@clerk/nextjs";
 import { useNavigate } from "@/lib/router";
-import { fetchProfileIfExists } from "../services/userService";
+import { useQueryClient } from "@tanstack/react-query";
+import { accountQueries } from "@/lib/accountQueries";
 import { bookingStateFor } from "../utils/booking";
 
 type ShowModal = (title: string, message: string, action?: () => void, buttonText?: string) => void;
@@ -14,6 +15,7 @@ export function useStartBooking(showModal: ShowModal) {
   const navigate = useNavigate();
   const { user, isSignedIn } = useUser();
   const { getToken } = useAuth();
+  const queryClient = useQueryClient();
 
   return async (service: Parameters<typeof bookingStateFor>[0], nailistId?: number) => {
     if (!isSignedIn || !user) {
@@ -26,8 +28,8 @@ export function useStartBooking(showModal: ShowModal) {
       return;
     }
 
-    const token = await getToken();
-    const profile = await fetchProfileIfExists(user.id, token);
+    // The cached profile, asked for again only when it's no longer fresh
+    const profile = await queryClient.fetchQuery(accountQueries.profile(user.id, getToken));
 
     if (!profile || !profile.onboarded) {
       showModal(

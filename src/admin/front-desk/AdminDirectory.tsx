@@ -33,7 +33,14 @@ export default function AdminDirectory() {
           // The table (2/3) and the chosen admin's profile (1/3); on a phone the profile comes after the table
           <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
             <div className="min-w-0 lg:col-span-2 lg:h-full">
-              <DirectoryTable label="Admins" users={users} profiles={d.profiles} selectedId={selected?.id ?? null} onSelect={d.select} />
+              <DirectoryTable
+                label="Admins"
+                users={users}
+                profiles={d.profiles}
+                selectedId={selected?.id ?? null}
+                onSelect={d.select}
+                serverPage={{ page: d.page, pageSize: d.pageSize, total: d.total, onPage: d.setPage }}
+              />
             </div>
             {selected && (
               <div ref={setProfileElement} className="lg:h-full">

@@ -1,11 +1,12 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { useNavigate, useSearchParams } from "@/lib/router";
-import { fetchProfile, isMissingProfile, updateProfile, fetchUserAppointments, redeemUserReward, cancelAppointment, type UserProfile } from "../services/userService";
+import { updateProfile, redeemUserReward, cancelAppointment, type UserProfile } from "../services/userService";
+import { accountKeys, accountQueries } from "@/lib/accountQueries";
 import { type Appointment } from "../utils/profile";
 import type { ChangeEvent } from "react";
 import { isActiveAppointmentStatus } from "../services/proofState";
-import { startPolling } from "./usePolling";
 import { PROFILE_FIELDS } from "../data/profile";
 import { useToast } from "../components/ui/ToastProvider";
 import { pickNext, sortSoonest } from "../utils/profileView";
@@ -26,14 +27,27 @@ export function useProfile() {
     return Number.isInteger(id) && id > 0 ? id : null;
   }, [searchParams]);
 
-  const [dbUser, setDbUser] = useState<UserProfile | null>(null);
+  const queryClient = useQueryClient();
+  const clerkId = clerkUser?.id ?? "";
+  const isClient = isLoaded && !!isSignedIn && !!clerkUser && clerkUser.publicMetadata?.role !== "admin";
+  // The profile and appointments are the cached queries other screens share (lib/accountQueries),
+  // refreshed every 30 seconds, only while this tab is on screen
+  const profileQuery = useQuery({ ...accountQueries.profile(clerkId, getToken), enabled: isClient, refetchInterval: 30_000 });
+  const appointmentsQuery = useQuery({ ...accountQueries.appointments(clerkId, getToken), enabled: isClient, refetchInterval: 30_000 });
+  const dbUser = profileQuery.data ?? null;
+  const stamps = dbUser?.stamps ?? 0;
+  const appointments = useMemo(() => appointmentsQuery.data ?? [], [appointmentsQuery.data]);
+  // Changes the cached list, e.g. once an appointment is cancelled
+  const setAppointments = useCallback(
+    (update: (prev: Appointment[]) => Appointment[]) =>
+      queryClient.setQueryData<Appointment[]>(accountKeys.appointments(clerkId), (prev) => update(prev ?? [])),
+    [queryClient, clerkId],
+  );
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<UserProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [stamps, setStamps] = useState(0);
   const [isGenderOpen, setIsGenderOpen] = useState(false);
   const [showRewardModal, setShowRewardModal] = useState(false);
 
@@ -100,46 +114,18 @@ export function useProfile() {
   };
 
   useEffect(() => {
-    if (isLoaded && clerkUser?.publicMetadata?.role === "admin") {
-      navigate("/dashboard", { replace: true });
-      return;
-    }
+    if (!isLoaded) return;
+    if (clerkUser?.publicMetadata?.role === "admin") navigate("/dashboard", { replace: true });
+    else if (!isSignedIn) navigate("/login");
+  }, [isLoaded, isSignedIn, clerkUser, navigate]);
 
-    if (isLoaded && clerkUser?.publicMetadata?.role !== "admin") {
-      if (!isSignedIn) {
-        navigate("/login");
-        return;
-      }
+  useEffect(() => {
+    if (profileQuery.isError) console.error("Error fetching data:", profileQuery.error);
+  }, [profileQuery.isError, profileQuery.error]);
 
-      if (!clerkUser?.id) return;
-
-      const loadData = async () => {
-        try {
-          const token = await getToken();
-          const data = await fetchProfile(clerkUser.id, token);
-
-          setDbUser(data);
-          setStamps(data.stamps || 0);
-
-          const appts = await fetchUserAppointments(clerkUser.id, token);
-          setAppointments(appts || []);
-        } catch (err) {
-          // A missing profile is expected for a new account, so it isn't logged
-          if (!isMissingProfile(err)) {
-            console.error(
-              "Error fetching data:",
-              err,
-            );
-          }
-        }
-      };
-
-      loadData();
-
-      // Refresh every 30 seconds, only while this tab is on screen
-      return startPolling(loadData, { intervalMs: 30000, immediate: false });
-    }
-  }, [isLoaded, isSignedIn, clerkUser, navigate, getToken]);
+  useEffect(() => {
+    if (appointmentsQuery.isError) console.error("Error fetching data:", appointmentsQuery.error);
+  }, [appointmentsQuery.isError, appointmentsQuery.error]);
 
   const handleEditClick = () => {
     setFormData(dbUser);
@@ -273,7 +259,7 @@ export function useProfile() {
 
         await updateProfile(clerkUser.id, formattedPayload, token);
 
-        setDbUser({
+        queryClient.setQueryData(accountKeys.profile(clerkUser.id), {
           ...dbUser,
           ...formData,
           ...contact,
@@ -301,12 +287,16 @@ export function useProfile() {
     if (stamps >= 10 && clerkUser?.id) {
       try {
         setShowRewardModal(true);
-        setStamps(0);
+        const key = accountKeys.profile(clerkUser.id);
+        queryClient.setQueryData<UserProfile | null>(key, (old) => (old ? { ...old, stamps: 0 } : old));
         const token = await getToken();
         // Use the new authorized client redemption endpoint
         await redeemUserReward(clerkUser.id, token);
+        void queryClient.invalidateQueries({ queryKey: key });
       } catch (error) {
         console.error("Failed to self-redeem reward:", error);
+        // The stamps weren't used: show them again
+        void queryClient.invalidateQueries({ queryKey: accountKeys.profile(clerkUser.id) });
         toast.show(
           "error",
           "We couldn't record your reward",
@@ -327,6 +317,8 @@ export function useProfile() {
       if (!token) throw new Error("No auth token");
 
       await cancelAppointment(selectedAppt.id, token);
+      // The released slot also shows on the booking calendar (fetched fresh there)
+      void queryClient.invalidateQueries({ queryKey: accountKeys.appointments(clerkUser.id) });
 
       setAppointments((prev) =>
         prev.map((appt) =>

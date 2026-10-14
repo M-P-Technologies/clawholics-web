@@ -2,9 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { adminDataChanged, adminKeys, adminQueries } from "../../lib/adminQueries";
 import { useToast } from "../../components/ui/ToastProvider";
 import { isDesktopWidth } from "../../lib/viewport";
-import { fetchScanHistory, fetchScannedClient, recordScanAction, type ScanRecord, type ScannedClient } from "../../services/scanService";
+import { fetchScannedClient, recordScanAction, type ScanRecord, type ScannedClient } from "../../services/scanService";
 
 /** What the last scanned code turned out to be: a client, or why it couldn't be used */
 export interface LastScan {
@@ -16,14 +18,19 @@ export interface LastScan {
 // The loyalty scanner: the camera state, the last scan, the recent scans, and stamping or
 // redeeming the scanned card
 export function useAdminScanner() {
-  const { getToken } = useAuth();
+  const { getToken, isLoaded } = useAuth();
   const { user: currentUser } = useUser();
   const toast = useToast();
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [lastScan, setLastScan] = useState<LastScan | null>(null);
-  const [history, setHistory] = useState<ScanRecord[]>([]);
+  // The recent scans, cached: coming back to the scanner shows them at once
+  const historyQuery = useQuery({ ...adminQueries.scanHistory({ getToken, clerkId: currentUser?.id }), enabled: isLoaded });
+  const history = historyQuery.data ?? [];
+  const loading = historyQuery.isPending;
+  const setHistory = (update: (h: ScanRecord[]) => ScanRecord[]) =>
+    queryClient.setQueryData<ScanRecord[] | null>(adminKeys.scanHistory(), (h) => update(h ?? []));
   const [cameraError, setCameraError] = useState<string | null>(null);
   const resultRef = useRef<HTMLDivElement | null>(null);
 
@@ -33,18 +40,8 @@ export function useAdminScanner() {
   }, [lastScan]);
 
   useEffect(() => {
-    (async () => {
-      try {
-        setLoading(true);
-        const loaded = await fetchScanHistory(await getToken(), currentUser?.id);
-        if (loaded) setHistory(loaded);
-      } catch (error) {
-        console.error("Failed to load history on mount", error);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [getToken, currentUser?.id]);
+    if (historyQuery.isError) console.error("Failed to load history on mount", historyQuery.error);
+  }, [historyQuery.isError, historyQuery.error]);
 
   const findClient = async (userId: string): Promise<ScannedClient | null> => {
     try {
@@ -100,6 +97,8 @@ export function useAdminScanner() {
 
     try {
       await recordScanAction(lastScan.userId, action, await getToken(), currentUser?.id);
+      // The client's stamps show on their page (the recent scans already show this one)
+      void adminDataChanged(queryClient);
       // Show the new count for a moment, then go back to scanning
       setTimeout(() => {
         setLastScan(null);

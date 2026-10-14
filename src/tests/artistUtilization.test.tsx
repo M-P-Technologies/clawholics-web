@@ -36,7 +36,7 @@ describe("ArtistUtilization", () => {
     expect(load).toHaveBeenCalledWith("2026-10-14");
     expect(card.getByText("Oct 12 – 18, 2026")).toBeInTheDocument();
 
-    const maxine = within(card.getByRole("row", { name: /Maxine/ }));
+    const maxine = within(await card.findByRole("row", { name: /Maxine/ }));
     expect(maxine.getByText("Master Technician")).toBeInTheDocument();
     expect(maxine.getByText("58%")).toBeInTheDocument(); // 14 of 24
     expect(maxine.getByRole("cell", { name: "Monday: 3 of 4 slots booked" })).toHaveTextContent("3/4");
@@ -55,7 +55,7 @@ describe("ArtistUtilization", () => {
   it("says how full the salon is overall, and names the columns with today marked", async () => {
     render(<ArtistUtilization load={load} />);
     const card = within(await screen.findByRole("region", { name: "Artist utilization" }));
-    expect(card.getByText("42% of all slots booked")).toBeInTheDocument();
+    expect(await card.findByText("42% of all slots booked")).toBeInTheDocument();
     expect(card.getByRole("columnheader", { name: /Wed.*14.*today/i })).toBeInTheDocument();
   });
 

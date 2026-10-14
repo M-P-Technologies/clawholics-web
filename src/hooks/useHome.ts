@@ -1,10 +1,10 @@
 import { inCmsPreview } from "@/lib/cmsPreview";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { publicQueries } from "@/lib/publicQueries";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { useNavigate, useLocation, clearLocationState } from "@/lib/router";
-import { fetchProfile, isMissingProfile } from "../services/userService";
+import { accountQueries, isAdminProfile } from "@/lib/accountQueries";
 import { type StripItem } from "../types/home";
 import { buildStripItems, readHomeSections } from "../lib/homeSections";
 
@@ -26,48 +26,27 @@ export function useHome() {
   const about = useQuery(publicQueries.about()).data ?? null;
   // A failed refresh keeps showing the copy already loaded
   const contentError = contentQuery.isError && !content;
-  const [profileCheckFailed, setProfileCheckFailed] = useState(false);
-  const [profileRetry, setProfileRetry] = useState(0);
+  // The editor's preview shows the page as visitors see it, so an admin stays on it there
+  const clerkAdmin = String(user?.publicMetadata?.role || "").toLowerCase() === "admin";
+  // Customers aren't sent to /onboarding from here: an incomplete profile only matters once they
+  // try to book, and OnboardingGate / the booking screens ask for it then. The (cached) profile
+  // is still read, for the admin fallback below.
+  const profileQuery = useQuery({
+    ...accountQueries.profile(user?.id ?? "", getToken),
+    enabled: isLoaded && !!user && !clerkAdmin && !inCmsPreview(),
+  });
+  // A missing profile is expected for a new account (null), so it is neither logged nor an error
+  const profileCheckFailed = profileQuery.isError && profileQuery.data === undefined;
 
   useEffect(() => {
-    // The editor's preview shows the page as visitors see it, so an admin stays on it there
-    if (isLoaded && user && !inCmsPreview()) {
-      const clerkRole = String(user.publicMetadata?.role || "").toLowerCase();
+    if (!isLoaded || !user || inCmsPreview()) return;
+    // Fallback: the directory's role, if Clerk metadata hasn't synced yet
+    if (clerkAdmin || isAdminProfile(profileQuery.data)) navigate("/dashboard", { replace: true });
+  }, [isLoaded, user, clerkAdmin, profileQuery.data, navigate]);
 
-      if (clerkRole === "admin") {
-        navigate("/dashboard", { replace: true });
-        return;
-      }
-
-      // Customers aren't sent to /onboarding from here: an incomplete profile only matters
-      // once they try to book, and OnboardingGate / the booking screens ask for it then.
-      // The profile is still fetched, for the admin fallback below.
-      const checkProfile = async () => {
-        try {
-          const token = await getToken();
-          const profile = await fetchProfile(user.id, token);
-
-          // Fallback: Check backend role if Clerk metadata hasn't synced yet
-          if (profile && String(profile.role || "").toLowerCase() === "admin") {
-            navigate("/dashboard", { replace: true });
-            return;
-          }
-
-          setProfileCheckFailed(false);
-        } catch (err) {
-          // A missing profile is expected for a new account, so it is neither logged nor an error
-          if (isMissingProfile(err)) {
-            setProfileCheckFailed(false);
-          } else {
-            console.error("Home Onboarding Check Error:", err);
-            setProfileCheckFailed(true);
-          }
-        }
-      };
-
-      checkProfile();
-    }
-  }, [isLoaded, user, navigate, getToken, profileRetry]);
+  useEffect(() => {
+    if (profileCheckFailed) console.error("Home Onboarding Check Error:", profileQuery.error);
+  }, [profileCheckFailed, profileQuery.error]);
 
   useEffect(() => {
     if (location.state?.scrollTo === "faq" && faqs.length > 0) {
@@ -94,7 +73,7 @@ export function useHome() {
   // Admins are sent to their own screens, so nothing is shown while that happens
   const isBusy = !inCmsPreview() && (!isLoaded || (!!user && String(user.publicMetadata?.role || "").toLowerCase() === "admin"));
 
-  const retryProfile = () => setProfileRetry((n) => n + 1);
+  const retryProfile = () => void profileQuery.refetch();
 
-  return { retryProfile, isBusy, contentError, reloadContent, user, isLoaded, content, faqs, nailists, about, profileCheckFailed, setProfileRetry, stripItems };
+  return { retryProfile, isBusy, contentError, reloadContent, user, isLoaded, content, faqs, nailists, about, profileCheckFailed, stripItems };
 }
