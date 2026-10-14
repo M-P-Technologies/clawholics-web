@@ -1,6 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 import { fetchProfileIfExists, fetchUserAppointments, type UserProfile } from "../services/userService";
 import { fetchMyReviews, type Review } from "../services/reviewService";
+import { fetchBirthdayVoucher, type BirthdayVoucher } from "../services/voucherService";
 import type { Appointment } from "../utils/profile";
 
 // The signed-in client's own data as TanStack Query queries, shared by every screen that needs
@@ -18,6 +19,7 @@ export const accountKeys = {
   profile: (clerkId: string) => [ACCOUNT, clerkId, "profile"] as const,
   appointments: (clerkId: string) => [ACCOUNT, clerkId, "appointments"] as const,
   reviews: (clerkId: string) => [ACCOUNT, clerkId, "reviews"] as const,
+  birthdayVoucher: (clerkId: string) => [ACCOUNT, clerkId, "birthday-voucher"] as const,
 };
 
 export const accountQueries = {
@@ -40,6 +42,12 @@ export const accountQueries = {
         const list = await fetchMyReviews({ token: await getToken(), clerkId });
         return Object.fromEntries(list.map((r) => [r.appointment_id, r]));
       },
+    }),
+  /** This year's birthday voucher, or null (the pop-up and the profile share it) */
+  birthdayVoucher: (clerkId: string, getToken: GetToken) =>
+    queryOptions({
+      queryKey: accountKeys.birthdayVoucher(clerkId),
+      queryFn: async (): Promise<BirthdayVoucher | null> => fetchBirthdayVoucher({ token: await getToken(), clerkId }),
     }),
 };
 

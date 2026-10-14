@@ -10,6 +10,7 @@ import Button from "../../components/ui/Button";
 import { LoadingBar } from "../../components/ui/LoadingBar";
 import StatCard from "../../components/ui/StatCard";
 import TabSection from "../../components/ui/TabSection";
+import BirthdayVoucherCard from "../../components/birthday/BirthdayVoucherCard";
 import AppointmentSheet from "../../components/profile/AppointmentSheet";
 import AppointmentsSection from "../../components/profile/AppointmentsSection";
 import DetailsCard from "../../components/profile/DetailsCard";
@@ -19,6 +20,7 @@ import ProfileHeader from "../../components/profile/ProfileHeader";
 import RewardsSheet from "../../components/profile/RewardsSheet";
 import RewardsStrip from "../../components/profile/RewardsStrip";
 import { CONTACT_METHOD_OPTIONS, contactMethodLabel } from "../../data/profile";
+import { useBirthdayVoucher } from "../../hooks/useBirthdayVoucher";
 import { useMyReviews } from "../../hooks/useMyReviews";
 import { useProfile } from "../../hooks/useProfile";
 import { useServicePhotos } from "../../hooks/useServicePhotos";
@@ -40,6 +42,7 @@ export default function Profile() {
   const { openUserProfile, signOut } = useClerk();
   const photoFor = useServicePhotos();
   const { reviews, submit: submitReview } = useMyReviews();
+  const birthday = useBirthdayVoucher();
   // undefined = not chosen yet: arriving for one appointment (after paying) shows that one
   const [chosenId, setOpenId] = useState<number | null | undefined>(undefined);
   const openId = chosenId === undefined ? p.highlightedAppointmentId : chosenId;
@@ -111,6 +114,14 @@ export default function Profile() {
               <div role="tabpanel" id={`profile-panel-${tab}`} aria-labelledby={`profile-tab-${tab}`} className="flex flex-col gap-6 p-5">
                 {tab === "overview" && (
                   <>
+                    {birthday.voucher && (
+                      <BirthdayVoucherCard
+                        voucher={birthday.voucher}
+                        onClaim={() => birthday.claim().catch(() => {})}
+                        isClaiming={birthday.isClaiming}
+                        error={birthday.claimError?.message}
+                      />
+                    )}
                     <NextAppointmentCard
                       view={hero}
                       photo={hero ? photoFor(hero.appt.service_name) : ""}

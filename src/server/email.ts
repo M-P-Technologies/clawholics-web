@@ -31,6 +31,25 @@ async function sendEmail(to: string, subject: string, html: string) {
   }
 }
 
+/**
+ * Up to 100 emails in one Resend call (its batch endpoint). Throws if Resend refuses the batch or
+ * there is no key, so the caller can keep them for another try.
+ */
+async function sendEmailBatch(emails: { to: string; subject: string; html: string }[]) {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) throw new Error("RESEND_API_KEY missing");
+  const res = await fetch("https://api.resend.com/emails/batch", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify(emails.map((e) => ({ from: "Clawholics <appointments@clawholicsbymax.com>", ...e }))),
+  });
+  const data = (await res.json().catch(() => ({}))) as { message?: string };
+  if (!res.ok) {
+    console.error("Resend batch API error:", JSON.stringify(data));
+    throw new Error(data.message || "Failed to send emails via Resend");
+  }
+}
+
 // Client-style row (label, value) and admin-style row; values are escaped here.
 const clientRow = (label: string, value: unknown, valueStyle = "") =>
   `<tr><td style="padding: 10px 0; border-bottom: 1px solid #f1f5f9; width: 140px; color: #64748b; font-weight: bold;">${label}:</td><td style="padding: 10px 0; border-bottom: 1px solid #f1f5f9;${valueStyle}">${escapeHtml(value)}</td></tr>`;
@@ -38,7 +57,14 @@ const adminRow = (label: string, valueHtml: string, valueStyle = "") =>
   `<tr><td style="padding: 8px 0; border-bottom: 1px solid #eee; width: 140px; font-weight: bold;">${label}:</td><td style="padding: 8px 0; border-bottom: 1px solid #eee;${valueStyle}">${valueHtml}</td></tr>`;
 const HIGHLIGHT = " font-weight: bold; color: #CC798B;";
 
-function baseEmailTemplate(title: string, hiName: string, messageHtml: string, tableRows: string, showReminders = true) {
+function baseEmailTemplate(
+  title: string,
+  hiName: string,
+  messageHtml: string,
+  tableRows: string,
+  showReminders = true,
+  detailsHeading = "Appointment Details",
+) {
   const remindersSection = showReminders
     ? `
     <div style="margin-top:32px; border-top: 2px solid #f1f5f9; padding-top: 24px;">
@@ -68,7 +94,7 @@ function baseEmailTemplate(title: string, hiName: string, messageHtml: string, t
         <p style="font-size: 16px; line-height: 1.5; margin-top: 0; border-bottom: 2px solid #f1f5f9; padding-bottom: 16px;">
           ${messageHtml}
         </p>
-        <h4 style="margin-top: 24px; margin-bottom: 12px; color: #64748b; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Appointment Details</h4>
+        <h4 style="margin-top: 24px; margin-bottom: 12px; color: #64748b; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">${escapeHtml(detailsHeading)}</h4>
         <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 15px;">
           ${tableRows}
         </table>
@@ -301,6 +327,34 @@ export async function sendLoyaltyRewardEmails(clientEmail: string, clientName: s
       baseAdminEmailTemplate(`Loyalty Milestone Reached - ${clientName}`, adminRows),
     ).catch((e) => console.error("Admin loyalty email failed to send:", e)),
   ]);
+}
+
+const voucherDate = (ymd: string) =>
+  new Date(`${ymd}T00:00:00Z`).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
+
+/** The birthday vouchers issued by the monthly run, one email per client. */
+export async function sendBirthdayVoucherEmails(
+  vouchers: { email: string; first_name: string; code: string; discount_pct: number; valid_until: string }[],
+) {
+  await sendEmailBatch(
+    vouchers.map((v) => ({
+      to: v.email,
+      subject: `Clawholics: Happy birthday! Here's ${v.discount_pct}% off`,
+      html: baseEmailTemplate(
+        "Happy Birthday!",
+        v.first_name,
+        `Happy birthday from all of us at Clawholics! 🎂 To celebrate, here's <strong>${escapeHtml(v.discount_pct)}% off</strong> a service of your choice this month.
+         Claim it on <a href="https://clawholicsbymax.com/profile" style="color: #CC798B; font-weight: bold;">your profile</a>, then book your visit; the discount comes off the service price you pay at the salon.`,
+        [
+          clientRow("Voucher code", v.code, HIGHLIGHT),
+          clientRow("Discount", `${v.discount_pct}% off the service price`),
+          clientRow("Valid until", voucherDate(v.valid_until)),
+        ].join(""),
+        false,
+        "Your Birthday Voucher",
+      ),
+    })),
+  );
 }
 
 /** The contact form, sent to the salon. */

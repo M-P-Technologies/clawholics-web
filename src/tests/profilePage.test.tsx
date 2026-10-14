@@ -8,6 +8,8 @@ vi.mock("@/lib/router", () => ({
 vi.mock("@clerk/nextjs", () => ({ useClerk: () => ({ openUserProfile: vi.fn(), signOut: vi.fn() }) }));
 vi.mock("@/hooks/useServicePhotos", () => ({ useServicePhotos: () => () => "" }));
 vi.mock("@/hooks/useMyReviews", () => ({ useMyReviews: () => ({ reviews: {}, submit: vi.fn() }) }));
+let birthday: Record<string, unknown>;
+vi.mock("@/hooks/useBirthdayVoucher", () => ({ useBirthdayVoucher: () => birthday }));
 vi.mock("@/components/payment/PaymentProofCard", () => ({ default: () => null }));
 vi.mock("@/components/layout/PageShell", () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
 vi.mock("@/components/layout/Section", () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
@@ -46,6 +48,7 @@ const makeHook = (over: Record<string, unknown> = {}) => ({
 
 beforeEach(() => {
   hook = makeHook();
+  birthday = { voucher: null, claim: vi.fn(async () => ({})), isClaiming: false, claimError: null };
 });
 
 describe("Profile page", () => {
@@ -108,5 +111,25 @@ describe("Profile page", () => {
     hook = makeHook({ isBusy: true });
     render(<Profile />);
     expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
+  });
+
+  it("shows the birthday voucher on the Overview: claim it, then its code", () => {
+    const voucher = { id: 1, code: "BDAY-1A2B3C4D", discount_pct: 20, valid_from: "2026-10-01", valid_until: "2026-10-31", status: "ISSUED", claimed_at: null };
+    birthday = { ...birthday, voucher };
+    const { rerender } = render(<Profile />);
+    const card = within(screen.getByRole("region", { name: "Your birthday voucher" }));
+    expect(card.getByText(/Claim it before October 31/)).toBeInTheDocument();
+    fireEvent.click(card.getByRole("button", { name: "Claim 20% off" }));
+    expect(birthday.claim).toHaveBeenCalled();
+
+    birthday = { ...birthday, voucher: { ...voucher, status: "CLAIMED" } };
+    rerender(<Profile />);
+    expect(screen.getByRole("region", { name: "Your birthday voucher" })).toHaveTextContent("BDAY-1A2B3C4D");
+    expect(screen.queryByRole("button", { name: "Claim 20% off" })).toBeNull();
+  });
+
+  it("has no birthday voucher card without one", () => {
+    render(<Profile />);
+    expect(screen.queryByRole("region", { name: "Your birthday voucher" })).toBeNull();
   });
 });
