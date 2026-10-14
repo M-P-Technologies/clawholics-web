@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { QrCode } from "lucide-react";
 import { EmptyState, LoadError, SectionHeader } from "@/components/molecules";
+import { Link } from "@/lib/router";
 
 vi.mock("@/lib/router", () => ({ Link: ({ to, children }: { to: string; children: React.ReactNode }) => <a href={to}>{children}</a> }));
 
@@ -27,7 +28,7 @@ describe("SectionHeader", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Book your visit" })).toBeInTheDocument();
   });
   it("is a section row with an action", () => {
-    render(<SectionHeader size="section" title="Popular services" action={<a href="/my/explore">See all</a>} />);
+    render(<SectionHeader size="section" title="Popular services" action={<Link to="/my/explore">See all</Link>} />);
     expect(screen.getByRole("heading", { level: 2, name: "Popular services" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "See all" })).toBeInTheDocument();
   });
