@@ -1,7 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Blush, Button, LoadingBar, Pearls, Select, StarPicker, Stars } from "../components/atoms";
+import { Trash2 } from "lucide-react";
+import { Blush, Button, Card, Checkbox, IconButton, Input, LoadingBar, Pearls, Select, StarPicker, Stars } from "../components/atoms";
 import AdminShell from "../components/admin/AdminShell";
 
 // Every shared component and its variants, for checking the look. Admins only; not in the sidebar.
@@ -16,6 +17,25 @@ export default function DesignSystem() {
             <Button variant="bare">Bare</Button>
             <Button disabled>Disabled</Button>
             <Button loading loadingText="Saving...">Save</Button>
+          </GallerySection>
+          <GallerySection title="Card">
+            <Card padding="sm">Milk card</Card>
+            <Card tone="tint" padding="sm">Tint card</Card>
+          </GallerySection>
+          <GallerySection title="IconButton">
+            <IconButton label="Plain" icon={Trash2} tone="plain" />
+            <IconButton label="Milk" icon={Trash2} tone="milk" />
+            <IconButton label="Brand" icon={Trash2} tone="brand" />
+            <IconButton label="Small" icon={Trash2} size="sm" />
+            <IconButton label="Disabled" icon={Trash2} disabled />
+          </GallerySection>
+          <GallerySection title="Input">
+            <Input aria-label="Demo" placeholder="Type…" />
+            <Input aria-label="Demo disabled" placeholder="Disabled" disabled />
+          </GallerySection>
+          <GallerySection title="Checkbox">
+            <label className="flex items-center gap-2 text-sm text-gray-red"><Checkbox defaultChecked /> Checked</label>
+            <label className="flex items-center gap-2 text-sm text-gray-red"><Checkbox /> Unchecked</label>
           </GallerySection>
           <GallerySection title="Select">
             <Select aria-label="Example" value="a" onChange={() => {}}>

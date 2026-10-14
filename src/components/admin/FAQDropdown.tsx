@@ -1,7 +1,7 @@
-import { ChevronDown as DropdownIcon, Plus as PlusIcon } from "lucide-react";
+import { ChevronDown as DropdownIcon, List as ListIcon, Plus as PlusIcon } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import DragIcon from "./DragIcon";
-import ListIconButton from "./ListIconButton";
+import { IconButton } from "@/components/atoms";
 import type { SortableHandleProps } from "./SortableList";
 import type { Faq } from "../../services/faqService";
 import { createFaq, deleteFaq, updateFaq } from "../../services/faqService";
@@ -159,7 +159,7 @@ const InputField = ({
           <div className="flex items-center gap-2 shrink-0">
             <div className="h-[18px] w-[1.5px] bg-crimson" />
             <div className="flex items-center gap-2">
-              <ListIconButton
+              <IconButton label="Add a bullet list" icon={ListIcon} tone="plain"
                 onClick={handleInsertBullet}
                 disabled={!isEditing}
               />
