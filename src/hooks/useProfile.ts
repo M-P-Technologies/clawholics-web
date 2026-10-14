@@ -10,6 +10,7 @@ import { PROFILE_FIELDS } from "../data/profile";
 import { useToast } from "../components/ui/ToastProvider";
 import { pickNext, sortSoonest } from "../utils/profileView";
 import type { AppointmentView } from "../components/profile/types";
+import { CLIENT_PATHS } from "../lib/client/clientNav";
 
 export function useProfile() {
   const { isLoaded, isSignedIn, user: clerkUser } = useUser();
@@ -46,6 +47,9 @@ export function useProfile() {
 
   const [historySortBy, setHistorySortBy] = useState("appointmentDateDesc");
   const [historyFilter, setHistoryFilter] = useState("all");
+  // The last load failed (not a missing profile): the client app shows a retry instead of loading forever
+  const [loadError, setLoadError] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
   const processedPastAppointments = useMemo(() => {
     const filtered = appointments.filter((a) => {
@@ -120,6 +124,7 @@ export function useProfile() {
 
           setDbUser(data);
           setStamps(data.stamps || 0);
+          setLoadError(false);
 
           const appts = await fetchUserAppointments(clerkUser.id, token);
           setAppointments(appts || []);
@@ -131,6 +136,7 @@ export function useProfile() {
               err,
             );
           }
+          setLoadError(true);
         }
       };
 
@@ -139,7 +145,7 @@ export function useProfile() {
       // Refresh every 30 seconds, only while this tab is on screen
       return startPolling(loadData, { intervalMs: 30000, immediate: false });
     }
-  }, [isLoaded, isSignedIn, clerkUser, navigate, getToken]);
+  }, [isLoaded, isSignedIn, clerkUser, navigate, getToken, loadAttempt]);
 
   const handleEditClick = () => {
     setFormData(dbUser);
@@ -436,7 +442,7 @@ export function useProfile() {
     if (appt.invoice_url) {
       window.location.href = appt.invoice_url;
     } else {
-      navigate("/payment", {
+      navigate(CLIENT_PATHS.payment, {
         state: {
           appointment_id: appt.id,
           service_name: appt.service_name,
@@ -451,7 +457,7 @@ export function useProfile() {
   };
 
   const rescheduleAppointment = (appt: Appointment) => {
-    navigate("/reschedule", { state: { appointment: appt } });
+    navigate(CLIENT_PATHS.reschedule, { state: { appointment: appt } });
   };
 
   const startCancel = (appt: Appointment) => {
@@ -536,5 +542,10 @@ export function useProfile() {
   const toggleHistory = () => setShowAllHistory(!showAllHistory);
   const closeRewardModal = () => setShowRewardModal(false);
 
-  return { toggleGender, toggleHistory, closeRewardModal, loyaltyCardNumber, isBusy, genderLabel, history, hasMoreHistory, noHistory, stampCells, isLateCancellation, selectedApptDateLabel, profileFields, isLoaded, clerkUser, getToken, navigate, highlightedAppointmentId, upcoming, nextAppointment, pastViews, dbUser, isEditing, formData, error, appointments, setAppointments, stamps, isGenderOpen, setIsGenderOpen, showRewardModal, setShowRewardModal, selectedAppt, setSelectedAppt, isCancelModalOpen, setIsCancelModalOpen, actionError, setActionError, currentTime, showAllHistory, setShowAllHistory, isCancelling, historySortBy, setHistorySortBy, historyFilter, setHistoryFilter, processedPastAppointments, todayFormatted, formatDisplayDate, handleEditClick, genderOptions, handleGenderSelect, handleContactMethodSelect, formatTime, handleChange, handleSave, handleCancel, handleClientRedeem, handleCancelAppointment, isEligibleForChanges, formatSlot, getStatusDotColor, todayIso, currentAppointments, payForAppointment, rescheduleAppointment, startCancel, closeCancelModal, handleProofUploaded, handleHistoryFilterChange, handleHistorySortChange };
+  const retryLoad = () => {
+    setLoadError(false);
+    setLoadAttempt((n) => n + 1);
+  };
+
+  return { loadError, retryLoad, toggleGender, toggleHistory, closeRewardModal, loyaltyCardNumber, isBusy, genderLabel, history, hasMoreHistory, noHistory, stampCells, isLateCancellation, selectedApptDateLabel, profileFields, isLoaded, clerkUser, getToken, navigate, highlightedAppointmentId, upcoming, nextAppointment, pastViews, dbUser, isEditing, formData, error, appointments, setAppointments, stamps, isGenderOpen, setIsGenderOpen, showRewardModal, setShowRewardModal, selectedAppt, setSelectedAppt, isCancelModalOpen, setIsCancelModalOpen, actionError, setActionError, currentTime, showAllHistory, setShowAllHistory, isCancelling, historySortBy, setHistorySortBy, historyFilter, setHistoryFilter, processedPastAppointments, todayFormatted, formatDisplayDate, handleEditClick, genderOptions, handleGenderSelect, handleContactMethodSelect, formatTime, handleChange, handleSave, handleCancel, handleClientRedeem, handleCancelAppointment, isEligibleForChanges, formatSlot, getStatusDotColor, todayIso, currentAppointments, payForAppointment, rescheduleAppointment, startCancel, closeCancelModal, handleProofUploaded, handleHistoryFilterChange, handleHistorySortChange };
 }
