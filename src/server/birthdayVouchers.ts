@@ -34,7 +34,8 @@ export function manilaMonth(now: Date) {
   return { today, year, month, firstDay: `${year}-${month}-01`, lastDay: `${year}-${month}-${String(lastDay).padStart(2, "0")}` };
 }
 
-async function discountPct(): Promise<number> {
+/** The site setting birthday_discount_pct: the percentage off on vouchers issued from now on */
+export async function getBirthdayDiscountPct(): Promise<number> {
   const [row] = await getSql()<{ value: string }[]>`select value from site_settings where key = 'birthday_discount_pct'`;
   const pct = Number(row?.value);
   return Number.isInteger(pct) && pct >= 1 && pct <= 100 ? pct : DEFAULT_BIRTHDAY_DISCOUNT_PCT;
@@ -54,7 +55,7 @@ export async function issueBirthdayVouchers(now = new Date()) {
     update birthday_vouchers set status = 'EXPIRED'
     where status in ('ISSUED', 'CLAIMED') and valid_until < ${today}`;
 
-  const pct = await discountPct();
+  const pct = await getBirthdayDiscountPct();
   // Clients (not admins) with a full YYYY-MM-DD birthday in this month and an email to send to
   const issued = await sql`
     insert into birthday_vouchers (user_id, year, code, discount_pct, valid_from, valid_until)

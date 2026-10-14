@@ -12,7 +12,7 @@ import { ScannerSkeleton } from "../../components/admin/skeletons";
 // The loyalty QR scanner: the camera, the scanned client's card with its stamps, and the recent
 // scans. Its state and actions are in hooks/admin/useAdminScanner.
 export default function AdminScanner() {
-  const { loading, isProcessing, isScanning, lastScan, history, cameraError, resultRef, handleResult, handleScanError, recordAction, startScanner, stopScanner, scanAgain } = useAdminScanner();
+  const { loading, stampTarget, isProcessing, isScanning, lastScan, history, cameraError, resultRef, handleResult, handleScanError, recordAction, startScanner, stopScanner, scanAgain } = useAdminScanner();
 
   if (loading) return <ScannerSkeleton />;
 
@@ -130,12 +130,12 @@ export default function AdminScanner() {
                     <p className="flex items-baseline justify-between text-[13px] font-medium text-gray-red/80">
                       Stamps
                       <span className="font-display text-xl text-berry">
-                        {lastScan.client.stamps}
-                        <span className="text-sm text-gray-red/50"> / 10</span>
+                        {Math.min(lastScan.client.stamps, stampTarget)}
+                        <span className="text-sm text-gray-red/50"> / {stampTarget}</span>
                       </span>
                     </p>
-                    <ol aria-label={`${lastScan.client.stamps} of 10 stamps`} className="grid grid-cols-5 gap-2">
-                      {Array.from({ length: 10 }, (_, i) => (
+                    <ol aria-label={`${Math.min(lastScan.client.stamps, stampTarget)} of ${stampTarget} stamps`} className="grid grid-cols-5 gap-2">
+                      {Array.from({ length: stampTarget }, (_, i) => (
                         <li
                           key={i}
                           aria-hidden="true"
@@ -147,14 +147,14 @@ export default function AdminScanner() {
                         </li>
                       ))}
                     </ol>
-                    {lastScan.client.stamps >= 10 && <p className="text-[13px] font-bold text-berry">The card is full: the reward is ready to redeem.</p>}
+                    {lastScan.client.stamps >= stampTarget && <p className="text-[13px] font-bold text-berry">The card is full: the reward is ready to redeem.</p>}
                   </div>
 
                   <div className="flex flex-col gap-2 sm:flex-row">
                     <Button onClick={() => recordAction("stamp")} disabled={isProcessing} className="flex-1">
                       Award stamp
                     </Button>
-                    <Button variant="secondary" onClick={() => recordAction("redeem")} disabled={lastScan.client.stamps < 10 || isProcessing} className="flex-1">
+                    <Button variant="secondary" onClick={() => recordAction("redeem")} disabled={lastScan.client.stamps < stampTarget || isProcessing} className="flex-1">
                       Redeem reward
                     </Button>
                   </div>

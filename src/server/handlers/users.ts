@@ -14,6 +14,7 @@ import {
 import { getSql } from "../db";
 import { sendLoyaltyRewardEmails } from "../email";
 import { inBackground, orNull, pgErrorCode, readJson, routeNotFound, toId } from "../http";
+import { getLoyaltyStampsRequired } from "../loyalty";
 import { ported } from "../worker";
 
 // Directory, profile and loyalty routes, ported from worker-api/src/index.ts
@@ -447,15 +448,14 @@ export const getUserAppointments = ported(async (req) => {
 
 // --- LOYALTY STAMPS --------------------------------------------------------------------------
 
-const REWARD_STAMPS = 10;
-
-function emailLoyaltyReward(clerkId: string) {
+function emailLoyaltyReward(clerkId: string, stampsRequired?: number) {
   inBackground("loyalty email", async () => {
+    const stamps = stampsRequired ?? (await getLoyaltyStampsRequired());
     const [client] = await getSql()<{ first_name: string; last_name: string; email: string; id: number }[]>`
       select cp.first_name, cp.last_name, u.email, u.id
       from users u join customer_profiles cp on u.id = cp.user_id where u.clerk_id = ${clerkId}
     `;
-    if (client?.email) await sendLoyaltyRewardEmails(client.email, `${client.first_name} ${client.last_name}`.trim(), client.id);
+    if (client?.email) await sendLoyaltyRewardEmails(client.email, `${client.first_name} ${client.last_name}`.trim(), client.id, stamps);
   });
 }
 
@@ -483,14 +483,21 @@ export const scanClient = ported<ClerkIdContext>(async (_req, { params }) => {
   return client ? Response.json({ id: clerkId, name: `${client.first_name} ${client.last_name}`, stamps: client.stamps }) : routeNotFound();
 });
 
-// POST /users/scan/:clerkId/stamp (admin): one more stamp, logged under the scanning admin.
+const cardFull = (stampsRequired: number) =>
+  Response.json({ message: `The card is full (${stampsRequired} stamps). Please redeem the reward first.` }, { status: 400 });
+
+// POST /users/scan/:clerkId/stamp (admin): one more stamp, logged under the scanning admin. A full
+// card (loyalty_stamps_required) takes no more until it's redeemed.
 export const addStamp = ported<ClerkIdContext>(async (_req, { params }) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const { clerkId } = await params;
+  const stampsRequired = await getLoyaltyStampsRequired();
   const newStamps = await getSql().begin(async (tx) => {
     const [user] = await tx<{ id: number }[]>`select id from users where clerk_id = ${clerkId}`;
     if (!user) return undefined;
+    const [current] = await tx<{ stamps: number | null }[]>`select stamps from customer_profiles where user_id = ${user.id} for update`;
+    if (current && (current.stamps ?? 0) >= stampsRequired) return "full" as const;
     const [profile] = await tx<{ stamps: number }[]>`
       update customer_profiles set stamps = stamps + 1 where user_id = ${user.id} returning stamps
     `;
@@ -498,23 +505,30 @@ export const addStamp = ported<ClerkIdContext>(async (_req, { params }) => {
     return profile?.stamps ?? null;
   });
   if (newStamps === undefined) return routeNotFound();
+  if (newStamps === "full") return cardFull(stampsRequired);
   return Response.json({ success: true, newStamps: newStamps ?? undefined });
 });
 
-// POST /users/scan/:clerkId/redeem (admin): the card is reset and the reward emails go out.
+// POST /users/scan/:clerkId/redeem (admin): a full card is reset and the reward emails go out.
 export const redeemScannedReward = ported<ClerkIdContext>(async (_req, { params }) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const { clerkId } = await params;
-  const found = await getSql().begin(async (tx) => {
+  const stampsRequired = await getLoyaltyStampsRequired();
+  const result = await getSql().begin(async (tx) => {
     const [user] = await tx<{ id: number }[]>`select id from users where clerk_id = ${clerkId}`;
-    if (!user) return false;
-    await tx`update customer_profiles set stamps = 0 where user_id = ${user.id}`;
+    if (!user) return "missing" as const;
+    // One statement, so two quick taps can't redeem the same card twice
+    const redeemed = await tx`
+      update customer_profiles set stamps = 0 where user_id = ${user.id} and stamps >= ${stampsRequired} returning user_id
+    `;
+    if (redeemed.length === 0) return "short" as const;
     await tx`insert into scan_history (admin_clerk_id, client_clerk_id, action) values (${admin.clerkId}, ${clerkId}, 'redeem')`;
-    return true;
+    return "redeemed" as const;
   });
-  if (!found) return routeNotFound();
-  emailLoyaltyReward(clerkId);
+  if (result === "missing") return routeNotFound();
+  if (result === "short") return Response.json({ message: "Not enough stamps to redeem." }, { status: 400 });
+  emailLoyaltyReward(clerkId, stampsRequired);
   return Response.json({ success: true, newStamps: 0 });
 });
 
@@ -527,11 +541,12 @@ export const redeemOwnReward = ported(async () => {
   if (!user) return Response.json({ message: "User not found" }, { status: 404 });
 
   // One statement, so two quick taps can't redeem the same card twice
+  const stampsRequired = await getLoyaltyStampsRequired();
   const redeemed = await sql`
-    update customer_profiles set stamps = 0 where user_id = ${user.id} and stamps >= ${REWARD_STAMPS} returning user_id
+    update customer_profiles set stamps = 0 where user_id = ${user.id} and stamps >= ${stampsRequired} returning user_id
   `;
   if (redeemed.length === 0) return Response.json({ message: "Not enough stamps to redeem." }, { status: 400 });
-  emailLoyaltyReward(requester.clerkId);
+  emailLoyaltyReward(requester.clerkId, stampsRequired);
   return Response.json({ success: true, newStamps: 0 });
 });
 
