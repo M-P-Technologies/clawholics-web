@@ -99,3 +99,12 @@ describe("Pagination, the admin's pager", () => {
     expect(view).toMatchObject({ rows: [20, 21, 22], pages: 3, current: 3, first: 21, last: 23, total: 23 });
   });
 });
+
+describe("Pagination layout", () => {
+  it("centers the pager when there is no summary, spreads it with one", () => {
+    const { container, rerender } = render(<Pagination page={1} totalPages={3} onPageChange={() => {}} />);
+    expect(container.firstElementChild).toHaveClass("justify-center");
+    rerender(<Pagination page={1} totalPages={3} onPageChange={() => {}} summary={{ first: 1, last: 10, total: 30 }} />);
+    expect(container.firstElementChild).toHaveClass("justify-between");
+  });
+});

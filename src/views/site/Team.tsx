@@ -3,8 +3,7 @@
 import { useRef } from "react";
 import PhotoRow from "../../components/home/PhotoRow";
 import ImageCard from "../../components/home/ImageCard";
-import { Button } from "@/components/atoms";
-import { LoadingBar } from "@/components/atoms";
+import { Button, LoadingBar } from "@/components/atoms";
 import LoadError from "../../components/ui/LoadError";
 import PageHeader from "../../components/layout/PageHeader";
 import PageShell from "../../components/layout/PageShell";

@@ -34,7 +34,7 @@ interface PaginationProps {
 export default function Pagination({ page, totalPages, onPageChange, summary }: PaginationProps) {
   if (totalPages <= 1 && !summary) return null;
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className={clsx("flex flex-wrap items-center gap-3", summary ? "justify-between" : "justify-center")}>
       {summary && <p className="text-[13px] text-gray-red/70">{`Showing ${summary.first}–${summary.last} of ${summary.total}`}</p>}
       {totalPages > 1 && (
         <nav aria-label="Pages" className="flex flex-wrap items-center gap-1">
