@@ -58,6 +58,11 @@ export const getBookingNailists = ported(async (req) => {
   `);
 });
 
+// A booking holds its slot until it's cancelled or refunded: while it waits for payment, for a
+// payment proof to be checked (AWAITING_PROOF), once confirmed and once completed. The same rule
+// as the idx_unique_active_slot index, which refuses a second booking of a held slot; showing a
+// slot as free under any other rule offers times that booking then refuses.
+
 // GET /booking/slots-detailed and /appointments/booked-slots (public): taken times only.
 export const getBookedSlots = ported(async (req) => {
   const params = new URL(req.url).searchParams;
@@ -66,7 +71,8 @@ export const getBookedSlots = ported(async (req) => {
   if (nailistId === null || !date) return Response.json([]);
   return Response.json(await getSql()`
     select appointment_time from appointments
-    where nailist_id = ${nailistId} and appointment_date = ${date} and upper(status) in ('PENDING', 'CONFIRMED')
+    where nailist_id = ${nailistId} and appointment_date = ${date}
+      and lower(trim(status)) not in ('cancelled', 'canceled', 'refunded')
   `);
 });
 
@@ -92,7 +98,7 @@ export const getBookedSlotsRange = ported(async (req) => {
   return Response.json(await getSql()`
     select appointment_date, appointment_time from appointments
     where nailist_id = ${nailistId} and appointment_date between ${from} and ${to}
-      and upper(status) in ('PENDING', 'CONFIRMED')
+      and lower(trim(status)) not in ('cancelled', 'canceled', 'refunded')
     order by appointment_date, appointment_time
   `);
 });

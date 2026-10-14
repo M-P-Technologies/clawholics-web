@@ -181,7 +181,8 @@ export function listAppointmentsBetween(start: string, end: string) {
   return sql<AppointmentRow[]>`
     ${sqlFragment()}
     where a.appointment_date between ${start} and ${end}
-      and upper(trim(a.status)) in ('PENDING', 'CONFIRMED', 'COMPLETED')
+      -- Awaiting proof too: the booking holds its slot while the proof is checked
+      and upper(trim(a.status)) in ('PENDING', 'AWAITING_PROOF', 'CONFIRMED', 'COMPLETED')
   `;
 }
 
