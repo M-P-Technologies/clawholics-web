@@ -1,6 +1,6 @@
 import { fireEvent, render, renderHook, screen, act } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import Pagination from "@/components/ui/Pagination";
+import { Pagination, paginate } from "@/components/molecules";
 import { usePagination } from "@/hooks/usePagination";
 import { pageNumbers } from "@/utils/pagination";
 
@@ -75,5 +75,27 @@ describe("Pagination control", () => {
   it("disables Next on the last page", () => {
     render(<Pagination page={3} totalPages={3} onPageChange={() => {}} />);
     expect(screen.getByRole("button", { name: "Next page" })).toBeDisabled();
+  });
+});
+
+describe("Pagination, the admin's pager", () => {
+  it("shows the summary and at most five pages around the current one", () => {
+    render(<Pagination page={6} totalPages={12} onPageChange={() => {}} summary={{ first: 51, last: 60, total: 118 }} />);
+    expect(screen.getByText("Showing 51–60 of 118")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /^Page / }).map((b) => b.textContent)).toEqual(["4", "5", "6", "7", "8"]);
+    expect(screen.getByRole("button", { name: "Page 6" })).toHaveAttribute("aria-current", "page");
+  });
+  it("with one page shows the summary but no page buttons", () => {
+    render(<Pagination page={1} totalPages={1} onPageChange={() => {}} summary={{ first: 1, last: 3, total: 3 }} />);
+    expect(screen.getByText("Showing 1–3 of 3")).toBeInTheDocument();
+    expect(screen.queryByRole("navigation")).toBeNull();
+  });
+  it("with one page and no summary renders nothing", () => {
+    const { container } = render(<Pagination page={1} totalPages={1} onPageChange={() => {}} />);
+    expect(container).toBeEmptyDOMElement();
+  });
+  it("slices a list into pages", () => {
+    const view = paginate(Array.from({ length: 23 }, (_, i) => i), 3, 10);
+    expect(view).toMatchObject({ rows: [20, 21, 22], pages: 3, current: 3, first: 21, last: 23, total: 23 });
   });
 });

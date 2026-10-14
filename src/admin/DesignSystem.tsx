@@ -7,6 +7,7 @@ import { FormField, StatCard } from "../components/molecules";
 import AdminShell from "../components/admin/AdminShell";
 import ChoiceRowDemo from "../components/admin/designSystem/ChoiceRowDemo";
 import SearchDemo from "../components/admin/designSystem/SearchDemo";
+import PaginationDemo from "../components/admin/designSystem/PaginationDemo";
 import TabsDemo from "../components/admin/designSystem/TabsDemo";
 import ToastDemo from "../components/admin/designSystem/ToastDemo";
 
@@ -88,6 +89,9 @@ export default function DesignSystem() {
               <StatCard size="hero" label="Estimated sales" value="₱12,500" hint="list price of completed services" />
               <StatCard size="compact" icon={CalendarHeart} label="Visits" value="4" hint="completed" />
             </div>
+          </GallerySection>
+          <GallerySection title="Pagination">
+            <PaginationDemo />
           </GallerySection>
           <GallerySection title="Toast">
             <p className="text-sm text-gray-red">A short message that slides in at the bottom right and goes away on its own. Errors stay longer.</p>

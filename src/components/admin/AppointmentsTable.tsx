@@ -5,10 +5,9 @@ import clsx from "clsx";
 import AppointmentDetailsModal from "./AppointmentDetailsModal";
 import CreateAppointmentModal from "./CreateAppointmentModal";
 import { CardFields, CARDS_PER_PAGE, RowCard, RowCards } from "./RowCards";
-import TablePager, { paginate } from "./dashboard/TablePager";
 import { Button, Select, initialsOf } from "@/components/atoms";
 import Sheet from "../ui/Sheet";
-import { useToast } from "@/components/molecules";
+import { Pagination, paginate, useToast } from "@/components/molecules";
 import { Link, useSearchParams } from "@/lib/router";
 import { monthYear, relativeDay, type DirectoryProfile } from "./DirectoryProfileCard";
 import { usePolling } from "../../hooks/usePolling";
@@ -475,7 +474,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
         </div>
       )}
 
-      {appointments !== null && <TablePager view={view} onPage={setPage} />}
+      {appointments !== null && <Pagination page={view.current} totalPages={view.pages} onPageChange={setPage} summary={view} />}
 
       {/* Phones: a round button to add an appointment, above the tab bar */}
       <Button

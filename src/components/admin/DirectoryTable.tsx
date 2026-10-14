@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import clsx from "clsx";
 import { useTableLayout } from "../../hooks/useMinWidth";
-import TablePager, { paginate } from "./dashboard/TablePager";
 import { CardFields, RowCard, RowCards } from "./RowCards";
 import { initialsOf } from "@/components/atoms";
 import { monthYear, nameOf, relativeDay, roleOf, type DirectoryProfile, type DirectoryUser } from "./DirectoryProfileCard";
+import { Pagination, paginate } from "@/components/molecules";
 
 const ROWS = 5;
 
@@ -84,7 +84,7 @@ export default function DirectoryTable({ label, users, profiles, selectedId, onS
             );
           })}
         </RowCards>
-        <TablePager view={view} onPage={setPage} />
+        <Pagination page={view.current} totalPages={view.pages} onPageChange={setPage} summary={view} />
       </section>
     );
   }
@@ -155,7 +155,7 @@ export default function DirectoryTable({ label, users, profiles, selectedId, onS
           </tbody>
         </table>
       </div>
-      <TablePager view={view} onPage={setPage} />
+      <Pagination page={view.current} totalPages={view.pages} onPageChange={setPage} summary={view} />
     </section>
   );
 }

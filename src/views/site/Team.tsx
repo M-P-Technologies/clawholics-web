@@ -9,7 +9,7 @@ import LoadError from "../../components/ui/LoadError";
 import PageHeader from "../../components/layout/PageHeader";
 import PageShell from "../../components/layout/PageShell";
 import Section from "../../components/layout/Section";
-import Pagination from "../../components/ui/Pagination";
+import { Pagination } from "@/components/molecules";
 import StatePanel from "../../components/ui/StatePanel";
 import { usePagination } from "../../hooks/usePagination";
 import { artistPath } from "../../utils/slug";

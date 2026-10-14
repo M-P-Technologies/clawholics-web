@@ -4,7 +4,7 @@ import { peso } from "../../../lib/dashboardFormat";
 import { Link } from "../../../lib/router";
 import type { DashboardResponse } from "../../../services/dashboardTypes";
 import { CARDS_PER_PAGE, CardFields, RowCard, RowCards } from "../RowCards";
-import TablePager, { paginate, PAGE_SIZE } from "./TablePager";
+import { Pagination, paginate, PAGE_SIZE } from "@/components/molecules";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const dateLabel = (ymd: string) => {
@@ -96,7 +96,7 @@ export default function SalesRecord({ sales }: { sales: DashboardResponse["sales
             </table>
           </div>
           )}
-          <TablePager view={view} onPage={setPage} />
+          <Pagination page={view.current} totalPages={view.pages} onPageChange={setPage} summary={view} />
         </>
       )}
     </section>

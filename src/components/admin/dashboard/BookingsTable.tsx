@@ -7,7 +7,7 @@ import type { Appointment } from "../../../services/appointmentService";
 import { useTableLayout } from "../../../hooks/useMinWidth";
 import { Button } from "@/components/atoms";
 import { CardFields, RowCard, RowCards } from "../RowCards";
-import TablePager, { paginate } from "./TablePager";
+import { Pagination, paginate } from "@/components/molecules";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const dateLabel = (ymd: string) => {
@@ -243,7 +243,7 @@ export default function BookingsTable({ load }: { load: () => Promise<Appointmen
             </p>
           )}
 
-          <TablePager view={view} onPage={setPage} />
+          <Pagination page={view.current} totalPages={view.pages} onPageChange={setPage} summary={view} />
         </>
       )}
     </section>

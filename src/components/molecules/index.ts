@@ -7,3 +7,4 @@ export { default as StatCard } from "./StatCard";
 export { default as TabSection } from "./TabSection";
 export { default as Tabs } from "./Tabs";
 export { ToastProvider, useToast } from "./ToastProvider";
+export { default as Pagination, paginate, PAGE_SIZE } from "./Pagination";

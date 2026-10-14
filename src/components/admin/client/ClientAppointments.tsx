@@ -6,11 +6,11 @@ import { dateLabel, statusOf } from "../../../lib/admin/clientPage";
 import { peso } from "../../../lib/dashboardFormat";
 import type { ClientAppointment, ClientNote } from "../../../services/clientNotesService";
 import { Badge, Button } from "@/components/atoms";
-import TablePager, { paginate } from "../dashboard/TablePager";
 import ImagePreviewModal from "../ImagePreviewModal";
 import { CARDS_PER_PAGE, CardFields, RowCard, RowCards } from "../RowCards";
 import VisitNotes from "./VisitNotes";
 import { ReviewPhoto, ReviewText } from "./VisitReview";
+import { Pagination, paginate } from "@/components/molecules";
 
 interface ClientAppointmentsProps {
   appointments: ClientAppointment[];
@@ -73,7 +73,7 @@ export default function ClientAppointments({ appointments, notesFor, draft, busy
             </RowCard>
           ))}
         </RowCards>
-        <TablePager view={cards} onPage={setCardPage} />
+        <Pagination page={cards.current} totalPages={cards.pages} onPageChange={setCardPage} summary={cards} />
         {preview}
       </>
     );

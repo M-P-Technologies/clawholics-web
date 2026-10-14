@@ -7,7 +7,7 @@ import { addDays, manilaToday, resolvePeriod } from "../../../lib/dashboardPerio
 import type { ArtistUtilization as ArtistRow, Utilization, UtilizationDay } from "../../../services/dashboardTypes";
 import { Button } from "@/components/atoms";
 import { CARDS_PER_PAGE, RowCard, RowCards } from "../RowCards";
-import TablePager, { paginate } from "./TablePager";
+import { Pagination, paginate } from "@/components/molecules";
 
 const DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -160,7 +160,7 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
                   </RowCard>
                 ))}
               </RowCards>
-              <TablePager view={cards} onPage={setPage} />
+              <Pagination page={cards.current} totalPages={cards.pages} onPageChange={setPage} summary={cards} />
             </>
           ) : (
           /* Wider than a phone: it scrolls sideways, with the artists' column kept in view */
