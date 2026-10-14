@@ -1,6 +1,6 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { SearchBar } from "@/components/molecules";
 import { Link } from "@/lib/router";
 import NextAppointmentCard from "../../components/profile/NextAppointmentCard";
 import RewardsStrip from "../../components/profile/RewardsStrip";
@@ -22,26 +22,7 @@ export default function ClientHome() {
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-7 px-4 pb-8 pt-4 lg:pt-8">
       <ClientTopBar title={h.firstName ? `Hi, ${h.firstName}` : "Hi there"} />
 
-      <form
-        role="search"
-        onSubmit={(e) => {
-          e.preventDefault();
-          h.search();
-        }}
-        className="flex items-center gap-2 rounded-2xl bg-milk p-1.5 pl-4 shadow-petal"
-      >
-        <input
-          type="search"
-          aria-label="Search services"
-          placeholder="Search services…"
-          value={h.query}
-          onChange={(e) => h.setQuery(e.target.value)}
-          className="min-w-0 flex-1 bg-transparent py-2 text-sm text-gray-red outline-none placeholder:text-gray-red/50"
-        />
-        <button type="submit" aria-label="Search" className="flex h-10 w-10 items-center justify-center rounded-xl bg-crimson text-milk">
-          <Search size={18} aria-hidden="true" />
-        </button>
-      </form>
+      <SearchBar value={h.query} onChange={h.setQuery} onSubmit={h.search} />
 
       <section aria-labelledby="popular-title" className="flex flex-col gap-3">
         <div className={sectionHead}>

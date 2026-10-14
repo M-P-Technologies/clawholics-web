@@ -1,8 +1,9 @@
 "use client";
 
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { SlidersHorizontal, X } from "lucide-react";
 import clsx from "clsx";
 import { Button } from "@/components/atoms";
+import { SearchBar } from "@/components/molecules";
 import ServiceRow from "../../components/client/ServiceRow";
 import ClientTopBar from "../../components/client/ClientTopBar";
 import { useExplore } from "../../hooks/client/useExplore";
@@ -19,26 +20,21 @@ export default function Explore() {
       </div>
 
       <div className="-mt-9 flex w-full flex-col gap-3 px-3">
-        <div className="flex items-center gap-2 rounded-2xl bg-milk p-1.5 pl-4 shadow-petal">
-          <Search size={18} aria-hidden="true" className="text-gray-red/50" />
-          <input
-            type="search"
-            aria-label="Search services"
-            placeholder="Search services…"
-            value={e.q}
-            onChange={(ev) => e.setQ(ev.target.value)}
-            className="min-w-0 flex-1 bg-transparent py-2 text-sm text-gray-red outline-none placeholder:text-gray-red/50"
-          />
-          <button
-            type="button"
-            aria-label="Filter by category"
-            aria-expanded={e.filterOpen}
-            onClick={e.toggleFilter}
-            className={clsx("flex h-10 w-10 items-center justify-center rounded-xl text-milk", e.category ? "bg-berry" : "bg-crimson")}
-          >
-            <SlidersHorizontal size={18} aria-hidden="true" />
-          </button>
-        </div>
+        <SearchBar
+          value={e.q}
+          onChange={e.setQ}
+          trailing={
+              <button
+                type="button"
+                aria-label="Filter by category"
+                aria-expanded={e.filterOpen}
+                onClick={e.toggleFilter}
+                className={clsx("flex h-10 w-10 items-center justify-center rounded-xl text-milk", e.category ? "bg-berry" : "bg-crimson")}
+              >
+                <SlidersHorizontal size={18} aria-hidden="true" />
+              </button>
+          }
+        />
 
         {e.filterOpen && (
           <div className="flex flex-wrap gap-2">

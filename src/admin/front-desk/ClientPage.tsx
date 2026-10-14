@@ -1,14 +1,13 @@
 "use client";
 
 import { ArrowLeft, CalendarCheck, Stamp, Wallet } from "lucide-react";
-import clsx from "clsx";
 import AdminShell from "../../components/admin/AdminShell";
 import BookingTracker from "../../components/admin/client/BookingTracker";
 import ClientAppointments from "../../components/admin/client/ClientAppointments";
 import ClientProfilePanel from "../../components/admin/client/ClientProfilePanel";
 import StatCard from "../../components/ui/StatCard";
 import NoteItem from "../../components/admin/client/NoteItem";
-import TabSection from "../../components/ui/TabSection";
+import { TabSection, Tabs } from "@/components/molecules";
 import { Button } from "@/components/atoms";
 import StatePanel from "../../components/ui/StatePanel";
 import { useClientPage } from "../../hooks/admin/useClientPage";
@@ -63,27 +62,17 @@ export default function ClientPage() {
           <ClientProfilePanel name={name} details={details} nextAppointment={page.nextAppointment} />
 
           <section aria-label="Client details" className="flex min-w-0 flex-col overflow-clip rounded-2xl border border-crimson-light/40 bg-milk shadow-petal lg:h-[80vh]">
-            <div role="tablist" aria-label="Client sections" className="flex shrink-0 overflow-x-auto overflow-y-hidden border-b border-crimson-light/50 px-2 scrollbar-none [&::-webkit-scrollbar]:hidden">
-              {CLIENT_TABS.map((t) => (
-                <button
-                  key={t.value}
-                  type="button"
-                  role="tab"
-                  id={`client-tab-${t.value}`}
-                  aria-selected={tab === t.value}
-                  aria-controls={`client-panel-${t.value}`}
-                  onClick={() => page.setTab(t.value)}
-                  className={clsx(
-                    "shrink-0 whitespace-nowrap border-b-2 px-4 py-3.5 text-[14px] font-bold transition-colors",
-                    tab === t.value ? "border-crimson text-berry" : "border-transparent text-gray-red/70 hover:text-berry",
-                  )}
-                >
-                  {t.label}
-                  {t.value === "notes" && notes.length > 0 && <span className="ml-1.5 rounded-full bg-crimson-light/50 px-1.5 text-[11px] text-berry">{notes.length}</span>}
-                  {t.value === "appointments" && <span className="ml-1.5 rounded-full bg-crimson-light/50 px-1.5 text-[11px] text-berry">{appointments.length}</span>}
-                </button>
-              ))}
-            </div>
+            <Tabs
+              label="Client sections"
+              idPrefix="client"
+              value={tab}
+              onChange={page.setTab}
+              tabs={CLIENT_TABS.map((t) => ({
+                value: t.value,
+                label: t.label,
+                count: t.value === "notes" ? (notes.length > 0 ? notes.length : undefined) : t.value === "appointments" ? appointments.length : undefined,
+              }))}
+            />
 
             <div role="tabpanel" id={`client-panel-${tab}`} aria-labelledby={`client-tab-${tab}`} className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto p-5">
               {tab === "overview" && (

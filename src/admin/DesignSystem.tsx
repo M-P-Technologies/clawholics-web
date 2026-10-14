@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Trash2 } from "lucide-react";
 import { Avatar, Badge, Blush, Button, Card, Checkbox, IconButton, Input, LoadingBar, Pearls, Select, StarPicker, Stars } from "../components/atoms";
-import { ChoiceRow, FormField } from "../components/molecules";
+import { FormField } from "../components/molecules";
 import AdminShell from "../components/admin/AdminShell";
+import ChoiceRowDemo from "../components/admin/designSystem/ChoiceRowDemo";
+import SearchDemo from "../components/admin/designSystem/SearchDemo";
+import TabsDemo from "../components/admin/designSystem/TabsDemo";
 import ToastDemo from "../components/admin/designSystem/ToastDemo";
 
 // Every shared component and its variants, for checking the look. Admins only; not in the sidebar.
@@ -71,7 +74,13 @@ export default function DesignSystem() {
             </div>
           </GallerySection>
           <GallerySection title="ChoiceRow">
-            <ChoiceRows />
+            <ChoiceRowDemo />
+          </GallerySection>
+          <GallerySection title="SearchBar">
+            <SearchDemo />
+          </GallerySection>
+          <GallerySection title="Tabs">
+            <TabsDemo />
           </GallerySection>
           <GallerySection title="Toast">
             <p className="text-sm text-gray-red">A short message that slides in at the bottom right and goes away on its own. Errors stay longer.</p>
@@ -99,17 +108,5 @@ export function GallerySection({ title, children }: { title: string; children: R
       <h3 id={`ds-${title}`} className="text-[13px] font-bold uppercase tracking-wide text-gray-red/70">{title}</h3>
       <div className="flex flex-wrap items-center gap-3">{children}</div>
     </section>
-  );
-}
-
-function ChoiceRows() {
-  const [plan, setPlan] = useState("a");
-  const [agree, setAgree] = useState(false);
-  return (
-    <div className="grid w-full max-w-md gap-2">
-      <ChoiceRow selected={plan === "a"} onClick={() => setPlan("a")} trailing="PHP 500">Gel polish</ChoiceRow>
-      <ChoiceRow selected={plan === "b"} onClick={() => setPlan("b")} trailing="PHP 800">Soft gel extensions</ChoiceRow>
-      <ChoiceRow kind="checkbox" selected={agree} onClick={() => setAgree(!agree)}>I agree to the terms and conditions</ChoiceRow>
-    </div>
   );
 }
