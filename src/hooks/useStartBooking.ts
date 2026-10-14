@@ -2,6 +2,7 @@ import { useAuth, useUser } from "@clerk/nextjs";
 import { useNavigate } from "@/lib/router";
 import { fetchProfileIfExists } from "../services/userService";
 import { bookingStateFor } from "../utils/booking";
+import { CLIENT_PATHS } from "../lib/client/clientNav";
 
 type ShowModal = (title: string, message: string, action?: () => void, buttonText?: string) => void;
 
@@ -39,6 +40,6 @@ export function useStartBooking(showModal: ShowModal) {
       return;
     }
 
-    navigate("/booking", { state: bookingStateFor(service, nailistId) });
+    navigate(CLIENT_PATHS.book, { state: bookingStateFor(service, nailistId) });
   };
 }

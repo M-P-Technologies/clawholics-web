@@ -5,10 +5,9 @@ import AlertModal from "../../components/ui/AlertModal";
 import BookingOptions from "../../components/booking/BookingOptions";
 import Button from "../../components/ui/Button";
 import ArtistSelect from "../../components/booking/ArtistSelect";
-import BackButton from "../../components/layout/BackButton";
 import DayCalendar from "../../components/booking/DayCalendar";
 import PageHeader from "../../components/layout/PageHeader";
-import PageShell from "../../components/layout/PageShell";
+import ClientPage from "../../components/client/ClientPage";
 import Panel from "../../components/layout/Panel";
 import Section from "../../components/layout/Section";
 import StatePanel from "../../components/ui/StatePanel";
@@ -26,8 +25,8 @@ export default function Booking() {
 
   if (pageError || !pageData) {
     return (
-      <PageShell>
-        <Section innerClassName="min-h-[70vh] items-center justify-center">
+      <ClientPage title="Book">
+        <Section bleed innerClassName="min-h-[70vh] items-center justify-center">
           <StatePanel
             kind="error"
             title="We couldn't load the booking page"
@@ -41,17 +40,16 @@ export default function Booking() {
             </Button>
           </StatePanel>
         </Section>
-      </PageShell>
+      </ClientPage>
     );
   }
 
   return (
-    <PageShell>
-      <Section>
+    <ClientPage title="Book">
+      <Section bleed>
         <div className="grid grid-cols-1 items-start gap-4 md:gap-8 lg:grid-cols-2">
           {/* BOOKING FORM */}
           <div className="flex flex-col gap-4 md:gap-8">
-            <BackButton />
             <PageHeader
               title="Book your visit"
               subtitle="Select your preferred artist, and a time that works for you."
@@ -172,6 +170,6 @@ export default function Booking() {
         onClose={closeModal}
         onAction={modalAction}
       />
-    </PageShell>
+    </ClientPage>
   );
 }

@@ -1,3 +1,5 @@
+import { CLIENT_PATHS } from "../lib/client/clientNav";
+
 
 
 export interface AppointmentState {
@@ -20,7 +22,7 @@ export interface PaymentFailure {
   next?: { label: string; path: string; state?: unknown };
 }
 
-const SCHEDULE = { label: "View my schedule", path: "/profile", state: { activeTab: "schedule" } };
+const SCHEDULE = { label: "View my schedule", path: CLIENT_PATHS.appointments };
 
 // Turns what the server (or the network) said into something a client can act on.
 // Every message says what happened, whether they were charged, and what to do next.
@@ -56,14 +58,14 @@ export function explainPaymentFailure(error: unknown): PaymentFailure {
     return {
       title: "Appointment cancelled",
       message: "This appointment was cancelled, so it can't be paid. Nothing was charged. You can book a new time whenever you're ready.",
-      next: { label: "Book again", path: "/services" },
+      next: { label: "Book again", path: CLIENT_PATHS.explore },
     };
   }
   if (text.includes("expired") || text.includes("expiration")) {
     return {
       title: "Reservation expired",
       message: "The hold on your time slot has ended and the slot was released. You haven't been charged. Please book again to pick a new time.",
-      next: { label: "Back to booking", path: "/services" },
+      next: { label: "Back to booking", path: CLIENT_PATHS.explore },
     };
   }
   if (text.includes("still generating")) {

@@ -6,7 +6,7 @@ import { OFFERED_PAYMENT_METHODS, PAYMENT_METHOD_HINTS, PAYMENT_METHOD_LABELS } 
 const hook = vi.fn();
 vi.mock("@/hooks/usePayment", () => ({ usePayment: () => hook() }));
 vi.mock("@/lib/router", () => ({ Link: ({ to, children }: { to: string; children: React.ReactNode }) => <a href={to}>{children}</a> }));
-vi.mock("@/components/layout/BackButton", () => ({ default: () => null }));
+vi.mock("@/components/client/ClientPage", () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
 
 describe("payment methods", () => {
   it("QR Ph is the only way to pay, and what the screen falls back to", () => {

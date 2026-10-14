@@ -29,3 +29,17 @@ describe("payment confirmation while waiting", () => {
     expect(screen.getByRole("button", { name: "Check again" })).toBeInTheDocument();
   });
 });
+
+describe("payment confirmation inside the client app", () => {
+  it("names each state for what it is, and goes back to the appointments", () => {
+    hook.mockReturnValue({ ...waiting, isFailed: true });
+    const { unmount } = render(<PaymentConfirmation />);
+    expect(screen.getByRole("heading", { level: 1, name: "Payment" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Booking confirmed" })).toBeNull();
+    unmount();
+
+    hook.mockReturnValue({ ...waiting, timedOut: true });
+    render(<PaymentConfirmation />);
+    expect(screen.getByRole("heading", { level: 1, name: "Payment" })).toBeInTheDocument();
+  });
+});

@@ -3,10 +3,9 @@
 import AlertModal from "../../components/ui/AlertModal";
 import Button from "../../components/ui/Button";
 import { LoadingBar } from "../../components/ui/LoadingBar";
-import BackButton from "../../components/layout/BackButton";
 import DayCalendar from "../../components/booking/DayCalendar";
 import PageHeader from "../../components/layout/PageHeader";
-import PageShell from "../../components/layout/PageShell";
+import ClientPage from "../../components/client/ClientPage";
 import Panel from "../../components/layout/Panel";
 import Section from "../../components/layout/Section";
 import SummaryRow from "../../components/booking/SummaryRow";
@@ -20,9 +19,8 @@ export default function Reschedule() {
   if (!isLoaded || !appointment) return <LoadingBar label="Loading your appointment" />;
 
   return (
-    <PageShell>
-      <Section>
-        <BackButton />
+    <ClientPage title="Reschedule">
+      <Section bleed>
 
         <div className="grid grid-cols-1 gap-4 md:gap-8 lg:grid-cols-5 lg:gap-16 xl:grid-cols-2">
           <div className="flex flex-col gap-4 md:gap-8 lg:col-span-3 xl:col-span-1">
@@ -112,6 +110,6 @@ export default function Reschedule() {
         buttonText="OK"
         onClose={handleModalClose}
       />
-    </PageShell>
+    </ClientPage>
   );
 }

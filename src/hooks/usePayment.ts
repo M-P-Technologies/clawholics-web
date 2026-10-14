@@ -5,6 +5,7 @@ import { createPayment, fetchPaymentSettings } from "../services/paymentService"
 import { OFFERED_PAYMENT_METHODS, PAYMENT_METHOD_HINTS, PAYMENT_METHOD_LABELS } from "../data/payment";
 import { fetchAppointmentById } from "../services/appointmentService";
 import { type AppointmentState, explainPaymentFailure, explainStatusChange } from "../utils/payment";
+import { CLIENT_PATHS } from "../lib/client/clientNav";
 
 export function usePayment() {
   const navigate = useNavigate();
@@ -48,7 +49,7 @@ export function usePayment() {
           showModal(
             "This appointment can't be paid",
             explainStatusChange(status),
-            () => navigate("/profile", { state: { activeTab: "schedule" } }),
+            () => navigate(CLIENT_PATHS.appointments),
             "View my schedule",
             false // Not dismissible
           );
@@ -62,7 +63,7 @@ export function usePayment() {
         showModal(
           "We couldn't check your reservation",
           "We couldn't confirm that your slot is still held, so we've paused the payment to keep you from paying for the wrong thing. You haven't been charged. Please go back to booking and try again.",
-          () => navigate("/booking"),
+          () => navigate(CLIENT_PATHS.explore),
           "Back to booking",
           false,
         );
@@ -103,7 +104,7 @@ export function usePayment() {
         showModal(
           "Reservation expired",
           "The hold on your time slot has ended and the slot was released. You have not been charged. Please book again to pick a new time.",
-          () => navigate("/booking"),
+          () => navigate(CLIENT_PATHS.explore),
           "Back to Booking",
           false // Not dismissible
         );
@@ -156,7 +157,7 @@ export function usePayment() {
       showModal(
         "Reservation expired",
         "The hold on your time slot has ended and the slot was released. You have not been charged. Please book again to pick a new time.",
-        () => navigate("/booking"),
+        () => navigate(CLIENT_PATHS.explore),
         "Back to booking",
       );
       return;

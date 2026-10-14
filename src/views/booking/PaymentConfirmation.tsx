@@ -4,23 +4,24 @@ import { CircleCheckBig as CheckIcon } from "lucide-react";
 import Button from "../../components/ui/Button";
 import { LoadingBar } from "../../components/ui/LoadingBar";
 import PageHeader from "../../components/layout/PageHeader";
-import PageShell from "../../components/layout/PageShell";
+import ClientPage from "../../components/client/ClientPage";
 import Panel from "../../components/layout/Panel";
 import Section from "../../components/layout/Section";
 import StatePanel from "../../components/ui/StatePanel";
 import SummaryRow from "../../components/booking/SummaryRow";
 import { usePaymentConfirmation } from "../../hooks/usePaymentConfirmation";
+import { CLIENT_PATHS } from "../../lib/client/clientNav";
 
 export default function PaymentConfirmation() {
   const { isFailed, isConfirmed, appointment_id, data, payment, loading, timedOut, checkAgain } = usePaymentConfirmation();
 
   if (!appointment_id) {
     return (
-      <PageShell>
-        <Section innerClassName="flex min-h-[70vh] items-center justify-center text-center">
+      <ClientPage title="Payment" back={CLIENT_PATHS.appointments}>
+        <Section bleed innerClassName="flex min-h-[70vh] items-center justify-center text-center">
           <p className="text-lg text-gray-red">Invalid access. No appointment ID.</p>
         </Section>
-      </PageShell>
+      </ClientPage>
     );
   }
 
@@ -30,8 +31,8 @@ export default function PaymentConfirmation() {
 
   if (isFailed) {
     return (
-      <PageShell>
-        <Section innerClassName="min-h-[70vh] items-center justify-center gap-4 text-center md:gap-8">
+      <ClientPage title="Payment" back={CLIENT_PATHS.appointments}>
+        <Section bleed innerClassName="min-h-[70vh] items-center justify-center gap-4 text-center md:gap-8">
           <PageHeader align="center" title="Payment failed" />
           <p className="mx-auto max-w-2xl copy-lead">
             Your payment session was <b>not completed</b> or may have <b>expired during payment</b>.
@@ -42,7 +43,7 @@ export default function PaymentConfirmation() {
             contact us. We're here to help!
           </p>
           <div className="flex flex-col gap-4 sm:flex-row">
-            <Button to="/">
+            <Button to={CLIENT_PATHS.home}>
               Back to home
             </Button>
             <Button variant="secondary" to="/contact">
@@ -50,7 +51,7 @@ export default function PaymentConfirmation() {
             </Button>
           </div>
         </Section>
-      </PageShell>
+      </ClientPage>
     );
   }
 
@@ -58,8 +59,8 @@ export default function PaymentConfirmation() {
     // We stopped asking after two minutes. Say so, and what to do, instead of spinning forever.
     if (timedOut) {
       return (
-        <PageShell>
-          <Section innerClassName="min-h-[70vh] items-center justify-center">
+        <ClientPage title="Payment" back={CLIENT_PATHS.appointments}>
+          <Section bleed innerClassName="min-h-[70vh] items-center justify-center">
             <StatePanel
               kind="info"
               title="Still confirming your payment"
@@ -68,7 +69,7 @@ export default function PaymentConfirmation() {
               <Button type="button" onClick={checkAgain} >
                 Check again
               </Button>
-              <Button variant="secondary" to="/profile" state={{ activeTab: "schedule" }}>
+              <Button variant="secondary" to={CLIENT_PATHS.appointments}>
                 Go to My Schedule
               </Button>
               <Button variant="secondary" to="/contact">
@@ -76,7 +77,7 @@ export default function PaymentConfirmation() {
               </Button>
             </StatePanel>
           </Section>
-        </PageShell>
+        </ClientPage>
       );
     }
 
@@ -91,8 +92,8 @@ export default function PaymentConfirmation() {
   }
 
   return (
-    <PageShell>
-      <Section innerClassName="min-h-[70vh] max-w-3xl items-center gap-4 text-center md:gap-8">
+    <ClientPage title="Payment" back={CLIENT_PATHS.appointments}>
+      <Section bleed innerClassName="min-h-[70vh] max-w-3xl items-center gap-4 text-center md:gap-8">
         <CheckIcon size={56} className="text-crimson" strokeWidth={1.5} aria-hidden="true" />
 
         <PageHeader align="center" title="Payment successful" />
@@ -117,10 +118,10 @@ export default function PaymentConfirmation() {
           <p className="text-gray-red">Failed to load appointment details.</p>
         )}
 
-        <Button to="/">
+        <Button to={CLIENT_PATHS.home}>
           Back to home
         </Button>
       </Section>
-    </PageShell>
+    </ClientPage>
   );
 }

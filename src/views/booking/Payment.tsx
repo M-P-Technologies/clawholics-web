@@ -7,13 +7,13 @@ import AlertModal from "../../components/ui/AlertModal";
 import Button from "../../components/ui/Button";
 import ChoiceRow from "../../components/ui/ChoiceRow";
 import { LoadingBar } from "../../components/ui/LoadingBar";
-import BackButton from "../../components/layout/BackButton";
 import PageHeader from "../../components/layout/PageHeader";
-import PageShell from "../../components/layout/PageShell";
+import ClientPage from "../../components/client/ClientPage";
 import Panel from "../../components/layout/Panel";
 import Section from "../../components/layout/Section";
 import SummaryRow from "../../components/booking/SummaryRow";
 import { usePayment } from "../../hooks/usePayment";
+import { CLIENT_PATHS } from "../../lib/client/clientNav";
 
 export default function Payment() {
   const { methods, toggleAgree, method, setMethod, agree, loading, isInvalid, timeLeft, modalOpen, modalTitle, modalMessage, modalAction, modalButtonText, modalDismissible, appointment, handlePay, sectionLabel, handleModalClose } = usePayment();
@@ -21,7 +21,7 @@ export default function Payment() {
   // If loading or invalid, show the LoadingBar (effectively hiding the pay UI)
   if (loading || isInvalid) {
     return (
-      <PageShell>
+      <ClientPage title="Payment">
         <div className="flex min-h-[70vh] items-center justify-center">
           <LoadingBar label="Loading your payment details" />
         </div>
@@ -34,30 +34,29 @@ export default function Payment() {
           onClose={handleModalClose}
           onAction={modalAction}
         />
-      </PageShell>
+      </ClientPage>
     );
   }
 
   if (!appointment) {
     return (
-      <PageShell>
-        <Section innerClassName="min-h-[70vh] items-center justify-center gap-4 text-center md:gap-8">
+      <ClientPage title="Payment">
+        <Section bleed innerClassName="min-h-[70vh] items-center justify-center gap-4 text-center md:gap-8">
           <PageHeader align="center" title="Invalid access" subtitle="Start a booking from the services page to pay a downpayment." />
-          <Button to="/">
+          <Button to={CLIENT_PATHS.home}>
             Go home
           </Button>
         </Section>
-      </PageShell>
+      </ClientPage>
     );
   }
 
   return (
-    <PageShell>
-      <Section>
+    <ClientPage title="Payment">
+      <Section bleed>
         <div className="grid grid-cols-1 items-start gap-4 md:gap-8 lg:grid-cols-2">
           {/* PAYMENT FORM */}
           <div className="flex flex-col gap-4 md:gap-8">
-            <BackButton />
             <PageHeader
               title="Complete your downpayment"
               subtitle="Secure your appointment with a downpayment."
@@ -151,6 +150,6 @@ export default function Payment() {
         onClose={handleModalClose}
         onAction={modalAction}
       />
-    </PageShell>
+    </ClientPage>
   );
 }

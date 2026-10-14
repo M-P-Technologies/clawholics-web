@@ -12,6 +12,7 @@ import { fetchProfileIfExists } from "../services/userService";
 import { fetchCategories, type ServiceCategory } from "../services/catalogService";
 import { estimateTotal } from "../services/pricing";
 import { type Nailist, type BookingState, parseTimeRange } from "../utils/booking";
+import { CLIENT_PATHS } from "../lib/client/clientNav";
 
 export function useBooking() {
   const navigate = useNavigate();
@@ -158,7 +159,7 @@ export function useBooking() {
   }, [selectedNailist, timeSlots]);
 
   useEffect(() => {
-    if (!state) navigate("/");
+    if (!state) navigate(CLIENT_PATHS.explore);
   }, [state, navigate]);
 
   useEffect(() => {
@@ -394,9 +395,7 @@ export function useBooking() {
         "Existing Appointment",
         err.message || "You already have an appointment waiting for payment. Please pay for it, or let it expire, before booking another. You can find it in My Schedule.",
         () =>
-          navigate("/profile", {
-            state: { activeTab: "schedule" },
-          }),
+          navigate(CLIENT_PATHS.appointments),
         "View Appointments",
       );
 
@@ -409,7 +408,7 @@ export function useBooking() {
         "Something went wrong while holding your time, so nothing was booked and you have not been charged. Please try again in a moment.",
       );
 
-    navigate("/payment", {
+    navigate(CLIENT_PATHS.payment, {
       state: {
         appointment_id: result.appointment_id,
         service_name,

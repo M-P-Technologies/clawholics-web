@@ -5,6 +5,7 @@ import { fetchBookedSlotsDetailed } from "../services/bookingService";
 import { fetchNailistDayOffs, fetchNailistTimeSlots } from "../services/nailistService";
 import { rescheduleAppointment } from "../services/bookingService";
 import { isOverlapping, toLocalDate, toLocalDateString } from "../utils/reschedule";
+import { CLIENT_PATHS } from "../lib/client/clientNav";
 
 export function useReschedule() {
   const navigate = useNavigate();
@@ -48,7 +49,7 @@ export function useReschedule() {
         showModal(
           "Reservation expired",
           "Your reservation time has expired and this appointment was cancelled.",
-          () => navigate("/profile", { replace: true }),
+          () => navigate(CLIENT_PATHS.appointments, { replace: true }),
         );
         return false;
       }
@@ -71,12 +72,12 @@ export function useReschedule() {
 
   useEffect(() => {
     if (isLoaded && (!isSignedIn || !appointment)) {
-      navigate("/profile", { replace: true });
+      navigate(CLIENT_PATHS.appointments, { replace: true });
       return;
     }
 
     if (isLoaded && appointment && appointment.status.toLowerCase() === "pending") {
-      navigate("/profile", { replace: true });
+      navigate(CLIENT_PATHS.appointments, { replace: true });
     }
   }, [isLoaded, isSignedIn, appointment, navigate]);
 
@@ -219,7 +220,7 @@ export function useReschedule() {
       showModal(
         "Appointment rescheduled",
         "Your appointment is now on the new date and time. You can see the updated details in My Schedule.",
-        () => navigate("/profile", { replace: true }),
+        () => navigate(CLIENT_PATHS.appointments, { replace: true }),
       );
     } catch (err: any) {
       showModal(
