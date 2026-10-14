@@ -1,6 +1,6 @@
 import { Cake, CalendarClock, CalendarDays, Mail, MessageCircle, Phone, Sparkles } from "lucide-react";
 import type { ComponentType } from "react";
-import { FacebookIcon, InstagramIcon } from "../../components/ui/SocialIcons";
+import { FacebookIcon, InstagramIcon } from "@/components/atoms";
 import type { StepState } from "../bookingTracker";
 import type { ClientDetails } from "../../services/clientNotesService";
 import { parseServerTime } from "../../services/serverTime";

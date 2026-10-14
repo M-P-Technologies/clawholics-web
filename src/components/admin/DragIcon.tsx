@@ -1,6 +1,6 @@
 import { GripVertical as DragSvg } from "lucide-react";
 import type { SortableHandleProps } from "./SortableList";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 
 const DragIcon = ({
   listeners,

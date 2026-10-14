@@ -2,7 +2,7 @@
 
 import { Sparkles } from "lucide-react";
 import { Link } from "@/lib/router";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 import { serviceDetailPath } from "../../lib/client/clientNav";
 import { shortPriceLabel } from "../../lib/client/servicePrice";
 import type { NailService } from "../../services/serviceService";

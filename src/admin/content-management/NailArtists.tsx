@@ -3,7 +3,7 @@
 import CmsEditor from "../../components/admin/cms/CmsEditor";
 import { ItemsNote, PanelSection, SaveBar, TextField } from "../../components/admin/cms/fields";
 import NailArtistDropdown from "../../components/admin/NailArtistDropdown";
-import { LoadingBar } from "../../components/ui/LoadingBar";
+import { LoadingBar } from "@/components/atoms";
 import { useArtistsEditor } from "../../hooks/admin/useArtistsEditor";
 import { ARTISTS_PREVIEW_PAGES } from "../../lib/admin/cmsPages";
 

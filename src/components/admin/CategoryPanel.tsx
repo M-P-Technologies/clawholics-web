@@ -12,7 +12,7 @@ type Auth,
 type ServiceAddon,
 type ServiceCategory,
 } from "../../services/catalogService";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 
 type Run = (fn: (auth: Auth) => Promise<unknown>) => Promise<boolean>;
 

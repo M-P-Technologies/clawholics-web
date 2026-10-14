@@ -1,5 +1,5 @@
 import type { Nailist } from "../../utils/booking";
-import Select from "../ui/Select";
+import { Select } from "@/components/atoms";
 
 interface ArtistSelectProps {
   nailists: Nailist[];

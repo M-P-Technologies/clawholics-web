@@ -1,6 +1,6 @@
 import { whenLabel } from "../../../lib/admin/clientPage";
 import type { ClientNote } from "../../../services/clientNotesService";
-import Button from "../../ui/Button";
+import { Button } from "@/components/atoms";
 import { initialsOf } from "../DirectoryProfileCard";
 
 // A note, with its author's initials, when it was written, and what it's about

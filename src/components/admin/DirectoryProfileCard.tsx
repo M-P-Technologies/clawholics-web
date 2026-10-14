@@ -7,7 +7,7 @@ import clsx from "clsx";
 import { Link } from "../../lib/router";
 import type { DirectoryUser } from "../../services/directoryService";
 import { parseServerTime } from "../../services/serverTime";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 
 export type { DirectoryUser };
 

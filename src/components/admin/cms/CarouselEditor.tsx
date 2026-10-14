@@ -2,7 +2,7 @@ import { X } from "lucide-react";
 import { useId, type ReactNode } from "react";
 import DragIcon from "../DragIcon";
 import SortableList from "../SortableList";
-import Button from "../../ui/Button";
+import { Button } from "@/components/atoms";
 import { DropArea } from "./fields";
 import type { CarouselItem } from "../../../services/carouselService";
 

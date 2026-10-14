@@ -1,6 +1,6 @@
 import { CalendarDays, Clock } from "lucide-react";
 import { relativeDay } from "../../utils/profileView";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 import { AppointmentThumb } from "./AppointmentCard";
 import StatusPill from "./StatusPill";
 import type { AppointmentView } from "./types";

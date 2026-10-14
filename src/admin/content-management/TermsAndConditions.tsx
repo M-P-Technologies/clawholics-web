@@ -4,7 +4,7 @@ import CmsEditor from "../../components/admin/cms/CmsEditor";
 import { ItemsNote, PanelSection } from "../../components/admin/cms/fields";
 import SortableList from "../../components/admin/SortableList";
 import TACDropdown from "../../components/admin/TACDropdown";
-import { LoadingBar } from "../../components/ui/LoadingBar";
+import { LoadingBar } from "@/components/atoms";
 import { useTermsEditor } from "../../hooks/admin/useTermsEditor";
 import { TERMS_PREVIEW_PAGES } from "../../lib/admin/cmsPages";
 

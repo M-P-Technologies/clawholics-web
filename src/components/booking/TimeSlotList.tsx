@@ -1,4 +1,4 @@
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 interface TimeSlotListProps {
   slots: string[];
   selected: string;

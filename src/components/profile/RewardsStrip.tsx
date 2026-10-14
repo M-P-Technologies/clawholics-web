@@ -1,7 +1,7 @@
 import { Gift } from "lucide-react";
 import clsx from "clsx";
 import { STAMP_TARGET, stampsToGo } from "../../utils/profileView";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 
 // The loyalty card in short: the stamps so far and how many are left. Opens the full card.
 export default function RewardsStrip({ stamps, onOpen }: { stamps: number; onOpen: () => void }) {

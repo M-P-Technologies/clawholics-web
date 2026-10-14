@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { DASHBOARD_RANGES, type DashboardRange } from "../../../lib/dashboardPeriods";
-import Button from "../../ui/Button";
+import { Button } from "@/components/atoms";
 
 export const PERIOD_LABELS: Record<DashboardRange, string> = {
   week: "This week",

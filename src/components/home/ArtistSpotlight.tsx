@@ -2,7 +2,7 @@ import { ChevronLeft,ChevronRight } from "lucide-react";
 import { useEffect,useRef,useState } from "react";
 import Bow from "../../assets/bow.svg";
 import type { Nailist } from "../../types";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 
 const ROUND_BUTTON =
   "flex h-10 w-10 items-center justify-center rounded-full border border-crimson-light bg-light-orange text-crimson shadow-md shadow-crimson/20 transition-colors hover:bg-crimson hover:text-light-orange focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson";

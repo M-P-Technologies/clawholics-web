@@ -1,5 +1,5 @@
 import { Check, X } from "lucide-react";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 
 interface FeedbackModalProps {
   open: boolean;

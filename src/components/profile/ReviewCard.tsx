@@ -2,8 +2,8 @@ import { ImagePlus, X } from "lucide-react";
 import { useEffect, useState, type ChangeEvent } from "react";
 import { validateProofFile } from "../../services/proofService";
 import type { Review, ReviewDraft } from "../../services/reviewService";
-import Button from "../ui/Button";
-import { StarPicker, Stars } from "../ui/StarRating";
+import { Button } from "@/components/atoms";
+import { StarPicker, Stars } from "@/components/atoms";
 
 interface ReviewCardProps {
   appointmentId: number;

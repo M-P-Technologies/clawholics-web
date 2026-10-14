@@ -8,9 +8,9 @@ import ScheduleDayDetails from "../../components/admin/schedule/ScheduleDayDetai
 import ScheduleMonthGrid from "../../components/admin/schedule/ScheduleMonthGrid";
 import ScheduleAgenda from "../../components/admin/ScheduleAgenda";
 import ScheduleWeekGrid from "../../components/admin/ScheduleWeekGrid";
-import Button from "../../components/ui/Button";
-import { LoadingBar } from "../../components/ui/LoadingBar";
-import Select from "../../components/ui/Select";
+import { Button } from "@/components/atoms";
+import { LoadingBar } from "@/components/atoms";
+import { Select } from "@/components/atoms";
 import Sheet from "../../components/ui/Sheet";
 import { useSchedule } from "../../hooks/admin/useSchedule";
 import type { Appointment } from "../../services/appointmentService";

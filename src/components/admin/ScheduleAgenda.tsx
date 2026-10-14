@@ -2,7 +2,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import clsx from "clsx";
 import type { ScheduleAppointment } from "../../services/scheduleService";
 import { addDays, scheduleClientName, sortByStartTime, weekDays } from "../../services/scheduleAgenda";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 
 export interface AgendaArtist {
   id: number;

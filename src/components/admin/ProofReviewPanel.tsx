@@ -11,7 +11,7 @@ type ProofSummary,
 import { getProofState } from "../../services/proofState";
 import { parseServerTime } from "../../services/serverTime";
 import ImagePreviewModal from "./ImagePreviewModal";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 
 interface Props {
   appointmentId: number;

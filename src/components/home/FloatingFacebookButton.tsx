@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useScrolled } from "../../hooks/useScrolled";
 import { TAB_BAR_REVEAL_PX } from "../layout/MobileTabBar";
-import { FacebookIcon } from "../ui/SocialIcons";
+import { FacebookIcon } from "@/components/atoms";
 
 // Stays in the bottom-right corner while the page scrolls and opens the studio's
 // Facebook page in a new tab. It slides away once the footer comes into view, because

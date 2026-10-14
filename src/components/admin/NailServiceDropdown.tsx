@@ -25,7 +25,7 @@ import ServicePricingFields, {
 import { PHOTO_UPLOAD_OPTIONS, uploadImage } from "../../services/uploadService";
 import { useToast } from "../ui/ToastProvider";
 import EditActions from "./EditActions";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 import ConfirmModal from "../ui/ConfirmModal";
 
 type NailServiceDropdownProps = {

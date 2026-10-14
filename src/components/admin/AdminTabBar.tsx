@@ -3,7 +3,7 @@ import { CalendarCheck, CalendarDays, Ellipsis, LayoutDashboard, QrCode, type Lu
 import { useClerk } from "@clerk/nextjs";
 import clsx from "clsx";
 import { Link, useLocation } from "@/lib/router";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 import { MORE_GROUPS, MORE_ITEMS, TAB_ITEMS } from "./adminNav";
 
 // The phone's admin navigation: a bar fixed to the bottom (hidden from `lg` up, where the

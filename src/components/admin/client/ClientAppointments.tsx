@@ -5,7 +5,7 @@ import type { VisitDraft } from "../../../hooks/admin/useClientPage";
 import { dateLabel } from "../../../lib/admin/clientPage";
 import { peso } from "../../../lib/dashboardFormat";
 import type { ClientAppointment, ClientNote } from "../../../services/clientNotesService";
-import Button from "../../ui/Button";
+import { Button } from "@/components/atoms";
 import TablePager, { paginate } from "../dashboard/TablePager";
 import ImagePreviewModal from "../ImagePreviewModal";
 import { CARDS_PER_PAGE, CardFields, RowCard, RowCards } from "../RowCards";

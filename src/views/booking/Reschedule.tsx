@@ -1,8 +1,8 @@
 "use client";
 
 import AlertModal from "../../components/ui/AlertModal";
-import Button from "../../components/ui/Button";
-import { LoadingBar } from "../../components/ui/LoadingBar";
+import { Button } from "@/components/atoms";
+import { LoadingBar } from "@/components/atoms";
 import DayCalendar from "../../components/booking/DayCalendar";
 import PageHeader from "../../components/layout/PageHeader";
 import ClientPage from "../../components/client/ClientPage";

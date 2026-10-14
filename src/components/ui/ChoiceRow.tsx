@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import clsx from "clsx";
 import { Check } from "lucide-react";
-import Button from "./Button";
+import { Button } from "@/components/atoms";
 
 interface ChoiceRowProps {
   selected: boolean;

@@ -15,7 +15,7 @@ function resolveSpecifier(spec, fromFile, srcRoot) {
   return null;
 }
 
-const IMPORT = /import\s+(type\s+)?([\s\S]*?)\s+from\s+(["'])([^"']+)\3;?/g;
+const IMPORT = /import\s+(type\s+)?([^'";]*?)\s+from\s+(["'])([^"']+)\3;?/g;
 const MOCK = /vi\.mock\(\s*(["'])([^"']+)\1/g;
 
 export function rewriteImports(source, fromFile, { oldModule, barrel, name, renames = {} }, srcRoot = SRC) {

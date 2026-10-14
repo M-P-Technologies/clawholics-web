@@ -16,8 +16,8 @@ import {
 fetchNailistDayOffs,
 fetchNailistTimeSlots,
 } from "../../services/nailistService";
-import Button from "../ui/Button";
-import Select from "../ui/Select";
+import { Button } from "@/components/atoms";
+import { Select } from "@/components/atoms";
 
 interface CreateAppointmentModalProps {
   onClose: () => void;

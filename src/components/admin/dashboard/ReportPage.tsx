@@ -2,8 +2,8 @@
 
 import type { ReactNode } from "react";
 import { useDashboardReport, type ReportProps } from "../../../hooks/admin/useReports";
-import Button from "../../ui/Button";
-import { LoadingBar } from "../../ui/LoadingBar";
+import { Button } from "@/components/atoms";
+import { LoadingBar } from "@/components/atoms";
 import StatePanel from "../../ui/StatePanel";
 import AdminShell from "../AdminShell";
 import PeriodSwitch from "./PeriodSwitch";

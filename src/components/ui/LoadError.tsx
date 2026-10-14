@@ -1,4 +1,4 @@
-import Button from "./Button";
+import { Button } from "@/components/atoms";
 import PageShell from "../layout/PageShell";
 import Section from "../layout/Section";
 import StatePanel from "./StatePanel";

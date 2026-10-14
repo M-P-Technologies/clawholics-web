@@ -2,8 +2,8 @@
 
 import { useState, type ReactNode } from "react";
 import { useLocation } from "@/lib/router";
-import Button from "../ui/Button";
-import { LoadingBar } from "../ui/LoadingBar";
+import { Button } from "@/components/atoms";
+import { LoadingBar } from "@/components/atoms";
 import { useMyReviews } from "../../hooks/useMyReviews";
 import { useProfile } from "../../hooks/useProfile";
 import { MyAccountContext, type MyAccount } from "../../hooks/client/useMyAccount";

@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 import { AlertCircle, CheckCircle2, Info, X } from "lucide-react";
 import clsx from "clsx";
-import Button from "./Button";
+import { Button } from "@/components/atoms";
 
 type ToastKind = "success" | "error" | "info";
 

@@ -5,7 +5,7 @@ import { Link } from "@/lib/router";
 import DetailsCard from "../../components/profile/DetailsCard";
 import ProfileHeader from "../../components/profile/ProfileHeader";
 import RewardsStrip from "../../components/profile/RewardsStrip";
-import Button from "../../components/ui/Button";
+import { Button } from "@/components/atoms";
 import ClientTopBar from "../../components/client/ClientTopBar";
 import { contactMethodLabel } from "../../data/profile";
 import { useMyAccount } from "../../hooks/client/useMyAccount";

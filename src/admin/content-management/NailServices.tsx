@@ -4,7 +4,7 @@ import CategoryPanel from "../../components/admin/CategoryPanel";
 import CmsEditor from "../../components/admin/cms/CmsEditor";
 import { ItemsNote, LinkField, PanelSection, SaveBar, SubCard, TextField } from "../../components/admin/cms/fields";
 import NailServiceDropdown from "../../components/admin/NailServiceDropdown";
-import { LoadingBar } from "../../components/ui/LoadingBar";
+import { LoadingBar } from "@/components/atoms";
 import { useServicesEditor } from "../../hooks/admin/useServicesEditor";
 import { SERVICES_PREVIEW_PAGES } from "../../lib/admin/cmsPages";
 import { SITE_LINK_OPTIONS } from "../../lib/homeSections";

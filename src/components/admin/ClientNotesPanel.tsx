@@ -11,7 +11,7 @@ updateNote,
 type ClientNote,
 } from "../../services/clientNotesService";
 import { parseServerTime } from "../../services/serverTime";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 
 interface Props {
   clientUserId: number;

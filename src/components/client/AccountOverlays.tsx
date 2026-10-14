@@ -4,7 +4,7 @@ import type { Dispatch, SetStateAction } from "react";
 import AppointmentSheet from "../profile/AppointmentSheet";
 import EditDetailsSheet from "../profile/EditDetailsSheet";
 import RewardsSheet from "../profile/RewardsSheet";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 import { CONTACT_METHOD_OPTIONS } from "../../data/profile";
 import { useServicePhotos } from "../../hooks/useServicePhotos";
 import type { MyAccount } from "../../hooks/client/useMyAccount";

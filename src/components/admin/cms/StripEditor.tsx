@@ -1,7 +1,7 @@
 import { ListChecks, Plus, RotateCcw, X } from "lucide-react";
 import { MAX_STRIP_SLIDES, type StripSlide } from "../../../lib/homeSections";
 import type { NailService } from "../../../services/serviceService";
-import Button from "../../ui/Button";
+import { Button } from "@/components/atoms";
 import DragIcon from "../DragIcon";
 import SortableList from "../SortableList";
 import { fieldClass, fieldLabelClass } from "./fields";

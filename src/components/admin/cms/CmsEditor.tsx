@@ -2,8 +2,8 @@ import { ExternalLink, Monitor, PenLine, RotateCw, Smartphone, Eye } from "lucid
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import clsx from "clsx";
 import AdminShell from "../AdminShell";
-import Button from "../../ui/Button";
-import Select from "../../ui/Select";
+import { Button } from "@/components/atoms";
+import { Select } from "@/components/atoms";
 import { PREVIEW_FRAME_NAME, type PreviewDrafts, type PreviewMessage } from "../../../lib/cmsPreview";
 
 interface PreviewPage {

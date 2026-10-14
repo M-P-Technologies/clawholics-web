@@ -1,7 +1,7 @@
 import { dateLabel, noteFieldClass } from "../../../lib/admin/clientPage";
 import type { ClientAppointment, ClientNote } from "../../../services/clientNotesService";
 import type { VisitDraft } from "../../../hooks/admin/useClientPage";
-import Button from "../../ui/Button";
+import { Button } from "@/components/atoms";
 import NoteItem from "./NoteItem";
 
 interface VisitNotesProps {

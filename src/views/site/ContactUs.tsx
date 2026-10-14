@@ -1,9 +1,9 @@
 "use client";
 
 import { Mail,MapPin,Phone } from "lucide-react";
-import Button from "../../components/ui/Button";
+import { Button } from "@/components/atoms";
 import FeedbackModal from "../../components/ui/FeedbackModal";
-import { LoadingBar } from "../../components/ui/LoadingBar";
+import { LoadingBar } from "@/components/atoms";
 import FormField from "../../components/ui/FormField";
 import PageHeader from "../../components/layout/PageHeader";
 import PageShell from "../../components/layout/PageShell";

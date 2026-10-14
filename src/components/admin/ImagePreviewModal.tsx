@@ -1,6 +1,6 @@
 import { X as XIcon } from "lucide-react";
 import React, { useEffect } from "react";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 
 type ImagePreviewModalProps = {
   imageUrl: string | null;

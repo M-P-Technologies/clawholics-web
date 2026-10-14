@@ -1,7 +1,7 @@
 import { useState, useId } from "react";
 import { Minus, Plus } from "lucide-react";
 import type { Faq } from "../../types";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 
 function FaqItem({ faq }: { faq: Faq }) {
   const [open, setOpen] = useState(false);

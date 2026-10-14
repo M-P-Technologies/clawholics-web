@@ -5,7 +5,7 @@ import {
   validateProofFile,
   type PaymentProof,
 } from "../../services/proofService";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 
 interface ProofUploaderProps {
   appointmentId: number;

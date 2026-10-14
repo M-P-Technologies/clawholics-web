@@ -1,7 +1,7 @@
 "use client";
 
 import { Clock, MapPin } from "lucide-react";
-import { LoadingBar } from "../../components/ui/LoadingBar";
+import { LoadingBar } from "@/components/atoms";
 import LoadError from "../../components/ui/LoadError";
 import StackedGallery from "../../components/home/StackedGallery";
 import PageShell from "../../components/layout/PageShell";
@@ -9,7 +9,7 @@ import PageHeader from "../../components/layout/PageHeader";
 import Panel from "../../components/layout/Panel";
 import Section from "../../components/layout/Section";
 import { useAbout } from "../../hooks/useAbout";
-import Button from "../../components/ui/Button";
+import { Button } from "@/components/atoms";
 
 export default function About() {
   const { gallery, error, reload, data, copied, handleCopyLocation, aboutHtml, businessHours } = useAbout();

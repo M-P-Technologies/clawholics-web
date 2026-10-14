@@ -3,7 +3,7 @@ import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import { getDayDotColor, getDayPickerDate, isPastDay, monthLabel, type ArtistSchedule } from "../../../lib/admin/schedule";
 import { toDateKey } from "../../../services/scheduleAgenda";
-import Button from "../../ui/Button";
+import { Button } from "@/components/atoms";
 
 interface ScheduleMonthGridProps {
   month: Date;

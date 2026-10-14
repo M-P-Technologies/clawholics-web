@@ -1,6 +1,6 @@
 import { useEffect, useRef, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { X } from "lucide-react";
-import Button from "./Button";
+import { Button } from "@/components/atoms";
 
 interface SheetProps {
   open: boolean;

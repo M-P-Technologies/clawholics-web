@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "@/lib/router";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 
 // An inner screen of the app (booking steps): a back arrow and the title, then the content
 export default function ClientPage({ title, back, children }: { title: string; back?: string; children: ReactNode }) {

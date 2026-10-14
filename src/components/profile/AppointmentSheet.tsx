@@ -1,6 +1,6 @@
 import { CalendarDays, Clock } from "lucide-react";
 import PaymentProofCard from "../payment/PaymentProofCard";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 import Sheet from "../ui/Sheet";
 import { AppointmentThumb, isCompleted } from "./AppointmentCard";
 import ReviewCard from "./ReviewCard";

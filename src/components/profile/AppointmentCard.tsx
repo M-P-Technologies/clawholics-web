@@ -2,7 +2,7 @@ import Image from "next/image";
 import { CalendarDays, Clock, Star } from "lucide-react";
 import clsx from "clsx";
 import emblem from "../../assets/logo/emblem-pink.png";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 import StatusPill from "./StatusPill";
 import type { AppointmentView } from "./types";
 

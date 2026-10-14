@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import clsx from "clsx";
-import Button from "../../ui/Button";
+import { Button } from "@/components/atoms";
 
 export const PAGE_SIZE = 10;
 

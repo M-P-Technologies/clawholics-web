@@ -26,8 +26,8 @@ import Bow from "@/assets/bow.svg";
 import { useLocation, useNavigate } from "@/lib/router";
 import logo from "../../assets/logo/logo-pink-transparent.png";
 import emblem from "../../assets/logo/emblem-pink.png";
-import Button from "../ui/Button";
-import Pearls from "../ui/Pearls";
+import { Button } from "@/components/atoms";
+import { Pearls } from "@/components/atoms";
 import AdminTabBar from "./AdminTabBar";
 import { NAV_GROUPS } from "./adminNav";
 

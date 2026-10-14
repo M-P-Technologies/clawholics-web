@@ -1,7 +1,7 @@
 import { Plus, X } from "lucide-react";
 import { MAX_OFFERS, type HomeOffer } from "../../../lib/homeSections";
 import type { NailService } from "../../../services/serviceService";
-import Button from "../../ui/Button";
+import { Button } from "@/components/atoms";
 import { fieldClass, fieldLabelClass } from "./fields";
 
 interface OffersEditorProps {

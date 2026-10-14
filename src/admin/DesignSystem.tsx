@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { Blush, Button, LoadingBar, Pearls, Select, StarPicker, Stars } from "../components/atoms";
 import AdminShell from "../components/admin/AdminShell";
 
 // Every shared component and its variants, for checking the look. Admins only; not in the sidebar.
@@ -8,7 +9,28 @@ export default function DesignSystem() {
   return (
     <AdminShell title="Design system">
       <div className="flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto pb-10">
-        <Group title="Atoms">{/* Task 2+ add sections here */}</Group>
+        <Group title="Atoms">
+          <GallerySection title="Button">
+            <Button>Primary</Button>
+            <Button variant="secondary">Secondary</Button>
+            <Button variant="bare">Bare</Button>
+            <Button disabled>Disabled</Button>
+            <Button loading loadingText="Saving...">Save</Button>
+          </GallerySection>
+          <GallerySection title="Select">
+            <Select aria-label="Example" value="a" onChange={() => {}}>
+              <option value="a">Option A</option>
+              <option value="b">Option B</option>
+            </Select>
+          </GallerySection>
+          <GallerySection title="LoadingBar"><LoadingBar inline label="Loading" /></GallerySection>
+          <GallerySection title="Blush"><div className="relative h-20 w-40 overflow-hidden rounded-xl"><Blush className="left-0 top-0 h-20 w-20" /></div></GallerySection>
+          <GallerySection title="StarRating">
+            <Stars rating={4} />
+            <StarPicker value={3} onChange={() => {}} />
+          </GallerySection>
+          <GallerySection title="Pearls"><Pearls className="w-40" /></GallerySection>
+        </Group>
         <Group title="Molecules">{/* Task 6+ */}</Group>
         <Group title="Organisms">{/* Task 11+ */}</Group>
       </div>

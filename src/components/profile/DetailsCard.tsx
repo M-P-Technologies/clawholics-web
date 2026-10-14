@@ -1,4 +1,4 @@
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 
 // The client's own details, read-only, with a way into the edit sheet. Sits inside the profile
 // panel, so it is a titled list rather than a card of its own.

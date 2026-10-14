@@ -1,6 +1,6 @@
 import { List as ListIcon } from "lucide-react";
 import React from "react";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 
 type ListIconButtonProps = {
   onClick: () => void;

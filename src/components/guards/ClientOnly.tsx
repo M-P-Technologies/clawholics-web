@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useIsClient } from "../../hooks/useIsClient";
-import { LoadingBar } from "../ui/LoadingBar";
+import { LoadingBar } from "@/components/atoms";
 
 // Mounts its children only in the browser, after hydration. For screens that read router
 // state (sessionStorage) on their first render and redirect when it is missing, such as

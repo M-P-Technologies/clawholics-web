@@ -1,7 +1,7 @@
 "use client";
 
 import { Cake } from "lucide-react";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 import { ctaLink } from "../../lib/homeSections";
 import type { OfferBanner } from "../../lib/client/offers";
 

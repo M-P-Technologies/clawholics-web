@@ -4,7 +4,7 @@ import CmsEditor from "../../components/admin/cms/CmsEditor";
 import { ItemsNote, LinkField, PanelSection, SaveBar, SubCard, TextField } from "../../components/admin/cms/fields";
 import Dropdown from "../../components/admin/FAQDropdown";
 import SortableList from "../../components/admin/SortableList";
-import { LoadingBar } from "../../components/ui/LoadingBar";
+import { LoadingBar } from "@/components/atoms";
 import { useFaqsEditor } from "../../hooks/admin/useFaqsEditor";
 import { FAQ_PREVIEW_PAGES } from "../../lib/admin/cmsPages";
 import { SITE_LINK_OPTIONS } from "../../lib/homeSections";

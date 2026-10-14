@@ -4,7 +4,7 @@ import { ArrowLeft, LogOut } from "lucide-react";
 import { useClerk } from "@clerk/nextjs";
 import clsx from "clsx";
 import { Link, useLocation } from "@/lib/router";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 import logo from "../../assets/logo/logo-pink-transparent.png";
 import { CLIENT_TABS, isTabActive } from "../../lib/client/clientNav";
 

@@ -2,7 +2,7 @@ import { X as XIcon } from "lucide-react";
 import { formatScheduleDate, getArtistStatus, getStatusPillClass, type ArtistSchedule } from "../../../lib/admin/schedule";
 import { scheduleClientName } from "../../../services/scheduleAgenda";
 import type { ScheduleAppointment } from "../../../services/scheduleService";
-import Button from "../../ui/Button";
+import { Button } from "@/components/atoms";
 
 interface ScheduleDayDetailsProps {
   /** The day, as "YYYY-MM-DD" */

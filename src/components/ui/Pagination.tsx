@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import clsx from "clsx";
 import { pageNumbers } from "../../utils/pagination";
-import Button from "./Button";
+import { Button } from "@/components/atoms";
 
 interface PaginationProps {
   page: number;

@@ -4,7 +4,7 @@ import clsx from "clsx";
 import { dateLabel, STEP_STYLE, stepStateLabel } from "../../../lib/admin/clientPage";
 import { appointmentToTrack, trackerSteps } from "../../../lib/bookingTracker";
 import type { ClientAppointment } from "../../../services/clientNotesService";
-import Select from "../../ui/Select";
+import { Select } from "@/components/atoms";
 import StatusPill from "./StatusPill";
 
 // Where one appointment is, from booking to the finished visit

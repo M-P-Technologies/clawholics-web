@@ -1,5 +1,5 @@
-import Blush from "../ui/Blush";
-import Button from "../ui/Button";
+import { Blush } from "@/components/atoms";
+import { Button } from "@/components/atoms";
 import Section from "../layout/Section";
 
 interface CtaLink {

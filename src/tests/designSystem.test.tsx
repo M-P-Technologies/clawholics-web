@@ -10,4 +10,9 @@ describe("design system gallery", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Design system" })).toBeInTheDocument();
     for (const group of ["Atoms", "Molecules", "Organisms"]) expect(screen.getByRole("heading", { level: 2, name: group })).toBeInTheDocument();
   });
+
+  it("shows the atoms", () => {
+    render(<DesignSystem />);
+    for (const c of ["Button", "Select", "LoadingBar", "Blush", "StarRating", "Pearls"]) expect(screen.getByRole("heading", { level: 3, name: c })).toBeInTheDocument();
+  });
 });

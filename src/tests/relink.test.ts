@@ -35,4 +35,11 @@ describe("relink", () => {
     const { mocks } = rewriteImports(`vi.mock("@/components/ui/Button", () => ({}));`, "/repo/src/tests/a.test.tsx", opts, SRC);
     expect(mocks).toEqual(["@/components/ui/Button"]);
   });
+
+  it("does not swallow a side-effect import before a moved import", () => {
+    const { out } = rewriteImports(`import "server-only";
+import Button from "../ui/Button";`, "/repo/src/components/admin/X.tsx", opts, SRC);
+    expect(out).toBe(`import "server-only";
+import { Button } from "@/components/atoms";`);
+  });
 });

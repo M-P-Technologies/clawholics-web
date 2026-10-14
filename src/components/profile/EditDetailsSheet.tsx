@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 import FormField from "../ui/FormField";
-import Select from "../ui/Select";
+import { Select } from "@/components/atoms";
 import Sheet from "../ui/Sheet";
 
 interface EditDetailsSheetProps {

@@ -1,6 +1,6 @@
 "use client";
 
-import { LoadingBar } from "../../components/ui/LoadingBar";
+import { LoadingBar } from "@/components/atoms";
 import LoadError from "../../components/ui/LoadError";
 import StatePanel from "../../components/ui/StatePanel";
 import PageShell from "../../components/layout/PageShell";

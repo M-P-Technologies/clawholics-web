@@ -2,7 +2,7 @@
 
 import PageShell from "../../components/layout/PageShell";
 import Section from "../../components/layout/Section";
-import Button from "../../components/ui/Button";
+import { Button } from "@/components/atoms";
 import StatePanel from "../../components/ui/StatePanel";
 
 // Shown for any address that does not exist, instead of a blank screen.

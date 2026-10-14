@@ -1,7 +1,7 @@
 import { Check } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { themeColor } from "../../services/themeColor";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 import Sheet from "../ui/Sheet";
 import { STAMP_TARGET, stampsToGo } from "../../utils/profileView";
 

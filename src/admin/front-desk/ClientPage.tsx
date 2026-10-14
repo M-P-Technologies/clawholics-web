@@ -9,7 +9,7 @@ import ClientProfilePanel from "../../components/admin/client/ClientProfilePanel
 import StatCard from "../../components/ui/StatCard";
 import NoteItem from "../../components/admin/client/NoteItem";
 import TabSection from "../../components/ui/TabSection";
-import Button from "../../components/ui/Button";
+import { Button } from "@/components/atoms";
 import StatePanel from "../../components/ui/StatePanel";
 import { useClientPage } from "../../hooks/admin/useClientPage";
 import { CLIENT_TABS, clientName, dateLabel, noteFieldClass } from "../../lib/admin/clientPage";

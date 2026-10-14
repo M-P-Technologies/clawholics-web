@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import Blush from "../ui/Blush";
+import { Blush } from "@/components/atoms";
 import AdminTopBar from "./AdminTopBar";
 import SideBar from "./SideBar";
 

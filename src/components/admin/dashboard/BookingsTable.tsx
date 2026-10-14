@@ -5,7 +5,7 @@ import { manilaToday } from "../../../lib/dashboardPeriods";
 import { Link } from "../../../lib/router";
 import type { Appointment } from "../../../services/appointmentService";
 import { useTableLayout } from "../../../hooks/useMinWidth";
-import Button from "../../ui/Button";
+import { Button } from "@/components/atoms";
 import { CardFields, RowCard, RowCards } from "../RowCards";
 import TablePager, { paginate } from "./TablePager";
 

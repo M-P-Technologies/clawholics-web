@@ -2,7 +2,7 @@
 
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import clsx from "clsx";
-import Button from "../../components/ui/Button";
+import { Button } from "@/components/atoms";
 import ServiceRow from "../../components/client/ServiceRow";
 import ClientTopBar from "../../components/client/ClientTopBar";
 import { useExplore } from "../../hooks/client/useExplore";

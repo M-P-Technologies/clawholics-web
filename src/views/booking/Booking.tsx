@@ -3,7 +3,7 @@
 import Image from "next/image";
 import AlertModal from "../../components/ui/AlertModal";
 import BookingOptions from "../../components/booking/BookingOptions";
-import Button from "../../components/ui/Button";
+import { Button } from "@/components/atoms";
 import ArtistSelect from "../../components/booking/ArtistSelect";
 import DayCalendar from "../../components/booking/DayCalendar";
 import PageHeader from "../../components/layout/PageHeader";
@@ -13,7 +13,7 @@ import Section from "../../components/layout/Section";
 import StatePanel from "../../components/ui/StatePanel";
 import SummaryRow from "../../components/booking/SummaryRow";
 import TimeSlotList from "../../components/booking/TimeSlotList";
-import { LoadingBar } from "../../components/ui/LoadingBar";
+import { LoadingBar } from "@/components/atoms";
 import { useBooking } from "../../hooks/useBooking";
 
 export default function Booking() {

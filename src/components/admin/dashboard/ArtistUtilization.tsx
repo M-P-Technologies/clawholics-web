@@ -5,7 +5,7 @@ import { useTableLayout } from "../../../hooks/useMinWidth";
 import { percent } from "../../../lib/dashboardFormat";
 import { addDays, manilaToday, resolvePeriod } from "../../../lib/dashboardPeriods";
 import type { ArtistUtilization as ArtistRow, Utilization, UtilizationDay } from "../../../services/dashboardTypes";
-import Button from "../../ui/Button";
+import { Button } from "@/components/atoms";
 import { CARDS_PER_PAGE, RowCard, RowCards } from "../RowCards";
 import TablePager, { paginate } from "./TablePager";
 

@@ -1,7 +1,7 @@
 import { Bold, Heading2, Heading3, Italic, Link2, List, ListOrdered, Pilcrow, Redo2, RemoveFormatting, Undo2, type LucideIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
-import Button from "../../ui/Button";
+import { Button } from "@/components/atoms";
 import { fieldClass, fieldLabelClass } from "./fields";
 
 interface RichTextFieldProps {

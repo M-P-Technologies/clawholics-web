@@ -1,6 +1,6 @@
 import type { ClientAppointment } from "../../../services/clientNotesService";
-import Button from "../../ui/Button";
-import { Stars } from "../../ui/StarRating";
+import { Button } from "@/components/atoms";
+import { Stars } from "@/components/atoms";
 
 interface ReviewTextProps {
   appointment: ClientAppointment;

@@ -4,7 +4,7 @@ import { Show, useClerk } from "@clerk/nextjs";
 import clsx from "clsx";
 import { Link, useLocation } from "@/lib/router";
 import { useScrolled } from "../../hooks/useScrolled";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 import { CLIENT_PATHS } from "../../lib/client/clientNav";
 
 // The phone's main navigation: a bar fixed to the bottom of the screen (hidden from `lg` up,

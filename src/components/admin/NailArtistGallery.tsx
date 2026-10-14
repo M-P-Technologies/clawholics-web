@@ -7,7 +7,7 @@ import {
   type NailistGalleryImage,
 } from "../../services/nailistService";
 import { PHOTO_UPLOAD_OPTIONS, uploadImage } from "../../services/uploadService";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 import { useToast } from "../ui/ToastProvider";
 
 const MAX_IMAGES = 10;

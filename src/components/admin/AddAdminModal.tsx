@@ -1,7 +1,7 @@
 import { ArrowLeft as BackButtonIcon } from "lucide-react";
 import React, { useState } from "react";
-import { LoadingBar } from "../ui/LoadingBar";
-import Button from "../ui/Button";
+import { LoadingBar } from "@/components/atoms";
+import { Button } from "@/components/atoms";
 
 type AddAdminFormData = {
   email: string;

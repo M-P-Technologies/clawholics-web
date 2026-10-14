@@ -5,7 +5,7 @@ import { ElsewhereNote, IconPicker, ImageField, LinkField, PanelSection, SaveBar
 import OffersEditor from "../../components/admin/cms/OffersEditor";
 import StripEditor from "../../components/admin/cms/StripEditor";
 import { FontPicker, PalettePicker } from "../../components/admin/cms/ThemePickers";
-import { LoadingBar } from "../../components/ui/LoadingBar";
+import { LoadingBar } from "@/components/atoms";
 import emblem from "../../assets/logo/emblem-pink.png";
 import footerLogo from "../../assets/logo/logo-pink-transparent.png";
 import { useHomeEditor } from "../../hooks/admin/useHomeEditor";

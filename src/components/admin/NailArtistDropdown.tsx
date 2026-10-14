@@ -26,9 +26,9 @@ import { fetchServices, type NailService } from "../../services/serviceService";
 import { uploadImage } from "../../services/uploadService";
 import { useToast } from "../ui/ToastProvider";
 import EditActions from "./EditActions";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 import ConfirmModal from "../ui/ConfirmModal";
-import Select from "../ui/Select";
+import { Select } from "@/components/atoms";
 
 type NailArtistDropdownProps = {
   nailist?: Nailist;

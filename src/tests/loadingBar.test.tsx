@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { LoadingBar } from "@/components/ui/LoadingBar";
+import { LoadingBar } from "@/components/atoms";
 
 describe("LoadingBar", () => {
   it("announces what is loading and shows the hint", () => {
