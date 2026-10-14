@@ -13,6 +13,6 @@ describe("design system gallery", () => {
 
   it("shows the atoms", () => {
     render(<DesignSystem />);
-    for (const c of ["Button", "Card", "IconButton", "Input", "Checkbox", "Select", "LoadingBar", "Blush", "StarRating", "Pearls"]) expect(screen.getByRole("heading", { level: 3, name: c })).toBeInTheDocument();
+    for (const c of ["Button", "Avatar", "Card", "IconButton", "Input", "Checkbox", "Select", "LoadingBar", "Blush", "StarRating", "Pearls"]) expect(screen.getByRole("heading", { level: 3, name: c })).toBeInTheDocument();
   });
 });

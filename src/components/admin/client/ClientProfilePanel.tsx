@@ -1,7 +1,7 @@
 import { CalendarClock } from "lucide-react";
 import { clientInfoRows, dateLabel } from "../../../lib/admin/clientPage";
 import type { ClientAppointment, ClientDetails } from "../../../services/clientNotesService";
-import { initialsOf } from "../DirectoryProfileCard";
+import { initialsOf } from "@/components/atoms";
 
 interface ClientProfilePanelProps {
   name: string;

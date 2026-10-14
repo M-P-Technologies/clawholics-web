@@ -3,7 +3,7 @@
 import { Scanner } from "@yudiel/react-qr-scanner";
 import { Camera, Check, History, QrCode, Stamp, XCircle } from "lucide-react";
 import AdminShell from "../../components/admin/AdminShell";
-import { initialsOf } from "../../components/admin/DirectoryProfileCard";
+import { initialsOf } from "@/components/atoms";
 import CardTitle from "../../components/admin/scanner/CardTitle";
 import { Button } from "@/components/atoms";
 import { LoadingBar } from "@/components/atoms";

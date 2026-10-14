@@ -1,29 +1,10 @@
 import type { Nailist } from "../../utils/booking";
-import { Select } from "@/components/atoms";
+import { Avatar, Select } from "@/components/atoms";
 
 interface ArtistSelectProps {
   nailists: Nailist[];
   selectedId: number | null;
   onSelect: (id: number) => void;
-}
-
-// Round photo of the artist, or their first letter while there is no photo
-function Avatar({ nailist }: { nailist: Nailist }) {
-  return nailist.image ? (
-    <img
-      src={nailist.image}
-      alt=""
-      loading="lazy"
-      className="h-8 w-8 shrink-0 rounded-full border border-crimson-light object-cover object-top"
-    />
-  ) : (
-    <span
-      aria-hidden="true"
-      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-crimson-light bg-crimson-light/40 text-sm font-bold text-gray-red"
-    >
-      {nailist.name.charAt(0)}
-    </span>
-  );
 }
 
 // The shared Select, with each artist's face beside their name and their title underneath.
@@ -44,7 +25,7 @@ export default function ArtistSelect({ nailists, selectedId, onSelect }: ArtistS
             <span className="truncate text-xs font-normal text-gray-red/70">{titleOf(n)}</span>
           </span>
         ),
-        leading: <Avatar nailist={n} />,
+        leading: <Avatar name={n.name} imageUrl={n.image ?? ""} size="sm" cropTop decorative />,
       }))}
       triggerClassName="font-bold"
     />

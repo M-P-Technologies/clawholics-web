@@ -6,7 +6,7 @@ import { Button } from "@/components/atoms";
 import { Select } from "@/components/atoms";
 import ClientNotesPanel from "./ClientNotesPanel";
 import ProofReviewPanel from "./ProofReviewPanel";
-import { initialsOf } from "./DirectoryProfileCard";
+import { initialsOf } from "@/components/atoms";
 
 interface AppointmentDetailsModalProps {
   appointment: Appointment;

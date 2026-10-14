@@ -1,3 +1,5 @@
+import { Avatar } from "@/components/atoms";
+
 interface ProfileHeaderProps {
   firstName: string;
   /** The Clerk photo; "" for none */
@@ -10,10 +12,7 @@ export default function ProfileHeader({ firstName, imageUrl, memberSince }: Prof
   const name = firstName.trim();
   return (
     <div className="flex items-center gap-3">
-      <span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-crimson-light/50 font-display text-2xl text-berry">
-        {/* eslint-disable-next-line @next/next/no-img-element -- Clerk's image, sized by CSS */}
-        {imageUrl ? <img src={imageUrl} alt="" className="h-full w-full object-cover" /> : (name[0] ?? "?").toUpperCase()}
-      </span>
+      <Avatar name={name} imageUrl={imageUrl} size="xl" decorative />
       <div className="min-w-0">
         <h2 className="font-display text-2xl font-normal normal-case leading-tight tracking-normal text-gray-red [overflow-wrap:anywhere]">
           {name ? `Hi, ${name}` : "Hi there"}

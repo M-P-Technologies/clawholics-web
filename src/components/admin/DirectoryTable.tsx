@@ -3,7 +3,8 @@ import clsx from "clsx";
 import { useTableLayout } from "../../hooks/useMinWidth";
 import TablePager, { paginate } from "./dashboard/TablePager";
 import { CardFields, RowCard, RowCards } from "./RowCards";
-import { initialsOf, monthYear, nameOf, relativeDay, roleOf, type DirectoryProfile, type DirectoryUser } from "./DirectoryProfileCard";
+import { initialsOf } from "@/components/atoms";
+import { monthYear, nameOf, relativeDay, roleOf, type DirectoryProfile, type DirectoryUser } from "./DirectoryProfileCard";
 
 const ROWS = 5;
 

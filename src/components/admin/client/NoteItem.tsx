@@ -1,7 +1,7 @@
 import { whenLabel } from "../../../lib/admin/clientPage";
 import type { ClientNote } from "../../../services/clientNotesService";
 import { Button } from "@/components/atoms";
-import { initialsOf } from "../DirectoryProfileCard";
+import { initialsOf } from "@/components/atoms";
 
 // A note, with its author's initials, when it was written, and what it's about
 export default function NoteItem({ note, about, onDelete }: { note: ClientNote; about?: string; onDelete: () => void }) {

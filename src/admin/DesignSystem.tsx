@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { Trash2 } from "lucide-react";
-import { Blush, Button, Card, Checkbox, IconButton, Input, LoadingBar, Pearls, Select, StarPicker, Stars } from "../components/atoms";
+import { Avatar, Blush, Button, Card, Checkbox, IconButton, Input, LoadingBar, Pearls, Select, StarPicker, Stars } from "../components/atoms";
 import AdminShell from "../components/admin/AdminShell";
 
 // Every shared component and its variants, for checking the look. Admins only; not in the sidebar.
@@ -28,6 +28,12 @@ export default function DesignSystem() {
             <IconButton label="Brand" icon={Trash2} tone="brand" />
             <IconButton label="Small" icon={Trash2} size="sm" />
             <IconButton label="Disabled" icon={Trash2} disabled />
+          </GallerySection>
+          <GallerySection title="Avatar">
+            <Avatar name="Ana Cruz" imageUrl="/favicon.ico" />
+            <Avatar name="Ana Maria Cruz" />
+            <Avatar name="" />
+            {(["sm", "md", "lg", "xl"] as const).map((size) => <Avatar key={size} name="Ana Cruz" size={size} />)}
           </GallerySection>
           <GallerySection title="Input">
             <Input aria-label="Demo" placeholder="Type…" />

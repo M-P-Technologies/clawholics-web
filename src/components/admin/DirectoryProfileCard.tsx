@@ -7,7 +7,7 @@ import clsx from "clsx";
 import { Link } from "../../lib/router";
 import type { DirectoryUser } from "../../services/directoryService";
 import { parseServerTime } from "../../services/serverTime";
-import { Button } from "@/components/atoms";
+import { Button, initialsOf } from "@/components/atoms";
 
 export type { DirectoryUser };
 
@@ -33,14 +33,6 @@ export const nameOf = (user: DirectoryUser) =>
     .filter(Boolean)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
-
-export const initialsOf = (name: string) =>
-  name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part.charAt(0).toUpperCase())
-    .join("");
 
 export function roleOf(role?: string) {
   const normalized = role?.trim().toLowerCase();

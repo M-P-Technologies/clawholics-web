@@ -3,7 +3,7 @@
 import { CalendarDays, ExternalLink } from "lucide-react";
 import type { ReactNode } from "react";
 import { useAdminAccount } from "../../hooks/admin/useAdminAccount";
-import { initialsOf } from "./DirectoryProfileCard";
+import { Avatar } from "@/components/atoms";
 
 interface AdminTopBarProps {
   title: string;
@@ -62,17 +62,5 @@ export default function AdminTopBar({ title, titleAside, actions }: AdminTopBarP
         </div>
       </div>
     </header>
-  );
-}
-
-// The signed-in admin's photo, or their initials
-function Avatar({ name, imageUrl, className = "" }: { name: string; imageUrl: string; className?: string }) {
-  return imageUrl ? (
-    // eslint-disable-next-line @next/next/no-img-element -- Clerk's image, sized by CSS like the rest of the admin
-    <img src={imageUrl} alt={name} title={name} className={`h-9 w-9 shrink-0 rounded-full border border-crimson-light object-cover ${className}`} />
-  ) : (
-    <span role="img" aria-label={name} title={name} className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-crimson-light/50 font-display text-sm text-berry ${className}`}>
-      {initialsOf(name)}
-    </span>
   );
 }

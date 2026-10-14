@@ -13,7 +13,8 @@ describe("ProfileHeader", () => {
 
   it("uses initials when there is no photo, and a safe greeting with no name", () => {
     const { rerender } = render(<ProfileHeader firstName="precious hope" imageUrl="" memberSince="" />);
-    expect(screen.getByText("P")).toBeInTheDocument();
+    // The shared Avatar shows up to two initials (the admin version wins)
+    expect(screen.getByText("PH")).toBeInTheDocument();
     rerender(<ProfileHeader firstName="" imageUrl="" memberSince="" />);
     expect(screen.getByRole("heading", { level: 2, name: "Hi there" })).toBeInTheDocument();
   });
