@@ -85,7 +85,7 @@ export default function CmsEditor({ title, pages, drafts, refreshKey = 0, header
           <aside
             aria-label={`${title} settings`}
             className={clsx(
-              "min-h-0 w-full shrink-0 flex-col overflow-clip rounded-2xl border border-crimson-light/40 bg-milk shadow-petal lg:flex lg:w-[380px] xl:w-[420px]",
+              "min-h-0 w-full shrink-0 flex-col overflow-clip rounded-2xl border border-crimson-light/40 bg-milk shadow-petal lg:flex lg:w-95 xl:w-105",
               pane === "edit" ? "flex" : "hidden",
             )}
           >
@@ -200,7 +200,7 @@ function PreviewStage({ frameRef, src, device, reloadKey, title }: PreviewStageP
         style={frameStyle}
         className={clsx(
           "absolute left-1/2 origin-top overflow-clip bg-light-orange",
-          device === "mobile" && "rounded-[2.25rem] border-[10px] border-gray-red shadow-xl",
+          device === "mobile" && "rounded-[2.25rem] border-10 border-gray-red shadow-xl",
         )}
       >
         <iframe
