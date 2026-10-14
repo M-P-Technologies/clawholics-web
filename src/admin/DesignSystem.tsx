@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { Trash2 } from "lucide-react";
-import { Avatar, Blush, Button, Card, Checkbox, IconButton, Input, LoadingBar, Pearls, Select, StarPicker, Stars } from "../components/atoms";
+import { Avatar, Badge, Blush, Button, Card, Checkbox, IconButton, Input, LoadingBar, Pearls, Select, StarPicker, Stars } from "../components/atoms";
 import AdminShell from "../components/admin/AdminShell";
 
 // Every shared component and its variants, for checking the look. Admins only; not in the sidebar.
@@ -17,6 +17,10 @@ export default function DesignSystem() {
             <Button variant="bare">Bare</Button>
             <Button disabled>Disabled</Button>
             <Button loading loadingText="Saving...">Save</Button>
+          </GallerySection>
+          <GallerySection title="Badge">
+            {(["success", "warning", "danger", "info", "neutral", "brand"] as const).map((tone) => <Badge key={tone} tone={tone}>{tone}</Badge>)}
+            <Badge dot="info" caps>Confirmed</Badge>
           </GallerySection>
           <GallerySection title="Card">
             <Card padding="sm">Milk card</Card>

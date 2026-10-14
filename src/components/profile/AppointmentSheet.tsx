@@ -1,10 +1,10 @@
 import { CalendarDays, Clock } from "lucide-react";
 import PaymentProofCard from "../payment/PaymentProofCard";
-import { Button } from "@/components/atoms";
+import { Badge, Button } from "@/components/atoms";
+import { statusDotTone } from "../../utils/profileView";
 import Sheet from "../ui/Sheet";
 import { AppointmentThumb, isCompleted } from "./AppointmentCard";
 import ReviewCard from "./ReviewCard";
-import StatusPill from "./StatusPill";
 import type { AppointmentView } from "./types";
 import type { PaymentProof } from "../../services/proofService";
 import type { Review, ReviewDraft } from "../../services/reviewService";
@@ -37,7 +37,7 @@ export default function AppointmentSheet({ view, photo, now, tokenFetcher, clerk
               <p className="truncate font-display text-xl text-berry">{view.appt.service_name}</p>
               <p className="truncate text-[13px] text-gray-red/70">With {view.appt.nailist_name}</p>
             </div>
-            <StatusPill label={view.statusLabel} dotClass={view.statusDot} />
+            <Badge dot={statusDotTone(view.displayStatus)} caps>{view.statusLabel}</Badge>
           </div>
 
           <dl className="grid grid-cols-2 gap-3">

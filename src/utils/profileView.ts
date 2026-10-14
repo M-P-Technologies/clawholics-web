@@ -1,3 +1,4 @@
+import type { BadgeTone } from "@/components/atoms";
 import type { AppointmentView } from "../components/profile/types";
 
 export const STAMP_TARGET = 10;
@@ -29,4 +30,15 @@ export function relativeDay(dateStr: string, timeStr: string, now: number): stri
 /** The hero: the soonest appointment that is still live (an expired payment hold is not). */
 export function pickNext(views: AppointmentView[]): AppointmentView | null {
   return sortSoonest(views.filter((v) => !v.isExpired))[0] ?? null;
+}
+
+/** The dot of a client's appointment status, as useProfile's getStatusDotColor colors it */
+export function statusDotTone(status: string): BadgeTone {
+  const s = status.toLowerCase();
+  if (s === "pending" || s === "awaiting_proof") return "warning";
+  if (s === "confirmed") return "info";
+  if (s === "completed") return "success";
+  if (s === "cancelled") return "danger";
+  if (s === "refunded") return "brand";
+  return "neutral";
 }

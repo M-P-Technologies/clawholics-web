@@ -2,14 +2,13 @@ import { useState } from "react";
 import clsx from "clsx";
 import { useTableLayout } from "../../../hooks/useMinWidth";
 import type { VisitDraft } from "../../../hooks/admin/useClientPage";
-import { dateLabel } from "../../../lib/admin/clientPage";
+import { dateLabel, statusOf } from "../../../lib/admin/clientPage";
 import { peso } from "../../../lib/dashboardFormat";
 import type { ClientAppointment, ClientNote } from "../../../services/clientNotesService";
-import { Button } from "@/components/atoms";
+import { Badge, Button } from "@/components/atoms";
 import TablePager, { paginate } from "../dashboard/TablePager";
 import ImagePreviewModal from "../ImagePreviewModal";
 import { CARDS_PER_PAGE, CardFields, RowCard, RowCards } from "../RowCards";
-import StatusPill from "./StatusPill";
 import VisitNotes from "./VisitNotes";
 import { ReviewPhoto, ReviewText } from "./VisitReview";
 
@@ -54,7 +53,7 @@ export default function ClientAppointments({ appointments, notesFor, draft, busy
                   <span className="block font-bold">{dateLabel(a.appointment_date)}</span>
                   <span className="block text-[12px] text-gray-red/70">{a.appointment_time}</span>
                 </span>
-                <StatusPill status={a.status} className="shrink-0" />
+                <Badge tone={statusOf(a.status).tone}>{statusOf(a.status).label}</Badge>
               </div>
               <CardFields
                 fields={[
@@ -105,7 +104,7 @@ export default function ClientAppointments({ appointments, notesFor, draft, busy
                 <td className={cell}>{a.service_name}</td>
                 <td className={cell}>{a.nailist_name}</td>
                 <td className={cell}>
-                  <StatusPill status={a.status} />
+                  <Badge tone={statusOf(a.status).tone}>{statusOf(a.status).label}</Badge>
                 </td>
                 <td className={clsx(cell, "text-right")}>{fee(a)}</td>
                 <td className={clsx(cell, "max-w-[260px]")}>

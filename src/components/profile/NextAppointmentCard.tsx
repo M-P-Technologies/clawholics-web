@@ -1,8 +1,7 @@
 import { CalendarDays, Clock } from "lucide-react";
-import { relativeDay } from "../../utils/profileView";
-import { Button } from "@/components/atoms";
+import { relativeDay, statusDotTone } from "../../utils/profileView";
+import { Badge, Button } from "@/components/atoms";
 import { AppointmentThumb } from "./AppointmentCard";
-import StatusPill from "./StatusPill";
 import type { AppointmentView } from "./types";
 
 interface NextAppointmentCardProps {
@@ -29,14 +28,14 @@ export default function NextAppointmentCard({ view, photo, now, onPay, onResched
     );
   }
 
-  const { appt, statusLabel, statusDot, dateLabel, timeLabel, canPay, payLabel, canReschedule, canCancel, isLocked } = view;
+  const { appt, statusLabel, displayStatus, dateLabel, timeLabel, canPay, payLabel, canReschedule, canCancel, isLocked } = view;
   const when = relativeDay(appt.appointment_date, appt.appointment_time, now);
 
   return (
     <section aria-label="Next appointment" className="flex flex-col gap-4 rounded-xl border border-crimson-light/60 bg-light-orange/40 p-4">
       <div className="flex items-center justify-between gap-4">
         <h2 className="font-display text-xl font-normal normal-case tracking-normal text-gray-red">Next appointment</h2>
-        <StatusPill label={statusLabel} dotClass={statusDot} />
+        <Badge dot={statusDotTone(displayStatus)} caps>{statusLabel}</Badge>
       </div>
 
       <div className="flex items-center gap-4">

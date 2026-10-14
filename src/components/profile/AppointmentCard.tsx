@@ -2,8 +2,8 @@ import Image from "next/image";
 import { CalendarDays, Clock, Star } from "lucide-react";
 import clsx from "clsx";
 import emblem from "../../assets/logo/emblem-pink.png";
-import { Button } from "@/components/atoms";
-import StatusPill from "./StatusPill";
+import { Badge, Button } from "@/components/atoms";
+import { statusDotTone } from "../../utils/profileView";
 import type { AppointmentView } from "./types";
 
 interface AppointmentCardProps {
@@ -33,7 +33,7 @@ export function AppointmentThumb({ photo, size = 64 }: { photo: string; size?: n
 
 // One appointment in a list: photo, what, who, when, and its status. The whole card opens the details.
 export default function AppointmentCard({ view, photo, onOpen, highlighted, awaitingReview }: AppointmentCardProps) {
-  const { appt, statusLabel, statusDot, dateLabel, timeLabel } = view;
+  const { appt, statusLabel, displayStatus, dateLabel, timeLabel } = view;
   return (
     <Button
       variant="bare"
@@ -57,7 +57,7 @@ export default function AppointmentCard({ view, photo, onOpen, highlighted, awai
           <span className="inline-flex items-center gap-1 text-[13px] font-bold text-berry"><Star size={14} aria-hidden="true" />Leave a review</span>
         )}
       </span>
-      <StatusPill label={statusLabel} dotClass={statusDot} />
+      <Badge dot={statusDotTone(displayStatus)} caps>{statusLabel}</Badge>
     </Button>
   );
 }

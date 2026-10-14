@@ -1,7 +1,7 @@
 import { fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import Sheet from "@/components/ui/Sheet";
-import StatusPill from "@/components/profile/StatusPill";
+import { Badge } from "@/components/atoms";
 import { pickNext, relativeDay, sortSoonest, stampsToGo, startOf } from "@/utils/profileView";
 import type { AppointmentView } from "@/components/profile/types";
 import { useServicePhotos } from "@/hooks/useServicePhotos";
@@ -36,9 +36,9 @@ describe("Sheet", () => {
   });
 });
 
-describe("StatusPill", () => {
+describe("Badge", () => {
   it("shows the label with a coloured dot", () => {
-    const { container } = render(<StatusPill label="awaiting proof" dotClass="bg-warning" />);
+    const { container } = render(<Badge dot="warning" caps>awaiting proof</Badge>);
     expect(screen.getByText("awaiting proof")).toBeInTheDocument();
     expect(container.querySelector(".bg-warning")).not.toBeNull();
   });

@@ -1,6 +1,6 @@
 import { Cake, CalendarClock, CalendarDays, Mail, MessageCircle, Phone, Sparkles } from "lucide-react";
 import type { ComponentType } from "react";
-import { FacebookIcon, InstagramIcon } from "@/components/atoms";
+import { FacebookIcon, InstagramIcon, type BadgeTone } from "@/components/atoms";
 import type { StepState } from "../bookingTracker";
 import type { ClientDetails } from "../../services/clientNotesService";
 import { parseServerTime } from "../../services/serverTime";
@@ -22,17 +22,17 @@ export const whenLabel = (value: string | null | undefined) => {
   return Number.isNaN(time) ? "" : new Date(time).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
 };
 
-const STATUS: Record<string, { label: string; className: string }> = {
-  COMPLETED: { label: "Completed", className: "bg-success/20 text-gray-red" },
-  CONFIRMED: { label: "Confirmed", className: "bg-crimson-light/50 text-berry" },
-  PENDING: { label: "Pending", className: "bg-sand text-gray-red" },
-  AWAITING_PROOF: { label: "Awaiting proof", className: "bg-sand text-gray-red" },
-  CANCELLED: { label: "Cancelled", className: "bg-danger/15 text-gray-red" },
-  CANCELED: { label: "Cancelled", className: "bg-danger/15 text-gray-red" },
-  REFUNDED: { label: "Refunded", className: "bg-danger/15 text-gray-red" },
+const STATUS: Record<string, { label: string; className: string; tone: BadgeTone }> = {
+  COMPLETED: { label: "Completed", className: "bg-success/20 text-gray-red", tone: "success" },
+  CONFIRMED: { label: "Confirmed", className: "bg-crimson-light/50 text-berry", tone: "brand" },
+  PENDING: { label: "Pending", className: "bg-sand text-gray-red", tone: "warning" },
+  AWAITING_PROOF: { label: "Awaiting proof", className: "bg-sand text-gray-red", tone: "warning" },
+  CANCELLED: { label: "Cancelled", className: "bg-danger/15 text-gray-red", tone: "danger" },
+  CANCELED: { label: "Cancelled", className: "bg-danger/15 text-gray-red", tone: "danger" },
+  REFUNDED: { label: "Refunded", className: "bg-danger/15 text-gray-red", tone: "danger" },
 };
-/** An appointment status's label and pill colours */
-export const statusOf = (status: string) => STATUS[status] ?? { label: status, className: "bg-sand text-gray-red" };
+/** An appointment status's label, pill colours and Badge tone */
+export const statusOf = (status: string) => STATUS[status] ?? { label: status, className: "bg-sand text-gray-red", tone: "warning" as BadgeTone };
 
 export const noteFieldClass =
   "w-full rounded-md border border-crimson-light bg-milk px-3 py-2 text-sm text-gray-red outline-none focus:ring-2 focus:ring-crimson";

@@ -1,11 +1,10 @@
 import { Check, X } from "lucide-react";
 import { useState } from "react";
 import clsx from "clsx";
-import { dateLabel, STEP_STYLE, stepStateLabel } from "../../../lib/admin/clientPage";
+import { dateLabel, STEP_STYLE, statusOf, stepStateLabel } from "../../../lib/admin/clientPage";
 import { appointmentToTrack, trackerSteps } from "../../../lib/bookingTracker";
 import type { ClientAppointment } from "../../../services/clientNotesService";
-import { Select } from "@/components/atoms";
-import StatusPill from "./StatusPill";
+import { Badge, Select } from "@/components/atoms";
 
 // Where one appointment is, from booking to the finished visit
 export default function BookingTracker({ appointments, today }: { appointments: ClientAppointment[]; today: string }) {
@@ -25,7 +24,7 @@ export default function BookingTracker({ appointments, today }: { appointments: 
           className="w-72 max-w-full"
           triggerClassName="!h-9 !py-0 text-[13px]"
         />
-        <StatusPill status={tracked.status} />
+        <Badge tone={statusOf(tracked.status).tone}>{statusOf(tracked.status).label}</Badge>
       </div>
 
       <ol aria-label="Booking progress" className="flex flex-col">
