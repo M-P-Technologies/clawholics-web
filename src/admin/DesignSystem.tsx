@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { CalendarHeart, QrCode, Trash2, Wallet } from "lucide-react";
 import { Avatar, Badge, Blush, Button, Card, Checkbox, IconButton, Input, LoadingBar, Pearls, Select, StarPicker, Stars } from "../components/atoms";
 import { EmptyState, FormField, SectionHeader, StatCard } from "../components/molecules";
+import { TopBar } from "../components/organisms";
 import AdminShell from "../components/admin/AdminShell";
 import ChoiceRowDemo from "../components/admin/designSystem/ChoiceRowDemo";
 import SearchDemo from "../components/admin/designSystem/SearchDemo";
@@ -117,6 +118,9 @@ export default function DesignSystem() {
         <Group title="Organisms">
           <GallerySection title="Dialog">
             <DialogDemo />
+          </GallerySection>
+          <GallerySection title="TopBar">
+            <TopBar title="Example" greeting="Welcome, Ana!" today="Wednesday, Oct 14" account={{ name: "Ana Cruz", email: "ana@example.com", imageUrl: "" }} />
           </GallerySection>
         </Group>
       </div>

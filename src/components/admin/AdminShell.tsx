@@ -1,6 +1,9 @@
+"use client";
+
 import type { ReactNode } from "react";
 import { Blush } from "@/components/atoms";
-import AdminTopBar from "./AdminTopBar";
+import { TopBar } from "@/components/organisms";
+import { useAdminAccount } from "../../hooks/admin/useAdminAccount";
 import SideBar from "./SideBar";
 
 interface AdminShellProps {
@@ -13,11 +16,13 @@ interface AdminShellProps {
 }
 
 // The page frame of the daily admin screens: the sidebar (desktop) and bottom tab bar (phone) via
-// SideBar, the top bar (AdminTopBar), and room at the bottom for the tab bar. Two soft blush glows sit behind
+// SideBar, the top bar (TopBar), and room at the bottom for the tab bar. Two soft blush glows sit behind
 // the page so the milk-white cards have something to lift off.
 // On a computer the frame is clipped, not hidden: a hidden box can still be scrolled by script, and
 // the content editors' preview scrolling to a section used to drag the whole page up with it.
 export default function AdminShell({ title, titleAside, actions, children }: AdminShellProps) {
+  const account = useAdminAccount();
+
   return (
     <div className="relative isolate flex min-h-screen bg-light-orange px-2 py-2 max-lg:overflow-x-hidden sm:px-4 sm:py-4 lg:h-screen lg:overflow-clip">
       <Blush tone="crimson" className="-right-28 -top-28 h-96 w-96" />
@@ -25,7 +30,14 @@ export default function AdminShell({ title, titleAside, actions, children }: Adm
       <SideBar />
 
       <div className="flex min-w-0 flex-1 flex-col gap-5 pb-24 lg:pb-0">
-        <AdminTopBar title={title} titleAside={titleAside} actions={actions} />
+        <TopBar
+          title={title}
+          titleAside={titleAside}
+          actions={actions}
+          greeting={`Welcome, ${account.firstName}!`}
+          today={account.today}
+          account={{ name: account.name, email: account.email || "Admin", imageUrl: account.imageUrl }}
+        />
 
         {children}
       </div>
