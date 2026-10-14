@@ -1,6 +1,6 @@
 import { queryOptions, type QueryClient } from "@tanstack/react-query";
 import type { GetToken } from "./accountQueries";
-import { fetchAdmins, fetchDirectoryProfiles, fetchDirectoryUsers } from "../services/directoryService";
+import { fetchAdminPage, fetchDirectoryProfiles, fetchDirectoryUsers } from "../services/directoryService";
 import { fetchWarmLeads } from "../services/dashboardService";
 import { fetchMonthlySchedule } from "../services/scheduleService";
 import { fetchClient, fetchNextSteps, fetchNotes } from "../services/clientNotesService";
@@ -31,7 +31,8 @@ export const adminKeys = {
   utilization: (monday: string) => [ADMIN, "utilization", monday] as const,
   directoryUsers: () => [ADMIN, "directory", "users"] as const,
   directoryProfiles: () => [ADMIN, "directory", "profiles"] as const,
-  admins: () => [ADMIN, "directory", "admins"] as const,
+  /** A page of the Admin Directory */
+  adminPage: (page: number, pageSize: number) => [ADMIN, "directory", "admins", page, pageSize] as const,
   leads: () => [ADMIN, "leads"] as const,
   /** A month of the schedule, YYYY-MM */
   scheduleMonth: (month: string) => [ADMIN, "schedule", month] as const,
@@ -54,8 +55,11 @@ export const adminQueries = {
       queryKey: adminKeys.directoryProfiles(),
       queryFn: async () => (await fetchDirectoryProfiles(await getToken(), clerkId)).profiles,
     }),
-  admins: ({ getToken, clerkId }: AdminSession) =>
-    queryOptions({ queryKey: adminKeys.admins(), queryFn: async () => fetchAdmins(await getToken(), clerkId) }),
+  adminPage: (page: number, pageSize: number, { getToken, clerkId }: AdminSession) =>
+    queryOptions({
+      queryKey: adminKeys.adminPage(page, pageSize),
+      queryFn: async () => fetchAdminPage(page, pageSize, await getToken(), clerkId),
+    }),
   /** The warm leads' Clerk ids */
   leads: ({ getToken, clerkId }: AdminSession) =>
     queryOptions({ queryKey: adminKeys.leads(), queryFn: async () => (await fetchWarmLeads(await getToken(), clerkId)).clerkIds }),

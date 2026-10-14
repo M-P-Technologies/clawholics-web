@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Activity, Moon, ShieldCheck, UserPlus } from "lucide-react";
 import type { DirectoryProfile, DirectoryUser } from "../../components/admin/DirectoryProfileCard";
 import { useToast } from "../../components/ui/ToastProvider";
@@ -25,6 +25,8 @@ export interface AdminFeedback {
 }
 
 const NO_USERS: DirectoryUser[] = [];
+/** Admins to a page: five keeps the table beside the profile card short */
+export const ADMIN_PAGE_SIZE = 5;
 const NO_PROFILES: Record<string, DirectoryProfile> = {};
 
 const errorMessage = (error: unknown) => (error instanceof Error ? error.message : "");
@@ -37,19 +39,33 @@ export function useAdminDirectory() {
   const { user: currentUser } = useUser();
   const queryClient = useQueryClient();
   const session = { getToken, clerkId: currentUser?.id };
-  // The admins, and the cards' photos and dates from Clerk (shared with Clients & Bookings);
-  // without those the cards show initials, and the stats that need Clerk dates show a dash
-  const adminsQuery = useQuery({ ...adminQueries.admins(session), enabled: isLoaded && !!currentUser });
+  // One page of admins at a time (the page before stays up while the next loads), and the
+  // cards' photos and dates from Clerk (shared with Clients & Bookings); without those the cards
+  // show initials, and the stats that need Clerk dates show a dash
+  const [page, setPage] = useState(1);
+  // The last total seen, so a list that shrank (an admin removed) keeps you on its last page
+  const [lastTotal, setLastTotal] = useState(0);
+  const shownPage = lastTotal > 0 ? Math.min(page, Math.ceil(lastTotal / ADMIN_PAGE_SIZE)) : page;
+  const adminsQuery = useQuery({
+    ...adminQueries.adminPage(shownPage, ADMIN_PAGE_SIZE, session),
+    enabled: isLoaded && !!currentUser,
+    placeholderData: keepPreviousData,
+  });
   const profilesQuery = useQuery({ ...adminQueries.directoryProfiles(session), enabled: isLoaded && !!currentUser });
-  const users = adminsQuery.data ?? NO_USERS;
+  const total = adminsQuery.data?.total ?? 0;
+  if (adminsQuery.data && total !== lastTotal) setLastTotal(total);
+  const users = adminsQuery.data?.rows ?? NO_USERS;
+  // Every admin, by Clerk id, for the stat cards
+  const everyAdmin = (adminsQuery.data?.clerkIds ?? []).map((id) => ({ id, clerk_id: id }) as DirectoryUser);
   const profiles = profilesQuery.data ?? NO_PROFILES;
   const profilesLoaded = profilesQuery.data !== undefined;
   const loading = adminsQuery.isPending;
   // A failed refresh keeps the list already loaded
   const error = adminsQuery.isError && !adminsQuery.data ? errorMessage(adminsQuery.error) || "Failed to load admin profiles." : "";
-  // The admin whose profile shows beside the table (the first one until another is chosen)
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selected = users.find((u) => u.id === selectedId) ?? users[0] ?? null;
+  // The admin whose profile shows beside the table (the first one until another is chosen). They
+  // stay chosen on another page; their row is read fresh while it's on the page shown.
+  const [chosen, setChosen] = useState<DirectoryUser | null>(null);
+  const selected = (chosen && (users.find((u) => u.id === chosen.id) ?? chosen)) ?? users[0] ?? null;
   // The profile card on the page, so choosing an admin can bring it into view
   const [profileElement, setProfileElement] = useState<HTMLDivElement | null>(null);
   const [isAddAdminOpen, setIsAddAdminOpen] = useState(false);
@@ -133,6 +149,8 @@ export function useAdminDirectory() {
       }
       await loadUsers();
       setIsDeleteModalOpen(false);
+      // A removed admin's profile doesn't stay beside the table
+      setChosen((current) => (current?.id === selectedAdmin.id ? null : current));
       setSelectedAdmin(null);
       toast.show("success", "Admin removed", "They no longer have admin access.");
     } catch (err) {
@@ -142,21 +160,26 @@ export function useAdminDirectory() {
     }
   };
 
-  const dated = (count: (users: DirectoryUser[]) => number) => (profilesLoaded ? count(users) : null);
+  const dated = (count: (users: DirectoryUser[]) => number) => (profilesLoaded && adminsQuery.data ? count(everyAdmin) : null);
   return {
     loading,
     error,
     users,
+    /** The page shown, the admins in all, and moving to another page */
+    page: shownPage,
+    total,
+    pageSize: ADMIN_PAGE_SIZE,
+    setPage,
     profiles,
     selected,
     setProfileElement,
     /** Shows this admin's profile beside the table */
     select: (user: DirectoryUser) => {
-      setSelectedId(user.id);
+      setChosen(user);
       profileElement?.scrollIntoView?.({ behavior: "smooth", block: "nearest" });
     },
     stats: [
-      { label: "Total admins", value: users.length, hint: "with admin access", icon: ShieldCheck },
+      { label: "Total admins", value: adminsQuery.data ? total : null, hint: "with admin access", icon: ShieldCheck },
       { label: "Active this week", value: dated((u) => countWithin(u, profiles, "lastSignInAt", 7)), hint: "signed in in the last 7 days", icon: Activity },
       { label: "Inactive", value: dated((u) => countIdle(u, profiles, 30)), hint: "no sign-in for 30 days or more", icon: Moon },
       { label: "New admins", value: dated((u) => countWithin(u, profiles, "joinedAt", 90)), hint: "joined in the last 90 days", icon: UserPlus },

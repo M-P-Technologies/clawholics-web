@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import clsx from "clsx";
 import { useTableLayout } from "../../hooks/useMinWidth";
-import TablePager, { paginate } from "./dashboard/TablePager";
+import TablePager, { pageView, paginate } from "./dashboard/TablePager";
 import { CardFields, RowCard, RowCards } from "./RowCards";
 import { initialsOf, monthYear, nameOf, relativeDay, roleOf, type DirectoryProfile, type DirectoryUser } from "./DirectoryProfileCard";
 
@@ -17,16 +17,21 @@ interface Props {
   onSelect: (user: DirectoryUser) => void;
   /** A Visits column, for clients; admins get a Role column instead */
   showVisits?: boolean;
+  /** When the server pages the list: `users` is the page shown, out of `total` */
+  serverPage?: { page: number; pageSize: number; total: number; onPage: (page: number) => void };
 }
 
 // The people in a directory, five to a page: photo, name and email, phone, joined, last active, and
 // visits (or role). A row selects that person for the profile card beside the table. On a phone
 // each person is a card, five to a page.
-export default function DirectoryTable({ label, users, profiles, selectedId, onSelect, showVisits = false }: Props) {
-  const [page, setPage] = useState(1);
+export default function DirectoryTable({ label, users, profiles, selectedId, onSelect, showVisits = false, serverPage }: Props) {
+  const [localPage, setLocalPage] = useState(1);
   // A new search or list starts again on the first page
-  useEffect(() => setPage(1), [users]);
-  const view = paginate(users, page, ROWS); // five to a page keeps the table beside the profile card short
+  useEffect(() => setLocalPage(1), [users]);
+  // Five to a page keeps the table beside the profile card short
+  const rowsPerPage = serverPage?.pageSize ?? ROWS;
+  const view = serverPage ? pageView(users, serverPage.page, rowsPerPage, serverPage.total) : paginate(users, localPage, ROWS);
+  const setPage = serverPage?.onPage ?? setLocalPage;
   // The same rows as the appointments table: dotted lines, round photos, no row pill
   const cell = "border-t border-dotted border-crimson-light py-3 pr-3";
   const asTable = useTableLayout();
@@ -144,7 +149,7 @@ export default function DirectoryTable({ label, users, profiles, selectedId, onS
             {/* A short last page keeps room for five rows, so the table, the pager and the profile card
                 beside it keep their height from page to page */}
             {view.pages > 1 &&
-              Array.from({ length: ROWS - view.rows.length }, (_, i) => (
+              Array.from({ length: Math.max(0, rowsPerPage - view.rows.length) }, (_, i) => (
                 <tr key={`filler-${i}`} data-filler aria-hidden="true">
                   <td colSpan={5} className="border-t border-dotted border-transparent py-3">
                     <span className="block h-9" />

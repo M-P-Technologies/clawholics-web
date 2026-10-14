@@ -370,10 +370,19 @@ export async function fetchDirectoryProfiles(
   return response.json();
 }
 
-/** The admin accounts, for the Admin Directory */
-export async function fetchAdmins(token: string | null, clerkId?: string | null): Promise<DirectoryUser[]> {
+/** One page of the admin accounts, and every admin's Clerk id (for the stat cards) */
+export interface AdminPage {
+  rows: DirectoryUser[];
+  total: number;
+  page: number;
+  pageSize: number;
+  clerkIds: string[];
+}
+
+/** One page of the admin accounts, for the Admin Directory */
+export async function fetchAdminPage(page: number, pageSize: number, token: string | null, clerkId?: string | null): Promise<AdminPage> {
   if (!token) throw new Error("Failed to get authentication token");
-  const response = await fetch(`${API_BASE_URL}/users/admins`, {
+  const response = await fetch(`${API_BASE_URL}/users/admins?page=${page}&pageSize=${pageSize}`, {
     headers: { Authorization: `Bearer ${token}`, clerk_id: clerkId || "", "x-clawholics-origin": "frontend" },
   });
   if (!response.ok) throw new Error("Failed to fetch admins");
