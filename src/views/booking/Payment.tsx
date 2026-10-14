@@ -5,9 +5,8 @@ import { Link } from "@/lib/router";
 import qrPhLogo from "../../assets/logo/qr_ph.png";
 import AlertModal from "../../components/ui/AlertModal";
 import { Button } from "@/components/atoms";
-import { ChoiceRow } from "@/components/molecules";
+import { ChoiceRow, SectionHeader } from "@/components/molecules";
 import { LoadingBar } from "@/components/atoms";
-import PageHeader from "../../components/layout/PageHeader";
 import ClientPage from "../../components/client/ClientPage";
 import Panel from "../../components/layout/Panel";
 import Section from "../../components/layout/Section";
@@ -42,7 +41,7 @@ export default function Payment() {
     return (
       <ClientPage title="Payment">
         <Section bleed innerClassName="min-h-[70vh] items-center justify-center gap-4 text-center md:gap-8">
-          <PageHeader align="center" title="Invalid access" subtitle="Start a booking from the services page to pay a downpayment." />
+          <SectionHeader align="center" title="Invalid access" subtitle="Start a booking from the services page to pay a downpayment." />
           <Button to={CLIENT_PATHS.home}>
             Go home
           </Button>
@@ -57,7 +56,7 @@ export default function Payment() {
         <div className="grid grid-cols-1 items-start gap-4 md:gap-8 lg:grid-cols-2">
           {/* PAYMENT FORM */}
           <div className="flex flex-col gap-4 md:gap-8">
-            <PageHeader
+            <SectionHeader
               title="Complete your downpayment"
               subtitle="Secure your appointment with a downpayment."
             />

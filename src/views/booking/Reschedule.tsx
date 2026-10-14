@@ -4,7 +4,7 @@ import AlertModal from "../../components/ui/AlertModal";
 import { Button } from "@/components/atoms";
 import { LoadingBar } from "@/components/atoms";
 import DayCalendar from "../../components/booking/DayCalendar";
-import PageHeader from "../../components/layout/PageHeader";
+import { SectionHeader } from "@/components/molecules";
 import ClientPage from "../../components/client/ClientPage";
 import Panel from "../../components/layout/Panel";
 import Section from "../../components/layout/Section";
@@ -24,7 +24,7 @@ export default function Reschedule() {
 
         <div className="grid grid-cols-1 gap-4 md:gap-8 lg:grid-cols-5 lg:gap-16 xl:grid-cols-2">
           <div className="flex flex-col gap-4 md:gap-8 lg:col-span-3 xl:col-span-1">
-            <PageHeader
+            <SectionHeader
               title="Reschedule your visit"
               subtitle={`Select a new date and time for your ${appointment.service_name} with ${appointment.nailist_name}.`}
             />

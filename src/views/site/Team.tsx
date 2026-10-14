@@ -4,12 +4,9 @@ import { useRef } from "react";
 import PhotoRow from "../../components/home/PhotoRow";
 import ImageCard from "../../components/home/ImageCard";
 import { Button, LoadingBar } from "@/components/atoms";
-import LoadError from "../../components/ui/LoadError";
-import PageHeader from "../../components/layout/PageHeader";
+import { LoadError, SectionHeader, Pagination, EmptyState } from "@/components/molecules";
 import PageShell from "../../components/layout/PageShell";
 import Section from "../../components/layout/Section";
-import { Pagination } from "@/components/molecules";
-import StatePanel from "../../components/ui/StatePanel";
 import { usePagination } from "../../hooks/usePagination";
 import { artistPath } from "../../utils/slug";
 import { useTeam } from "../../hooks/useTeam";
@@ -33,10 +30,10 @@ export default function Team() {
   return (
     <PageShell>
       <Section>
-        <PageHeader title={words.team_title} subtitle={words.team_description} />
+        <SectionHeader title={words.team_title} subtitle={words.team_description} />
 
         {nailists.length === 0 && (
-          <StatePanel
+          <EmptyState
             kind="empty"
             title="Our artists are being added"
             message="No artist profiles are published yet. Please check back soon, or contact us and we will gladly tell you who will take care of you."

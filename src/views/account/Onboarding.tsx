@@ -3,11 +3,10 @@
 import { CalendarDays,ChevronDown } from "lucide-react";
 import { Link } from "@/lib/router";
 import { Button } from "@/components/atoms";
-import PageHeader from "../../components/layout/PageHeader";
+import { SectionHeader, FormField } from "@/components/molecules";
 import PageShell from "../../components/layout/PageShell";
 import Panel from "../../components/layout/Panel";
 import Section from "../../components/layout/Section";
-import { FormField } from "@/components/molecules";
 import { errorTextClass, inputClass, labelClass } from "@/components/tokens";
 import { LoadingBar } from "@/components/atoms";
 import { useOnboarding } from "../../hooks/useOnboarding";
@@ -22,7 +21,7 @@ export default function Onboarding() {
   return (
     <PageShell>
       <Section innerClassName="max-w-xl">
-        <PageHeader
+        <SectionHeader
           align="center"
           title="Complete your profile"
           subtitle="Please fill in the details to get started."

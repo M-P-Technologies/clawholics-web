@@ -3,7 +3,7 @@
 import AlertModal from "../../components/ui/AlertModal";
 import { Button } from "@/components/atoms";
 import BackButton from "../../components/layout/BackButton";
-import PageHeader from "../../components/layout/PageHeader";
+import { SectionHeader } from "@/components/molecules";
 import PageShell from "../../components/layout/PageShell";
 import Panel from "../../components/layout/Panel";
 import Section from "../../components/layout/Section";
@@ -23,7 +23,7 @@ export default function Appointment() {
     return (
       <PageShell>
         <Section innerClassName="min-h-[70vh] items-center justify-center text-center gap-4 md:gap-8">
-          <PageHeader
+          <SectionHeader
             align="center"
             title="Service not found"
             subtitle="The service you're trying to book doesn't exist or may have been removed."
@@ -62,7 +62,7 @@ export default function Appointment() {
               <p className="w-fit rounded-md border border-crimson-light px-4 py-1 label-caps text-crimson">
                 {service.category}
               </p>
-              <PageHeader title={service.name} subtitle={service.description} />
+              <SectionHeader title={service.name} subtitle={service.description} />
             </div>
 
             <dl className="hidden grid-cols-1 gap-x-4 gap-y-1 border-t border-crimson-light/80 pt-4 text-gray-red lg:grid sm:grid-cols-[140px_1fr] sm:gap-y-4 md:pt-8 [&>dd:not(:last-child)]:mb-3 sm:[&>dd:not(:last-child)]:mb-0">

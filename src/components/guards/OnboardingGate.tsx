@@ -6,7 +6,7 @@ import { useNavigate } from "@/lib/router";
 import { fetchProfile,isMissingProfile } from "../../services/userService";
 import { Button } from "@/components/atoms";
 import { LoadingBar } from "@/components/atoms";
-import PageHeader from "../layout/PageHeader";
+import { SectionHeader } from "@/components/molecules";
 import PageShell from "../layout/PageShell";
 import Section from "../layout/Section";
 
@@ -87,7 +87,7 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ children }) => {
     return (
       <PageShell>
         <Section innerClassName="flex min-h-[70vh] flex-col items-center justify-center text-center">
-          <PageHeader
+          <SectionHeader
             align="center"
             title="We couldn't load your profile"
             subtitle="Please check your connection and try again."

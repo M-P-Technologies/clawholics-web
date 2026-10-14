@@ -5,9 +5,8 @@ import ArtistOverview from "../../components/booking/ArtistOverview";
 import PhotoCarousel from "../../components/booking/PhotoCarousel";
 import BackButton from "../../components/layout/BackButton";
 import { Button } from "@/components/atoms";
-import LoadError from "../../components/ui/LoadError";
+import { LoadError, SectionHeader } from "@/components/molecules";
 import { LoadingBar } from "@/components/atoms";
-import PageHeader from "../../components/layout/PageHeader";
 import PageShell from "../../components/layout/PageShell";
 import Section from "../../components/layout/Section";
 import ServiceGallery from "../../components/booking/ServiceGallery";
@@ -31,7 +30,7 @@ export default function ArtistDetail() {
     return (
       <PageShell>
         <Section innerClassName="min-h-[70vh] items-center justify-center text-center gap-4 md:gap-8">
-          <PageHeader
+          <SectionHeader
             align="center"
             title="Artist not found"
             subtitle="The artist you're looking for doesn't exist or may have been removed."
@@ -67,7 +66,7 @@ export default function ArtistDetail() {
               <p className="w-fit rounded-md border border-crimson-light px-4 py-1 label-caps text-crimson">
                 {nailist.position}
               </p>
-              <PageHeader title={nailist.name} subtitle={nailist.bio} />
+              <SectionHeader title={nailist.name} subtitle={nailist.bio} />
             </div>
 
             <dl className="hidden grid-cols-1 gap-x-4 gap-y-1 border-t border-crimson-light/80 pt-4 text-gray-red lg:grid sm:grid-cols-[140px_1fr] sm:gap-y-4 md:pt-8 [&>dd:not(:last-child)]:mb-3 sm:[&>dd:not(:last-child)]:mb-0">

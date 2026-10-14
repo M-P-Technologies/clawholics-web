@@ -4,8 +4,7 @@ import { Mail,MapPin,Phone } from "lucide-react";
 import { Button } from "@/components/atoms";
 import FeedbackModal from "../../components/ui/FeedbackModal";
 import { LoadingBar } from "@/components/atoms";
-import { ContactGroup, FormField } from "@/components/molecules";
-import PageHeader from "../../components/layout/PageHeader";
+import { ContactGroup, FormField, SectionHeader } from "@/components/molecules";
 import PageShell from "../../components/layout/PageShell";
 import Panel from "../../components/layout/Panel";
 import ImageBanner from "../../components/home/ImageBanner";
@@ -38,7 +37,7 @@ export default function ContactUs() {
   return (
     <PageShell>
       <Section>
-        <PageHeader title="Contact us" subtitle={pageData.contact_subtitle} />
+        <SectionHeader title="Contact us" subtitle={pageData.contact_subtitle} />
 
         <Panel className="mx-auto w-full max-w-3xl">
           <div className="flex flex-col gap-4 md:gap-8">

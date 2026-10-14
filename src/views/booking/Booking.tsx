@@ -6,11 +6,10 @@ import BookingOptions from "../../components/booking/BookingOptions";
 import { Button } from "@/components/atoms";
 import ArtistSelect from "../../components/booking/ArtistSelect";
 import DayCalendar from "../../components/booking/DayCalendar";
-import PageHeader from "../../components/layout/PageHeader";
+import { SectionHeader, EmptyState } from "@/components/molecules";
 import ClientPage from "../../components/client/ClientPage";
 import Panel from "../../components/layout/Panel";
 import Section from "../../components/layout/Section";
-import StatePanel from "../../components/ui/StatePanel";
 import SummaryRow from "../../components/booking/SummaryRow";
 import TimeSlotList from "../../components/booking/TimeSlotList";
 import { LoadingBar } from "@/components/atoms";
@@ -27,7 +26,7 @@ export default function Booking() {
     return (
       <ClientPage title="Book">
         <Section bleed innerClassName="min-h-[70vh] items-center justify-center">
-          <StatePanel
+          <EmptyState
             kind="error"
             title="We couldn't load the booking page"
             message={
@@ -38,7 +37,7 @@ export default function Booking() {
             <Button onClick={reloadPage} >
               Try again
             </Button>
-          </StatePanel>
+          </EmptyState>
         </Section>
       </ClientPage>
     );
@@ -50,7 +49,7 @@ export default function Booking() {
         <div className="grid grid-cols-1 items-start gap-4 md:gap-8 lg:grid-cols-2">
           {/* BOOKING FORM */}
           <div className="flex flex-col gap-4 md:gap-8">
-            <PageHeader
+            <SectionHeader
               title="Book your visit"
               subtitle="Select your preferred artist, and a time that works for you."
             />

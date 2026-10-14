@@ -3,11 +3,10 @@
 import { CircleCheckBig as CheckIcon } from "lucide-react";
 import { Button } from "@/components/atoms";
 import { LoadingBar } from "@/components/atoms";
-import PageHeader from "../../components/layout/PageHeader";
+import { SectionHeader, EmptyState } from "@/components/molecules";
 import ClientPage from "../../components/client/ClientPage";
 import Panel from "../../components/layout/Panel";
 import Section from "../../components/layout/Section";
-import StatePanel from "../../components/ui/StatePanel";
 import SummaryRow from "../../components/booking/SummaryRow";
 import { usePaymentConfirmation } from "../../hooks/usePaymentConfirmation";
 import { CLIENT_PATHS } from "../../lib/client/clientNav";
@@ -33,7 +32,7 @@ export default function PaymentConfirmation() {
     return (
       <ClientPage title="Payment" back={CLIENT_PATHS.appointments}>
         <Section bleed innerClassName="min-h-[70vh] items-center justify-center gap-4 text-center md:gap-8">
-          <PageHeader align="center" title="Payment failed" />
+          <SectionHeader align="center" title="Payment failed" />
           <p className="mx-auto max-w-2xl copy-lead">
             Your payment session was <b>not completed</b> or may have <b>expired during payment</b>.
             No booking was confirmed and your selected timeslot has been released for other customers.
@@ -61,7 +60,7 @@ export default function PaymentConfirmation() {
       return (
         <ClientPage title="Payment" back={CLIENT_PATHS.appointments}>
           <Section bleed innerClassName="min-h-[70vh] items-center justify-center">
-            <StatePanel
+            <EmptyState
               kind="info"
               title="Still confirming your payment"
               message="Your bank or e-wallet is taking longer than usual to tell us. If you already paid, please don't pay again: your slot stays safe while we wait. Check again in a minute, or look at My Schedule later today. If it still isn't confirmed, contact us and we will sort it out."
@@ -75,7 +74,7 @@ export default function PaymentConfirmation() {
               <Button variant="secondary" to="/contact">
                 Contact us
               </Button>
-            </StatePanel>
+            </EmptyState>
           </Section>
         </ClientPage>
       );
@@ -96,7 +95,7 @@ export default function PaymentConfirmation() {
       <Section bleed innerClassName="min-h-[70vh] max-w-3xl items-center gap-4 text-center md:gap-8">
         <CheckIcon size={56} className="text-crimson" strokeWidth={1.5} aria-hidden="true" />
 
-        <PageHeader align="center" title="Payment successful" />
+        <SectionHeader align="center" title="Payment successful" />
 
         <p className="mx-auto max-w-xl copy-lead">
           Thank you, {payment?.first_name}! Your downpayment of{" "}

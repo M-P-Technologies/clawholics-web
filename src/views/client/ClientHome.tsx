@@ -1,6 +1,6 @@
 "use client";
 
-import { SearchBar } from "@/components/molecules";
+import { SearchBar, SectionHeader } from "@/components/molecules";
 import { Link } from "@/lib/router";
 import NextAppointmentCard from "../../components/profile/NextAppointmentCard";
 import RewardsStrip from "../../components/profile/RewardsStrip";
@@ -9,10 +9,6 @@ import ServiceCard from "../../components/client/ServiceCard";
 import ClientTopBar from "../../components/client/ClientTopBar";
 import { useClientHome } from "../../hooks/client/useClientHome";
 import { CLIENT_PATHS } from "../../lib/client/clientNav";
-
-const sectionHead = "flex items-baseline justify-between";
-const sectionTitle = "font-display text-xl font-normal normal-case tracking-normal text-gray-red";
-const seeAll = "text-[13px] font-bold text-crimson";
 
 export default function ClientHome() {
   const h = useClientHome();
@@ -24,11 +20,8 @@ export default function ClientHome() {
 
       <SearchBar value={h.query} onChange={h.setQuery} onSubmit={h.search} />
 
-      <section aria-labelledby="popular-title" className="flex flex-col gap-3">
-        <div className={sectionHead}>
-          <h2 id="popular-title" className={sectionTitle}>Popular services</h2>
-          <Link to={CLIENT_PATHS.explore} className={seeAll}>See all</Link>
-        </div>
+      <section aria-label="Popular services" className="flex flex-col gap-3">
+        <SectionHeader size="section" title="Popular services" action={<Link to={CLIENT_PATHS.explore}>See all</Link>} />
         <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] lg:mx-0 lg:grid lg:grid-cols-4 lg:overflow-visible lg:px-0 [&::-webkit-scrollbar]:hidden">
           {h.popular.map((service) => (
             <ServiceCard key={service.id} service={service} />
@@ -37,18 +30,15 @@ export default function ClientHome() {
       </section>
 
       {h.offers.length > 0 && (
-        <section aria-labelledby="offers-title" className="flex flex-col gap-3">
-          <h2 id="offers-title" className={sectionTitle}>Special offers</h2>
+        <section aria-label="Special offers" className="flex flex-col gap-3">
+          <SectionHeader size="section" title="Special offers" />
           <OffersCarousel offers={h.offers} />
         </section>
       )}
 
-      <section aria-labelledby="upcoming-title" className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,320px)]">
+      <section aria-label="Upcoming appointment" className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,320px)]">
         <div className="flex flex-col gap-3">
-          <div className={sectionHead}>
-            <h2 id="upcoming-title" className={sectionTitle}>Upcoming appointment</h2>
-            <Link to={CLIENT_PATHS.appointments} className={seeAll}>See all</Link>
-          </div>
+          <SectionHeader size="section" title="Upcoming appointment" action={<Link to={CLIENT_PATHS.appointments}>See all</Link>} />
           <NextAppointmentCard
             view={hero}
             photo={hero ? h.photoFor(hero.appt.service_name) : ""}
@@ -60,7 +50,7 @@ export default function ClientHome() {
           />
         </div>
         <div className="flex flex-col gap-3">
-          <h2 className={sectionTitle}>Loyalty card</h2>
+          <SectionHeader size="section" title="Loyalty card" />
           <RewardsStrip stamps={h.account.stamps} onOpen={h.account.openRewards} />
         </div>
       </section>

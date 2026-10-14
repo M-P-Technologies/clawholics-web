@@ -1,9 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { CalendarHeart, Trash2, Wallet } from "lucide-react";
+import { CalendarHeart, QrCode, Trash2, Wallet } from "lucide-react";
 import { Avatar, Badge, Blush, Button, Card, Checkbox, IconButton, Input, LoadingBar, Pearls, Select, StarPicker, Stars } from "../components/atoms";
-import { FormField, StatCard } from "../components/molecules";
+import { EmptyState, FormField, SectionHeader, StatCard } from "../components/molecules";
 import AdminShell from "../components/admin/AdminShell";
 import ChoiceRowDemo from "../components/admin/designSystem/ChoiceRowDemo";
 import SearchDemo from "../components/admin/designSystem/SearchDemo";
@@ -96,6 +96,21 @@ export default function DesignSystem() {
           <GallerySection title="Toast">
             <p className="text-sm text-gray-red">A short message that slides in at the bottom right and goes away on its own. Errors stay longer.</p>
             <ToastDemo />
+          </GallerySection>
+          <GallerySection title="EmptyState">
+            <div className="grid gap-4 md:grid-cols-2">
+              <EmptyState kind="error" title="It failed" message="Something went wrong. Please try again." />
+              <EmptyState kind="empty" title="Nothing yet" message="Book a visit to see it here." />
+              <EmptyState kind="success" title="All done" message="Your changes were saved." />
+              <EmptyState kind="info" title="Good to know" message="Bookings close one day ahead." />
+            </div>
+          </GallerySection>
+          <GallerySection title="SectionHeader">
+            <div className="flex flex-col gap-6">
+              <SectionHeader level={3} title="Page title" subtitle="A short line under the page's heading." />
+              <SectionHeader size="section" title="Section with an action" action={<a href="#section-header">See all</a>} />
+              <SectionHeader size="card" icon={QrCode} title="Card title" />
+            </div>
           </GallerySection>
         </Group>
         <Group title="Organisms">{/* Task 11+ */}</Group>

@@ -6,12 +6,9 @@ import { ctaLink, readServicesPage } from "../../lib/homeSections";
 import CtaBand from "../../components/home/CtaBand";
 import ImageCard from "../../components/home/ImageCard";
 import { Button, LoadingBar } from "@/components/atoms";
-import LoadError from "../../components/ui/LoadError";
-import PageHeader from "../../components/layout/PageHeader";
+import { LoadError, SectionHeader, Pagination, EmptyState } from "@/components/molecules";
 import PageShell from "../../components/layout/PageShell";
 import Section from "../../components/layout/Section";
-import { Pagination } from "@/components/molecules";
-import StatePanel from "../../components/ui/StatePanel";
 import { chipClass, inputClass } from "@/components/tokens";
 import { usePagination } from "../../hooks/usePagination";
 import { servicePath } from "../../utils/slug";
@@ -34,7 +31,7 @@ export default function Services() {
   return (
     <PageShell>
       <Section>
-        <PageHeader title={banner.home_services_title} subtitle={content.home_services_subtitle}>
+        <SectionHeader title={banner.home_services_title} subtitle={content.home_services_subtitle}>
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             {/* CATEGORY FILTERS */}
             <div className="flex flex-wrap gap-4">
@@ -65,7 +62,7 @@ export default function Services() {
               className={`${inputClass} lg:max-w-xs`}
             />
           </div>
-        </PageHeader>
+        </SectionHeader>
 
         <section
           ref={listRef}
@@ -73,7 +70,7 @@ export default function Services() {
           className="flex min-h-[30vh] scroll-mt-24 flex-col items-center justify-start gap-4 md:gap-8"
         >
           {cards.length === 0 ? (
-            <StatePanel
+            <EmptyState
               kind="empty"
               title="No services found"
               message={
@@ -90,7 +87,7 @@ export default function Services() {
               >
                 Show all services
               </Button>
-            </StatePanel>
+            </EmptyState>
           ) : (
             <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
               {pageItems.map((s) => (

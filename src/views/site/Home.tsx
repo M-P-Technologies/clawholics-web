@@ -13,7 +13,7 @@ import FloatingFacebookButton from "../../components/home/FloatingFacebookButton
 import PhotoStrip from "../../components/home/PhotoStrip";
 import QuickContact from "../../components/home/QuickContact";
 import { Blush } from "@/components/atoms";
-import LoadError from "../../components/ui/LoadError";
+import { LoadError } from "@/components/molecules";
 import CtaBand from "../../components/home/CtaBand";
 import Section from "../../components/layout/Section";
 import { DEFAULT_HERO_IMAGE,FACEBOOK_URL } from "../../data/home";

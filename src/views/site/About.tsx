@@ -2,10 +2,9 @@
 
 import { Clock, MapPin } from "lucide-react";
 import { LoadingBar } from "@/components/atoms";
-import LoadError from "../../components/ui/LoadError";
+import { LoadError, SectionHeader } from "@/components/molecules";
 import StackedGallery from "../../components/home/StackedGallery";
 import PageShell from "../../components/layout/PageShell";
-import PageHeader from "../../components/layout/PageHeader";
 import Panel from "../../components/layout/Panel";
 import Section from "../../components/layout/Section";
 import { useAbout } from "../../hooks/useAbout";
@@ -20,7 +19,7 @@ export default function About() {
   return (
     <PageShell>
       <Section>
-        <PageHeader title="About us" />
+        <SectionHeader title="About us" />
         <p className="sr-only">
           Learn more about Clawholics by Max, our nail studio location,
           operating hours, and salon philosophy.

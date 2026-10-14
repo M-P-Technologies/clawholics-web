@@ -6,9 +6,8 @@ import BookingTracker from "../../components/admin/client/BookingTracker";
 import ClientAppointments from "../../components/admin/client/ClientAppointments";
 import ClientProfilePanel from "../../components/admin/client/ClientProfilePanel";
 import NoteItem from "../../components/admin/client/NoteItem";
-import { StatCard, TabSection, Tabs } from "@/components/molecules";
+import { StatCard, TabSection, Tabs, EmptyState } from "@/components/molecules";
 import { Button } from "@/components/atoms";
-import StatePanel from "../../components/ui/StatePanel";
 import { useClientPage } from "../../hooks/admin/useClientPage";
 import { CLIENT_TABS, clientName, dateLabel, noteFieldClass } from "../../lib/admin/clientPage";
 import { peso } from "../../lib/dashboardFormat";
@@ -31,13 +30,13 @@ export default function ClientPage() {
   if (page.notFound || page.failed) {
     return (
       <AdminShell title="Client">
-        <StatePanel
+        <EmptyState
           kind="error"
           title={page.notFound ? "We couldn't find this client" : "We couldn't load this client"}
           message={page.notFound ? "They may have been removed, or this is a walk-in booked without an account." : "Please check your connection and try again."}
         >
           {back}
-        </StatePanel>
+        </EmptyState>
       </AdminShell>
     );
   }

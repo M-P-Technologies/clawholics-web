@@ -1,10 +1,8 @@
 "use client";
 
 import { LoadingBar } from "@/components/atoms";
-import LoadError from "../../components/ui/LoadError";
-import StatePanel from "../../components/ui/StatePanel";
+import { LoadError, EmptyState, SectionHeader } from "@/components/molecules";
 import PageShell from "../../components/layout/PageShell";
-import PageHeader from "../../components/layout/PageHeader";
 import BackButton from "../../components/layout/BackButton";
 import Panel from "../../components/layout/Panel";
 import Section from "../../components/layout/Section";
@@ -20,10 +18,10 @@ export default function Terms() {
     <PageShell>
       <Section innerClassName="max-w-4xl !gap-8">
         <BackButton />
-        <PageHeader title="Terms & conditions" />
+        <SectionHeader title="Terms & conditions" />
 
         {tacs.length === 0 ? (
-          <StatePanel
+          <EmptyState
             kind="empty"
             title="Terms are not published yet"
             message="Our terms and conditions are being updated. If you have a question about our policies before booking, please contact us and we will answer it."

@@ -4,7 +4,7 @@ import { Scanner } from "@yudiel/react-qr-scanner";
 import { Camera, Check, History, QrCode, Stamp, XCircle } from "lucide-react";
 import AdminShell from "../../components/admin/AdminShell";
 import { initialsOf, Button, LoadingBar } from "@/components/atoms";
-import CardTitle from "../../components/admin/scanner/CardTitle";
+import { SectionHeader } from "@/components/molecules";
 import { useAdminScanner } from "../../hooks/admin/useAdminScanner";
 
 // The loyalty QR scanner: the camera, the scanned client's card with its stamps, and the recent
@@ -27,7 +27,7 @@ export default function AdminScanner() {
             result, recent scans, one under the other. */}
         <div className="grid grid-cols-1 gap-5 max-lg:flex max-lg:flex-col xl:grid-cols-3">
           <div className="flex h-full flex-col gap-4 rounded-2xl border border-crimson-light/40 bg-milk p-5 shadow-petal max-lg:order-1 xl:col-span-2">
-            <CardTitle icon={QrCode}>Scanner</CardTitle>
+            <SectionHeader size="card" icon={QrCode} title="Scanner" />
 
             {cameraError && (
               <div role="alert" className="flex items-center gap-2 rounded-xl bg-danger/10 px-4 py-3 text-[13px] font-bold text-danger">
@@ -83,7 +83,7 @@ export default function AdminScanner() {
 
           <div className="flex min-h-0 flex-col gap-5 max-lg:contents">
             <div ref={resultRef} className="flex flex-col gap-4 rounded-2xl border border-crimson-light/40 bg-milk p-5 shadow-petal max-lg:order-2">
-              <CardTitle icon={Stamp}>Scan result</CardTitle>
+              <SectionHeader size="card" icon={Stamp} title="Scan result" />
 
               {!lastScan && (
                 <p className="rounded-xl bg-crimson-light/15 px-4 py-6 text-center text-[13px] text-gray-red/70">
@@ -167,7 +167,7 @@ export default function AdminScanner() {
             </div>
 
             <div className="flex min-h-75 flex-1 flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-5 shadow-petal max-lg:order-3 xl:min-h-0">
-              <CardTitle icon={History}>Recent scans</CardTitle>
+              <SectionHeader size="card" icon={History} title="Recent scans" />
 
               <div className="relative flex-1">
                 <ul className="absolute inset-0 overflow-y-auto pr-1">

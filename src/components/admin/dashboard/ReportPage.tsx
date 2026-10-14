@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { useDashboardReport, type ReportProps } from "../../../hooks/admin/useReports";
 import { Button } from "@/components/atoms";
 import { LoadingBar } from "@/components/atoms";
-import StatePanel from "../../ui/StatePanel";
+import { EmptyState } from "@/components/molecules";
 import AdminShell from "../AdminShell";
 import PeriodSwitch from "./PeriodSwitch";
 
@@ -25,7 +25,7 @@ export default function ReportPage({ title, children }: { title: string; childre
   if (!data) {
     return (
       <AdminShell title={title}>
-        <StatePanel
+        <EmptyState
           kind="error"
           title={`We couldn't load ${title === "Dashboard" ? "the dashboard" : title.toLowerCase()}`}
           message="This is usually a weak connection, or the server is busy for a moment. Nothing was lost. Please try again."
@@ -36,7 +36,7 @@ export default function ReportPage({ title, children }: { title: string; childre
           <Button variant="secondary" to="/clients">
             Open appointments
           </Button>
-        </StatePanel>
+        </EmptyState>
       </AdminShell>
     );
   }

@@ -1,13 +1,11 @@
 "use client";
 
 import { LoadingBar } from "@/components/atoms";
-import LoadError from "../../components/ui/LoadError";
-import StatePanel from "../../components/ui/StatePanel";
+import { LoadError, EmptyState, SectionHeader } from "@/components/molecules";
 import { Blush } from "@/components/atoms";
 import FaqList from "../../components/home/FaqList";
 import CtaBand from "../../components/home/CtaBand";
 import PageShell from "../../components/layout/PageShell";
-import PageHeader from "../../components/layout/PageHeader";
 import Section from "../../components/layout/Section";
 import { useFaqs } from "../../hooks/useFaqs";
 import { ctaLink } from "../../lib/homeSections";
@@ -24,10 +22,10 @@ export default function Faq() {
     <PageShell>
       <Section innerClassName="!max-w-4xl !gap-8">
         <Blush className="-right-32 top-1/4 h-80 w-80" />
-        <PageHeader title={words.home_faq_page_title} subtitle={words.home_faq_page_intro} />
+        <SectionHeader title={words.home_faq_page_title} subtitle={words.home_faq_page_intro} />
 
         {faqs.length === 0 ? (
-          <StatePanel
+          <EmptyState
             kind="empty"
             title="No questions here yet"
             message="We're putting our most common questions together. Until then, send us a message and we'll answer it."
