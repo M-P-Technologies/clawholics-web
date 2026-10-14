@@ -1,8 +1,7 @@
 "use client";
 
-import { LoadingBar } from "@/components/atoms";
+import { LoadingBar, Blush } from "@/components/atoms";
 import { LoadError, EmptyState, SectionHeader } from "@/components/molecules";
-import { Blush } from "@/components/atoms";
 import FaqList from "../../components/home/FaqList";
 import CtaBand from "../../components/home/CtaBand";
 import PageShell from "../../components/layout/PageShell";

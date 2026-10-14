@@ -1,8 +1,7 @@
 "use client";
 
 import { CircleCheckBig as CheckIcon } from "lucide-react";
-import { Button } from "@/components/atoms";
-import { LoadingBar } from "@/components/atoms";
+import { Button, LoadingBar } from "@/components/atoms";
 import { SectionHeader, EmptyState } from "@/components/molecules";
 import ClientPage from "../../components/client/ClientPage";
 import Panel from "../../components/layout/Panel";

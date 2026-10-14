@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { AlertDialog } from "@/components/organisms";
 import BookingOptions from "../../components/booking/BookingOptions";
-import { Button } from "@/components/atoms";
+import { Button, LoadingBar } from "@/components/atoms";
 import ArtistSelect from "../../components/booking/ArtistSelect";
 import DayCalendar from "../../components/booking/DayCalendar";
 import { SectionHeader, EmptyState } from "@/components/molecules";
@@ -12,7 +12,6 @@ import Panel from "../../components/layout/Panel";
 import Section from "../../components/layout/Section";
 import SummaryRow from "../../components/booking/SummaryRow";
 import TimeSlotList from "../../components/booking/TimeSlotList";
-import { LoadingBar } from "@/components/atoms";
 import { useBooking } from "../../hooks/useBooking";
 
 export default function Booking() {

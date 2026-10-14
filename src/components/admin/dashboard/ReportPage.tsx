@@ -2,8 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useDashboardReport, type ReportProps } from "../../../hooks/admin/useReports";
-import { Button } from "@/components/atoms";
-import { LoadingBar } from "@/components/atoms";
+import { Button, LoadingBar } from "@/components/atoms";
 import { EmptyState } from "@/components/molecules";
 import AdminShell from "../AdminShell";
 import PeriodSwitch from "./PeriodSwitch";

@@ -1,14 +1,13 @@
 "use client";
 
 import { Clock, MapPin } from "lucide-react";
-import { LoadingBar } from "@/components/atoms";
+import { LoadingBar, Button } from "@/components/atoms";
 import { LoadError, SectionHeader } from "@/components/molecules";
 import StackedGallery from "../../components/home/StackedGallery";
 import PageShell from "../../components/layout/PageShell";
 import Panel from "../../components/layout/Panel";
 import Section from "../../components/layout/Section";
 import { useAbout } from "../../hooks/useAbout";
-import { Button } from "@/components/atoms";
 
 export default function About() {
   const { gallery, error, reload, data, copied, handleCopyLocation, aboutHtml, businessHours } = useAbout();

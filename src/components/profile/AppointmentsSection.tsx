@@ -1,7 +1,6 @@
 import { useState, type ChangeEvent } from "react";
 import clsx from "clsx";
-import { Button } from "@/components/atoms";
-import { Select } from "@/components/atoms";
+import { Button, Select } from "@/components/atoms";
 import AppointmentCard, { isCompleted } from "./AppointmentCard";
 import type { AppointmentView } from "./types";
 

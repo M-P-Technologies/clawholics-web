@@ -1,7 +1,6 @@
 import { useState, type UIEvent } from "react";
 import clsx from "clsx";
-import { SharpenFilter, SHARPEN_FILTER } from "@/components/atoms";
-import { InstagramIcon } from "@/components/atoms";
+import { SharpenFilter, SHARPEN_FILTER, InstagramIcon } from "@/components/atoms";
 
 export interface RowPhoto {
   id: number | string;

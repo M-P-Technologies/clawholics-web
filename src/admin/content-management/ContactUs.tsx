@@ -3,8 +3,7 @@
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 import CmsEditor from "../../components/admin/cms/CmsEditor";
 import { ElsewhereNote, IconPicker, PanelSection, SaveBar, SubCard, TextField } from "../../components/admin/cms/fields";
-import { Button } from "@/components/atoms";
-import { LoadingBar } from "@/components/atoms";
+import { Button, LoadingBar } from "@/components/atoms";
 import { useContactEditor } from "../../hooks/admin/useContactEditor";
 import { CONTACT_BUSINESS_FIELDS, CONTACT_PREVIEW_PAGES } from "../../lib/admin/contactEditor";
 import { MAX_SOCIAL_LINKS, SOCIAL_PLATFORMS, platformOf } from "../../lib/socialLinks";

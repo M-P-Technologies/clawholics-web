@@ -1,6 +1,5 @@
 import type { AdminEditForm } from "../../hooks/admin/useAdminDirectory";
-import { Button } from "@/components/atoms";
-import { LoadingBar } from "@/components/atoms";
+import { Button, LoadingBar } from "@/components/atoms";
 
 interface EditAdminModalProps {
   open: boolean;

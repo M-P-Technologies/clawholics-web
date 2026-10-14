@@ -1,7 +1,6 @@
 import type { ServiceCategory } from "../../services/catalogService";
 import type { NailService } from "../../services/serviceService";
-import { Button } from "@/components/atoms";
-import { Select } from "@/components/atoms";
+import { Button, Select } from "@/components/atoms";
 
 type VariantDraft = { name: string; price: string };
 

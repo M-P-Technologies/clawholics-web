@@ -7,8 +7,7 @@ import DirectoryStats from "../../components/admin/DirectoryStats";
 import DirectoryTable from "../../components/admin/DirectoryTable";
 import EditAdminModal from "../../components/admin/EditAdminModal";
 import { ConfirmDialog, FeedbackDialog } from "@/components/organisms";
-import { Button } from "@/components/atoms";
-import { LoadingBar } from "@/components/atoms";
+import { Button, LoadingBar } from "@/components/atoms";
 import { useAdminDirectory } from "../../hooks/admin/useAdminDirectory";
 
 // The Admin Directory: the admin totals, the admins in a table and the chosen one's profile, and

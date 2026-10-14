@@ -4,9 +4,7 @@ import { Link } from "@/lib/router";
 import logo from "../../assets/logo/logo-pink-transparent.png";
 import { fetchHomeContent } from "../../services/contentService";
 import { readHomeSections } from "../../lib/homeSections";
-import { Button } from "@/components/atoms";
-import { Blush } from "@/components/atoms";
-import { FacebookIcon } from "@/components/atoms";
+import { Button, Blush, FacebookIcon } from "@/components/atoms";
 import { platformOf, readSocialLinks, socialHref } from "../../lib/socialLinks";
 
 // Opens a chat with the studio on Facebook.

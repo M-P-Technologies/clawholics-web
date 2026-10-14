@@ -1,7 +1,7 @@
 import { ChevronDown as DropdownIcon, List as ListIcon, Plus as PlusIcon } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import DragIcon from "./DragIcon";
-import { IconButton } from "@/components/atoms";
+import { IconButton, Button } from "@/components/atoms";
 import type { SortableHandleProps } from "./SortableList";
 import type { Faq } from "../../services/faqService";
 import { createFaq, deleteFaq, updateFaq } from "../../services/faqService";
@@ -12,7 +12,6 @@ import {
 } from "./ListFormatting";
 import { useToast } from "@/components/molecules";
 import EditActions from "./EditActions";
-import { Button } from "@/components/atoms";
 import { ConfirmDialog } from "@/components/organisms";
 
 type DropdownProps = {

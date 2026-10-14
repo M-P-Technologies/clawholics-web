@@ -2,8 +2,7 @@
 
 import { ArrowLeft, Clock, Gem, Sparkles, UsersRound } from "lucide-react";
 import { useNavigate } from "@/lib/router";
-import { Button } from "@/components/atoms";
-import { LoadingBar } from "@/components/atoms";
+import { Button, LoadingBar } from "@/components/atoms";
 import { useServiceDetail } from "../../hooks/client/useServiceDetail";
 import { CLIENT_PATHS } from "../../lib/client/clientNav";
 import { artistsFact, priceLabel } from "../../lib/client/servicePrice";

@@ -1,14 +1,13 @@
 "use client";
 
 import { AlertDialog } from "@/components/organisms";
-import { Button } from "@/components/atoms";
+import { Button, LoadingBar } from "@/components/atoms";
 import BackButton from "../../components/layout/BackButton";
 import { SectionHeader } from "@/components/molecules";
 import PageShell from "../../components/layout/PageShell";
 import Panel from "../../components/layout/Panel";
 import Section from "../../components/layout/Section";
 import { infoLabelClass } from "@/components/tokens";
-import { LoadingBar } from "@/components/atoms";
 import PhotoCarousel from "../../components/booking/PhotoCarousel";
 import ServiceGallery from "../../components/booking/ServiceGallery";
 import ServiceOverview from "../../components/booking/ServiceOverview";

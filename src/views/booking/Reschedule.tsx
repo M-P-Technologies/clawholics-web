@@ -1,8 +1,7 @@
 "use client";
 
 import { AlertDialog } from "@/components/organisms";
-import { Button } from "@/components/atoms";
-import { LoadingBar } from "@/components/atoms";
+import { Button, LoadingBar } from "@/components/atoms";
 import DayCalendar from "../../components/booking/DayCalendar";
 import { SectionHeader } from "@/components/molecules";
 import ClientPage from "../../components/client/ClientPage";

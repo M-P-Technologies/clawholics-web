@@ -1,10 +1,9 @@
 "use client";
 
 import { Mail,MapPin,Phone } from "lucide-react";
-import { Button } from "@/components/atoms";
+import { Button, LoadingBar } from "@/components/atoms";
 import { FeedbackDialog } from "@/components/organisms";
 import { CONTACT_FEEDBACK } from "@/lib/contactFeedback";
-import { LoadingBar } from "@/components/atoms";
 import { ContactGroup, FormField, SectionHeader } from "@/components/molecules";
 import PageShell from "../../components/layout/PageShell";
 import Panel from "../../components/layout/Panel";

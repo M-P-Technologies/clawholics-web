@@ -1,8 +1,7 @@
 import { ArrowUpRight, ImagePlus, Loader2, RefreshCw, Trash2 } from "lucide-react";
 import { useEffect, useId, type ComponentType, type ReactNode } from "react";
 import clsx from "clsx";
-import { Button } from "@/components/atoms";
-import { Select } from "@/components/atoms";
+import { Button, Select } from "@/components/atoms";
 import { Link } from "../../../lib/router";
 import { field } from "../../tokens";
 import { useCmsEditor } from "./CmsEditor";

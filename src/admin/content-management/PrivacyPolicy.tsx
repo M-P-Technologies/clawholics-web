@@ -4,8 +4,7 @@ import { RotateCcw } from "lucide-react";
 import CmsEditor, { CmsLoadError } from "../../components/admin/cms/CmsEditor";
 import { PanelSection, SaveBar } from "../../components/admin/cms/fields";
 import RichTextField from "../../components/admin/cms/RichTextField";
-import { Button } from "@/components/atoms";
-import { LoadingBar } from "@/components/atoms";
+import { Button, LoadingBar } from "@/components/atoms";
 import { usePrivacyEditor } from "../../hooks/admin/usePrivacyEditor";
 import { PRIVACY_KEY, PRIVACY_PREVIEW_PAGES } from "../../lib/admin/cmsPages";
 
