@@ -7,7 +7,7 @@ import RewardsSheet from "@/components/profile/RewardsSheet";
 describe("ProfileHeader", () => {
   it("greets by first name and says since when", () => {
     render(<ProfileHeader firstName="Precious" imageUrl="" memberSince="October 2026" />);
-    expect(screen.getByRole("heading", { level: 1, name: "Hi, Precious" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Hi, Precious" })).toBeInTheDocument();
     expect(screen.getByText("Member since October 2026")).toBeInTheDocument();
   });
 
@@ -15,7 +15,7 @@ describe("ProfileHeader", () => {
     const { rerender } = render(<ProfileHeader firstName="precious hope" imageUrl="" memberSince="" />);
     expect(screen.getByText("P")).toBeInTheDocument();
     rerender(<ProfileHeader firstName="" imageUrl="" memberSince="" />);
-    expect(screen.getByRole("heading", { level: 1, name: "Hi there" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Hi there" })).toBeInTheDocument();
   });
 });
 

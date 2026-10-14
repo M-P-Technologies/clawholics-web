@@ -103,3 +103,36 @@ describe("banner links", () => {
     expect(readServicesPage({ home_services_cta_title: "Still deciding?" }).home_services_cta_title).toBe("Still deciding?");
   });
 });
+
+describe("client app offers", () => {
+  const offer = { title: "20% off", line: "On gel", note: "", image: "", buttonLabel: "Book now", link: "/my/explore" };
+
+  it("reads the offers list and ignores items without a title", () => {
+    const s = readHomeSections({ home_offers: JSON.stringify([offer, { line: "no title" }, 5]) });
+    expect(s.offers).toEqual([offer]);
+  });
+  it("reads broken JSON or a non-list as no offers", () => {
+    expect(readHomeSections({ home_offers: "{oops" }).offers).toEqual([]);
+    expect(readHomeSections({ home_offers: "{\"a\":1}" }).offers).toEqual([]);
+    expect(readHomeSections({}).offers).toEqual([]);
+  });
+  it("saves the offers as JSON, or empty", () => {
+    const s = readHomeSections({ home_offers: JSON.stringify([offer]) });
+    expect(JSON.parse(homeSectionsToContent(s).home_offers)).toEqual([offer]);
+    expect(homeSectionsToContent(readHomeSections({})).home_offers).toBe("");
+  });
+  it("has defaults for the birthday words and the Explore subtitle", () => {
+    const t = readHomeSections({}).text;
+    expect(t.home_birthday_enabled).toBe("1");
+    expect(t.home_birthday_title).toBe("Happy birthday, {name}!");
+    expect(t.home_explore_subtitle).toBe("Find the perfect service for you");
+  });
+  it("refuses an offer whose button opens an unknown page", () => {
+    const s = readHomeSections({ home_offers: JSON.stringify([{ ...offer, link: "/nowhere" }]) });
+    expect(homeSectionsProblem(s)).toMatch(/Offer 1/);
+  });
+  it("accepts an offer that opens a service in the app", () => {
+    const s = readHomeSections({ home_offers: JSON.stringify([{ ...offer, link: "/my/explore/12" }]) });
+    expect(homeSectionsProblem(s)).toBeNull();
+  });
+});

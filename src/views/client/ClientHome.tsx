@@ -1,0 +1,88 @@
+"use client";
+
+import { Search } from "lucide-react";
+import { Link } from "@/lib/router";
+import NextAppointmentCard from "../../components/profile/NextAppointmentCard";
+import RewardsStrip from "../../components/profile/RewardsStrip";
+import OffersCarousel from "../../components/client/OffersCarousel";
+import ServiceCard from "../../components/client/ServiceCard";
+import ClientTopBar from "../../components/client/ClientTopBar";
+import { useClientHome } from "../../hooks/client/useClientHome";
+import { CLIENT_PATHS } from "../../lib/client/clientNav";
+
+const sectionHead = "flex items-baseline justify-between";
+const sectionTitle = "font-display text-xl font-normal normal-case tracking-normal text-gray-red";
+const seeAll = "text-[13px] font-bold text-crimson";
+
+export default function ClientHome() {
+  const h = useClientHome();
+  const hero = h.account.nextAppointment;
+
+  return (
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-7 px-4 pb-8 pt-4 lg:pt-8">
+      <ClientTopBar title={h.firstName ? `Hi, ${h.firstName}` : "Hi there"} />
+
+      <form
+        role="search"
+        onSubmit={(e) => {
+          e.preventDefault();
+          h.search();
+        }}
+        className="flex items-center gap-2 rounded-2xl bg-milk p-1.5 pl-4 shadow-petal"
+      >
+        <input
+          type="search"
+          aria-label="Search services"
+          placeholder="Search services…"
+          value={h.query}
+          onChange={(e) => h.setQuery(e.target.value)}
+          className="min-w-0 flex-1 bg-transparent py-2 text-sm text-gray-red outline-none placeholder:text-gray-red/50"
+        />
+        <button type="submit" aria-label="Search" className="flex h-10 w-10 items-center justify-center rounded-xl bg-crimson text-milk">
+          <Search size={18} aria-hidden="true" />
+        </button>
+      </form>
+
+      <section aria-labelledby="popular-title" className="flex flex-col gap-3">
+        <div className={sectionHead}>
+          <h2 id="popular-title" className={sectionTitle}>Popular services</h2>
+          <Link to={CLIENT_PATHS.explore} className={seeAll}>See all</Link>
+        </div>
+        <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] lg:mx-0 lg:grid lg:grid-cols-4 lg:overflow-visible lg:px-0 [&::-webkit-scrollbar]:hidden">
+          {h.popular.map((service) => (
+            <ServiceCard key={service.id} service={service} />
+          ))}
+        </div>
+      </section>
+
+      {h.offers.length > 0 && (
+        <section aria-labelledby="offers-title" className="flex flex-col gap-3">
+          <h2 id="offers-title" className={sectionTitle}>Special offers</h2>
+          <OffersCarousel offers={h.offers} />
+        </section>
+      )}
+
+      <section aria-labelledby="upcoming-title" className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,320px)]">
+        <div className="flex flex-col gap-3">
+          <div className={sectionHead}>
+            <h2 id="upcoming-title" className={sectionTitle}>Upcoming appointment</h2>
+            <Link to={CLIENT_PATHS.appointments} className={seeAll}>See all</Link>
+          </div>
+          <NextAppointmentCard
+            view={hero}
+            photo={hero ? h.photoFor(hero.appt.service_name) : ""}
+            now={h.account.currentTime}
+            bookTo={CLIENT_PATHS.explore}
+            onPay={() => hero && h.account.payForAppointment(hero.appt)}
+            onReschedule={() => hero && h.account.rescheduleAppointment(hero.appt)}
+            onCancel={() => hero && h.account.startCancel(hero.appt)}
+          />
+        </div>
+        <div className="flex flex-col gap-3">
+          <h2 className={sectionTitle}>Loyalty card</h2>
+          <RewardsStrip stamps={h.account.stamps} onOpen={h.account.openRewards} />
+        </div>
+      </section>
+    </div>
+  );
+}

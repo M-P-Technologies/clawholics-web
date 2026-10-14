@@ -13,16 +13,18 @@ interface NextAppointmentCardProps {
   onPay: () => void;
   onReschedule: () => void;
   onCancel: () => void;
+  /** Where the empty card's Book now goes (the client app books from its own Explore) */
+  bookTo?: string;
 }
 
 // The hero of the page: the next appointment and the one thing to do about it.
-export default function NextAppointmentCard({ view, photo, now, onPay, onReschedule, onCancel }: NextAppointmentCardProps) {
+export default function NextAppointmentCard({ view, photo, now, onPay, onReschedule, onCancel, bookTo = "/services" }: NextAppointmentCardProps) {
   if (!view) {
     return (
       <section aria-label="Next appointment" className="flex flex-col items-start gap-3 rounded-xl border border-crimson-light/60 bg-light-orange/40 p-4">
         <h2 className="font-display text-xl font-normal normal-case tracking-normal text-gray-red">Next appointment</h2>
         <p className="text-sm text-gray-red/80">You have no upcoming appointments.</p>
-        <Button to="/services">Book now</Button>
+        <Button to={bookTo}>Book now</Button>
       </section>
     );
   }

@@ -1,16 +1,15 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Profile from "@/views/account/Profile";
+import MyAppointments from "@/views/client/MyAppointments";
+import MyProfile from "@/views/client/MyProfile";
 
 vi.mock("@/lib/router", () => ({
   Link: ({ to, children, ...rest }: { to: string; children: React.ReactNode }) => <a href={to} {...rest}>{children}</a>,
 }));
-vi.mock("@clerk/nextjs", () => ({ useClerk: () => ({ openUserProfile: vi.fn(), signOut: vi.fn() }) }));
+const signOut = vi.fn();
+vi.mock("@clerk/nextjs", () => ({ useClerk: () => ({ openUserProfile: vi.fn(), signOut }) }));
 vi.mock("@/hooks/useServicePhotos", () => ({ useServicePhotos: () => () => "" }));
-vi.mock("@/hooks/useMyReviews", () => ({ useMyReviews: () => ({ reviews: {}, submit: vi.fn() }) }));
 vi.mock("@/components/payment/PaymentProofCard", () => ({ default: () => null }));
-vi.mock("@/components/layout/PageShell", () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
-vi.mock("@/components/layout/Section", () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
 
 const view = (id: number, status = "confirmed", over = {}) => ({
   appt: { id, service_name: `Service ${id}`, nailist_id: 1, nailist_name: "Max", appointment_date: "2026-10-20", appointment_time: "09:00-11:00", status },
@@ -19,7 +18,7 @@ const view = (id: number, status = "confirmed", over = {}) => ({
 });
 
 let hook: Record<string, unknown>;
-vi.mock("@/hooks/useProfile", () => ({ useProfile: () => hook }));
+vi.mock("@/hooks/client/useMyAccount", () => ({ useMyAccount: () => hook }));
 
 const makeHook = (over: Record<string, unknown> = {}) => ({
   isBusy: false,
@@ -41,6 +40,7 @@ const makeHook = (over: Record<string, unknown> = {}) => ({
   payForAppointment: vi.fn(), rescheduleAppointment: vi.fn(), startCancel: vi.fn(), handleClientRedeem: vi.fn(), handleProofUploaded: vi.fn(),
   showRewardModal: false, closeRewardModal: vi.fn(), todayFormatted: "", isCancelModalOpen: false, selectedAppt: null, selectedApptDateLabel: "",
   isLateCancellation: false, actionError: null, closeCancelModal: vi.fn(), isCancelling: false, handleCancelAppointment: vi.fn(),
+  openAppointment: vi.fn(), openRewards: vi.fn(), reviews: {},
   ...over,
 });
 
@@ -48,65 +48,33 @@ beforeEach(() => {
   hook = makeHook();
 });
 
-describe("Profile page", () => {
-  it("has two panels: the profile on the left, and Overview and Appointments tabs on the right", () => {
-    render(<Profile />);
-    const profile = within(screen.getByRole("complementary", { name: "Your profile" }));
-    expect(profile.getByRole("heading", { level: 1 })).toHaveTextContent("Hi, Ana");
-    expect(profile.getByText("Member since October 2026")).toBeInTheDocument();
-    expect(profile.getByRole("button", { name: "Open your loyalty card" })).toBeInTheDocument();
-    expect(profile.getByRole("region", { name: "My details" })).toHaveTextContent("a@b.co");
-    expect(profile.getByRole("button", { name: "Manage account" })).toBeInTheDocument();
-    expect(profile.getByRole("button", { name: "Log out" })).toBeInTheDocument();
-
-    // Overview first: the next appointment and the counts
-    expect(screen.getByRole("tab", { name: "Overview" })).toHaveAttribute("aria-selected", "true");
-    const overview = within(screen.getByRole("tabpanel"));
-    expect(overview.getByRole("region", { name: "Next appointment" })).toHaveTextContent("Service 1");
-    expect(within(overview.getByRole("group", { name: "Coming up" })).getByText("2")).toBeInTheDocument();
-    expect(within(overview.getByRole("group", { name: "Loyalty stamps" })).getByText("4 / 10")).toBeInTheDocument();
-    expect(screen.queryByRole("region", { name: "Appointments" })).toBeNull();
-
-    fireEvent.click(screen.getByRole("tab", { name: /Appointments/ }));
-    expect(screen.getByRole("region", { name: "Appointments" })).toHaveTextContent("Service 2");
+describe("MyAppointments", () => {
+  it("lists upcoming and past appointments and opens one", () => {
+    render(<MyAppointments />);
+    expect(screen.getByRole("banner")).toContainElement(screen.getByRole("heading", { level: 1, name: "My appointments" }));
+    const list = within(screen.getByRole("region", { name: "Appointments" }));
+    fireEvent.click(list.getByRole("button", { name: /Service 2/ }));
+    expect(hook.openAppointment).toHaveBeenCalledWith(2);
   });
+});
 
-  it("opens an appointment's sheet from the list, and the loyalty card from the strip", () => {
-    render(<Profile />);
-    fireEvent.click(screen.getByRole("tab", { name: /Appointments/ }));
-    fireEvent.click(within(screen.getByRole("region", { name: "Appointments" })).getByRole("button", { name: /Service 2/ }));
-    expect(screen.getByRole("dialog", { name: "Appointment" })).toHaveTextContent("Service 2");
-    fireEvent.click(screen.getByRole("button", { name: "Close" }));
-    expect(screen.queryByRole("dialog")).toBeNull();
+describe("MyProfile", () => {
+  it("shows who the client is, their card and details", () => {
+    render(<MyProfile />);
+    expect(screen.getByRole("banner")).toContainElement(screen.getByRole("heading", { level: 1, name: "My profile" }));
+    expect(screen.getByRole("heading", { name: "Hi, Ana" })).toBeInTheDocument();
+    expect(screen.getByText("Member since October 2026")).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "My details" })).toHaveTextContent("09171234567");
     fireEvent.click(screen.getByRole("button", { name: "Open your loyalty card" }));
-    expect(screen.getByRole("dialog", { name: "Loyalty card" })).toHaveTextContent("CLAWHOLICS-2026-0007");
+    expect(hook.openRewards).toHaveBeenCalled();
   });
 
-  it("starts the cancel flow from the hero", () => {
-    render(<Profile />);
-    fireEvent.click(within(screen.getByRole("region", { name: "Next appointment" })).getByRole("button", { name: "Cancel" }));
-    expect((hook.startCancel as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith(expect.objectContaining({ id: 1 }));
-  });
-
-  it("opens the highlighted appointment's sheet on arrival (deep link)", () => {
-    hook = makeHook({ highlightedAppointmentId: 2 });
-    render(<Profile />);
-    expect(screen.getByRole("dialog", { name: "Appointment" })).toHaveTextContent("Service 2");
-    // and the list it is in, behind the sheet
-    expect(screen.getByRole("tab", { name: /Appointments/, hidden: true })).toHaveAttribute("aria-selected", "true");
-  });
-
-  it("shows the edit sheet while editing, and Cancel in it ends the edit", () => {
-    hook = makeHook({ isEditing: true });
-    render(<Profile />);
-    const dialog = screen.getByRole("dialog", { name: "Edit details" });
-    fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
-    expect(hook.handleCancel).toHaveBeenCalled();
-  });
-
-  it("shows a loader while the profile loads", () => {
-    hook = makeHook({ isBusy: true });
-    render(<Profile />);
-    expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
+  it("links back to the site and to the legal pages, and logs out", () => {
+    render(<MyProfile />);
+    expect(screen.getByRole("link", { name: "Back to site" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "Terms" })).toHaveAttribute("href", "/tou");
+    expect(screen.getByRole("link", { name: "Privacy" })).toHaveAttribute("href", "/privacy");
+    fireEvent.click(screen.getByRole("button", { name: "Log out" }));
+    expect(signOut).toHaveBeenCalledWith({ redirectUrl: "/" });
   });
 });
