@@ -1,3 +1,5 @@
+"use client";
+
 import clsx from "clsx";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";

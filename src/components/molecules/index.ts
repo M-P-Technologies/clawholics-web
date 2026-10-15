@@ -17,4 +17,5 @@ export { default as DragHandle } from "./DragHandle";
 export { default as EditActions } from "./EditActions";
 export { default as SummaryRow } from "./SummaryRow";
 export { default as TimeSlotList } from "./TimeSlotList";
-export { default as DayCalendar } from "./DayCalendar";
+// DayCalendar is imported from "@/components/molecules/DayCalendar", not from here: it brings
+// react-day-picker and its CSS, which would then load on every page that uses this barrel.

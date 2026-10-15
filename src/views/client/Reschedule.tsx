@@ -3,7 +3,8 @@
 import clsx from "clsx";
 import { AlertDialog } from "@/components/organisms";
 import { Button, Card, LoadingBar } from "@/components/atoms";
-import { SectionHeader, SummaryRow, TimeSlotList, DayCalendar } from "@/components/molecules";
+import { SectionHeader, SummaryRow, TimeSlotList } from "@/components/molecules";
+import DayCalendar from "@/components/molecules/DayCalendar";
 import { surface } from "@/components/tokens";
 import ClientPage from "@/components/features/client/shell/ClientPage";
 import { useReschedule } from "@/hooks/client/useReschedule";

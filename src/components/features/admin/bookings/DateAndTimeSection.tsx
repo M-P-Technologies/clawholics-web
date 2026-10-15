@@ -1,6 +1,7 @@
 "use client";
 
-import { DayCalendar, TimeSlotList } from "@/components/molecules";
+import { TimeSlotList } from "@/components/molecules";
+import DayCalendar from "@/components/molecules/DayCalendar";
 import type { CreateAppointment } from "@/hooks/admin/useCreateAppointment";
 import { formatSlot, toLocalDate, toLocalDateString } from "@/lib/admin/createAppointment";
 

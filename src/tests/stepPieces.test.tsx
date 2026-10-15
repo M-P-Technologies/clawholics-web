@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
-import { DayCalendar, TimeSlotList } from "@/components/molecules";
+import { TimeSlotList } from "@/components/molecules";
+import DayCalendar from "@/components/molecules/DayCalendar";
 import { describe, expect, it, vi } from "vitest";
 import BookingOptions from "@/components/features/client/booking/BookingOptions";
 
