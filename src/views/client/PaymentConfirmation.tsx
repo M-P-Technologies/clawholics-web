@@ -2,9 +2,8 @@
 
 import { CircleCheckBig as CheckIcon } from "lucide-react";
 import { Button, Card, LoadingBar } from "@/components/atoms";
-import { SectionHeader, EmptyState } from "@/components/molecules";
+import { SectionHeader, EmptyState, SummaryRow } from "@/components/molecules";
 import ClientPage from "@/components/features/client/shell/ClientPage";
-import SummaryRow from "@/components/features/client/booking/SummaryRow";
 import { usePaymentConfirmation } from "@/hooks/client/usePaymentConfirmation";
 import { CLIENT_PATHS } from "@/lib/client/clientNav";
 

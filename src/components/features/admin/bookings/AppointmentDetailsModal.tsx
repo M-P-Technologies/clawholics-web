@@ -4,6 +4,7 @@ import type { Appointment, AppointmentStatus } from "@/services/appointmentServi
 import { Link } from "@/lib/router";
 import { Avatar, Button, Select } from "@/components/atoms";
 import { Dialog } from "@/components/organisms";
+import { SummaryRow } from "@/components/molecules";
 import ClientNotesPanel from "@/components/features/admin/clients/ClientNotesPanel";
 import ProofReviewPanel from "@/components/features/admin/bookings/ProofReviewPanel";
 
@@ -81,18 +82,19 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
         {/* Body: scrolls on its own */}
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 py-5 text-gray-red">
           <Section title="Client" aside={`Client #${appointment.user_id}`}>
-            <Row name="Name" value={customerName} />
-            <Row name="Email" value={appointment.email || "No email"} />
-            <Row name="Phone" value={appointment.phone || "No phone"} />
+            <SummaryRow label="Name" value={customerName} />
+            <SummaryRow label="Email" value={appointment.email || "No email"} />
+            <SummaryRow label="Phone" value={appointment.phone || "No phone"} />
           </Section>
 
           <Section title="Appointment">
-            <Row name="Service" value={appointment.service_name || "No service"} />
-            <Row name="Nail artist" value={appointment.nailist_name || "No artist"} />
-            <Row name="Date" value={dateLabel(appointment.appointment_date) || "No date"} />
-            <Row name="Time" value={appointment.appointment_time || "No time"} />
+            <SummaryRow label="Service" value={appointment.service_name || "No service"} />
+            <SummaryRow label="Nail artist" value={appointment.nailist_name || "No artist"} />
+            <SummaryRow label="Date" value={dateLabel(appointment.appointment_date) || "No date"} />
+            <SummaryRow label="Time" value={appointment.appointment_time || "No time"} />
             <div className="flex items-center justify-between gap-4 border-t border-dotted border-crimson-light pt-2.5">
-              <p className="text-[13px] text-gray-red/70">Status</p>
+              <dt className="text-[13px] text-gray-red/70">Status</dt>
+              <dd>
               <Select
                 aria-label="Appointment status"
                 className="w-44"
@@ -106,14 +108,15 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
                   </option>
                 ))}
               </Select>
+              </dd>
             </div>
           </Section>
 
           <Section title="Payment">
-            <Row name="Status" value={appointment.payment_status ? label(appointment.payment_status.toUpperCase()) : "No payment status"} />
-            <Row name="Amount" value={appointment.payment_amount ? `₱${appointment.payment_amount}` : "No amount"} strong={Boolean(appointment.payment_amount)} />
-            <Row name="Method" value={appointment.payment_method || "No payment method"} />
-            <Row name="Reference" value={appointment.payment_reference || "No reference"} />
+            <SummaryRow label="Status" value={appointment.payment_status ? label(appointment.payment_status.toUpperCase()) : "No payment status"} />
+            <SummaryRow label="Amount" value={appointment.payment_amount ? `₱${appointment.payment_amount}` : "No amount"} strong={Boolean(appointment.payment_amount)} />
+            <SummaryRow label="Method" value={appointment.payment_method || "No payment method"} />
+            <SummaryRow label="Reference" value={appointment.payment_reference || "No reference"} />
           </Section>
 
           {tokenFetcher && showProofPanel && (
@@ -143,19 +146,10 @@ function Section({ title, aside, children }: { title: string; aside?: string; ch
         <h4 className="font-display text-lg font-normal text-gray-red">{title}</h4>
         {aside && <span className="text-[12px] text-gray-red/60">{aside}</span>}
       </div>
-      <div className="flex flex-col">{children}</div>
+      <dl className="flex flex-col">{children}</dl>
     </section>
   );
 }
 
-// A label and its value, divided from the row above by a dotted line
-function Row({ name, value, strong = false }: { name: string; value: string; strong?: boolean }) {
-  return (
-    <div className="flex items-baseline justify-between gap-4 border-t border-dotted border-crimson-light py-2 first:border-t-0 first:pt-0">
-      <p className="shrink-0 text-[13px] text-gray-red/70">{name}</p>
-      <p className={strong ? "min-w-0 break-words text-right font-display text-xl text-berry" : "min-w-0 break-words text-right text-[13px] font-bold"}>{value}</p>
-    </div>
-  );
-}
 
 export default AppointmentDetailsModal;

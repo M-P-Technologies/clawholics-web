@@ -6,10 +6,9 @@ import { Link } from "@/lib/router";
 import qrPhLogo from "@/assets/logo/qr_ph.png";
 import { AlertDialog } from "@/components/organisms";
 import { Button, Card, LoadingBar } from "@/components/atoms";
-import { ChoiceRow, SectionHeader } from "@/components/molecules";
+import { ChoiceRow, SectionHeader, SummaryRow } from "@/components/molecules";
 import { surface } from "@/components/tokens";
 import ClientPage from "@/components/features/client/shell/ClientPage";
-import SummaryRow from "@/components/features/client/booking/SummaryRow";
 import { usePayment } from "@/hooks/client/usePayment";
 import { CLIENT_PATHS } from "@/lib/client/clientNav";
 

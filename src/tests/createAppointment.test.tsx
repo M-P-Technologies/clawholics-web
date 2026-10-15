@@ -126,7 +126,7 @@ const fillClient = (first = "Ana", last = "Cruz", phone = "09171234567", email =
 
 const summaryValue = (label: string) => {
   const summary = screen.getByRole("heading", { name: "Summary" }).parentElement as HTMLElement;
-  const row = within(summary).getByText(label, { selector: "p" }).parentElement as HTMLElement;
+  const row = within(summary).getByText(label, { selector: "dt" }).parentElement as HTMLElement;
   return row.lastElementChild!.textContent;
 };
 

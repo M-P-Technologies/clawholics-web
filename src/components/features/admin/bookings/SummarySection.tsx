@@ -1,3 +1,4 @@
+import { SummaryRow } from "@/components/molecules";
 import type { CreateAppointment } from "@/hooks/admin/useCreateAppointment";
 import { formatSlot } from "@/lib/admin/createAppointment";
 
@@ -10,7 +11,7 @@ export default function SummarySection({ a }: { a: CreateAppointment }) {
         Summary
       </h4>
 
-      <div className="flex flex-col">
+      <dl className="flex flex-col">
         <SummaryRow label="Service" value={selectedService?.name || "–"} />
 
         <SummaryRow label="Artist" value={selectedNailist?.name || "–"} />
@@ -27,25 +28,7 @@ export default function SummarySection({ a }: { a: CreateAppointment }) {
           value={selectedPrice ? `₱${selectedPrice}` : "–"}
           strong
         />
-      </div>
+      </dl>
     </>
-  );
-}
-
-function SummaryRow({
-  label,
-  value,
-  strong = false,
-}: {
-  label: string;
-  value: string;
-  /** The total: bigger and in the brand colour */
-  strong?: boolean;
-}) {
-  return (
-    <div className="flex items-baseline justify-between gap-4 border-t border-dotted border-crimson-light py-2 first:border-t-0 first:pt-0">
-      <p className="text-[13px] text-gray-red/70">{label}</p>
-      <p className={strong ? "text-right font-display text-xl text-berry" : "text-right text-[13px] font-bold text-gray-red"}>{value}</p>
-    </div>
   );
 }
