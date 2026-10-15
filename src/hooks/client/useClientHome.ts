@@ -55,7 +55,7 @@ export function useClientHome() {
     popular: services.slice(0, POPULAR_COUNT),
     book: (service: NailService) => startBooking(service),
     /** Completed visits */
-    visits: completedVisits(account.pastViews),
+    visits: completedVisits(account.appointments),
     nextVisitLabel: next ? next.dateLabel : "None booked",
     /** Under the next appointment: the payment countdown while the hold runs, or how far away it is */
     nextWhen: next ? (next.canPay ? `Pay within ${next.payLabel}` : relativeDay(next.appt.appointment_date, next.appt.appointment_time, account.currentTime)) : "",

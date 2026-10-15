@@ -44,4 +44,25 @@ describe("ServicesTable", () => {
     fireEvent.click(screen.getByRole("button", { name: "Next page" }));
     expect(within(screen.getByRole("list", { name: "Services" })).getAllByRole("listitem")).toHaveLength(2);
   });
+
+  it("goes back to the first page when the list changes (a new search)", () => {
+    layout.table = false;
+    const many = Array.from({ length: 12 }, (_, i) => ({ ...services[0], id: i + 1, name: `Service ${i + 1}` })) as NailService[];
+    const { rerender } = render(<ServicesTable label="Services" services={many} onBook={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Next page" }));
+    fireEvent.click(screen.getByRole("button", { name: "Next page" }));
+    expect(screen.getByText("Service 11")).toBeInTheDocument();
+    rerender(<ServicesTable label="Services" services={many.slice(2, 10)} onBook={vi.fn()} />);
+    expect(screen.getByText("Service 3")).toBeInTheDocument();
+    expect(screen.queryByText("Service 8")).toBeNull();
+  });
+
+  it("keeps the page when the same list is drawn again", () => {
+    layout.table = false;
+    const many = Array.from({ length: 7 }, (_, i) => ({ ...services[0], id: i + 1, name: `Service ${i + 1}` })) as NailService[];
+    const { rerender } = render(<ServicesTable label="Services" services={many} onBook={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Next page" }));
+    rerender(<ServicesTable label="Services" services={[...many]} onBook={vi.fn()} />);
+    expect(screen.getByText("Service 6")).toBeInTheDocument();
+  });
 });

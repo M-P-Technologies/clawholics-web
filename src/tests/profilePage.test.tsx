@@ -29,6 +29,7 @@ const makeHook = (over: Record<string, unknown> = {}) => ({
   upcoming: [view(1), view(2)],
   nextAppointment: view(1),
   pastViews: [view(3, "completed")],
+  appointments: [view(1).appt, view(2).appt, view(3, "completed").appt],
   stamps: 4,
   loyaltyCardNumber: "CLAWHOLICS-2026-0007",
   currentTime: Date.parse("2026-10-17T09:00:00+08:00"),
@@ -102,5 +103,13 @@ describe("MyProfile", () => {
     expect(screen.getByRole("link", { name: "Back to site" })).toHaveAttribute("href", "/");
     expect(screen.getByRole("link", { name: "Terms" })).toHaveAttribute("href", "/tou");
     expect(screen.getByRole("link", { name: "Privacy" })).toHaveAttribute("href", "/privacy");
+  });
+});
+
+describe("MyProfile visits", () => {
+  it("counts every completed visit, not just the rows the Past list shows", () => {
+    hook = makeHook({ appointments: [1, 2, 3, 4, 5, 6, 7].map((id) => ({ ...view(id, "completed").appt })), pastViews: [] });
+    render(<MyProfile />);
+    expect(within(screen.getByRole("group", { name: "Visits" })).getByText("7")).toBeInTheDocument();
   });
 });

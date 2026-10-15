@@ -42,7 +42,11 @@ function BookButton({ service, onBook }: { service: NailService; onBook: (s: Nai
 // The name opens the service; Book starts booking it.
 export default function ServicesTable({ services, onBook, label }: ServicesTableProps) {
   const asTable = useTableLayout();
-  const [cardPage, setCardPage] = useState(1);
+  // The phone page belongs to one list: a different list (a new search, tab or filter) starts on page 1
+  const listKey = services.map((s) => s.id).join(",");
+  const [paged, setPaged] = useState({ listKey, page: 1 });
+  const cardPage = paged.listKey === listKey ? paged.page : 1;
+  const setCardPage = (page: number) => setPaged({ listKey, page });
 
   if (!asTable) {
     const cards = paginate(services, cardPage, CARDS_PER_PAGE);

@@ -46,7 +46,7 @@ export default function MyProfile() {
         <Card as="section" aria-label="Your account" className="flex min-w-0 flex-col gap-6">
           <TabSection title="At a glance" description="Your visits, your loyalty card and how long you've been with us.">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <StatCard size="compact" icon={CalendarCheck} label="Visits" value={String(completedVisits(a.pastViews))} hint="completed" />
+              <StatCard size="compact" icon={CalendarCheck} label="Visits" value={String(completedVisits(a.appointments))} hint="completed" />
               <StatCard size="compact" icon={Stamp} label="Loyalty stamps" value={`${a.stamps} / 10`} />
               <StatCard size="compact" icon={CalendarHeart} label="Member since" value={since || "—"} />
             </div>

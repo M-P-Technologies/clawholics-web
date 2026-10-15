@@ -115,4 +115,14 @@ describe("My appointments", () => {
     fireEvent.click(screen.getByRole("button", { name: /view more/i }));
     expect(hook.toggleHistory).toHaveBeenCalled();
   });
+
+  it("starts the phone cards on the first page when switching tabs", () => {
+    layout.table = false;
+    hook = makeHook({ upcoming: Array.from({ length: 7 }, (_, i) => view(i + 1)), pastViews: Array.from({ length: 7 }, (_, i) => view(i + 20, "completed")) });
+    render(<MyAppointments />);
+    fireEvent.click(screen.getByRole("button", { name: "Next page" }));
+    expect(screen.getByText("Service 6")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: /Past/ }));
+    expect(screen.getByText("Service 20")).toBeInTheDocument();
+  });
 });

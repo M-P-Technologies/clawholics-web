@@ -24,7 +24,7 @@ beforeEach(() => {
   navigate.mockReset();
   account = {
     dbUser: { first_name: "Ana", dob: "1998-03-02" }, clerkUser: { firstName: "Ana" },
-    nextAppointment: null, pastViews: [], currentTime: Date.now(), stamps: 3,
+    nextAppointment: null, pastViews: [], appointments: [], currentTime: Date.now(), stamps: 3,
     payForAppointment: vi.fn(), rescheduleAppointment: vi.fn(), startCancel: vi.fn(), openRewards: vi.fn(), openAppointment: vi.fn(),
   };
 });
@@ -83,7 +83,8 @@ describe("ClientHome", () => {
   });
 
   it("shows the glance cards: next visit, stamps and visits", () => {
-    account = { ...account, nextAppointment: view(), pastViews: [view({}, { id: 1, status: "COMPLETED" }), view({}, { id: 2, status: "cancelled" })] };
+    const past = [view({}, { id: 1, status: "COMPLETED" }), view({}, { id: 2, status: "cancelled" })];
+    account = { ...account, nextAppointment: view(), pastViews: past, appointments: past.map((p) => p.appt) };
     render(<ClientHome />);
     expect(within(screen.getByRole("group", { name: "Next visit" })).getByText("October 17, 2026")).toBeInTheDocument();
     expect(within(screen.getByRole("group", { name: "Loyalty stamps" })).getByText("3 / 10")).toBeInTheDocument();
@@ -132,5 +133,13 @@ describe("ClientHome", () => {
   it("has no tracker when nothing is coming up", () => {
     render(<ClientHome />);
     expect(screen.queryByRole("list", { name: "Booking progress" })).toBeNull();
+  });
+
+  it("counts every completed visit, not just the rows the Past list shows", () => {
+    const appts = Array.from({ length: 8 }, (_, i) => ({ ...view({}, { id: i + 1, status: "COMPLETED" }).appt }));
+    // The Past list is cut to five rows and filtered to cancelled visits
+    account = { ...account, appointments: [...appts, { ...appts[0], id: 99, status: "cancelled" }], pastViews: [view({}, { id: 99, status: "cancelled" })] };
+    render(<ClientHome />);
+    expect(within(screen.getByRole("group", { name: "Visits" })).getByText("8")).toBeInTheDocument();
   });
 });

@@ -34,7 +34,11 @@ function Status({ view, reviewedIds }: { view: AppointmentView; reviewedIds: Rea
 // on a phone. Open shows the appointment's details.
 export default function AppointmentsTable({ views, highlightedId, reviewedIds, onOpen, label }: AppointmentsTableProps) {
   const asTable = useTableLayout();
-  const [cardPage, setCardPage] = useState(1);
+  // The phone page belongs to one list: a different list (a new search, tab or filter) starts on page 1
+  const listKey = views.map((v) => v.appt.id).join(",");
+  const [paged, setPaged] = useState({ listKey, page: 1 });
+  const cardPage = paged.listKey === listKey ? paged.page : 1;
+  const setCardPage = (page: number) => setPaged({ listKey, page });
   const open = (view: AppointmentView) => (
     <Button type="button" variant="secondary" aria-label={`Open ${view.appt.service_name}`} onClick={() => onOpen(view)} className="!px-4 !py-2 text-[13px]">
       Open
