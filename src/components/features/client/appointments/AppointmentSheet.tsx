@@ -1,10 +1,8 @@
-import { CalendarDays, Clock } from "lucide-react";
 import PaymentProofCard from "@/components/features/client/appointments/PaymentProofCard";
-import { Badge, Button } from "@/components/atoms";
+import { Badge, Button, Card } from "@/components/atoms";
+import { SummaryRow } from "@/components/molecules";
 import { statusDotTone } from "@/utils/profileView";
 import { Dialog } from "@/components/organisms";
-import Image from "next/image";
-import emblem from "@/assets/logo/emblem-pink.png";
 import { isCompleted } from "@/lib/client/appointments";
 import ReviewCard from "@/components/features/client/appointments/ReviewCard";
 import type { AppointmentView } from "@/types/profile";
@@ -13,7 +11,6 @@ import type { Review, ReviewDraft } from "@/services/reviewService";
 
 interface AppointmentSheetProps {
   view: AppointmentView | null;
-  photo: string;
   now: number;
   tokenFetcher: () => Promise<string | null>;
   clerkId?: string | null;
@@ -27,43 +24,28 @@ interface AppointmentSheetProps {
   onSubmitReview: (appointmentId: number, draft: ReviewDraft) => Promise<unknown>;
 }
 
-export function AppointmentThumb({ photo, size = 64 }: { photo: string; size?: number }) {
-  return (
-    <span className="relative shrink-0 overflow-hidden rounded-lg bg-sand/50" style={{ width: size, height: size }}>
-      {photo ? (
-        <Image src={photo} alt="" fill sizes={`${size}px`} className="object-cover" />
-      ) : (
-        <Image src={emblem} alt="" fill sizes={`${size}px`} className="object-contain p-2" />
-      )}
-    </span>
-  );
-}
-
 // One appointment in full: what, who, when, its payment proof and every action that applies.
-export default function AppointmentSheet({ view, photo, now, tokenFetcher, clerkId, onClose, onPay, onReschedule, onCancel, onProofUploaded, review, onSubmitReview }: AppointmentSheetProps) {
+export default function AppointmentSheet({ view, now, tokenFetcher, clerkId, onClose, onPay, onReschedule, onCancel, onProofUploaded, review, onSubmitReview }: AppointmentSheetProps) {
   return (
-    <Dialog open={view !== null} title="Appointment" onClose={onClose}>
+    <Dialog open={view !== null} title="Appointment" onClose={onClose} placement="drawer">
       {view && (
         <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-4 rounded-xl border border-crimson-light/60 bg-light-orange/40 p-3">
-            <AppointmentThumb photo={photo} size={72} />
-            <div className="flex min-w-0 flex-1 flex-col gap-1">
-              <p className="truncate font-display text-xl text-berry">{view.appt.service_name}</p>
-              <p className="truncate text-[13px] text-gray-red/70">With {view.appt.nailist_name}</p>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 flex-col gap-1">
+              <p className="break-words font-display text-xl text-berry">{view.appt.service_name}</p>
+              <p className="break-words text-[13px] text-gray-red/70">With {view.appt.nailist_name}</p>
             </div>
             <Badge dot={statusDotTone(view.displayStatus)} caps>{view.statusLabel}</Badge>
           </div>
 
-          <dl className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1 rounded-xl bg-crimson-light/15 p-3">
-              <dt className="flex items-center gap-1.5 text-[12px] font-medium text-gray-red/80"><CalendarDays size={14} aria-hidden="true" className="text-berry" />Date</dt>
-              <dd className="text-sm font-bold text-gray-red">{view.dateLabel}</dd>
-            </div>
-            <div className="flex flex-col gap-1 rounded-xl bg-crimson-light/15 p-3">
-              <dt className="flex items-center gap-1.5 text-[12px] font-medium text-gray-red/80"><Clock size={14} aria-hidden="true" className="text-berry" />Time</dt>
-              <dd className="text-sm font-bold text-gray-red">{view.timeLabel}</dd>
-            </div>
-          </dl>
+          <Card tone="tint" padding="sm" as="section" aria-label="Appointment details">
+            <dl className="flex flex-col">
+              <SummaryRow label="Artist" value={view.appt.nailist_name} />
+              <SummaryRow label="Date" value={view.dateLabel} />
+              <SummaryRow label="Time" value={view.timeLabel} />
+              <SummaryRow label="Status" value={view.statusLabel} />
+            </dl>
+          </Card>
 
           <PaymentProofCard
             appointment={view.appt}

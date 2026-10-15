@@ -24,7 +24,7 @@ interface EditDetailsSheetProps {
 // The details form, in a sheet. Same fields, validation and save as before; email stays locked.
 export default function EditDetailsSheet(p: EditDetailsSheetProps) {
   return (
-    <Dialog open={p.open} title="Edit details" onClose={p.onCancel}>
+    <Dialog open={p.open} title="Edit details" onClose={p.onCancel} placement="drawer">
       <div className="flex flex-col gap-4">
         {p.error && <div role="alert" className="rounded-xl bg-danger/10 px-4 py-3 text-[13px] font-bold text-danger">{p.error}</div>}
 

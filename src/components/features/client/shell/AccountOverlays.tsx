@@ -6,7 +6,6 @@ import EditDetailsSheet from "@/components/features/client/profile/EditDetailsSh
 import RewardsSheet from "@/components/features/client/profile/RewardsSheet";
 import { Button } from "@/components/atoms";
 import { CONTACT_METHOD_OPTIONS } from "@/data/profile";
-import { useServicePhotos } from "@/hooks/useServicePhotos";
 import type { MyAccount } from "@/hooks/client/useMyAccount";
 
 interface AccountOverlaysProps {
@@ -20,14 +19,12 @@ interface AccountOverlaysProps {
 // The sheets and pop-ups every tab can open (an appointment, the loyalty card, the details form,
 // the reward and cancel dialogs), drawn once for the whole app by MyAccountProvider.
 export default function AccountOverlays({ account: a, openId, setOpenId, rewardsOpen, setRewardsOpen }: AccountOverlaysProps) {
-  const photoFor = useServicePhotos();
   const openView = [...a.upcoming, ...a.pastViews].find((v) => v.appt.id === openId) ?? null;
 
   return (
     <>
       <AppointmentSheet
         view={openView}
-        photo={openView ? photoFor(openView.appt.service_name) : ""}
         now={a.currentTime}
         tokenFetcher={a.getToken}
         clerkId={a.clerkUser?.id}

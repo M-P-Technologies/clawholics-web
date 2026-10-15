@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ServiceDetail from "@/views/client/ServiceDetail";
 
@@ -9,6 +9,7 @@ vi.mock("@/lib/router", () => ({
   Link: ({ to, children, ...rest }: { to: string; children: React.ReactNode }) => <a href={to} {...rest}>{children}</a>,
 }));
 const startBooking = vi.fn();
+vi.mock("@/hooks/client/useMyAccount", () => ({ useMyAccount: () => ({ dbUser: { first_name: "Ana" }, clerkUser: null }) }));
 vi.mock("@/hooks/useStartBooking", () => ({ useStartBooking: () => startBooking }));
 vi.mock("@/components/molecules", async (orig) => ({ ...(await orig<object>()), useToast: () => ({ show: vi.fn() }) }));
 const service = {
@@ -28,11 +29,12 @@ beforeEach(() => {
 });
 
 describe("ServiceDetail", () => {
-  it("shows the service, its price range and facts", async () => {
+  it("shows the service in the app's frame, its price range and facts as glance cards", async () => {
     const { container } = render(<ServiceDetail />);
     expect(await screen.findByRole("heading", { name: "Softgel extensions" })).toBeInTheDocument();
     expect(screen.getByText("₱900 – ₱1,200")).toBeInTheDocument();
-    expect(screen.getByText("2 hrs")).toBeInTheDocument();
+    expect(within(screen.getByRole("group", { name: "Duration" })).getByText("2 hrs")).toBeInTheDocument();
+    expect(screen.getByRole("banner")).toContainElement(screen.getByRole("heading", { level: 1, name: "Softgel extensions" }));
     expect(screen.getByText("Master & Junior")).toBeInTheDocument();
     expect(screen.getByText("Premium")).toBeInTheDocument();
     expect(screen.getByText("Long-wear extensions in your shape.")).toBeInTheDocument();
@@ -62,7 +64,6 @@ describe("ServiceDetail", () => {
   it("goes back to Explore", async () => {
     render(<ServiceDetail />);
     await screen.findByRole("heading", { name: "Softgel extensions" });
-    fireEvent.click(screen.getByRole("button", { name: "Back" }));
-    expect(navigate).toHaveBeenCalledWith("/my/explore");
+    expect(screen.getByRole("link", { name: /Back/ })).toHaveAttribute("href", "/my/explore");
   });
 });

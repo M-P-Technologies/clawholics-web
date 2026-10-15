@@ -21,7 +21,7 @@ export default function RewardsSheet({ open, onClose, stamps, cardNumber, clerkI
   const full = left === 0;
 
   return (
-    <Dialog open={open} title="Loyalty card" onClose={onClose}>
+    <Dialog open={open} title="Loyalty card" onClose={onClose} placement="drawer">
       <div className="flex flex-col gap-4">
         <div
           className={`flex flex-col overflow-hidden rounded-2xl border ${
