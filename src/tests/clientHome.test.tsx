@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import ClientHome from "@/views/client/ClientHome";
 
@@ -24,11 +24,18 @@ beforeEach(() => {
   navigate.mockReset();
   account = {
     dbUser: { first_name: "Ana", dob: "1998-03-02" }, clerkUser: { firstName: "Ana" },
-    nextAppointment: null, currentTime: Date.now(), stamps: 3,
+    nextAppointment: null, pastViews: [], currentTime: Date.now(), stamps: 3,
     payForAppointment: vi.fn(), rescheduleAppointment: vi.fn(), startCancel: vi.fn(), openRewards: vi.fn(), openAppointment: vi.fn(),
   };
 });
 afterEach(() => vi.useRealTimers());
+
+const view = (over: Record<string, unknown> = {}, apptOver: Record<string, unknown> = {}) => ({
+  appt: { id: 5, service_name: "Hard Gel", nailist_id: 1, nailist_name: "Miss Max", appointment_date: "2026-10-17", appointment_time: "09:00-11:00", status: "confirmed", created_at: "2026-10-10 05:00:00", ...apptOver },
+  displayStatus: "confirmed", remainingTime: 0, isExpired: false, canReschedule: true, canCancel: true,
+  statusLabel: "confirmed", dateLabel: "October 17, 2026", timeLabel: "9:00 AM - 11:00 AM",
+  canPay: false, payLabel: "", isLocked: false, ...over,
+});
 
 describe("ClientHome", () => {
   it("greets the client and searches in Explore", () => {
@@ -73,5 +80,57 @@ describe("ClientHome", () => {
     render(<ClientHome />);
     expect(screen.getByText("You have no upcoming appointments.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Book now" })).toHaveAttribute("href", "/my/explore");
+  });
+
+  it("shows the glance cards: next visit, stamps and visits", () => {
+    account = { ...account, nextAppointment: view(), pastViews: [view({}, { id: 1, status: "COMPLETED" }), view({}, { id: 2, status: "cancelled" })] };
+    render(<ClientHome />);
+    expect(within(screen.getByRole("group", { name: "Next visit" })).getByText("October 17, 2026")).toBeInTheDocument();
+    expect(within(screen.getByRole("group", { name: "Loyalty stamps" })).getByText("3 / 10")).toBeInTheDocument();
+    expect(within(screen.getByRole("group", { name: "Visits" })).getByText("1")).toBeInTheDocument();
+  });
+
+  it("says no visit is booked on the glance card when nothing is coming up", () => {
+    render(<ClientHome />);
+    expect(within(screen.getByRole("group", { name: "Next visit" })).getByText("None booked")).toBeInTheDocument();
+  });
+
+  it("shows the upcoming appointment with how far away it is, and where the booking is", () => {
+    account = { ...account, nextAppointment: view() };
+    render(<ClientHome />);
+    const upcoming = within(screen.getByRole("region", { name: "Upcoming appointment" }));
+    expect(upcoming.getByText("Hard Gel")).toBeInTheDocument();
+    expect(upcoming.getByText("Miss Max")).toBeInTheDocument();
+    expect(upcoming.getByText(/in 3 days/)).toBeInTheDocument();
+    fireEvent.click(upcoming.getByRole("button", { name: "Reschedule" }));
+    fireEvent.click(upcoming.getByRole("button", { name: "Cancel" }));
+    expect(account.rescheduleAppointment).toHaveBeenCalledTimes(1);
+    expect(account.startCancel).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("list", { name: "Booking progress" })).toBeInTheDocument();
+  });
+
+  it("makes Complete payment the main action while the hold runs, with its countdown", () => {
+    account = { ...account, nextAppointment: view({ canPay: true, canReschedule: false, displayStatus: "pending", payLabel: "9:35", statusLabel: "pending" }) };
+    render(<ClientHome />);
+    expect(screen.getByText(/Pay within 9:35/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Complete payment" }));
+    expect(account.payForAppointment).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("button", { name: "Reschedule" })).toBeNull();
+  });
+
+  it("disables Reschedule inside the change window and says why, and never offers payment for an expired hold", () => {
+    account = { ...account, nextAppointment: view({ canReschedule: false, isLocked: true }) };
+    const { unmount } = render(<ClientHome />);
+    expect(screen.getByRole("button", { name: "Reschedule" })).toBeDisabled();
+    expect(screen.getByText(/Changes close 3 days before/)).toBeInTheDocument();
+    unmount();
+    account = { ...account, nextAppointment: view({ canPay: false, isExpired: true, canCancel: false, canReschedule: false, displayStatus: "Cancelled", statusLabel: "Cancelled" }) };
+    render(<ClientHome />);
+    expect(screen.queryByRole("button", { name: "Complete payment" })).toBeNull();
+  });
+
+  it("has no tracker when nothing is coming up", () => {
+    render(<ClientHome />);
+    expect(screen.queryByRole("list", { name: "Booking progress" })).toBeNull();
   });
 });
