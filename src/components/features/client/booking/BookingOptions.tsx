@@ -14,7 +14,7 @@ export default function BookingOptions({ variants, addons, variantId, addonIds, 
   if (variants.length === 0 && addons.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
       {variants.length > 0 && (
         <fieldset>
           <legend className={`mb-3 ${field.label}`}>Choose an option</legend>

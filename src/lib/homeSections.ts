@@ -59,7 +59,7 @@ export const HOME_TEXT_DEFAULTS = {
   home_theme_display: "gloock",
   home_theme_script: "luxurious",
   home_theme_body: "noto",
-  home_hero_text: "From classic manicures to nail art, every service is designed to make you feel pampered and beautiful.",
+  home_hero_text: "Softgel and hard gel extensions, BIAB, Russian manicures and lashes in Cagayan de Oro. Choose your artist and book online.",
   home_offer_eyebrow: "Clawholics by Max",
   home_offer_text:
     "Nail art studio offering manicures and pedicures, from gel sets to softgel and hardgel extensions, plus BIAB overlays and Russian manicure. We also do lashes, brow lamination and tints.",
@@ -199,8 +199,8 @@ export interface HomeFeature {
 export const DEFAULT_FEATURES: HomeFeature[] = [
   { icon: "sparkles", title: "Nails and lashes", text: "Manicures, gel and softgel sets, eyelash extensions and brow lamination.", link: "/services" },
   { icon: "users", title: "Pick your artist", text: "Choose a master or junior technician and book the one whose work you love.", link: "/artists" },
-  { icon: "heart", title: "Made with care", text: "Founded in 2023 on dedication, creativity and heart, in every set we do.", link: "/about" },
-  { icon: "mail", title: "Easy to reach", text: "Message us, call, or find us on social media, and we will get back to you soon.", link: "/contact" },
+  { icon: "heart", title: "Local since 2023", text: "A Cagayan de Oro studio that started in a tiny corner of an eatery and grew into a full nail studio.", link: "/about" },
+  { icon: "calendar-heart", title: "Book online", text: "Choose a service and an open time, then hold your slot with a downpayment.", link: "/services" },
 ];
 
 /** One slide of the service photo strip: a service, with its own photo and title if set */

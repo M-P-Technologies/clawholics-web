@@ -66,11 +66,11 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
   const cards = paginate(shown?.artists ?? [], page, CARDS_PER_PAGE);
 
   return (
-    <section aria-label="Artist utilization" className="flex min-w-0 flex-col gap-4 rounded-2xl border border-crimson-light/40 bg-milk p-5 shadow-petal">
+    <section aria-label="Artist utilization" className="flex min-w-0 flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-6 shadow-petal">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="font-display text-xl font-normal text-gray-red">Artist utilization</h2>
-          <p className="text-[13px] text-gray-red/80">
+          <p className="text-[13px] text-gray-red">
             {shown ? (shown.overall === null ? "No slots offered this week" : `${percent(shown.overall)} of all slots booked`) : " "}
           </p>
         </div>
@@ -100,7 +100,7 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
       ) : !shown ? (
         <ListSkeleton label="Loading artist utilization" columns={7} />
       ) : shown.artists.length === 0 ? (
-        <p className="text-sm text-gray-red/70">No artists yet. Add them in Nail Artists, with their time slots.</p>
+        <p className="text-sm text-gray-red">No artists yet. Add them in Nail Artists, with their time slots.</p>
       ) : (
         <>
           {!asTable ? (
@@ -108,11 +108,11 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
               <RowCards label="Artists">
                 {cards.rows.map((artist) => (
                   <RowCard key={artist.id}>
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex items-center gap-3">
                       <Avatar name={artist.name} imageUrl={artist.image ?? ""} size="md" decorative={!artist.image} />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-bold">{artist.name}</span>
-                        {artist.title && <span className="block truncate text-[12px] text-gray-red/70">{artist.title}</span>}
+                        {artist.title && <span className="block truncate text-[12px] text-gray-red">{artist.title}</span>}
                       </span>
                       <span className="shrink-0 font-bold text-berry">{artist.rate === null ? "–" : percent(artist.rate)}</span>
                     </div>
@@ -126,8 +126,8 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
                             aria-label={label}
                             className={clsx("flex min-w-0 flex-col items-center gap-1 rounded-lg px-0.5 py-1.5 text-center", d.date === today && "bg-crimson-light/40")}
                           >
-                            <span aria-hidden="true" className="text-[11px] text-gray-red/70">{DAY_NAMES[i].slice(0, 2)}</span>
-                            <span aria-hidden="true" className={clsx("text-[12px] leading-tight", d.off && d.booked === 0 ? "text-gray-red/50" : "font-bold")}>{text}</span>
+                            <span aria-hidden="true" className="text-[11px] text-gray-red">{DAY_NAMES[i].slice(0, 2)}</span>
+                            <span aria-hidden="true" className={clsx("text-[12px] leading-tight", d.off && d.booked === 0 ? "text-gray-red" : "font-bold")}>{text}</span>
                             {!d.off && d.offered > 0 && (
                               <span aria-hidden="true" className="block h-1 w-full overflow-hidden rounded-full bg-crimson-light/40">
                                 <span className="block h-full rounded-full bg-berry" style={{ width: `${fill * 100}%` }} />
@@ -144,11 +144,11 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
             </>
           ) : (
           /* Wider than a phone: it scrolls sideways, with the artists' column kept in view */
-          <div className="-mx-5 overflow-x-auto px-5">
+          <div className="-mx-6 overflow-x-auto px-6">
             <table className="w-full min-w-[640px] border-separate border-spacing-0 text-sm text-gray-red">
               <thead>
                 <tr>
-                  <th scope="col" className="sticky left-0 z-10 w-56 bg-milk pb-2 text-left text-[12px] font-medium text-gray-red/70">
+                  <th scope="col" className="sticky left-0 z-10 w-56 bg-milk pb-2 text-left text-[12px] font-medium text-gray-red">
                     Artist
                   </th>
                   {shown.artists[0].days.map((d, i) => {
@@ -157,7 +157,7 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
                       <th
                         key={d.date}
                         scope="col"
-                        className={clsx("rounded-t-lg px-1 pb-2 pt-1 text-center text-[12px] font-medium", isToday ? "bg-crimson-light/30 text-berry" : "text-gray-red/70")}
+                        className={clsx("rounded-t-lg px-1 pb-2 pt-1 text-center text-[12px] font-medium", isToday ? "bg-crimson-light/30 text-berry" : "text-gray-red")}
                       >
                         <span className="block">{DAY_NAMES[i].slice(0, 3)}</span>
                         <span className="block text-[11px]">{parts(d.date).day}</span>
@@ -171,11 +171,11 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
                 {shown.artists.map((artist) => (
                   <tr key={artist.id}>
                     <th scope="row" className="sticky left-0 z-10 border-t border-dotted border-crimson-light bg-milk py-3 pr-3 text-left font-normal">
-                      <span className="flex items-center gap-2.5">
+                      <span className="flex items-center gap-3">
                         <Avatar name={artist.name} imageUrl={artist.image ?? ""} size="md" decorative={!artist.image} />
                         <span className="min-w-0">
                           <span className="block truncate font-bold">{artist.name}</span>
-                          {artist.title && <span className="block truncate text-[12px] text-gray-red/70">{artist.title}</span>}
+                          {artist.title && <span className="block truncate text-[12px] text-gray-red">{artist.title}</span>}
                           <span className="block text-[12px] font-bold text-berry">{artist.rate === null ? "–" : percent(artist.rate)}</span>
                         </span>
                       </span>
@@ -189,7 +189,7 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
                           aria-label={label}
                           className={clsx("border-t border-dotted border-crimson-light px-1.5 py-3 text-center align-middle", d.date === today && "bg-crimson-light/30")}
                         >
-                          <span className={clsx("block text-[13px]", d.off && d.booked === 0 ? "text-gray-red/50" : "font-bold")}>{text}</span>
+                          <span className={clsx("block text-[13px]", d.off && d.booked === 0 ? "text-gray-red" : "font-bold")}>{text}</span>
                           {!d.off && d.offered > 0 && (
                             <span aria-hidden="true" className="mx-auto mt-1.5 block h-1.5 w-full max-w-14 overflow-hidden rounded-full bg-crimson-light/40">
                               <span className="block h-full rounded-full bg-berry" style={{ width: `${fill * 100}%` }} />
@@ -205,7 +205,7 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
           </div>
           )}
 
-          <ul aria-label="Legend" className="flex flex-wrap gap-x-5 gap-y-1 text-[12px] text-gray-red/80">
+          <ul aria-label="Legend" className="flex flex-wrap gap-x-6 gap-y-1 text-[12px] text-gray-red">
             <li className="flex items-center gap-1.5">
               <span aria-hidden="true" className="h-2 w-4 rounded-full bg-berry" />
               Booked
@@ -215,7 +215,7 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
               Open
             </li>
             <li className="flex items-center gap-1.5">
-              <span aria-hidden="true" className="text-gray-red/50">Off</span>
+              <span aria-hidden="true" className="text-gray-red">Off</span>
               Day off
             </li>
           </ul>

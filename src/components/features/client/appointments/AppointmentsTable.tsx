@@ -40,7 +40,7 @@ export default function AppointmentsTable({ views, highlightedId, reviewedIds, o
   const cardPage = paged.listKey === listKey ? paged.page : 1;
   const setCardPage = (page: number) => setPaged({ listKey, page });
   const open = (view: AppointmentView) => (
-    <Button type="button" variant="secondary" aria-label={`Open ${view.appt.service_name}`} onClick={() => onOpen(view)} className="!px-4 !py-2 text-[13px]">
+    <Button type="button" variant="secondary" aria-label={`Open ${view.appt.service_name}`} onClick={() => onOpen(view)} className="!px-3 !py-2 text-[13px]">
       Open
     </Button>
   );
@@ -71,7 +71,7 @@ export default function AppointmentsTable({ views, highlightedId, reviewedIds, o
       label={label}
       minWidthClass="min-w-[720px]"
       head={
-        <tr className="text-left text-[12px] text-gray-red/70">
+        <tr className="text-left text-[12px] text-gray-red">
           {["Service", "Artist", "Date", "Time", "Status"].map((h) => (
             <th key={h} scope="col" className="pb-2 pr-3 font-medium">{h}</th>
           ))}

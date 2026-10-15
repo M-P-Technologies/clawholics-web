@@ -102,7 +102,7 @@ export default function ProofReviewPanel({
   };
 
   return (
-    <section aria-label="Payment proof review" className="rounded-xl bg-crimson-light/15 px-4 py-4 text-gray-red sm:px-5">
+    <section aria-label="Payment proof review" className="rounded-xl bg-crimson-light/15 px-3 py-3 text-gray-red sm:px-6">
       <p className="mb-2 text-[14px] font-bold uppercase">Payment proof</p>
 
       {loading && <SectionSkeleton label="Loading the payment proof" lines={2} />}
@@ -110,9 +110,9 @@ export default function ProofReviewPanel({
       {!loading && unavailable && <p className="text-[13px]">Proof review isn't available yet.</p>}
 
       {!loading && !unavailable && (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           {state.kind === "overdue" && (
-            <p className="rounded-sm bg-danger/10 px-4 py-2 text-[13px] font-bold text-danger">
+            <p className="rounded-sm bg-danger/10 px-3 py-2 text-[13px] font-bold text-danger-ink">
               Proof overdue: the client has not uploaded a screenshot yet.
             </p>
           )}
@@ -131,7 +131,7 @@ export default function ProofReviewPanel({
           )}
 
           {error && (
-            <p role="alert" className="text-[13px] font-medium text-danger">
+            <p role="alert" className="text-[13px] font-medium text-danger-ink">
               {error}
             </p>
           )}
@@ -173,7 +173,7 @@ export default function ProofReviewPanel({
                 rows={2}
                 value={rejectNote}
                 onChange={(e) => setRejectNote(e.target.value)}
-                className="w-full rounded-md border border-crimson-light bg-milk px-4 py-2 text-[13px] text-gray-red outline-none focus:ring-2 focus:ring-crimson"
+                className="w-full rounded-md border border-crimson-light bg-milk px-3 py-2 text-[13px] text-gray-red outline-none focus:ring-2 focus:ring-crimson"
               />
               <div className="flex gap-2">
                 <Button
@@ -194,7 +194,7 @@ export default function ProofReviewPanel({
           {history.length > 0 && (
             <ul className="flex flex-col gap-1 text-[12px]">
               {history.map((p) => (
-                <li key={p.id} className="rounded-md bg-milk px-4 py-1.5">
+                <li key={p.id} className="rounded-md bg-milk px-3 py-1.5">
                   <span className="font-bold">{p.status}</span>
                   {formatWhen(p.created_at) ? ` · ${formatWhen(p.created_at)}` : ""}
                   {p.admin_note ? ` · ${p.admin_note}` : ""}

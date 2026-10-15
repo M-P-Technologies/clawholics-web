@@ -1,11 +1,13 @@
 import { ChevronLeft,ChevronRight } from "lucide-react";
 import { useEffect,useRef,useState } from "react";
+import Image from "next/image";
+import { canOptimizeImage } from "@/lib/imageHosts";
 import Bow from "../../assets/bow.svg";
 import type { Nailist } from "../../types";
 import { Button } from "@/components/atoms";
 
 const ROUND_BUTTON =
-  "flex h-10 w-10 items-center justify-center rounded-full border border-crimson-light bg-light-orange text-crimson shadow-md shadow-crimson/20 transition-colors hover:bg-crimson hover:text-light-orange focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson";
+  "flex h-10 w-10 items-center justify-center rounded-full border border-crimson-light bg-light-orange text-crimson-ink shadow-md shadow-crimson/20 transition-colors hover:bg-crimson hover:text-on-crimson focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson";
 
 // One artist at a time: portrait on one side, their details on the other. Arrows, dots
 // and swiping move between artists; the old one fades out and the next fades in.
@@ -43,7 +45,7 @@ export default function ArtistSpotlight({ artists }: { artists: Nailist[] }) {
 
   return (
     <div
-      className="grid grid-cols-1 items-start lg:grid-cols-2 lg:grid-rows-[auto_1fr] lg:gap-x-16 lg:gap-y-8"
+      className="grid grid-cols-1 items-start lg:grid-cols-2 lg:grid-rows-[auto_1fr] lg:gap-x-15 lg:gap-y-9"
       onTouchStart={(e) => (touchStartX.current = e.touches[0].clientX)}
       onTouchEnd={(e) => {
         if (touchStartX.current === null) return;
@@ -61,21 +63,26 @@ export default function ArtistSpotlight({ artists }: { artists: Nailist[] }) {
           className="absolute -left-8 -top-4 z-10 h-20 w-20 -rotate-12 text-crimson drop-shadow-md"
         />
         <div className="aspect-3/4 overflow-hidden rounded-sm border border-crimson-light/80 bg-light-orange p-2 shadow-xl shadow-crimson/10">
-          <img
-            src={artist.image}
-            alt={`${artist.name}, ${artist.position}`}
-            className="h-full w-full rounded-sm object-cover"
-          />
+          <div className="relative h-full w-full overflow-hidden rounded-sm">
+            <Image
+              src={artist.image}
+              alt={`${artist.name}, ${artist.position}`}
+              fill
+              sizes="(min-width: 1024px) 28rem, 24rem"
+              unoptimized={!canOptimizeImage(artist.image)}
+              className="object-cover"
+            />
+          </div>
         </div>
       </div>
 
-        <div className={`order-3 mt-12 flex flex-col gap-4 md:gap-8 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:min-h-72 ${fade}`}>
+        <div className={`order-3 mt-12 flex flex-col gap-3 md:gap-9 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:min-h-72 ${fade}`}>
           <p className="copy-note">The Artist</p>
           <div className="flex flex-col gap-2">
             <h3 className="font-display text-3xl font-normal uppercase tracking-widest text-gray-red md:text-5xl">
               {artist.name}
             </h3>
-            <p className="text-sm font-bold text-crimson">{artist.position}</p>
+            <p className="text-sm font-bold text-crimson-ink">{artist.position}</p>
           </div>
           <p className="whitespace-pre-line copy-lead">
             {artist.bio}
@@ -88,7 +95,7 @@ export default function ArtistSpotlight({ artists }: { artists: Nailist[] }) {
           )}
         </div>
 
-        <div className="order-2 mx-auto mt-6 flex w-full max-w-sm flex-wrap items-center justify-center gap-4 lg:col-start-1 lg:row-start-2 lg:mt-0 lg:max-w-md lg:justify-start">
+        <div className="order-2 mx-auto mt-6 flex w-full max-w-sm flex-wrap items-center justify-center gap-3 lg:col-start-1 lg:row-start-2 lg:mt-0 lg:max-w-md lg:justify-start">
           {count > 1 && (
             <>
               <Button variant="bare" type="button" aria-label="Previous artist" onClick={() => show(index - 1)} className={ROUND_BUTTON}>

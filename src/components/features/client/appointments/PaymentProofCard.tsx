@@ -42,7 +42,7 @@ export default function PaymentProofCard({
     <section
       id={`proof-${appointment.id}`}
       aria-label="Payment proof"
-      className={`flex flex-col gap-3 rounded-xl border border-crimson-light/60 bg-light-orange/40 p-4 text-gray-red ${
+      className={`flex flex-col gap-3 rounded-xl border border-crimson-light/60 bg-light-orange/40 p-3 text-gray-red ${
         highlighted ? "ring-2 ring-crimson" : ""
       }`}
     >
@@ -62,7 +62,7 @@ export default function PaymentProofCard({
 
       {state.kind === "overdue" && (
         <>
-          <h5 className="text-base font-bold text-danger md:text-lg">Your payment screenshot is overdue</h5>
+          <h5 className="text-base font-bold text-danger-ink md:text-lg">Your payment screenshot is overdue</h5>
           <p className="text-sm opacity-90">
             Please upload it as soon as you can so the salon can confirm your appointment. See our {terms}.
           </p>
@@ -88,7 +88,7 @@ export default function PaymentProofCard({
 
       {state.kind === "rejected" && (
         <>
-          <h5 className="text-base font-bold text-danger md:text-lg">Screenshot not accepted</h5>
+          <h5 className="text-base font-bold text-danger-ink md:text-lg">Screenshot not accepted</h5>
           {state.note && <p className="text-sm">Reason: {state.note}</p>}
           <p className="text-sm opacity-90">Please upload a new screenshot of your payment.</p>
           {uploader("Upload new screenshot")}

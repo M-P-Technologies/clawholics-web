@@ -136,7 +136,7 @@ export default function DirectoryProfileCard({
         className="h-24 shrink-0 bg-linear-to-br from-berry via-crimson to-crimson-light lg:min-h-20 lg:flex-1"
       />
 
-      <div className="flex w-full flex-col items-center gap-4 px-6 pb-6">
+      <div className="flex w-full flex-col items-center gap-3 px-6 pb-6">
         <div className="-mt-12">
           <Avatar name={name} imageUrl={profile?.imageUrl ?? ""} size="hero" decorative={!profile?.imageUrl} />
         </div>
@@ -148,7 +148,7 @@ export default function DirectoryProfileCard({
           <div className="flex flex-wrap items-center justify-center gap-1.5">
             <span
               className={clsx(
-                "rounded-full px-2.5 py-0.5 text-[11px] font-bold",
+                "rounded-full px-3 py-0.5 text-[11px] font-bold",
                 isAdmin
                   ? "bg-berry text-pearl"
                   : "bg-crimson-light/50 text-berry",
@@ -157,7 +157,7 @@ export default function DirectoryProfileCard({
               {role}
             </span>
             {user.is_recurring && (
-              <span className="rounded-full bg-sand px-2.5 py-0.5 text-[11px] font-bold text-gray-red">
+              <span className="rounded-full bg-sand px-3 py-0.5 text-[11px] font-bold text-gray-red">
                 Recurring
               </span>
             )}
@@ -174,7 +174,7 @@ export default function DirectoryProfileCard({
               key={s.label}
               className="flex min-w-0 flex-col items-center gap-0.5 px-1"
             >
-              <span className="text-[11px] text-gray-red/70">{s.label}</span>
+              <span className="text-[11px] text-gray-red">{s.label}</span>
               <span className="max-w-full truncate font-display text-lg leading-tight text-berry">
                 {s.value || "–"}
               </span>
@@ -187,7 +187,7 @@ export default function DirectoryProfileCard({
           className="flex w-full flex-col gap-2 text-left"
         >
           {user.email && (
-            <li className="flex min-w-0 items-center gap-2.5">
+            <li className="flex min-w-0 items-center gap-3">
               <EmailIcon
                 size={18}
                 aria-hidden="true"
@@ -202,7 +202,7 @@ export default function DirectoryProfileCard({
             </li>
           )}
           {phones.map((phone) => (
-            <li key={phone} className="flex min-w-0 items-center gap-2.5">
+            <li key={phone} className="flex min-w-0 items-center gap-3">
               <TelephoneIcon
                 size={18}
                 aria-hidden="true"
@@ -217,7 +217,7 @@ export default function DirectoryProfileCard({
             </li>
           ))}
           {!hasContact && (
-            <li className="text-[13px] text-gray-red/60">
+            <li className="text-[13px] text-gray-red">
               No contact details yet.
             </li>
           )}
@@ -226,12 +226,12 @@ export default function DirectoryProfileCard({
         {(user.preferredContactMethod || lastVisit) && (
           <div className="flex w-full flex-wrap gap-1.5">
             {user.preferredContactMethod && (
-              <span className="rounded-full border border-crimson-light px-2.5 py-0.5 text-[11px] font-medium text-gray-red/80">
+              <span className="rounded-full border border-crimson-light px-3 py-0.5 text-[11px] font-medium text-gray-red">
                 Prefers {user.preferredContactMethod}
               </span>
             )}
             {lastVisit && (
-              <span className="rounded-full border border-crimson-light px-2.5 py-0.5 text-[11px] font-medium text-gray-red/80">
+              <span className="rounded-full border border-crimson-light px-3 py-0.5 text-[11px] font-medium text-gray-red">
                 Last visit: {lastVisit}
               </span>
             )}
@@ -241,7 +241,7 @@ export default function DirectoryProfileCard({
         {clientHref && (
           <Link
             to={clientHref}
-            className="flex w-full items-center justify-between gap-2 rounded-xl border border-crimson-light/60 px-4 py-2.5 text-[14px] font-bold text-berry transition-colors hover:bg-crimson-light/20"
+            className="flex w-full items-center justify-between gap-2 rounded-xl border border-crimson-light/60 px-3 py-3 text-[14px] font-bold text-berry transition-colors hover:bg-crimson-light/20"
           >
             View client page
             <ArrowRight size={16} aria-hidden="true" />
@@ -249,13 +249,13 @@ export default function DirectoryProfileCard({
         )}
 
         {(onNotes || onEdit || onDelete) && (
-          <div className="flex w-full flex-wrap justify-center gap-2 border-t border-dotted border-crimson-light pt-4">
+          <div className="flex w-full flex-wrap justify-center gap-2 border-t border-dotted border-crimson-light pt-3">
             {onNotes && (
               <Button
                 type="button"
                 variant="secondary"
                 onClick={() => onNotes(user)}
-                className="px-4! py-1.5!"
+                className="px-3! py-1.5!"
               >
                 Notes
               </Button>
@@ -265,7 +265,7 @@ export default function DirectoryProfileCard({
                 type="button"
                 variant="secondary"
                 onClick={() => onEdit(user)}
-                className="px-4! py-1.5!"
+                className="px-3! py-1.5!"
               >
                 Edit
               </Button>
@@ -275,7 +275,7 @@ export default function DirectoryProfileCard({
                 type="button"
                 variant="secondary"
                 onClick={() => onDelete(user)}
-                className="border-danger! px-4! py-1.5! text-danger! hover:bg-danger! hover:text-pearl!"
+                className="border-danger! px-3! py-1.5! text-danger-ink! hover:bg-danger! hover:text-pearl!"
               >
                 Delete
               </Button>

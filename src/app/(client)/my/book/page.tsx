@@ -43,7 +43,7 @@ export default function Booking() {
   return (
     <ClientScreen title="Book" back="history">
       <div className="flex flex-col gap-6">
-        <div className="grid grid-cols-1 items-start gap-4 md:gap-8 lg:grid-cols-2">
+        <div className="grid grid-cols-1 items-start gap-3 md:gap-9 lg:grid-cols-2">
           {/* BOOKING FORM */}
           <Card className="flex flex-col gap-6">
             <SectionHeader
@@ -62,14 +62,14 @@ export default function Booking() {
             />
 
             <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center justify-between gap-3">
                 <SectionHeader size="label" title="Preferred artist" />
-                <Button variant="bare" to="/artists" className="text-sm font-bold text-crimson underline underline-offset-4 hover:text-gray-red">
+                <Button variant="bare" to="/artists" className="text-sm font-bold text-crimson-ink underline underline-offset-4 hover:text-gray-red">
                   Meet our artists
                 </Button>
               </div>
               {nailists.length === 0 ? (
-                <p className={clsx(surface.tint, "px-4 py-4 text-sm text-gray-red")}>
+                <p className={clsx(surface.tint, "px-3 py-3 text-sm text-gray-red")}>
                   No available artists for this service.
                 </p>
               ) : (
@@ -86,8 +86,8 @@ export default function Booking() {
               {/* Side by side only when this column itself is wide enough (the two blocks need about 565px);
                   a screen-width breakpoint is wrong here, since beside the summary card the column is narrower. */}
               <div className="@container">
-              <div className="flex flex-col gap-4 @xl:flex-row">
-                <div className={clsx(surface.tint, "flex items-center justify-center p-4")}>
+              <div className="flex flex-col gap-3 @xl:flex-row">
+                <div className={clsx(surface.tint, "flex items-center justify-center p-3")}>
                   <DayCalendar
                     monthsAhead={1}
                     month={month}
@@ -114,7 +114,7 @@ export default function Booking() {
           </Card>
 
           {/* SUMMARY */}
-          <Card as="aside" className="flex flex-col gap-4">
+          <Card as="aside" className="flex flex-col gap-3">
             <SectionHeader size="card" title="Booking summary" />
             {service_image && (
               <div className="relative aspect-4/3 w-full overflow-hidden rounded-xl bg-crimson-light/15">
@@ -126,7 +126,7 @@ export default function Booking() {
               <p className="font-display text-2xl text-gray-red">
                 {service_name}
               </p>
-              <p className="text-sm text-gray-red/80">{service_description}</p>
+              <p className="text-sm text-gray-red">{service_description}</p>
             </div>
 
             <dl className="border-t border-crimson-light/40 pt-2">
@@ -136,7 +136,7 @@ export default function Booking() {
               <SummaryRow label="Price" value={priceLabel} />
               <SummaryRow label="Location" value={
                   locationUrl && locationText ? (
-                    <a href={locationUrl} target="_blank" rel="noopener noreferrer" className="font-bold text-crimson underline underline-offset-4 hover:text-gray-red">
+                    <a href={locationUrl} target="_blank" rel="noopener noreferrer" className="font-bold text-crimson-ink underline underline-offset-4 hover:text-gray-red">
                       {locationText}
                     </a>
                   ) : (
@@ -153,7 +153,7 @@ export default function Booking() {
             onClick={handleContinue}
             disabled={isSubmitting}
             aria-busy={isSubmitting}
-            className="w-full px-8 sm:w-auto sm:px-16 disabled:cursor-wait disabled:opacity-60"
+            className="w-full px-9 sm:w-auto sm:px-15 disabled:cursor-wait disabled:opacity-60"
           >
             {isSubmitting ? "Reserving your slot..." : "Continue to payment"}
           </Button>

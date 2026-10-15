@@ -64,11 +64,11 @@ const AddAdminModal: React.FC<AddAdminModalProps> = ({
         </div>
       ) : (
         <>
-          <p className="my-4 text-center text-[18px] text-gray-red opacity-90 font-sans">
+          <p className="my-3 text-center text-[18px] text-gray-red opacity-90 font-sans">
             Promote an existing user to Admin.
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-8 font-sans">
+          <form onSubmit={handleSubmit} className="space-y-9 font-sans">
             <div>
               <p className="block text-[16px] mb-2 text-gray-red font-bold opacity-80 ml-2">
                 User's Email Address:
@@ -82,11 +82,11 @@ const AddAdminModal: React.FC<AddAdminModalProps> = ({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="e.g., teammate@example.com"
-                className="h-11 w-full rounded-md bg-milk px-4 outline-none border border-crimson/20 focus:ring-1 focus:ring-crimson text-gray-red transition-shadow"
+                className="h-11 w-full rounded-md bg-milk px-3 outline-none border border-crimson/20 focus:ring-1 focus:ring-crimson text-gray-red transition-shadow"
               />
             </div>
 
-            <div className="mt-8 flex items-center justify-center">
+            <div className="mt-9 flex items-center justify-center">
               <Button
                 type="submit"
                 className="hover:scale-105"

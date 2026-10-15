@@ -27,6 +27,12 @@ gray-red} and font-{script, display, sans}.
   --color-light-orange: #f6e9e1;
   --color-sand: #e8d7cd;
   --color-gray-red: #7a5f5a;
+  /* Readable versions of the pink (WCAG AA, 4.5:1). The pastel crimson is too light to read as
+     text, and too light behind cream text, so text uses these: crimson-ink for pink words on the
+     light backgrounds (cream, sand, milk, crimson-light), on-crimson for words on a crimson or crimson-light fill.
+     Keep plain crimson for fills, borders, icons and decoration. */
+  --color-crimson-ink: #78404c;
+  --color-on-crimson: #3d2b28;
 
   /* Functional status colours. The brand book has none, so these are soft
      pastels chosen to sit beside the palette. Use them only for status
@@ -35,6 +41,10 @@ gray-red} and font-{script, display, sans}.
   --color-success: #6fb58a;
   --color-warning: #e3a94f;
   --color-info: #7fa6d6;
+  /* The same status colours dark enough to read as text (4.5:1 even on sand) */
+  --color-danger-ink: #9c3f4d;
+  --color-success-ink: #3f674f;
+  --color-warning-ink: #765829;
 
   /* Admin: the "boudoir ledger" look. Milk is the card color (lighter than the page, so cards
      lift off it); berry is the deep pink for key numbers; pearl is for dots and highlights. */
@@ -130,7 +140,7 @@ html {
     font-family: var(--font-display);
     font-size: 50px;
     line-height: 1.2;
-    color: var(--color-crimson);
+    color: var(--color-crimson-ink);
   }
 
   /* Accent headings: Luxurious Script, which has a small x-height, so it runs larger */
@@ -140,7 +150,7 @@ html {
     font-weight: 400;
     font-style: normal;
     line-height: 1.1;
-    color: var(--color-crimson);
+    color: var(--color-crimson-ink);
   }
 
   /* Sub headings: Noto Sans bold */
@@ -177,6 +187,20 @@ html {
   font-size: 1.125rem;
 }
 
+/* Copies saved before the readable pink colour their links and highlights with the pastel
+   crimson inline, which is too light to read: show them in crimson-ink instead. */
+.legal-text a,
+.legal-text [style*="color: var(--color-crimson)"],
+.legal-text [style*="color:var(--color-crimson)"] {
+  color: var(--color-crimson-ink) !important;
+}
+
+/* Links inside running text are underlined too, so they don't rely on colour alone */
+.legal-text a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 @layer components {
   .link-underline{
     @apply hover:underline transition duration-100;
@@ -186,13 +210,13 @@ html {
      body: the standard description (cards, details, FAQ answers, dialogs). note: small print such
      as helper text and captions. Use these instead of picking text sizes by hand. */
   .copy-lead {
-    @apply text-base leading-relaxed text-gray-red/80 md:text-lg;
+    @apply text-base leading-relaxed text-gray-red md:text-lg;
   }
   .copy-body {
-    @apply text-base leading-relaxed text-gray-red/80;
+    @apply text-base leading-relaxed text-gray-red;
   }
   .copy-note {
-    @apply text-sm leading-relaxed text-gray-red/80;
+    @apply text-sm leading-relaxed text-gray-red;
   }
 
   /* The small uppercase label used for form labels, section labels and table headings, e.g.
@@ -381,36 +405,6 @@ html {
   scrollbar-color: color-mix(in srgb, var(--color-gray-red) 40%, transparent) transparent;
 }
 
-
-/* =========================
-REACT CALENDAR STYLES
-========================= */
-.react-calendar {
-  border: none;
-  background: transparent;
-  width: 100%;
-  font-family: inherit;
-}
-
-.react-calendar__tile {
-  border-radius: 8px;
-  padding: 6px 0;
-  transition: 0.2s;
-}
-
-.react-calendar__tile--active {
-  background: var(--color-crimson) !important;
-  color: var(--color-light-orange);
-}
-
-.react-calendar__tile:hover {
-  background: var(--color-crimson-light);
-}
-
-.react-calendar__navigation button {
-  color: var(--color-crimson);
-  font-weight: bold;
-}
 
 input[type="search"]::-webkit-search-cancel-button {
   -webkit-appearance: none;

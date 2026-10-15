@@ -6,6 +6,7 @@ import {
   getContent,
   getFaqs,
   getNailist,
+  getAllNailistGalleries,
   getNailistGallery,
   getNailists,
   getService,
@@ -51,6 +52,7 @@ export const publicReads = {
   nailists: cached("nailists", getNailists),
   nailist: cached("nailist", getNailist),
   nailistGallery: cached("nailistGallery", getNailistGallery),
+  allNailistGalleries: cached("allNailistGalleries", getAllNailistGalleries),
 };
 
 /** Drops every cached public read, so the next request reads the database again. */

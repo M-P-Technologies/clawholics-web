@@ -4,10 +4,10 @@ import type { StepState, TrackerStep } from "@/lib/bookingTracker";
 
 /** Each step state's colours */
 const STEP_STYLE: Record<StepState, { dot: string; bar: string; title: string }> = {
-  done: { dot: "bg-crimson text-light-orange", bar: "bg-crimson", title: "text-gray-red" },
+  done: { dot: "bg-crimson text-on-crimson", bar: "bg-crimson", title: "text-gray-red" },
   current: { dot: "border-2 border-crimson bg-milk text-berry", bar: "bg-crimson-light", title: "text-berry" },
-  upcoming: { dot: "bg-crimson-light/40 text-gray-red/50", bar: "bg-crimson-light/50", title: "text-gray-red/50" },
-  stopped: { dot: "bg-danger/15 text-danger", bar: "bg-crimson-light/50", title: "text-danger" },
+  upcoming: { dot: "bg-crimson-light/40 text-gray-red", bar: "bg-crimson-light/50", title: "text-gray-red" },
+  stopped: { dot: "bg-danger/15 text-danger-ink", bar: "bg-crimson-light/50", title: "text-danger-ink" },
 };
 
 /** A step state, read out after the step's title */
@@ -30,13 +30,13 @@ export default function StepTracker({ steps, label }: { steps: TrackerStep[]; la
               </span>
               {!last && <span aria-hidden="true" className={clsx("my-1 w-1 flex-1 rounded-full", style.bar)} />}
             </div>
-            <div className={clsx("grid min-w-0 flex-1 gap-x-4 gap-y-0.5 sm:grid-cols-[1fr_auto]", !last && "pb-5")}>
+            <div className={clsx("grid min-w-0 flex-1 gap-x-3 gap-y-0.5 sm:grid-cols-[1fr_auto]", !last && "pb-6")}>
               <p className={clsx("text-sm font-bold", style.title)}>
                 {step.title}
                 <span className="sr-only">: {stepStateLabel(step.state)}</span>
               </p>
-              {step.when && <p className="text-[12px] text-gray-red/60 sm:text-right">{step.when}</p>}
-              {step.detail && <p className="text-[13px] text-gray-red/80 sm:col-span-2">{step.detail}</p>}
+              {step.when && <p className="text-[12px] text-gray-red sm:text-right">{step.when}</p>}
+              {step.detail && <p className="text-[13px] text-gray-red sm:col-span-2">{step.detail}</p>}
             </div>
           </li>
         );

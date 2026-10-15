@@ -38,7 +38,7 @@ describe("DashboardView layout", () => {
     expect(main.className).toContain("lg:col-span-3");
   });
 
-  it("spaces every card the same: gap-4, and gap-6 from md up", () => {
+  it("spaces every card the same: gap-3, and gap-6 from md up", () => {
     render(<DashboardView data={data} />);
     const statGrid = screen.getByRole("group", { name: "Collected" }).parentElement as HTMLElement;
     const column = screen.getByRole("region", { name: "Salon notes" }).parentElement as HTMLElement;
@@ -47,7 +47,7 @@ describe("DashboardView layout", () => {
     const main = charts.parentElement as HTMLElement;
     const page = lower.parentElement as HTMLElement;
     for (const el of [statGrid, lower, main, charts, page]) {
-      expect(el.className).toContain("gap-4");
+      expect(el.className).toContain("gap-3");
       expect(el.className).toContain("md:gap-6");
     }
   });

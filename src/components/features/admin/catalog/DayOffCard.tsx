@@ -43,10 +43,10 @@ const DayOffCard = ({
         <SectionSkeleton label="Loading days off" lines={2} />
       ) : (
         <>
-          <div className="mb-4 flex flex-col gap-1">
+          <div className="mb-3 flex flex-col gap-1">
             <p className="text-[15px] text-gray-red">Regular:</p>
 
-            <div className="flex flex-wrap gap-x-4 gap-y-1">
+            <div className="flex flex-wrap gap-x-3 gap-y-1">
               {WEEK_DAYS.map((day) => (
                 <label
                   key={day.value}
@@ -136,7 +136,7 @@ const DayOffCard = ({
               />
             </div>
 
-            <div className="flex flex-wrap gap-x-4 gap-y-2">
+            <div className="flex flex-wrap gap-x-3 gap-y-2">
               <div className="flex items-center gap-2">
                 <span className="block w-4 h-4 rounded-sm bg-success/50" />
                 <span className="text-[13px] text-gray-red">

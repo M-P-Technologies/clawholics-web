@@ -15,7 +15,7 @@ export default function MyProfile() {
 
   return (
     <ClientScreen title="My profile">
-      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
         <ProfilePanel
           label="Your profile"
           name={p.name}
@@ -48,7 +48,7 @@ export default function MyProfile() {
             {p.trackerSteps ? (
               <StepTracker label="Booking progress" steps={p.trackerSteps} />
             ) : (
-              <p className="text-sm text-gray-red/70">No bookings to track yet.</p>
+              <p className="text-sm text-gray-red">No bookings to track yet.</p>
             )}
           </TabSection>
 

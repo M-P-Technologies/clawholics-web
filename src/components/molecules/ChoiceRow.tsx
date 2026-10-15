@@ -26,7 +26,7 @@ export default function ChoiceRow({ selected, onClick, children, className, kind
       aria-checked={selected}
       onClick={onClick}
       className={clsx(
-        "flex w-full cursor-pointer justify-start gap-4 whitespace-normal rounded-xl border px-4 py-3.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson",
+        "flex w-full cursor-pointer justify-start gap-3 whitespace-normal rounded-xl border px-3 py-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson",
         align === "center" ? "items-center" : "items-start",
         selected ? "border-crimson bg-crimson-light/15" : "border-crimson-light bg-milk hover:border-crimson",
         className,

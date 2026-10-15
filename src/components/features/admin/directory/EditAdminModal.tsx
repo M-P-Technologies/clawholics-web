@@ -11,7 +11,7 @@ interface EditAdminModalProps {
   onSave: () => void;
 }
 
-const inputClass = "w-full bg-milk border border-crimson-light rounded-md px-4 py-2 focus:outline-none focus:ring-1 focus:ring-crimson";
+const inputClass = "w-full bg-milk border border-crimson-light rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-crimson";
 const labelClass = "block text-sm opacity-80 mb-1 ml-2";
 
 // Edits an admin's name; the email is the account's, so it only shows
@@ -32,32 +32,33 @@ export default function EditAdminModal({ open, form, saving, onChange, onClose, 
         </div>
       ) : (
         <>
-          <div className="flex flex-col gap-4 font-sans">
+          <div className="flex flex-col gap-3 font-sans">
             <div>
-              <label className={labelClass}>First Name</label>
-              <input type="text" value={form.firstName} onChange={(e) => onChange({ ...form, firstName: e.target.value })} className={inputClass} />
+              <label htmlFor="edit-admin-first-name" className={labelClass}>First Name</label>
+              <input id="edit-admin-first-name" type="text" value={form.firstName} onChange={(e) => onChange({ ...form, firstName: e.target.value })} className={inputClass} />
             </div>
             <div>
-              <label className={labelClass}>Last Name</label>
-              <input type="text" value={form.lastName} onChange={(e) => onChange({ ...form, lastName: e.target.value })} className={inputClass} />
+              <label htmlFor="edit-admin-last-name" className={labelClass}>Last Name</label>
+              <input id="edit-admin-last-name" type="text" value={form.lastName} onChange={(e) => onChange({ ...form, lastName: e.target.value })} className={inputClass} />
             </div>
             <div>
-              <label className={labelClass}>Email Address</label>
+              <label htmlFor="edit-admin-email" className={labelClass}>Email Address</label>
               <input
+                id="edit-admin-email"
                 type="email"
                 value={form.email}
                 readOnly
                 disabled
-                className="w-full bg-crimson/10 border border-crimson/20 text-gray-red/60 rounded-md px-4 py-2 cursor-not-allowed"
+                className="w-full bg-crimson/10 border border-crimson/20 text-gray-red rounded-md px-3 py-2 cursor-not-allowed"
               />
             </div>
           </div>
 
-          <div className="flex justify-center gap-4 font-sans">
+          <div className="flex justify-center gap-3 font-sans">
             <Button
               variant="bare"
               onClick={onClose}
-              className="px-8 py-2 text-[16px] rounded-md border border-crimson font-bold hover:scale-105 transition-colors hover:bg-light-orange"
+              className="px-9 py-2 text-[16px] rounded-md border border-crimson font-bold hover:scale-105 transition-colors hover:bg-light-orange"
             >
               Cancel
             </Button>

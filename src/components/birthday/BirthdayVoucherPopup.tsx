@@ -47,28 +47,28 @@ export default function BirthdayVoucherPopup() {
   const close = () => setOpenId(-1);
 
   return (
-    <div className="fixed inset-0 z-999 flex items-end justify-center bg-gray-red/40 px-8 backdrop-blur-sm drawer-backdrop sm:items-center max-sm:p-0">
+    <div className="fixed inset-0 z-999 flex items-end justify-center bg-gray-red/40 px-9 backdrop-blur-sm drawer-backdrop sm:items-center max-sm:p-0">
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="birthday-popup-title"
-        className="flex w-full max-w-md flex-col items-center gap-4 rounded-sm border border-crimson-light bg-light-orange p-6 text-center text-gray-red shadow-2xl shadow-crimson/20 drawer-panel md:p-8 max-sm:max-h-[90vh] max-sm:max-w-none max-sm:overflow-y-auto max-sm:rounded-t-md max-sm:rounded-b-none"
+        className="flex w-full max-w-md flex-col items-center gap-3 rounded-sm border border-crimson-light bg-light-orange p-6 text-center text-gray-red shadow-2xl shadow-crimson/20 drawer-panel md:p-9 max-sm:max-h-[90vh] max-sm:max-w-none max-sm:overflow-y-auto max-sm:rounded-t-md max-sm:rounded-b-none"
       >
         <Cake size={36} aria-hidden="true" className="text-berry" />
         <h2 id="birthday-popup-title" className="font-display text-2xl uppercase tracking-widest text-gray-red">
           Happy birthday!
         </h2>
         {claimed ? (
-          <p className="leading-relaxed text-gray-red/80">
+          <p className="leading-relaxed text-gray-red">
             It&apos;s yours: <strong className="font-mono tracking-wider text-berry">{voucher.code}</strong>. {CLAIMED_HINT} Valid until{" "}
             {voucherUntil(voucher)}; you&apos;ll also find it on your profile.
           </p>
         ) : (
-          <p className="leading-relaxed text-gray-red/80">
+          <p className="leading-relaxed text-gray-red">
             To celebrate your birthday month, here&apos;s <strong>{voucher.discount_pct}% off</strong> a service of your choice, until {voucherUntil(voucher)}.
           </p>
         )}
-        {claimError && <p role="alert" className="text-sm text-danger">{claimError.message}</p>}
+        {claimError && <p role="alert" className="text-sm text-danger-ink">{claimError.message}</p>}
         <div className="flex flex-wrap justify-center gap-3">
           {claimed ? (
             <Button type="button" onClick={close}>Done</Button>

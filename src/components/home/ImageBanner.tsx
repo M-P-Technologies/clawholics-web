@@ -20,13 +20,13 @@ export default function ImageBanner({ image, alt, focus = "50% 50%", children }:
         alt={alt}
         loading="lazy"
         style={{ objectPosition: focus }}
-        className="relative left-1/2 -mb-16 aspect-32/9 w-screen max-w-none -translate-x-1/2 object-cover lg:-mb-24"
+        className="relative left-1/2 -mb-15 aspect-32/9 w-screen max-w-none -translate-x-1/2 object-cover lg:-mb-24"
       />
     );
   }
 
   return (
-    <div className="relative left-1/2 -mb-16 w-screen -translate-x-1/2 overflow-hidden lg:-mb-24">
+    <div className="relative left-1/2 -mb-15 w-screen -translate-x-1/2 overflow-hidden lg:-mb-24">
       <img
         src={image}
         alt={alt}
@@ -36,7 +36,7 @@ export default function ImageBanner({ image, alt, focus = "50% 50%", children }:
       />
       <div aria-hidden="true" className="absolute inset-0 bg-gray-red/70" />
 
-      <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-16 md:flex-row md:justify-between md:gap-12 md:px-8 lg:py-24">
+      <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-9 px-3 py-15 md:flex-row md:justify-between md:gap-12 md:px-9 lg:py-24">
         {children}
       </div>
     </div>

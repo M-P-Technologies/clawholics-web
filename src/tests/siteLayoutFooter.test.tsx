@@ -7,6 +7,7 @@ vi.mock("@/lib/router", () => ({ useLocation: () => ({ pathname }) }));
 vi.mock("@/components/layout/NavBar", () => ({ default: () => <header /> }));
 vi.mock("@/components/layout/MobileTabBar", () => ({ default: () => null }));
 vi.mock("@/components/layout/Footer", () => ({ default: () => <footer>footer</footer> }));
+vi.mock("@/components/layout/CookieNotice", () => ({ default: () => null }));
 
 // The footer's wrapper: shown on phones only for the main pages (it always shows from lg up)
 const wrapperClass = (path: string) => {

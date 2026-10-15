@@ -130,7 +130,7 @@ export default function CategoryPanel({ categories, tokenFetcher, clerkId, onCha
         </p>
       )}
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3">
         {categories.map((category, index) => (
           <div key={category.id} className="flex flex-col gap-2 rounded-xl border border-crimson-light/50 p-3">
             <div className="flex items-center gap-2">
@@ -189,7 +189,7 @@ export default function CategoryPanel({ categories, tokenFetcher, clerkId, onCha
             </div>
 
             <div className="flex flex-col gap-2 border-t border-crimson/20 pt-2">
-              <p className="text-[14px] text-gray-red/80">Add-ons offered with every service in this category</p>
+              <p className="text-[14px] text-gray-red">Add-ons offered with every service in this category</p>
               {category.addons.map((addon) => (
                 <AddonRow key={`${addon.id}-${addon.name}-${addon.price}`} addon={addon} run={run} busy={busy} />
               ))}

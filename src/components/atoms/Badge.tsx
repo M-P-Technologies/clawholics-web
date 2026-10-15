@@ -35,7 +35,7 @@ export default function Badge({ tone = "neutral", dot, caps = false, className, 
   return (
     <span
       className={clsx(
-        "inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-2.5 py-0.5 font-bold",
+        "inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-3 py-0.5 font-bold",
         caps ? "text-[11px] uppercase" : "text-[12px]",
         TONE[tone],
         className,

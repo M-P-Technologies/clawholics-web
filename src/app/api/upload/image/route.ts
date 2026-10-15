@@ -1,4 +1,5 @@
-import { requireAdmin, requireUser } from "@/server/auth";
+import { requireAdmin } from "@/server/auth";
+import { imageBytes, NOT_AN_IMAGE } from "@/server/imageFiles";
 import { createWebpImageKey, deleteObject, publicBaseUrl, putObject } from "@/server/r2";
 import { ported } from "@/server/worker";
 
@@ -7,14 +8,18 @@ export const dynamic = "force-dynamic";
 // Port of the Worker's /upload/image. Images are compressed to WEBP in the browser
 // (uploadService.ts), so they stay far below Vercel's request body limit and go through here
 // rather than to R2 directly, which keeps the type and size checks on the server.
-// Stricter than the Worker: uploading needs a signed-in user and deleting needs an admin.
+// Stricter than the Worker: only admins upload or delete here (the admin screens' photos; clients
+// upload through their own proof and review endpoints), only into the admin screens' folders,
+// and only real images.
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_COMPRESSED_SIZE = 500 * 1024;
+/** The folders the admin screens upload to (UploadFolder in services/uploadService.ts) */
+const UPLOAD_FOLDERS = ["carousel", "content", "services", "service-gallery", "nailists", "uploads"];
 
 export const POST = ported(async (req) => {
-  const requester = await requireUser();
-  if (requester instanceof Response) return requester;
+  const admin = await requireAdmin();
+  if (admin instanceof Response) return admin;
 
   const formData = await req.formData();
   const file = formData.get("file");
@@ -22,6 +27,9 @@ export const POST = ported(async (req) => {
 
   if (!file || typeof file === "string") {
     return Response.json({ message: "No image file provided" }, { status: 400 });
+  }
+  if (!UPLOAD_FOLDERS.includes(folder)) {
+    return Response.json({ message: "Unknown upload folder." }, { status: 400 });
   }
   if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
     return Response.json({ message: "Invalid image type. Only JPG, PNG, and WEBP are allowed." }, { status: 400 });
@@ -33,9 +41,12 @@ export const POST = ported(async (req) => {
     return Response.json({ message: "Image must be converted to WEBP before upload." }, { status: 400 });
   }
 
+  const bytes = await imageBytes(file);
+  if (!bytes) return Response.json({ message: NOT_AN_IMAGE }, { status: 400 });
+
   const key = createWebpImageKey(folder, file.name);
   const imageUrl = `${publicBaseUrl()}/${key}`;
-  await putObject(key, new Uint8Array(await file.arrayBuffer()), "image/webp");
+  await putObject(key, bytes, "image/webp");
 
   return Response.json({ message: "Image uploaded successfully", key, imageUrl });
 });

@@ -23,7 +23,7 @@ export default function ClientShell({ children }: { children: ReactNode }) {
     <AppShell
       variant="client"
       sideBar={
-        <div className="sticky top-0 hidden h-screen shrink-0 p-4 lg:block">
+        <div className="sticky top-0 hidden h-screen shrink-0 p-3 lg:block">
           <SideBar
             label="App menu"
             className="lg:flex"

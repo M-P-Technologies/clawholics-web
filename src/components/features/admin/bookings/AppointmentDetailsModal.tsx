@@ -56,15 +56,15 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
       title={customerName}
       placement="drawer"
       header={
-        <div className="flex shrink-0 items-start gap-3 border-b border-crimson-light/50 px-5 py-4">
+        <div className="flex shrink-0 items-start gap-3 border-b border-crimson-light/50 px-6 py-3">
           <Avatar name={customerName} size="lg" decorative />
           <div className="min-w-0 flex-1">
-            <p className="text-[12px] font-medium text-gray-red/70">Appointment #{appointment.id}</p>
+            <p className="text-[12px] font-medium text-gray-red">Appointment #{appointment.id}</p>
             <h3 id={titleId} className="truncate font-display text-2xl font-normal normal-case leading-tight tracking-normal text-gray-red">
               {customerName}
             </h3>
             <div className="mt-1 flex flex-wrap items-center gap-2">
-              <span className={`rounded-full px-2.5 py-0.5 text-[12px] font-bold ${STATUS_PILL[currentStatus] ?? "bg-sand text-gray-red"}`}>{label(currentStatus)}</span>
+              <span className={`rounded-full px-3 py-0.5 text-[12px] font-bold ${STATUS_PILL[currentStatus] ?? "bg-sand text-gray-red"}`}>{label(currentStatus)}</span>
               {!isWalkin && appointment.user_id > 0 && (
                 <Link to={`/clients/${appointment.user_id}`} className="inline-flex items-center gap-1 text-[12px] font-bold text-berry underline underline-offset-4">
                   Client page
@@ -73,14 +73,14 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
               )}
             </div>
           </div>
-          <Button variant="bare" data-autofocus aria-label="Close" onClick={onClose} className="shrink-0 rounded-full p-1.5 text-gray-red/70 hover:bg-crimson-light/30 hover:text-berry">
+          <Button variant="bare" data-autofocus aria-label="Close" onClick={onClose} className="shrink-0 rounded-full p-1.5 text-gray-red hover:bg-crimson-light/30 hover:text-berry">
             <CloseIconLucide size={22} aria-hidden="true" />
           </Button>
         </div>
       }
     >
         {/* Body: scrolls on its own */}
-        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 py-5 text-gray-red">
+        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-6 py-6 text-gray-red">
           <Section title="Client" aside={`Client #${appointment.user_id}`}>
             <SummaryRow label="Name" value={customerName} />
             <SummaryRow label="Email" value={appointment.email || "No email"} />
@@ -92,8 +92,8 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
             <SummaryRow label="Nail artist" value={appointment.nailist_name || "No artist"} />
             <SummaryRow label="Date" value={dateLabel(appointment.appointment_date) || "No date"} />
             <SummaryRow label="Time" value={appointment.appointment_time || "No time"} />
-            <div className="flex items-center justify-between gap-4 border-t border-dotted border-crimson-light pt-2.5">
-              <dt className="text-[13px] text-gray-red/70">Status</dt>
+            <div className="flex items-center justify-between gap-3 border-t border-dotted border-crimson-light pt-3">
+              <dt className="text-[13px] text-gray-red">Status</dt>
               <dd>
               <Select
                 aria-label="Appointment status"
@@ -141,10 +141,10 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
 
 function Section({ title, aside, children }: { title: string; aside?: string; children: ReactNode }) {
   return (
-    <section aria-label={title} className="flex flex-col gap-2 rounded-xl border border-crimson-light/50 p-4">
+    <section aria-label={title} className="flex flex-col gap-2 rounded-xl border border-crimson-light/50 p-3">
       <div className="flex items-baseline justify-between gap-2">
         <h4 className="font-display text-lg font-normal text-gray-red">{title}</h4>
-        {aside && <span className="text-[12px] text-gray-red/60">{aside}</span>}
+        {aside && <span className="text-[12px] text-gray-red">{aside}</span>}
       </div>
       <dl className="flex flex-col">{children}</dl>
     </section>

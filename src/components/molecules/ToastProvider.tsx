@@ -22,7 +22,7 @@ interface ToastApi {
 const ToastContext = createContext<ToastApi | null>(null);
 
 const ICONS = { success: CheckCircle2, error: AlertCircle, info: Info };
-const COLORS = { success: "text-success", error: "text-danger", info: "text-crimson" };
+const COLORS = { success: "text-success-ink", error: "text-danger-ink", info: "text-crimson-ink" };
 // Errors stay longer, since they usually need an action
 const DURATION_MS = { success: 6000, info: 6000, error: 10000 };
 
@@ -57,7 +57,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             <div
               key={t.id}
               role={t.kind === "error" ? "alert" : "status"}
-              className="drawer-panel pointer-events-auto flex w-full items-start gap-4 rounded-sm border border-crimson-light bg-light-orange p-4 shadow-xl shadow-crimson/20"
+              className="drawer-panel pointer-events-auto flex w-full items-start gap-3 rounded-sm border border-crimson-light bg-light-orange p-3 shadow-xl shadow-crimson/20"
             >
               <Icon size={24} aria-hidden="true" className={clsx("shrink-0", COLORS[t.kind])} />
               <div className="flex min-w-0 flex-1 flex-col gap-1">
@@ -69,7 +69,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 type="button"
                 aria-label="Dismiss message"
                 onClick={() => dismiss(t.id)}
-                className="shrink-0 text-gray-red transition-colors hover:text-crimson"
+                className="shrink-0 text-gray-red transition-colors hover:text-crimson-ink"
               >
                 <X size={16} aria-hidden="true" />
               </Button>

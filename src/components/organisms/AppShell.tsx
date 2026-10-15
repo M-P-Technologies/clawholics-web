@@ -16,12 +16,12 @@ interface AppShellProps {
 export default function AppShell({ variant, sideBar, tabBar, children }: AppShellProps) {
   if (variant === "admin") {
     return (
-      <div className="relative isolate flex min-h-screen bg-light-orange px-2 py-2 max-lg:overflow-x-hidden sm:px-4 sm:py-4 lg:h-screen lg:overflow-clip">
+      <div className="relative isolate flex min-h-screen bg-light-orange px-2 py-2 max-lg:overflow-x-hidden sm:px-3 sm:py-3 lg:h-screen lg:overflow-clip">
         <Blush tone="crimson" className="-right-28 -top-28 h-96 w-96" />
         <Blush className="-bottom-40 left-1/3 h-[28rem] w-[28rem]" />
         {sideBar}
         {tabBar}
-        <div className="flex min-w-0 flex-1 flex-col gap-5 pb-24 lg:pb-0">{children}</div>
+        <div className="flex min-w-0 flex-1 flex-col gap-6 pb-24 lg:pb-0">{children}</div>
       </div>
     );
   }

@@ -9,7 +9,7 @@ import { OnboardingGate } from "@/components/guards/OnboardingGate";
 import { isApiAdmin } from "@/server/auth";
 
 // The client app is personal: search engines must not list it
-export const metadata: Metadata = { robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "My account", robots: { index: false, follow: false } };
 
 // Every screen under /my needs a signed-in client, checked on the server first. Admins have no
 // client profile and go to their dashboard (either role counts, as in the admin layout). In the

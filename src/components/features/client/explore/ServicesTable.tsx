@@ -24,7 +24,7 @@ function Photo({ service }: { service: NailService }) {
     // eslint-disable-next-line @next/next/no-img-element -- R2 images, sized by CSS
     <img src={service.image} alt="" className="h-12 w-12 shrink-0 rounded-xl object-cover" />
   ) : (
-    <span data-testid="no-photo" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-crimson-light/30 text-crimson">
+    <span data-testid="no-photo" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-crimson-light/30 text-crimson-ink">
       <Sparkles size={20} aria-hidden="true" />
     </span>
   );
@@ -32,7 +32,7 @@ function Photo({ service }: { service: NailService }) {
 
 function BookButton({ service, onBook }: { service: NailService; onBook: (s: NailService) => void }) {
   return (
-    <Button type="button" aria-label={`Book ${service.name}`} onClick={() => onBook(service)} className="!px-4 !py-2 text-[13px]">
+    <Button type="button" aria-label={`Book ${service.name}`} onClick={() => onBook(service)} className="!px-3 !py-2 text-[13px]">
       Book
     </Button>
   );
@@ -60,7 +60,7 @@ export default function ServicesTable({ services, onBook, label }: ServicesTable
                 <span className="min-w-0 truncate font-bold">{service.name}</span>
               </Link>
               {service.description && (
-                <p data-description className="line-clamp-2 text-[13px] text-gray-red/70">
+                <p data-description className="line-clamp-2 text-[13px] text-gray-red">
                   {service.description}
                 </p>
               )}
@@ -81,7 +81,7 @@ export default function ServicesTable({ services, onBook, label }: ServicesTable
       label={label}
       minWidthClass="min-w-[640px]"
       head={
-        <tr className="text-left text-[12px] text-gray-red/70">
+        <tr className="text-left text-[12px] text-gray-red">
           <th scope="col" className="pb-2 pr-3 font-medium">Service</th>
           <th scope="col" className="pb-2 pr-3 font-medium">Description</th>
           <th scope="col" className="pb-2 pr-3 text-right font-medium">Price</th>
@@ -97,7 +97,7 @@ export default function ServicesTable({ services, onBook, label }: ServicesTable
               <span className="min-w-0">{service.name}</span>
             </Link>
           </th>
-          <td className={`${cell} max-w-[320px] text-[13px] text-gray-red/70`}>
+          <td className={`${cell} max-w-[320px] text-[13px] text-gray-red`}>
             {service.description && <span data-description className="line-clamp-2">{service.description}</span>}
           </td>
           <td className={`${cell} whitespace-nowrap text-right font-bold text-berry`}>{shortPriceLabel(service)}</td>

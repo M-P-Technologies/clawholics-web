@@ -19,7 +19,7 @@ const ArtistServicesPicker = ({ services, selectedIds, disabled, onToggle }: Art
         No services available.
       </p>
     ) : (
-      <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+      <div className="grid grid-cols-2 gap-x-3 gap-y-2">
         {services.map((service) => (
           <label
             key={service.id}

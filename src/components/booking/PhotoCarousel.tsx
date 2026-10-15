@@ -32,7 +32,7 @@ export default function PhotoCarousel({ photos, label, aspect = "aspect-square" 
   };
 
   return (
-    <div role="region" aria-roledescription="carousel" aria-label={`${label} photos`} className="flex flex-col gap-4">
+    <div role="region" aria-roledescription="carousel" aria-label={`${label} photos`} className="flex flex-col gap-3">
       <div
         ref={trackRef}
         onScroll={onScroll}
@@ -57,19 +57,25 @@ export default function PhotoCarousel({ photos, label, aspect = "aspect-square" 
       </div>
 
       {photos.length > 1 && (
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center justify-center">
           {photos.map((photo, index) => (
+            // The dot is drawn inside a 24px button, the smallest tap target WCAG allows
             <button
               key={photo.id}
               type="button"
               aria-label={`Show photo ${index + 1}`}
               aria-current={index === active}
               onClick={() => show(index)}
-              className={clsx(
-                "h-2 cursor-pointer rounded-full transition-all duration-300",
-                index === active ? "w-6 bg-crimson" : "w-2 bg-crimson-light",
-              )}
-            />
+              className="flex h-6 min-w-6 cursor-pointer items-center justify-center"
+            >
+              <span
+                aria-hidden="true"
+                className={clsx(
+                  "h-2 rounded-full transition-all duration-300",
+                  index === active ? "w-6 bg-crimson" : "w-2 bg-crimson-light",
+                )}
+              />
+            </button>
           ))}
         </div>
       )}

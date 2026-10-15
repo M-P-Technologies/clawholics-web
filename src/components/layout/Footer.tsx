@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import { publicQueries } from "@/lib/publicQueries";
 import { Link } from "@/lib/router";
@@ -8,8 +9,8 @@ import { platformOf, readSocialLinks, socialHref } from "../../lib/socialLinks";
 
 // Opens a chat with the studio on Facebook.
 
-const linkClass = "w-fit text-sm text-gray-red transition-colors hover:text-crimson";
-const columnTitle = "mb-4 font-display text-sm uppercase tracking-extrawide text-gray-red";
+const linkClass = "w-fit text-sm text-on-crimson transition-colors hover:underline";
+const columnTitle = "mb-3 font-display text-sm uppercase tracking-extrawide text-on-crimson";
 
 export default function Footer() {
   // The footer works without the social links, so a failed request just leaves them out
@@ -26,8 +27,8 @@ export default function Footer() {
     <footer id="site-footer" className="relative overflow-hidden border-t border-crimson-light/80">
       <Blush className="-right-24 bottom-0 h-96 w-96" />
 
-      <div className="mx-auto w-full max-w-6xl px-4 pt-16 md:px-8">
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="mx-auto w-full max-w-6xl px-3 pt-15 md:px-9">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <nav aria-label="Explore" className="flex flex-col gap-2">
             <p className={columnTitle}>{t.home_footer_explore_title}</p>
             <Link to="/" className={linkClass}>Home</Link>
@@ -44,7 +45,7 @@ export default function Footer() {
 
           <div className="flex flex-col gap-2">
             <p className={columnTitle}>{t.home_footer_follow_title}</p>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               {socials.map(({ label, href, Icon }, i) => (
                 <a
                   key={i}
@@ -52,7 +53,7 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={`Visit Clawholics by Max ${label} page`}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-crimson-light text-crimson transition-colors hover:bg-crimson hover:text-light-orange focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-crimson-light text-crimson-ink transition-colors hover:bg-crimson hover:text-on-crimson focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson"
                 >
                   <Icon className="h-5 w-5" />
                 </a>
@@ -84,21 +85,23 @@ export default function Footer() {
           </div>
         ) : (
           <div className="relative mx-auto my-12 aspect-[3218/860] w-full max-w-3xl overflow-hidden">
-            <img
-              src={logo.src}
+            {/* next/image serves it resized (the PNG itself is 400 KB) and only once it nears the screen */}
+            <Image
+              src={logo}
               alt=""
               aria-hidden="true"
+              sizes="(min-width: 768px) 920px, 120vw"
               className="absolute max-w-none select-none"
-              style={{ width: "119.33%", left: "-8.48%", top: "-70.12%" }}
+              style={{ width: "119.33%", height: "auto", left: "-8.48%", top: "-70.12%" }}
             />
           </div>
         )}
       </div>
 
       <div className="relative border-t border-crimson-light/80 bg-light-orange/70">
-        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 md:px-8">
+        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-3 py-3 md:px-9">
           <p className="text-sm text-gray-red">{t.home_footer_copyright}</p>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <Link to="/privacy" className={linkClass}>
               Privacy policy
             </Link>

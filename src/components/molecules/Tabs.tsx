@@ -37,8 +37,8 @@ export default function Tabs<T extends string>({ label, tabs, value, onChange, i
             onClick={() => onChange(tab.value)}
             onKeyDown={(e) => move(e, index)}
             className={clsx(
-              "shrink-0 whitespace-nowrap border-b-2 px-4 py-3.5 text-[14px] font-bold transition-colors",
-              selected ? "border-crimson text-berry" : "border-transparent text-gray-red/70 hover:text-berry",
+              "shrink-0 whitespace-nowrap border-b-2 px-3 py-3 text-[14px] font-bold transition-colors",
+              selected ? "border-crimson text-berry" : "border-transparent text-gray-red hover:text-berry",
             )}
           >
             {tab.label}

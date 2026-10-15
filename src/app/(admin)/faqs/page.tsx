@@ -51,7 +51,7 @@ export default function FAQs() {
         ) : (
           <div className="flex flex-col gap-3">
             {faqs.length === 0 ? (
-              <p className="text-sm text-gray-red/70">No FAQs yet.</p>
+              <p className="text-sm text-gray-red">No FAQs yet.</p>
             ) : (
               <SortableList
                 items={faqs}

@@ -13,6 +13,10 @@ export const submitContactForm = ported(async (req) => {
   if (fields.name.length > 200 || fields.email.length > 320 || fields.mobile.length > 50 || fields.description.length > 5000) {
     return Response.json({ message: "Message is too long" }, { status: 400 });
   }
+  // The reply goes to this address, so it has to look like one (no spaces or line breaks)
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email.trim())) {
+    return Response.json({ message: "Please enter a valid email address" }, { status: 400 });
+  }
   inBackground("contact form email", () => sendContactMessage(fields));
   return Response.json({ success: true, message: "Message sent successfully" });
 });

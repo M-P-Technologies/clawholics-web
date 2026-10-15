@@ -90,7 +90,7 @@ export default function BookingsTable({ load }: { load: BookingsLoader }) {
   };
 
   return (
-    <section aria-label="Bookings" className="flex min-w-0 flex-col gap-4 rounded-2xl border border-crimson-light/40 bg-milk p-5 shadow-petal">
+    <section aria-label="Bookings" className="flex min-w-0 flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-6 shadow-petal">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <SegmentedControl label="Which bookings" options={TABS} value={tab} onChange={choose} />
         <label className="relative w-full sm:w-64">
@@ -104,9 +104,9 @@ export default function BookingsTable({ load }: { load: BookingsLoader }) {
               setPage(1);
             }}
             placeholder="Search client, service, artist…"
-            className="h-9 w-full rounded-full border border-crimson-light bg-milk pl-4 pr-9 text-[13px] text-gray-red outline-none placeholder:text-gray-red/60 focus:ring-2 focus:ring-crimson"
+            className="h-9 w-full rounded-full border border-crimson-light bg-milk pl-3 pr-9 text-[13px] text-gray-red outline-none placeholder:text-gray-red/60 focus:ring-2 focus:ring-crimson"
           />
-          <Search size={16} aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-red/60" />
+          <Search size={16} aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-red" />
         </label>
       </div>
 
@@ -129,15 +129,15 @@ export default function BookingsTable({ load }: { load: BookingsLoader }) {
                 const badge = STATUS[status] ?? { label: a.status, className: "bg-sand text-gray-red" };
                 return (
                   <RowCard key={a.id}>
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex items-center gap-3">
                       <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-crimson-light/50 font-display text-base text-berry">
                         {name.charAt(0).toUpperCase()}
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-bold">{name}</span>
-                        {a.email && !isWalkin(a) && <span className="block truncate text-[12px] text-gray-red/70">{a.email}</span>}
+                        {a.email && !isWalkin(a) && <span className="block truncate text-[12px] text-gray-red">{a.email}</span>}
                       </span>
-                      <span className={clsx("shrink-0 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[12px] font-bold", badge.className)}>{badge.label}</span>
+                      <span className={clsx("shrink-0 whitespace-nowrap rounded-full px-3 py-0.5 text-[12px] font-bold", badge.className)}>{badge.label}</span>
                     </div>
                     <CardFields
                       fields={[
@@ -148,7 +148,7 @@ export default function BookingsTable({ load }: { load: BookingsLoader }) {
                       ]}
                     />
                     {isWalkin(a) ? (
-                      <span className="text-[12px] text-gray-red/60">Walk-in</span>
+                      <span className="text-[12px] text-gray-red">Walk-in</span>
                     ) : (
                       <Link
                         to={`/clients/${a.user_id}`}
@@ -166,7 +166,7 @@ export default function BookingsTable({ load }: { load: BookingsLoader }) {
           ) : (
           <TableFrame label="Bookings" minWidthClass="min-w-[720px]"
             head={
-              <tr className="text-left text-[12px] text-gray-red/70">
+              <tr className="text-left text-[12px] text-gray-red">
                 {["Client", "Service", "Artist", "Date", "Time", "Status", "Manage"].map((h) => (
                   <th key={h} scope="col" className={clsx("pb-2 font-medium", h === "Manage" && "text-center")}>
                     {h}
@@ -182,13 +182,13 @@ export default function BookingsTable({ load }: { load: BookingsLoader }) {
             return (
               <tr key={a.id}>
                 <th scope="row" className={clsx(cell, "text-left font-normal")}>
-                  <span className="flex items-center gap-2.5">
+                  <span className="flex items-center gap-3">
                     <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-crimson-light/50 font-display text-base text-berry">
                       {name.charAt(0).toUpperCase()}
                     </span>
                     <span className="min-w-0">
                       <span className="block truncate font-bold">{name}</span>
-                      {a.email && !isWalkin(a) && <span className="block truncate text-[12px] text-gray-red/70">{a.email}</span>}
+                      {a.email && !isWalkin(a) && <span className="block truncate text-[12px] text-gray-red">{a.email}</span>}
                     </span>
                   </span>
                 </th>
@@ -197,11 +197,11 @@ export default function BookingsTable({ load }: { load: BookingsLoader }) {
                 <td className={clsx(cell, "whitespace-nowrap")}>{dateLabel(a.appointment_date)}</td>
                 <td className={clsx(cell, "whitespace-nowrap")}>{a.appointment_time}</td>
                 <td className={cell}>
-                  <span className={clsx("whitespace-nowrap rounded-full px-2.5 py-0.5 text-[12px] font-bold", status.className)}>{status.label}</span>
+                  <span className={clsx("whitespace-nowrap rounded-full px-3 py-0.5 text-[12px] font-bold", status.className)}>{status.label}</span>
                 </td>
                 <td className={clsx(cell, "pr-0 text-center")}>
                   {isWalkin(a) ? (
-                    <span className="text-[12px] text-gray-red/60">Walk-in</span>
+                    <span className="text-[12px] text-gray-red">Walk-in</span>
                   ) : (
                     <Link
                       to={`/clients/${a.user_id}`}
@@ -219,7 +219,7 @@ export default function BookingsTable({ load }: { load: BookingsLoader }) {
           )}
 
           {view.rows.length === 0 && (
-            <p className="text-sm text-gray-red/70">
+            <p className="text-sm text-gray-red">
               {query.trim() ? "No bookings match your search." : tab === "cancelled" ? "No cancelled bookings." : tab === "upcoming" ? "No upcoming bookings." : "No bookings yet."}
             </p>
           )}

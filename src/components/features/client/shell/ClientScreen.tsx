@@ -48,7 +48,7 @@ export default function ClientScreen({ title, actions, back, children }: ClientS
     ) : null;
 
   return (
-    <div className="flex min-w-0 flex-col gap-5 px-2 py-2 sm:px-4 sm:py-4 lg:pl-0">
+    <div className="flex min-w-0 flex-col gap-6 px-2 py-2 sm:px-3 sm:py-3 lg:pl-0">
       <TopBar
         title={title}
         actions={backControl || actions ? <>{backControl}{actions}</> : undefined}

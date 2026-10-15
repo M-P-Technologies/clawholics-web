@@ -21,7 +21,7 @@ export default function ContactUs() {
   if (pageError || !pageData) {
     return (
       <PageShell>
-        <Section innerClassName="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
+        <Section innerClassName="flex min-h-[60vh] flex-col items-center justify-center gap-3 text-center">
           <p className="text-xl text-gray-red">{pageError || "Unable to load contact info."}</p>
           <Button type="button" onClick={reloadPage} >
             Retry
@@ -37,12 +37,12 @@ export default function ContactUs() {
         <SectionHeader title="Contact us" subtitle={pageData.contact_subtitle} />
 
         <Panel className="mx-auto w-full max-w-3xl">
-          <div className="flex flex-col gap-4 md:gap-8">
-            <h3 className="font-display text-xl font-normal uppercase tracking-widest text-gray-red">
+          <div className="flex flex-col gap-3 md:gap-9">
+            <h2 className="font-display text-xl font-normal uppercase tracking-widest text-gray-red">
               Any concerns? Message us!
-            </h3>
+            </h2>
 
-            <form onSubmit={handleSubmit} aria-busy={isSubmitting} className="flex flex-col gap-4">
+            <form onSubmit={handleSubmit} aria-busy={isSubmitting} className="flex flex-col gap-3">
               {contactFields.map((field) => (
                 <FormField key={field.id} {...field} />
               ))}
@@ -55,7 +55,7 @@ export default function ContactUs() {
                   <span
                     aria-live="polite"
                     className={`mb-1.5 text-sm ${
-                      isDescriptionFull ? "font-bold text-danger" : "text-gray-red/70"
+                      isDescriptionFull ? "font-bold text-danger-ink" : "text-gray-red"
                     }`}
                   >
                     {descriptionLength}/500

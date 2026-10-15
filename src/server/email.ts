@@ -180,7 +180,7 @@ export async function sendConfirmationEmail(data: ConfirmationData) {
   ].join("");
 
   await Promise.all([
-    sendEmail(data.customer_email, "Appointment Confirmed — Clawholics", customerHtml),
+    sendEmail(data.customer_email, "Your appointment is confirmed | Clawholics by Max", customerHtml),
     sendEmail(adminEmail(), "NEW APPOINTMENT CONFIRMED", baseAdminEmailTemplate("New Appointment Confirmed", adminRows)),
   ]);
 }

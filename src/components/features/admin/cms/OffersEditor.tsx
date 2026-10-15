@@ -35,7 +35,7 @@ export default function OffersEditor({ offers, services, onChange, upload, uploa
           <div key={i} className="flex flex-col gap-2 rounded-xl border border-crimson-light/50 bg-milk p-3">
             <div className="flex items-center justify-between">
               <span className="text-[13px] font-bold text-gray-red">Offer {i + 1}</span>
-              <Button type="button" variant="bare" aria-label={`Remove offer ${i + 1}`} onClick={() => onChange(offers.filter((_, j) => j !== i))} className="rounded-full p-1.5 text-crimson hover:bg-crimson-light/30">
+              <Button type="button" variant="bare" aria-label={`Remove offer ${i + 1}`} onClick={() => onChange(offers.filter((_, j) => j !== i))} className="rounded-full p-1.5 text-crimson-ink hover:bg-crimson-light/30">
                 <X size={16} aria-hidden="true" />
               </Button>
             </div>
@@ -51,7 +51,7 @@ export default function OffersEditor({ offers, services, onChange, upload, uploa
                 ))}
               </select>
             </label>
-            <label className={`inline-flex w-fit cursor-pointer items-center rounded-md border border-crimson-light px-2.5 py-1 text-[12px] font-bold text-gray-red hover:bg-crimson-light/30 ${uploading[slot] ? "pointer-events-none opacity-50" : ""}`}>
+            <label className={`inline-flex w-fit cursor-pointer items-center rounded-md border border-crimson-light px-3 py-1 text-[12px] font-bold text-gray-red hover:bg-crimson-light/30 ${uploading[slot] ? "pointer-events-none opacity-50" : ""}`}>
               {uploading[slot] ? "Uploading…" : offer.image ? "Replace photo" : "Add a photo"}
               <input
                 type="file"
@@ -67,7 +67,7 @@ export default function OffersEditor({ offers, services, onChange, upload, uploa
               />
             </label>
             {offer.image && (
-              <Button type="button" variant="bare" onClick={() => update(i, { image: "" })} className="w-fit rounded-md px-2.5 py-1 text-[12px] font-bold text-gray-red/80 hover:bg-crimson-light/30">
+              <Button type="button" variant="bare" onClick={() => update(i, { image: "" })} className="w-fit rounded-md px-3 py-1 text-[12px] font-bold text-gray-red hover:bg-crimson-light/30">
                 Remove photo
               </Button>
             )}

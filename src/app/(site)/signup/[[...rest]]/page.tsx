@@ -12,7 +12,7 @@ export default function Signup() {
   
   return (
     <PageShell>
-      <Section innerClassName="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-start gap-4 max-lg:pt-4 lg:justify-center">
+      <Section innerClassName="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-start gap-3 max-lg:pt-3 lg:justify-center">
         <AuthTabs current="signup" />
         <SignUp
           routing="path"

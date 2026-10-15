@@ -11,13 +11,13 @@ import { ListSkeleton } from "./ListSkeleton";
 
 /** A card like the screens' panels, holding placeholders */
 function Card({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={clsx("flex min-w-0 flex-col gap-4 rounded-2xl border border-crimson-light/40 bg-milk p-5 shadow-petal", className)}>{children}</div>;
+  return <div className={clsx("flex min-w-0 flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-6 shadow-petal", className)}>{children}</div>;
 }
 
 /** The whole screen's loading region, with its name read out once */
 function Loading({ label, className, children }: { label: string; className?: string; children: ReactNode }) {
   return (
-    <div role="status" aria-label={label} className={clsx("flex min-h-0 flex-1 flex-col gap-4 overflow-hidden pb-2 md:gap-6", className)}>
+    <div role="status" aria-label={label} className={clsx("flex min-h-0 flex-1 flex-col gap-3 overflow-hidden pb-2 md:gap-6", className)}>
       <span className="sr-only">{label}…</span>
       {children}
     </div>
@@ -33,12 +33,12 @@ function StatCardSkeleton({ bare = false }: { bare?: boolean }) {
       <Skeleton className="h-3 w-32" />
     </>
   );
-  return bare ? <div className="flex flex-col gap-2">{body}</div> : <Card className="!gap-2 p-4 sm:p-5">{body}</Card>;
+  return bare ? <div className="flex flex-col gap-2">{body}</div> : <Card className="!gap-2 p-3 sm:p-6">{body}</Card>;
 }
 
 export function StatsSkeleton({ count = 4 }: { count?: number }) {
   return (
-    <div className="grid grid-cols-2 gap-4 md:gap-6 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-4">
       {Array.from({ length: count }, (_, i) => (
         <StatCardSkeleton key={i} />
       ))}
@@ -91,7 +91,7 @@ export function ReportSkeleton({ title }: { title: string }) {
     <AdminShell title={title} actions={<Skeleton className="h-9 w-64 max-w-full rounded-full" />}>
       <Loading label={`Loading ${title === "Dashboard" ? "the dashboard" : title.toLowerCase()}`}>
         <StatsSkeleton />
-        <div className="grid grid-cols-1 gap-4 md:gap-6 xl:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 md:gap-6 xl:grid-cols-2">
           <ChartPanelSkeleton />
           <ChartPanelSkeleton />
         </div>
@@ -108,10 +108,10 @@ export function ReportSkeleton({ title }: { title: string }) {
 export function CmsEditorSkeleton({ title }: { title: string }) {
   return (
     <AdminShell title={title}>
-      <Loading label={`Loading ${title}`} className="!flex-row !gap-5">
+      <Loading label={`Loading ${title}`} className="!flex-row !gap-6">
         <Card className="w-full shrink-0 !gap-6 lg:w-[380px] xl:w-[420px]">
           {/* The save bar, then sections of fields */}
-          <div className="flex items-center justify-between gap-3 border-b border-crimson-light/40 pb-4">
+          <div className="flex items-center justify-between gap-3 border-b border-crimson-light/40 pb-3">
             <Skeleton className="h-4 w-28" />
             <Skeleton className="h-9 w-24 rounded-full" />
           </div>
@@ -144,7 +144,7 @@ export function PageSkeleton({ className }: { className?: string }) {
       <Skeleton className="h-40 w-full rounded-xl" />
       <Skeleton className="mx-auto h-6 w-1/3" />
       <LinesSkeleton lines={2} className="mx-auto w-2/3 items-center" />
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-3">
         {Array.from({ length: 3 }, (_, i) => (
           <Skeleton key={i} className="h-28 rounded-xl" />
         ))}
@@ -159,7 +159,7 @@ export function ScheduleSkeleton() {
     <AdminShell title="Schedule">
       <Loading label="Loading the schedule">
         {/* Phone: the Day | Month switch, the days strip and the day's appointments */}
-        <div className="flex flex-col gap-4 lg:hidden">
+        <div className="flex flex-col gap-3 lg:hidden">
           <div className="flex items-center justify-between">
             <Skeleton className="h-8 w-32 rounded-full" />
             <Skeleton className="h-9 w-20 rounded-full" />
@@ -170,7 +170,7 @@ export function ScheduleSkeleton() {
             ))}
           </div>
           {Array.from({ length: 4 }, (_, i) => (
-            <Card key={i} className="!gap-2 p-4">
+            <Card key={i} className="!gap-2 p-3">
               <Skeleton className="h-3.5 w-24" />
               <Skeleton className="h-4 w-44" />
               <Skeleton className="h-3 w-32" />
@@ -197,7 +197,7 @@ export function ScheduleSkeleton() {
             </div>
             {Array.from({ length: 5 }, (_, artist) => (
               <div key={artist} className="grid grid-cols-[160px_repeat(7,minmax(0,1fr))] border-b border-dotted border-crimson-light last:border-b-0">
-                <div className="flex items-center gap-2 px-4 py-4">
+                <div className="flex items-center gap-2 px-3 py-3">
                   <Skeleton className="h-8 w-8 shrink-0 rounded-full" />
                   <Skeleton className="h-3.5 w-20" />
                 </div>
@@ -222,7 +222,7 @@ export function AdminDirectorySkeleton() {
     <AdminShell title="Admin Directory" actions={<Skeleton className="h-10 w-28 rounded-full" />}>
       <Loading label="Loading admins">
         <StatsSkeleton />
-        <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 md:gap-6 lg:grid-cols-3">
           <Card className="lg:col-span-2">
             <ListSkeleton label="Loading the admin list" columns={4} quiet />
           </Card>
@@ -242,13 +242,13 @@ export function AdminDirectorySkeleton() {
 export function ScannerSkeleton() {
   return (
     <AdminShell title="Loyalty QR Scanner">
-      <Loading label="Loading the scanner" className="!grid grid-cols-1 !gap-5 max-lg:!flex xl:grid-cols-3">
+      <Loading label="Loading the scanner" className="!grid grid-cols-1 !gap-6 max-lg:!flex xl:grid-cols-3">
         <Card className="xl:col-span-2">
           <Skeleton className="h-6 w-32" />
           <Skeleton className="aspect-square w-full rounded-xl md:aspect-video" />
           <Skeleton className="mx-auto h-10 w-40 rounded-full" />
         </Card>
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-6">
           <Card>
             <Skeleton className="h-6 w-36" />
             <LinesSkeleton lines={3} />
@@ -275,8 +275,8 @@ export function ScannerSkeleton() {
 export function ClientPageSkeleton() {
   return (
     <AdminShell title="Client" actions={<Skeleton className="h-4 w-28" />}>
-      <Loading label="Loading the client" className="!grid grid-cols-1 items-start !gap-5 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
-        <Card className="!gap-5 lg:h-[80vh]">
+      <Loading label="Loading the client" className="!grid grid-cols-1 items-start !gap-6 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
+        <Card className="!gap-6 lg:h-[80vh]">
           <div className="flex items-center gap-3">
             <Skeleton className="h-14 w-14 shrink-0 rounded-full" />
             <div className="flex flex-1 flex-col gap-2">
@@ -288,13 +288,13 @@ export function ClientPageSkeleton() {
           <LinesSkeleton lines={5} />
         </Card>
         <Card className="!gap-0 !p-0 lg:h-[80vh]">
-          <div className="flex gap-6 border-b border-crimson-light/50 px-6 py-4">
+          <div className="flex gap-6 border-b border-crimson-light/50 px-6 py-3">
             {["w-20", "w-32", "w-28"].map((width) => (
               <Skeleton key={width} className={clsx("h-4", width)} />
             ))}
           </div>
-          <div className="flex flex-col gap-5 p-5">
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+          <div className="flex flex-col gap-6 p-6">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
               {Array.from({ length: 3 }, (_, i) => (
                 <StatCardSkeleton key={i} bare />
               ))}

@@ -2,7 +2,7 @@ import type { HTMLAttributes, ReactNode } from "react";
 import clsx from "clsx";
 import { surface } from "../tokens";
 
-const PADDING = { none: "", sm: "p-4", md: "p-5" } as const;
+const PADDING = { none: "", sm: "p-3", md: "p-6" } as const;
 
 interface CardProps extends HTMLAttributes<HTMLElement> {
   as?: "div" | "section" | "article" | "aside";

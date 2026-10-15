@@ -9,11 +9,11 @@ import { StepTracker } from "@/components/molecules";
 export default function BookingTracker({ appointments, today }: { appointments: ClientAppointment[]; today: string }) {
   const [chosenId, setChosenId] = useState<number | null>(null);
   const tracked = appointments.find((a) => a.id === chosenId) ?? appointmentToTrack(appointments, today);
-  if (!tracked) return <p className="text-sm text-gray-red/70">No bookings to track yet.</p>;
+  if (!tracked) return <p className="text-sm text-gray-red">No bookings to track yet.</p>;
   const steps = trackerSteps(tracked);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
         <Select
           aria-label="Appointment to track"

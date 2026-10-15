@@ -11,7 +11,7 @@ export default function Explore() {
 
   return (
     <ClientScreen title="Our services">
-      <Card className="flex flex-col gap-4">
+      <Card className="flex flex-col gap-3">
         <SectionHeader size="section" title="Browse services" subtitle={e.subtitle} />
         <div className="flex flex-col gap-3 sm:flex-row">
           <div className="min-w-0 flex-1">

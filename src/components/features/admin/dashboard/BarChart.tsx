@@ -52,7 +52,7 @@ function useDrawingHeight() {
 export default function BarChart({ title, data, aLabel, bLabel, aColor, bColor, emptyText }: BarChartProps) {
   const { boxRef, height: H } = useDrawingHeight();
   const max = Math.max(...data.map((d) => Math.max(d.a, d.b)), 0);
-  if (max === 0) return <p className="text-sm text-gray-red/70">{emptyText}</p>;
+  if (max === 0) return <p className="text-sm text-gray-red">{emptyText}</p>;
 
   const ticks = niceTicks(max);
   const top = ticks[ticks.length - 1];
@@ -73,7 +73,7 @@ export default function BarChart({ title, data, aLabel, bLabel, aColor, bColor, 
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
-      <ul className="flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-gray-red">
+      <ul className="flex flex-wrap gap-x-3 gap-y-1 text-[13px] text-gray-red">
         {[[aLabel, aColor], [bLabel, bColor]].map(([label, color]) => (
           <li key={label} className="flex items-center gap-2">
             <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />

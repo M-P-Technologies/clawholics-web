@@ -20,7 +20,7 @@ export function useMyProfile() {
     name: fullName(user),
     imageUrl: account.clerkUser?.imageUrl ?? "",
     since,
-    sinceLabel: since || "—",
+    sinceLabel: since || "Not available",
     stampsLabel: `${account.stamps} ${account.stamps === 1 ? "stamp" : "stamps"}`,
     highlight: nextVisitHighlight(next),
     rows: profileRows(user, account.formatDisplayDate),

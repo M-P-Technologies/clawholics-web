@@ -8,7 +8,7 @@ import { PERIOD_LABELS } from "@/components/features/admin/dashboard/PeriodSwitc
 // Each group has an icon and a heading as well as a color, so the meaning never rests on color alone
 const TONES = {
   success: { dot: "bg-success", icon: "bg-success/20 text-gray-red" },
-  danger: { dot: "bg-danger", icon: "bg-danger/15 text-danger" },
+  danger: { dot: "bg-danger", icon: "bg-danger/15 text-danger-ink" },
   crimson: { dot: "bg-crimson", icon: "bg-crimson/20 text-berry" },
 } as const;
 
@@ -22,18 +22,18 @@ interface GroupProps {
 function Group({ title, icon: Icon, tone, items }: GroupProps) {
   const style = TONES[tone];
   return (
-    <section aria-label={title} className="flex flex-col gap-2.5">
+    <section aria-label={title} className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <span aria-hidden="true" className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${style.icon}`}>
           <Icon size={14} />
         </span>
         <h3 className="font-display text-base font-normal leading-none text-gray-red">{title}</h3>
       </div>
-      <ul className="flex flex-col gap-2.5">
+      <ul className="flex flex-col gap-3">
         {items.map((item) => {
           const tip = item as Tip;
           return (
-            <li key={item.id} className="flex items-start gap-2.5 text-sm leading-snug text-gray-red">
+            <li key={item.id} className="flex items-start gap-3 text-sm leading-snug text-gray-red">
               <span aria-hidden="true" className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${style.dot}`} />
               <span className="min-w-0">
                 {item.text}
@@ -81,7 +81,7 @@ export default function SalonNotes({ data }: { data: DashboardResponse }) {
   return (
     <section aria-label="Salon notes" className="relative flex shrink-0 flex-col overflow-hidden rounded-2xl border border-crimson-light/60 bg-milk shadow-petal">
       {/* The top part, in the pink gradient: the title and what needs doing now */}
-      <div className="relative flex flex-col gap-5 bg-gradient-to-br from-crimson-light via-light-orange to-crimson-light/60 p-5">
+      <div className="relative flex flex-col gap-6 bg-gradient-to-br from-crimson-light via-light-orange to-crimson-light/60 p-6">
         {/* The brand bow, tied once in the corner (decoration only) */}
         <div aria-hidden="true" className="bow-pop pointer-events-none absolute right-4 top-3">
           <Bow className="h-12 w-10 rotate-12 text-crimson drop-shadow-[0_4px_6px_rgb(184_58_98/0.25)]" />
@@ -89,14 +89,14 @@ export default function SalonNotes({ data }: { data: DashboardResponse }) {
 
         <header className="pr-12">
           <h2 className="font-display text-2xl font-normal leading-tight text-gray-red lg:text-xl xl:text-2xl">Salon notes</h2>
-          <p className="text-sm text-gray-red/70">{PERIOD_LABELS[data.range]}</p>
+          <p className="text-sm text-gray-red">{PERIOD_LABELS[data.range]}</p>
         </header>
 
         <section aria-label="Needs attention" className="flex flex-col gap-2">
-          <h3 className="text-[13px] font-medium text-gray-red/80">Needs attention</h3>
+          <h3 className="text-[13px] font-medium text-gray-red">Needs attention</h3>
           {todos.length === 0 ? (
-            <p className="flex items-center gap-2 text-sm text-gray-red/80">
-              <Check size={16} aria-hidden="true" className="shrink-0 text-success" />
+            <p className="flex items-center gap-2 text-sm text-gray-red">
+              <Check size={16} aria-hidden="true" className="shrink-0 text-success-ink" />
               All caught up.
             </p>
           ) : (
@@ -117,10 +117,10 @@ export default function SalonNotes({ data }: { data: DashboardResponse }) {
       </div>
 
       {/* The insights, on plain milk */}
-      <div className="flex flex-col gap-5 p-5">
-        {message && <p className="text-sm text-gray-red/80">{message}</p>}
+      <div className="flex flex-col gap-6 p-6">
+        {message && <p className="text-sm text-gray-red">{message}</p>}
         {insights.status === "no-data" && (
-          <p className="-mt-3 text-[12px] text-gray-red/70">Insights appear once there are a few bookings to compare.</p>
+          <p className="-mt-3 text-[12px] text-gray-red">Insights appear once there are a few bookings to compare.</p>
         )}
 
         {groups.map((group) => (

@@ -6,7 +6,7 @@ const SIZES = [6, 8, 11, 8, 6];
 // Decoration only.
 export default function Pearls({ className }: { className?: string }) {
   return (
-    <div aria-hidden="true" className={clsx("flex items-center justify-center gap-2.5", className)}>
+    <div aria-hidden="true" className={clsx("flex items-center justify-center gap-3", className)}>
       {SIZES.map((size, i) => (
         <span
           key={i}
