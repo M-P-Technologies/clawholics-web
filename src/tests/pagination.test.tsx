@@ -95,7 +95,7 @@ describe("Pagination layout", () => {
   });
 });
 
-describe("Pagination with a summary", () => {
+describe("Pagination page numbers", () => {
   const many = Array.from({ length: 965 }, (_, i) => i); // 193 pages of 5
   const shown = () => screen.getAllByRole("button", { name: /^Page \d+$/ }).map((b) => Number(b.textContent));
 

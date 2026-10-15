@@ -9,7 +9,7 @@ const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 // xl: a two-column form (the admin's create-appointment form)
-const SIZE = { sm: "lg:max-w-sm", md: "lg:max-w-md", lg: "lg:max-w-lg", xl: "lg:max-w-[700px]" } as const;
+const SIZE = { sm: "lg:max-w-sm", md: "lg:max-w-md", lg: "lg:max-w-lg", xl: "lg:max-w-[700px]", "2xl": "lg:max-w-3xl" } as const;
 
 // Open dialogs, oldest first: only the last one answers Escape, and the page's scroll is
 // locked once for all of them and given back when the last one closes.

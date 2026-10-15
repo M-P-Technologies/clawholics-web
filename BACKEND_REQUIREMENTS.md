@@ -28,7 +28,7 @@ Owner requests #12 (birthday/promo offers) and #7 (more payment options).
 5. **Client side:** show active offers on `/profile` (`views/account/Profile.tsx`), like the loyalty card, and possibly on the booking summary.
 6. **Admin side:**
    - A Promos screen under Content Management (CRUD), following the admin conventions: state in a hook in `src/hooks/admin/`, helpers in `src/lib/admin/`, fetches in `src/services/`, and a JSX-only screen in `src/admin/`.
-   - A "Birthday this month" marker and a redeem button on the client page or in the appointment drawer (`components/admin/AppointmentDetailsModal.tsx`).
+   - A "Birthday this month" marker and a redeem button on the client page or in the appointment drawer (`components/features/admin/bookings/AppointmentDetailsModal.tsx`).
 7. **Dashboard (optional):** "birthdays this week" under Needs attention (`src/lib/dashboardInsights.ts`).
 8. **Tests:** DB tests in `src/tests/db` for issuing (once per year), expiry and redemption.
 
