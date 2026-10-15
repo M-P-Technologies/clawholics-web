@@ -24,5 +24,12 @@ export function useFaqsEditor() {
     what: "FAQ page",
     onSaved: list.changed,
   });
-  return { list, page, getToken, clerkId: currentUser?.id };
+  return {
+    list,
+    page,
+    getToken,
+    clerkId: currentUser?.id,
+    /** The empty question for the Add form, placed after the others */
+    newFaq: { id: 0, question: "", answer: "", display_order: list.items.length + 1 },
+  };
 }

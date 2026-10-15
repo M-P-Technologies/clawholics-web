@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "@/lib/router";
 import { useToast } from "@/components/molecules";
 import { fetchServiceById, fetchServiceGallery, type NailService } from "../../services/serviceService";
+import { artistsFact, priceLabel } from "../../lib/client/servicePrice";
 import { useStartBooking } from "../useStartBooking";
 
 type Status = "loading" | "ready" | "missing" | "error";
@@ -52,6 +53,9 @@ export function useServiceDetail() {
 
   return {
     service,
+    price: service ? priceLabel(service) : "",
+    /** How many artists do it, or which level */
+    artists: service ? artistsFact(service) : "",
     photos: [service?.image, ...gallery].filter((url): url is string => !!url),
     status,
     retry: () => setAttempt((n) => n + 1),

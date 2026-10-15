@@ -36,3 +36,6 @@ export const rewardsLine = (stamps: number) => {
 
 /** "Ana Cruz", or "You" when no name is set */
 export const fullName = (u: UserProfile) => [u.first_name, u.last_name].filter(Boolean).join(" ") || "You";
+
+/** The More links at the foot of the Profile screen */
+export const profileLinkClass = "rounded-xl px-3 py-2.5 text-sm font-bold text-gray-red hover:bg-crimson-light/30";

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchFaqs } from "../services/faqService";
 import { fetchHomeContent } from "../services/contentService";
-import { FAQ_PAGE_DEFAULTS, readFaqPage } from "../lib/homeSections";
+import { FAQ_PAGE_DEFAULTS, ctaLink, readFaqPage } from "../lib/homeSections";
 import { usePreviewVersion } from "@/lib/cmsPreview";
 import type { Faq } from "../types";
 
@@ -33,5 +33,9 @@ export function useFaqs() {
     setAttempt((n) => n + 1);
   };
 
-  return { faqs, words, loading, error, reload };
+  // The closing banner's buttons
+  const primary = ctaLink(words.home_faq_cta_primary_link, words.home_faq_cta_primary_label);
+  const secondary = ctaLink(words.home_faq_cta_secondary_link, words.home_faq_cta_secondary_label);
+
+  return { faqs, words, primary, secondary, loading, error, reload };
 }

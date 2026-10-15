@@ -6,6 +6,7 @@ import { OFFERED_PAYMENT_METHODS, PAYMENT_METHOD_HINTS, PAYMENT_METHOD_LABELS } 
 import { fetchAppointmentById } from "@/services/appointmentService";
 import { type AppointmentState, explainPaymentFailure, explainStatusChange } from "@/utils/payment";
 import { CLIENT_PATHS } from "@/lib/client/clientNav";
+import { paymentArtistLabel, paymentPriceLabel } from "@/lib/client/payment";
 
 export function usePayment() {
   const navigate = useNavigate();
@@ -225,5 +226,9 @@ export function usePayment() {
 
   const methods = enabledMethods.map((code) => ({ code, label: PAYMENT_METHOD_LABELS[code], hint: PAYMENT_METHOD_HINTS[code] }));
 
-  return { methods, toggleAgree, navigate, method, setMethod, agree, setAgree, loading, isInvalid, timeLeft, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, modalDismissible, appointment, handlePay, handleModalClose };
+  // The summary's artist (a star for a master) and price
+  const artistLabel = appointment ? paymentArtistLabel(appointment) : "";
+  const priceLabel = appointment ? paymentPriceLabel(appointment) : "";
+
+  return { artistLabel, priceLabel, methods, toggleAgree, navigate, method, setMethod, agree, setAgree, loading, isInvalid, timeLeft, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, modalDismissible, appointment, handlePay, handleModalClose };
 }

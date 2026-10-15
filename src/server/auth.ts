@@ -1,6 +1,7 @@
 import "server-only";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { getSql } from "./db";
+import { nextApiEnabled } from "./worker";
 
 // Who is calling, from a Clerk-verified session (the Authorization: Bearer token the services
 // send, or the same-origin __session cookie). Unlike the Worker, the `clerk_id` header is
@@ -44,6 +45,21 @@ export const canAccess = (requester: RequesterUser, ownerUserId: number | null |
 /** For public GETs that show more to admins (the Worker's isAdminRequester). */
 export async function isAdmin(): Promise<boolean> {
   return (await getRequester())?.role === "admin";
+}
+
+/**
+ * For the admin and client layouts: whether users.role says admin. Until the cutover
+ * (API_BACKEND=worker) the roles live in D1 behind the Worker, so only Clerk's role counts and this
+ * is false; a failed lookup also falls back to Clerk's role. `where` names the caller in the log.
+ */
+export async function isApiAdmin(where: string): Promise<boolean> {
+  if (!nextApiEnabled()) return false;
+  try {
+    return await isAdmin();
+  } catch (error) {
+    console.error(`[${where}] role lookup failed:`, error);
+    return false;
+  }
 }
 
 export async function requireUser(): Promise<Requester | Response> {

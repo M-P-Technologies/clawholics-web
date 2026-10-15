@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import MyAppointments from "@/views/client/MyAppointments";
-import MyProfile from "@/views/client/MyProfile";
+import MyAppointments from "@/app/(client)/my/appointments/page";
+import MyProfile from "@/app/(client)/my/profile/page";
 
 vi.mock("@/lib/router", () => ({
   useNavigate: () => () => {},

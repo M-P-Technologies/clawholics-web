@@ -1,7 +1,8 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Reschedule from "@/views/client/Reschedule";
+import Reschedule from "@/app/(client)/my/reschedule/page";
 import { formatSlot } from "@/utils/reschedule";
+import { rescheduleLabels } from "@/lib/client/reschedule";
 
 const hook = vi.fn();
 // The screens draw ClientScreen, which reads the account the client app provides
@@ -31,7 +32,8 @@ const state = () => ({
 let s: ReturnType<typeof state>;
 beforeEach(() => {
   s = state();
-  hook.mockImplementation(() => s);
+  // The labels the hook works out from the fake state
+  hook.mockImplementation(() => ({ ...s, formatSlot, ...rescheduleLabels(s.appointment, s.selectedDate, s.selectedTime, s.formatDisplayDate) }));
 });
 
 describe("reschedule step", () => {

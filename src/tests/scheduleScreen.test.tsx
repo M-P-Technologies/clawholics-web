@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import Schedule from "@/admin/front-desk/Schedule";
+import Schedule from "@/app/(admin)/schedule/page";
 import type { MonthlySchedule, ScheduleAppointment } from "@/services/scheduleService";
 
 const appt = (id: number, date: string, client: string): ScheduleAppointment => ({

@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Explore from "@/views/client/Explore";
+import Explore from "@/app/(client)/my/explore/page";
 import { filterServices } from "@/lib/client/explore";
 
 const navigate = vi.fn();

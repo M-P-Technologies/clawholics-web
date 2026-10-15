@@ -46,3 +46,21 @@ export const userButtonAppearance = {
     userButtonPopoverFooter: "!hidden",
   },
 };
+
+// The sign in and sign up screens' titles and button text
+export const clerkLocalization = {
+  signIn: {
+    start: {
+      title: "Sign in to Clawholics",
+      subtitle: "Welcome back! Please sign in to continue.",
+      actionButton: "CONTINUE",
+    },
+  },
+  signUp: {
+    start: {
+      title: "Create your account",
+      subtitle: "Please fill in the details to get started.",
+      actionButton: "CONTINUE",
+    },
+  },
+};

@@ -1,7 +1,9 @@
 import { usePreviewVersion } from "@/lib/cmsPreview";
 import { lastSeen } from "../utils/lastSeen";
 import React, { useEffect, useState } from "react";
-import { type ContactFeedback } from "@/lib/contactFeedback";
+import { CONTACT_FEEDBACK, type ContactFeedback } from "@/lib/contactFeedback";
+import { platformOf, readSocialLinks, socialHref } from "@/lib/socialLinks";
+import { DEFAULT_HERO_IMAGE } from "@/data/home";
 import { fetchHomeContent } from "../services/contentService";
 import { fetchAboutContent } from "../services/aboutService";
 import { withSalonLocation } from "../lib/homeSections";
@@ -122,5 +124,19 @@ export function useContactUs() {
   const descriptionLength = formData.description.length;
   const isDescriptionFull = descriptionLength >= 500;
 
-  return { descriptionLength, isDescriptionFull, contactFields, pageData, isPageLoading, pageError, emailError, setEmailError, formData, modalState, isSubmitting, closeModal, handleChange, handleSubmit, handleEmailChange, reloadPage };
+  // The social links as edited in Admin > Contact Us, each with its platform's name and icon
+  const socialLinks = pageData
+    ? readSocialLinks(pageData).map((link) => ({ name: link.name, href: socialHref(link), ...platformOf(link.platform) }))
+    : [];
+  const heroImage = pageData?.home_hero_image || DEFAULT_HERO_IMAGE;
+  // The dialog after sending: its words, and whether it's an error
+  const feedback = modalState.type ? CONTACT_FEEDBACK[modalState.type] : null;
+  const feedbackDialog = {
+    open: modalState.isOpen && !!modalState.type,
+    title: feedback?.title ?? "",
+    message: feedback?.message ?? "",
+    isError: modalState.type !== "success",
+  };
+
+  return { socialLinks, heroImage, feedbackDialog, descriptionLength, isDescriptionFull, contactFields, pageData, isPageLoading, pageError, emailError, setEmailError, formData, modalState, isSubmitting, closeModal, handleChange, handleSubmit, handleEmailChange, reloadPage };
 }

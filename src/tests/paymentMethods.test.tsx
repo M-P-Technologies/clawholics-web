@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import Payment from "@/views/client/Payment";
+import { paymentArtistLabel, paymentPriceLabel } from "@/lib/client/payment";
+import Payment from "@/app/(client)/my/payment/page";
 import { OFFERED_PAYMENT_METHODS, PAYMENT_METHOD_HINTS, PAYMENT_METHOD_LABELS } from "@/data/payment";
 
 const hook = vi.fn();
@@ -62,6 +63,7 @@ describe("payment step", () => {
     appointment: { service_name: "Hard Gel", nailist_name: "Max", nailist_category_id: 1, service_price: 650, appointment_date: "2026-10-20", appointment_time: "9:00 AM - 11:00 AM" },
     handlePay: vi.fn(), handleModalClose: vi.fn(), sectionLabel: "label-caps",
   };
+  Object.assign(base, { artistLabel: paymentArtistLabel(base.appointment), priceLabel: paymentPriceLabel(base.appointment) });
 
   it("shows the summary, the fees and the countdown", () => {
     hook.mockReturnValue(base);

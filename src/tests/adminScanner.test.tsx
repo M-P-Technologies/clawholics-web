@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import AdminScanner from "@/admin/front-desk/AdminScanner";
+import AdminScanner from "@/app/(admin)/admin-scanner/page";
 
 vi.mock("@/components/features/admin/shell/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
 // A stable getToken, as the real Clerk hook has (the global mock makes a new one every render)

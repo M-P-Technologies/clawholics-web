@@ -121,3 +121,9 @@ export function weekLabel(days: Date[]) {
 /** The services booked in the loaded schedule, in order, for the filter */
 export const serviceNamesOf = (schedule: MonthlySchedule | null) =>
   [...new Set((schedule?.appointments ?? []).map((a) => a.service_name).filter(Boolean))].sort();
+
+/** The phone's two views, and their switch labels */
+export const PHONE_VIEWS = [
+  { value: "agenda", label: "Day" },
+  { value: "month", label: "Month" },
+] as const;

@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Privacy from "@/views/legal/Privacy";
-import PrivacyPolicy from "@/admin/content-management/PrivacyPolicy";
+import Privacy from "@/app/(site)/privacy/page";
+import PrivacyPolicy from "@/app/(admin)/privacy-policy/page";
 import robots from "@/app/robots";
 
 const fetchLegalContent = vi.fn();

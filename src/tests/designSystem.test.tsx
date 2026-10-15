@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import DesignSystem from "@/admin/DesignSystem";
+import DesignSystem from "@/app/(admin)/design-system/page";
 
 vi.mock("@/components/features/admin/shell/AdminShell", () => ({ default: ({ title, children }: { title: string; children: React.ReactNode }) => <main><h1>{title}</h1>{children}</main> }));
 

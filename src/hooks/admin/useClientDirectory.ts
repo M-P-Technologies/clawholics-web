@@ -5,7 +5,7 @@ import { useAuth, useUser } from "@clerk/nextjs";
 import { Activity, Flame, UserPlus, Users } from "lucide-react";
 import type { DirectoryProfile, DirectoryUser } from "@/components/features/admin/directory/DirectoryProfileCard";
 import { countWithin, isClientRole } from "../../lib/directoryStats";
-import { useSearchParams } from "../../lib/router";
+import { useNavigate, useSearchParams } from "../../lib/router";
 import { fetchWarmLeads } from "../../services/dashboardService";
 import { fetchDirectoryProfiles, fetchDirectoryUsers } from "../../services/directoryService";
 
@@ -14,6 +14,7 @@ export function useClientDirectory() {
   const { getToken, isLoaded: isAuthLoaded } = useAuth();
   const { user: currentUser } = useUser();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const [users, setUsers] = useState<DirectoryUser[] | null>(null);
   const [usersFailed, setUsersFailed] = useState(false);
@@ -67,6 +68,8 @@ export function useClientDirectory() {
     /** Opened from the dashboard's warm leads (?view=leads) */
     leadsView: searchParams.get("view") === "leads",
     leads,
+    /** Opens a warm lead's client page */
+    openLead: (user: DirectoryUser) => user.user_id && navigate(`/clients/${user.user_id}`),
     leadsLoaded,
     leadsFailed,
     /** The line above the warm leads */

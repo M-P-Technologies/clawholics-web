@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Faq from "@/views/site/Faq";
+import Faq from "@/app/(site)/faq/page";
 
 const fetchFaqs = vi.fn();
 vi.mock("@/services/faqService", () => ({ fetchFaqs: () => fetchFaqs() }));

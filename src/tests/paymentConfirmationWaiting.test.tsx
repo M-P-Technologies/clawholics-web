@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import PaymentConfirmation from "@/views/client/PaymentConfirmation";
+import PaymentConfirmation from "@/app/(client)/my/confirmation/page";
 
 const hook = vi.fn();
 // The screens draw ClientScreen, which reads the account the client app provides

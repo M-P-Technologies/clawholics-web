@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { useToast } from "@/components/molecules";
 import { contactProblem, pickContactValues } from "../../lib/admin/contactEditor";
-import { readSocialLinks, socialLinksToContent, type SocialLink } from "../../lib/socialLinks";
+import { platformOf, readSocialLinks, socialLinksToContent, type SocialLink } from "../../lib/socialLinks";
 import { fetchHomeContent, updateHomeContent } from "../../services/contentService";
 
 // The Contact Us editor: the Contact page's words, the phone and email, and the social links,
@@ -74,6 +74,8 @@ export function useContactEditor() {
     values,
     set: (key: string) => (value: string) => setValues((prev) => ({ ...prev, [key]: value })),
     links,
+    /** Each link with its platform's name, and whether it is an email address */
+    linkCards: links.map((link, index) => ({ link, index, label: platformOf(link.platform).label, isEmail: link.platform === "email" })),
     setLink: (index: number, change: Partial<SocialLink>) => setLinks((prev) => prev.map((link, i) => (i === index ? { ...link, ...change } : link))),
     moveLink: (index: number, by: number) =>
       setLinks((prev) => {

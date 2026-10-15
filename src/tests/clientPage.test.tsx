@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import ClientPage from "@/admin/front-desk/ClientPage";
+import ClientPage from "@/app/(admin)/clients/[id]/page";
 
 const fetchClient = vi.fn();
 const fetchNotes = vi.fn();

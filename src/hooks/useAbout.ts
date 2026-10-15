@@ -44,5 +44,8 @@ export function useAbout() {
     return value ? [{ day, time: value.replace(day, "").trim() }] : [];
   });
 
-  return { gallery, error, reload, data, copied, handleCopyLocation, aboutHtml, businessHours };
+  // The studio gallery, in the shape StackedGallery takes
+  const galleryPhotos = gallery.map((photo) => ({ id: photo.id, url: photo.image_url }));
+
+  return { gallery, galleryPhotos, error, reload, data, copied, handleCopyLocation, aboutHtml, businessHours };
 }

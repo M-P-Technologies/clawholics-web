@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Dashboard from "@/admin/overview/Dashboard";
+import Dashboard from "@/app/(admin)/dashboard/page";
 import type { DashboardResponse } from "@/services/dashboardTypes";
 
 const fetchDashboard = vi.fn();

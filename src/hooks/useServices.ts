@@ -1,6 +1,6 @@
 import { usePreviewVersion } from "@/lib/cmsPreview";
 import { lastSeen } from "../utils/lastSeen";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { fetchServices } from "../services/serviceService";
 import { fetchHomeContent } from "../services/contentService";
 import type { HomeContent } from "../types";
@@ -8,6 +8,8 @@ import type { NailService } from "../services/serviceService";
 import { fetchCategories, type ServiceCategory } from "../services/catalogService";
 import type { ChangeEvent } from "react";
 import { startingPrice } from "../services/pricing";
+import { ctaLink, readServicesPage } from "../lib/homeSections";
+import { usePagination } from "./usePagination";
 
 export function useServices() {
   const [services, setServices] = useState<NailService[]>(() => lastSeen("services") ?? []);
@@ -77,5 +79,24 @@ export function useServices() {
     setCategory("All");
   };
 
-  return { resetFilters, cards, error, reload, filtered, content, category, setCategory, search, setSearch, categoryNames, handleSearchChange };
+  // The page's words and closing banner, as edited in Admin > Services (or the defaults)
+  const banner = readServicesPage(content);
+  const primary = ctaLink(banner.home_services_cta_primary_link, banner.home_services_cta_primary_label);
+  const secondary = ctaLink(banner.home_services_cta_secondary_link, banner.home_services_cta_secondary_label);
+
+  // 9 services a page; a new category or search starts again from the first page, and a new page
+  // scrolls back to the top of the list
+  const { page, setPage, totalPages, pageItems } = usePagination(cards, `${category}|${search}`);
+  const listRef = useRef<HTMLElement>(null);
+  const goToPage = (next: number) => {
+    setPage(next);
+    listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const query = search.trim();
+  const emptyMessage = query
+    ? `Nothing matches "${query}". Check the spelling, try a shorter word, or clear the search to see everything.`
+    : "There are no services in this category yet. Pick another category to keep browsing.";
+
+  return { resetFilters, cards, error, reload, filtered, content, banner, primary, secondary, category, setCategory, search, setSearch, categoryNames, handleSearchChange, page, totalPages, pageItems, listRef, goToPage, emptyMessage };
 }

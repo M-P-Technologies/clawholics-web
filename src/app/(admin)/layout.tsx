@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
-import { isAdmin } from "@/server/auth";
-import { nextApiEnabled } from "@/server/worker";
+import { isApiAdmin } from "@/server/auth";
 
 // Search engines must not list the admin screens
 export const metadata: Metadata = { robots: { index: false, follow: false } };
@@ -19,19 +18,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const user = await currentUser();
   if (!user) redirect("/login");
 
-  if (user.publicMetadata?.role !== "admin" && !(await isApiAdmin())) redirect("/");
+  if (user.publicMetadata?.role !== "admin" && !(await isApiAdmin("admin layout"))) redirect("/");
 
   return children;
-}
-
-// Until the cutover (API_BACKEND=worker) the roles live in D1 behind the Worker, so only
-// Clerk's role is checked; a failed lookup also falls back to it.
-async function isApiAdmin() {
-  if (!nextApiEnabled()) return false;
-  try {
-    return await isAdmin();
-  } catch (error) {
-    console.error("[admin layout] role lookup failed:", error);
-    return false;
-  }
 }

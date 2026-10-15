@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Home from "@/views/site/Home";
+import Home from "@/app/(site)/page";
 
 vi.mock("@/hooks/useHome", () => ({
   useHome: () => ({

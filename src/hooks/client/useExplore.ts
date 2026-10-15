@@ -43,6 +43,8 @@ export function useExplore() {
     /** Picks a category ("" for all) */
     chooseCategory: (name: string) => setCategory(name),
     categories,
+    /** The category filter's choices, "All categories" first */
+    categoryOptions: [{ value: "", label: "All categories" }, ...categories.map((c) => ({ value: c.name, label: c.name }))],
     clear: () => {
       setQ("");
       setCategory("");

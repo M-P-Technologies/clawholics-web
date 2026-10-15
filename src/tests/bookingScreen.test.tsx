@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Booking from "@/views/client/Booking";
+import Booking from "@/app/(client)/my/book/page";
 
 const hook = vi.fn();
 // The screens draw ClientScreen, which reads the account the client app provides

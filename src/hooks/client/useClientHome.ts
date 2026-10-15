@@ -6,7 +6,7 @@ import { useToast } from "@/components/molecules";
 import { CLIENT_PATHS } from "../../lib/client/clientNav";
 import { completedVisits } from "../../lib/client/appointments";
 import { clientTrackerSteps } from "../../lib/client/tracker";
-import { relativeDay } from "../../utils/profileView";
+import { relativeDay, statusDotTone } from "../../utils/profileView";
 import { homeOffers } from "../../lib/client/offers";
 import { readHomeSections } from "../../lib/homeSections";
 import { fetchHomeContent } from "../../services/contentService";
@@ -46,6 +46,10 @@ export function useClientHome() {
     account,
     photoFor,
     firstName,
+    greeting: firstName ? `Hi, ${firstName}` : "Hi there",
+    /** The upcoming appointment, and its status badge's colour */
+    next,
+    nextStatusTone: next ? statusDotTone(next.displayStatus) : undefined,
     query,
     setQuery,
     search: () => {

@@ -68,6 +68,11 @@ export function useAdminScanner() {
     }
   };
 
+  /** The camera's reading: the first code it found, if any */
+  const handleScan = (result: { rawValue: string }[] | undefined) => {
+    if (result && result.length > 0) handleResult(result[0].rawValue);
+  };
+
   const handleScanError = (error: unknown) => {
     const errorString = String(error);
     if (errorString.includes("NotAllowedError") || errorString.includes("Permission denied")) {
@@ -121,6 +126,7 @@ export function useAdminScanner() {
     cameraError,
     resultRef,
     handleResult,
+    handleScan,
     handleScanError,
     recordAction,
     startScanner: () => {

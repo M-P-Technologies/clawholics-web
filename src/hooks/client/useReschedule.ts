@@ -4,8 +4,9 @@ import { useUser, useAuth } from "@clerk/nextjs";
 import { fetchBookedSlotsDetailed } from "@/services/bookingService";
 import { fetchNailistDayOffs, fetchNailistTimeSlots } from "@/services/nailistService";
 import { rescheduleAppointment } from "@/services/bookingService";
-import { isOverlapping, toLocalDate, toLocalDateString } from "@/utils/reschedule";
+import { formatSlot, isOverlapping, toLocalDate, toLocalDateString } from "@/utils/reschedule";
 import { CLIENT_PATHS } from "@/lib/client/clientNav";
+import { rescheduleLabels } from "@/lib/client/reschedule";
 
 export function useReschedule() {
   const navigate = useNavigate();
@@ -263,5 +264,8 @@ export function useReschedule() {
     if (modalAction) modalAction();
   };
 
-  return { isLoaded, appointment, isSubmitting, month, setMonth, selectedDate, setSelectedDate, selectedTime, setSelectedTime, timeSlots, setBookedSlots, fullyBookedDates, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, isDisabledDate, formatDisplayDate, isTimeBlocked, isPastTimeToday, showModal, handleConfirmReschedule, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, uniqueTimeSlots, handleModalClose };
+  // The summary's old and new date and time
+  const labels = rescheduleLabels(appointment, selectedDate, selectedTime, formatDisplayDate);
+
+  return { formatSlot, ...labels, isLoaded, appointment, isSubmitting, month, setMonth, selectedDate, setSelectedDate, selectedTime, setSelectedTime, timeSlots, setBookedSlots, fullyBookedDates, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, isDisabledDate, formatDisplayDate, isTimeBlocked, isPastTimeToday, showModal, handleConfirmReschedule, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, uniqueTimeSlots, handleModalClose };
 }

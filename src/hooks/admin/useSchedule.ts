@@ -5,8 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { useToast } from "@/components/molecules";
 import { buildDayData, formatLocalMonth, getArtistName, parseLocalDate, serviceNamesOf, weekLabel } from "../../lib/admin/schedule";
 import { isDesktopWidth } from "../../lib/viewport";
-import { updateAppointmentStatus, type AppointmentStatus } from "../../services/appointmentService";
-import { addDays, mergeSchedules, weekDays, weekMonthKeys } from "../../services/scheduleAgenda";
+import { updateAppointmentStatus, type Appointment, type AppointmentStatus } from "../../services/appointmentService";
+import { addDays, mergeSchedules, toDateKey, weekDays, weekMonthKeys } from "../../services/scheduleAgenda";
 import { fetchMonthlySchedule, type MonthlySchedule, type ScheduleAppointment } from "../../services/scheduleService";
 
 export type PhoneView = "agenda" | "month";
@@ -108,6 +108,7 @@ export function useSchedule() {
   };
 
   const gridDays = weekDays(weekDate);
+  const selectedDay = selectedDate ? parseLocalDate(selectedDate) : null;
   return {
     isLoading,
     desktop,
@@ -124,6 +125,7 @@ export function useSchedule() {
     setService,
     // Desktop week grid
     gridDays,
+    todayKey: toDateKey(new Date()),
     weekLabel: weekLabel(gridDays),
     previousWeek: () => setWeekDate(addDays(weekDate, -7)),
     nextWeek: () => setWeekDate(addDays(weekDate, 7)),
@@ -144,14 +146,16 @@ export function useSchedule() {
     setFilterOpen,
     // The open day and appointment
     selectedDate,
-    selectedDateObject: selectedDate ? parseLocalDate(selectedDate) : null,
+    /** The open day's artists and their bookings */
+    selectedDayArtists: selectedDay ? buildDayData(scheduleData, selectedDay, filterBy) : null,
     openDate,
     openDay: setSelectedDate,
     closeDay: () => {
       setSelectedDate(null);
       setSelectedAppointment(null);
     },
-    selectedAppointment,
+    /** The open appointment, in the shape the details drawer takes */
+    selectedAppointment: selectedAppointment as Appointment | null,
     openAppointment: setSelectedAppointment,
     closeAppointment: () => setSelectedAppointment(null),
     changeAppointmentStatus,

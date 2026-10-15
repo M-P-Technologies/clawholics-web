@@ -90,3 +90,6 @@ export const clientPanelRows = (details: Pick<ClientDetails, "client" | "summary
 
 /** "1 stamp", "4 stamps" */
 export const stampsLabel = (stamps: number) => `${stamps} ${stamps === 1 ? "stamp" : "stamps"}`;
+
+/** What a visit note is about: "About the Sep 5, 2026 visit (Gel polish)" */
+export const visitNoteLabel = (visit?: ClientAppointment) => (visit ? `About the ${dateLabel(visit.appointment_date)} visit (${visit.service_name})` : "About a visit");

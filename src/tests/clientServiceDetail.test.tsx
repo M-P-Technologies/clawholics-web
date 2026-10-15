@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import ServiceDetail from "@/views/client/ServiceDetail";
+import ServiceDetail from "@/app/(client)/my/explore/[id]/page";
 
 const navigate = vi.fn();
 vi.mock("@/lib/router", () => ({

@@ -1,9 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import Booking from "@/views/client/Booking";
-import Reschedule from "@/views/client/Reschedule";
-import Payment from "@/views/client/Payment";
-import PaymentConfirmation from "@/views/client/PaymentConfirmation";
+import Booking from "@/app/(client)/my/book/page";
+import Reschedule from "@/app/(client)/my/reschedule/page";
+import Payment from "@/app/(client)/my/payment/page";
+import PaymentConfirmation from "@/app/(client)/my/confirmation/page";
 
 const booking = vi.fn();
 const reschedule = vi.fn();

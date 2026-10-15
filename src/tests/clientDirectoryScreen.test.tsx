@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import ClientDirectory from "@/admin/front-desk/ClientDirectory";
+import ClientDirectory from "@/app/(admin)/clients/page";
 import type { Appointment } from "@/services/appointmentService";
 
 let params = new URLSearchParams();

@@ -6,8 +6,7 @@ import ClientShell from "@/components/features/client/shell/ClientShell";
 import MyAccountProvider from "@/components/features/client/shell/MyAccountProvider";
 import { ClientOnly } from "@/components/guards/ClientOnly";
 import { OnboardingGate } from "@/components/guards/OnboardingGate";
-import { isAdmin } from "@/server/auth";
-import { nextApiEnabled } from "@/server/worker";
+import { isApiAdmin } from "@/server/auth";
 
 // The client app is personal: search engines must not list it
 export const metadata: Metadata = { robots: { index: false, follow: false } };
@@ -20,7 +19,7 @@ export const metadata: Metadata = { robots: { index: false, follow: false } };
 export default async function ClientLayout({ children }: { children: ReactNode }) {
   const user = await currentUser();
   if (!user) redirect("/login");
-  if (user.publicMetadata?.role === "admin" || (await isApiAdmin())) redirect("/dashboard");
+  if (user.publicMetadata?.role === "admin" || (await isApiAdmin("client layout"))) redirect("/dashboard");
 
   return (
     <Suspense>
@@ -33,16 +32,4 @@ export default async function ClientLayout({ children }: { children: ReactNode }
       </ClientOnly>
     </Suspense>
   );
-}
-
-// Until the cutover (API_BACKEND=worker) the roles live in D1 behind the Worker, so only Clerk's
-// role is checked; a failed lookup also falls back to it.
-async function isApiAdmin() {
-  if (!nextApiEnabled()) return false;
-  try {
-    return await isAdmin();
-  } catch (error) {
-    console.error("[client layout] role lookup failed:", error);
-    return false;
-  }
 }
