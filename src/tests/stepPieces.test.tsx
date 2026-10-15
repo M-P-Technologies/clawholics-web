@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
+import { TimeSlotList } from "@/components/molecules";
 import { describe, expect, it, vi } from "vitest";
-import TimeSlotList from "@/components/features/client/booking/TimeSlotList";
 import BookingOptions from "@/components/features/client/booking/BookingOptions";
 import DayCalendar from "@/components/features/client/booking/DayCalendar";
 
@@ -8,16 +8,37 @@ const slots = ["09:00-11:00", "11:00-13:00", "13:00-15:00"];
 const fmt = (s: string) => s;
 
 describe("time slots", () => {
-  it("are pills in a tinted box, with selected, free and taken looking different", () => {
-    render(<TimeSlotList slots={slots} selected="09:00-11:00" onSelect={vi.fn()} isBlocked={(s) => s === "13:00-15:00"} format={fmt} emptyText="none" />);
+  const props = { slots, selected: "09:00-11:00", onSelect: vi.fn(), isBlocked: (s: string) => s === "13:00-15:00", format: fmt, emptyText: "none" };
+
+  it("are pills, with selected, free and taken looking different, and the chosen one pressed", () => {
+    render(<TimeSlotList {...props} boxed />);
     const [selected, free, taken] = slots.map((s) => screen.getByRole("button", { name: s }));
     for (const b of [selected, free, taken]) expect(b).toHaveClass("rounded-full");
-    expect(selected).toHaveClass("bg-crimson", "text-milk");
-    expect(free).not.toHaveClass("bg-crimson");
+    expect(selected).toHaveClass("bg-berry", "text-pearl");
+    expect(selected).toHaveAttribute("aria-pressed", "true");
+    expect(free).toHaveAttribute("aria-pressed", "false");
+    expect(free).toHaveClass("bg-milk");
     expect(taken).toBeDisabled();
-    expect(taken.className).not.toBe(free.className);
-    expect(selected.parentElement!.closest(".rounded-xl")).not.toBeNull(); // surface.tint
+    expect(taken).toHaveClass("line-through");
     expect(screen.getByRole("heading", { level: 3, name: "Time" })).toBeInTheDocument();
+  });
+
+  it("sits in its own tinted box when boxed, and plainly otherwise", () => {
+    const { container, rerender } = render(<TimeSlotList {...props} boxed />);
+    expect(container.firstElementChild).toHaveClass("rounded-xl", "p-4");
+    rerender(<TimeSlotList {...props} />);
+    expect(container.firstElementChild).not.toHaveClass("p-4");
+  });
+
+  it("lays the slots out in two scrolling columns for a narrow dialog", () => {
+    render(<TimeSlotList {...props} columns={2} />);
+    const grid = screen.getByRole("button", { name: "09:00-11:00" }).parentElement!;
+    expect(grid).toHaveClass("grid-cols-2", "overflow-y-auto");
+  });
+
+  it("says why there are no times, in a tinted note", () => {
+    render(<TimeSlotList {...props} slots={[]} emptyText="Select a date first." />);
+    expect(screen.getByText("Select a date first.")).toHaveClass("rounded-xl");
   });
 });
 

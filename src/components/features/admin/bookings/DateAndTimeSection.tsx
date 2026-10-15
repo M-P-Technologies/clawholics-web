@@ -2,7 +2,7 @@
 
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
-import { Button } from "@/components/atoms";
+import { TimeSlotList } from "@/components/molecules";
 import type { CreateAppointment } from "@/hooks/admin/useCreateAppointment";
 import { formatSlot, toLocalDate, toLocalDateString } from "@/lib/admin/createAppointment";
 
@@ -75,49 +75,21 @@ export default function DateAndTimeSection({ a }: { a: CreateAppointment }) {
           </div>
 
           {/* TIME */}
-          <div className="flex flex-col gap-2">
-            <p className="text-[13px] font-medium text-gray-red/80">Time</p>
-
-            {!selectedNailist ? (
-            <p className="rounded-xl bg-crimson-light/15 p-3 text-center text-[13px] text-gray-red/70">
-                Select a nail artist to view available time slots.
-            </p>
-            ) : !appointmentDate ? (
-              <p className="rounded-xl bg-crimson-light/15 p-3 text-center text-[13px] text-gray-red/70">
-                Select a date first.
-              </p>
-            ) : timeSlots.length === 0 ? (
-              <p className="rounded-xl bg-crimson-light/15 p-3 text-center text-[13px] text-gray-red/70">
-                No schedule available.
-              </p>
-            ) : (
-              <div className="grid max-h-[190px] grid-cols-2 gap-2 overflow-y-auto pr-1 sm:max-h-[220px]">
-                {timeSlots.map((slot) => {
-                  const blocked = isTimeBlocked(slot);
-
-                  return (
-                    <Button
-                      variant="bare"
-                      key={slot}
-                      type="button"
-                      disabled={blocked}
-                      onClick={() => setAppointmentTime(slot)}
-                      aria-pressed={appointmentTime === slot}
-                      className={`w-full rounded-full border px-3 py-2 text-[13px] font-bold transition-colors ${
-                        appointmentTime === slot
-                          ? "border-berry bg-berry text-pearl"
-                          : blocked
-                            ? "cursor-not-allowed border-crimson-light/50 text-gray-red/40 line-through"
-                            : "border-crimson-light bg-milk text-gray-red hover:border-crimson hover:text-berry"
-                      }`}
-                    >
-                      {formatSlot(slot)}
-                    </Button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          <TimeSlotList
+            columns={2}
+            slots={selectedNailist && appointmentDate ? timeSlots : []}
+            selected={appointmentTime}
+            onSelect={setAppointmentTime}
+            isBlocked={isTimeBlocked}
+            format={formatSlot}
+            emptyText={
+              !selectedNailist
+                ? "Select a nail artist to view available time slots."
+                : !appointmentDate
+                  ? "Select a date first."
+                  : "No schedule available."
+            }
+          />
         </div>
       )}
     </>
