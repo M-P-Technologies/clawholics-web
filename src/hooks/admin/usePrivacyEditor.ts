@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useEditorSource } from "./useEditorSource";
 import { useAuth, useUser } from "@clerk/nextjs";
-import { useToast } from "../../components/ui/ToastProvider";
+import { useToast } from "@/components/molecules";
 import { PRIVACY_POLICY_HTML } from "../../data/privacyPolicyHtml";
 import { PRIVACY_KEY } from "../../lib/admin/cmsPages";
 import { fetchLegalContent, updateLegalContent } from "../../services/contentService";

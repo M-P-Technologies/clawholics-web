@@ -1,17 +1,17 @@
 import { useState } from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import Sheet from "@/components/ui/Sheet";
+import { Dialog } from "@/components/organisms";
 
 function Harness() {
   const [open, setOpen] = useState(false);
   return (
     <>
       <button onClick={() => setOpen(true)}>Open</button>
-      <Sheet open={open} title="Details" onClose={() => setOpen(false)}>
+      <Dialog open={open} title="Details" onClose={() => setOpen(false)}>
         <button>First</button>
         <button>Last</button>
-      </Sheet>
+      </Dialog>
     </>
   );
 }

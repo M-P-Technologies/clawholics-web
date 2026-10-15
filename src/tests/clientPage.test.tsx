@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import ClientPage from "@/admin/front-desk/ClientPage";
+import ClientPage from "@/app/(admin)/clients/[id]/page";
 
 const fetchClient = vi.fn();
 const fetchNotes = vi.fn();
@@ -23,8 +23,8 @@ vi.mock("@/lib/router", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/router")>()),
   useParams: () => ({ id: "7" }),
 }));
-vi.mock("@/components/admin/SideBar", () => ({ default: () => <div /> }));
-vi.mock("@/components/ui/ToastProvider", () => ({ useToast: () => ({ show: vi.fn() }) }));
+vi.mock("@/components/features/admin/shell/SideBar", () => ({ default: () => <div /> }));
+vi.mock("@/components/molecules", async (orig) => ({ ...(await orig<object>()), useToast: () => ({ show: vi.fn() }) }));
 vi.mock("@clerk/nextjs", () => {
   const auth = { getToken: async () => "tok" };
   const user = { user: { id: "admin_1" } };
@@ -70,6 +70,8 @@ describe("Client page", () => {
     const profile = within(await screen.findByRole("complementary", { name: "Client profile" }));
     expect(fetchClient).toHaveBeenCalledWith(7, auth);
     expect(profile.getByRole("heading", { name: "Ana Cruz" })).toBeInTheDocument();
+    expect(profile.getByText("Client")).toBeInTheDocument();
+    expect(profile.getByText("3 stamps")).toBeInTheDocument();
     expect(profile.getByText("ana@x.test")).toBeInTheDocument();
     expect(profile.getByText("09171234567")).toBeInTheDocument();
     expect(profile.getByText("@ana")).toBeInTheDocument();

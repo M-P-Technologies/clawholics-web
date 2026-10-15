@@ -29,4 +29,11 @@ export const trimHomeSections = (sections: HomeSections): HomeSections => ({
   text: Object.fromEntries(Object.entries(sections.text).map(([key, value]) => [key, value.trim()])) as Record<HomeTextKey, string>,
   features: sections.features.map((f) => ({ ...f, title: f.title.trim(), text: f.text.trim() })),
   strip: sections.strip?.map((slide) => ({ ...slide, title: slide.title.trim() })) ?? null,
+  offers: sections.offers.map((o) => ({ ...o, title: o.title.trim(), line: o.line.trim(), note: o.note.trim(), buttonLabel: o.buttonLabel.trim() })),
 });
+
+/** The birthday banner's "Show it" choices */
+export const BIRTHDAY_BANNER_OPTIONS = [
+  { value: "1", label: "In each client's birthday month" },
+  { value: "0", label: "Never" },
+];

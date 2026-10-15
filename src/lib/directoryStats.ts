@@ -1,4 +1,4 @@
-import type { DirectoryProfile, DirectoryUser } from "../components/admin/DirectoryProfileCard";
+import type { DirectoryProfile, DirectoryUser } from "@/components/features/admin/directory/DirectoryProfileCard";
 
 const DAY = 24 * 60 * 60 * 1000;
 

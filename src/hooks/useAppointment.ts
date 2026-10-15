@@ -91,5 +91,8 @@ export function useAppointment() {
               : []),
           ];
 
-  return { priceLines, navigate, loading, service, gallery, terms, notFound, modalOpen, setModalOpen, modalTitle, modalMessage, modalButtonText, modalAction, handleContinue, closeModal };
+  // Phones: the photos as a carousel, the main photo first
+  const carouselPhotos = service ? [...gallery].sort((a, b) => Number(b.image_url === service.image) - Number(a.image_url === service.image)) : [];
+
+  return { priceLines, navigate, loading, service, gallery, carouselPhotos, terms, notFound, modalOpen, setModalOpen, modalTitle, modalMessage, modalButtonText, modalAction, handleContinue, closeModal };
 }

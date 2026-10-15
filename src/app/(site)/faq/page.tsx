@@ -1,7 +1,47 @@
-import Faq from "@/views/site/Faq";
+"use client";
 
-export default function Page() {
+import { LoadingBar, Blush } from "@/components/atoms";
+import { LoadError, EmptyState, SectionHeader } from "@/components/molecules";
+import FaqList from "@/components/home/FaqList";
+import CtaBand from "@/components/home/CtaBand";
+import PageShell from "@/components/layout/PageShell";
+import Section from "@/components/layout/Section";
+import { useFaqs } from "@/hooks/useFaqs";
+
+// Every frequently asked question on one page. The home page's FAQ section shows the same list,
+// so the admin edits both in one place (FAQs).
+export default function Faq() {
+  const { faqs, words, primary, secondary, loading, error, reload } = useFaqs();
+
+  if (loading) return <LoadingBar label="Loading frequently asked questions" />;
+  if (error) return <LoadError what="frequently asked questions" onRetry={reload} />;
+
   return (
-    <Faq />
+    <PageShell>
+      <Section innerClassName="!max-w-4xl !gap-8">
+        <Blush className="-right-32 top-1/4 h-80 w-80" />
+        <SectionHeader title={words.home_faq_page_title} subtitle={words.home_faq_page_intro} />
+
+        {faqs.length === 0 ? (
+          <EmptyState
+            kind="empty"
+            title="No questions here yet"
+            message="We're putting our most common questions together. Until then, send us a message and we'll answer it."
+          />
+        ) : (
+          <FaqList faqs={faqs} />
+        )}
+      </Section>
+
+      {/* As edited in Admin > FAQs (or the defaults) */}
+      <div id="faq-banner">
+        <CtaBand
+          title={words.home_faq_cta_title}
+          text={words.home_faq_cta_text}
+          primary={primary}
+          secondary={secondary}
+        />
+      </div>
+    </PageShell>
   );
 }

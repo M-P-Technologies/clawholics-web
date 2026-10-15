@@ -1,7 +1,7 @@
 import { createPortal } from "react-dom";
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 
 type Image = {
   id: number;

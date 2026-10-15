@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { publicQueries } from "@/lib/publicQueries";
-import { FAQ_PAGE_DEFAULTS, readFaqPage } from "../lib/homeSections";
+import { FAQ_PAGE_DEFAULTS, ctaLink, readFaqPage } from "../lib/homeSections";
 
 // The FAQ page's questions: the same list the home page's FAQ section shows
 export function useFaqs() {
@@ -18,5 +18,9 @@ export function useFaqs() {
     void faqsQuery.refetch();
   };
 
-  return { faqs, words, loading, error, reload };
+  // The closing banner's buttons
+  const primary = ctaLink(words.home_faq_cta_primary_link, words.home_faq_cta_primary_label);
+  const secondary = ctaLink(words.home_faq_cta_secondary_link, words.home_faq_cta_secondary_label);
+
+  return { faqs, words, primary, secondary, loading, error, reload };
 }

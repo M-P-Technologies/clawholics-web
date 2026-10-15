@@ -3,6 +3,7 @@ import { useNavigate } from "@/lib/router";
 import { useQueryClient } from "@tanstack/react-query";
 import { accountQueries } from "@/lib/accountQueries";
 import { bookingStateFor } from "../utils/booking";
+import { CLIENT_PATHS } from "../lib/client/clientNav";
 
 type ShowModal = (title: string, message: string, action?: () => void, buttonText?: string) => void;
 
@@ -41,6 +42,6 @@ export function useStartBooking(showModal: ShowModal) {
       return;
     }
 
-    navigate("/booking", { state: bookingStateFor(service, nailistId) });
+    navigate(CLIENT_PATHS.book, { state: bookingStateFor(service, nailistId) });
   };
 }

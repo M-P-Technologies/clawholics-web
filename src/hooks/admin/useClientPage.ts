@@ -3,9 +3,9 @@
 import { useAuth, useUser } from "@clerk/nextjs";
 import { useCallback, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/components/molecules";
 import { adminKeys, adminQueries } from "../../lib/adminQueries";
-import { useToast } from "../../components/ui/ToastProvider";
-import { manilaToday, type ClientTab } from "../../lib/admin/clientPage";
+import { CLIENT_TABS, clientName, clientPanelRows, manilaToday, nextVisitHighlight, stampsLabel, visitNoteLabel, type ClientTab } from "../../lib/admin/clientPage";
 import { useParams } from "../../lib/router";
 import { useStampTarget } from "../useStampTarget";
 import { addNote, deleteNote, saveNextSteps, type ClientDetails, type ClientNote } from "../../services/clientNotesService";
@@ -102,10 +102,15 @@ export function useClientPage() {
     }, "Next steps saved");
 
   const appointments = details?.appointments ?? [];
+  const nextAppointment = details?.summary.nextVisit
+    ? appointments.find((a) => a.status === "CONFIRMED" && a.appointment_date === details.summary.nextVisit)
+    : undefined;
   return {
     details,
     /** The stamps a loyalty card needs for a reward */
     stampTarget,
+    /** "4 / 10": the stamps on the card, capped at the target */
+    stampsValue: `${Math.min(details?.summary.stamps ?? 0, stampTarget)} / ${stampTarget}`,
     notFound,
     failed,
     today,
@@ -113,14 +118,23 @@ export function useClientPage() {
     setTab,
     busy,
     notes,
-    /** Notes about the client in general, and those about one visit */
+    /** The tabs, with the number of notes and appointments */
+    tabs: CLIENT_TABS.map((t) => ({
+      value: t.value,
+      label: t.label,
+      count: t.value === "notes" ? (notes.length > 0 ? notes.length : undefined) : t.value === "appointments" ? appointments.length : undefined,
+    })),
+    /** The profile panel: the name, the stamps badge, the next visit and the Client info rows */
+    name: details ? clientName(details.client) : "",
+    stampsLabel: stampsLabel(details?.summary.stamps ?? 0),
+    highlight: nextVisitHighlight(nextAppointment),
+    panelRows: details ? clientPanelRows(details) : [],
+    /** Notes about the client in general, and those about one visit with what they're about */
     generalNotes: notes.filter((n) => !n.appointment_id),
-    visitNotes: notes.filter((n) => n.appointment_id),
+    visitNotes: notes
+      .filter((n) => n.appointment_id)
+      .map((note) => ({ note, about: visitNoteLabel(appointments.find((a) => a.id === note.appointment_id)) })),
     notesFor: (appointmentId: number) => notes.filter((n) => n.appointment_id === appointmentId),
-    visitOf: (appointmentId?: number | null) => appointments.find((a) => a.id === appointmentId),
-    nextAppointment: details?.summary.nextVisit
-      ? appointments.find((a) => a.status === "CONFIRMED" && a.appointment_date === details.summary.nextVisit)
-      : undefined,
     draft,
     setDraft,
     addGeneralNote,

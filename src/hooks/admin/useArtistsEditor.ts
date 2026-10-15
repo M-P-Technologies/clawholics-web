@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { adminKeys, adminQueries } from "../../lib/adminQueries";
 import { useEditorSource } from "./useEditorSource";
 import { useAuth, useUser } from "@clerk/nextjs";
-import { useToast } from "../../components/ui/ToastProvider";
+import { useToast } from "@/components/molecules";
 import { readTeamPage, type TeamPageKey } from "../../lib/homeSections";
 import { fetchTeamContent, updateTeamContent } from "../../services/contentService";
 import { type Nailist } from "../../services/nailistService";

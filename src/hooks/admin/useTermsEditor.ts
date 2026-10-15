@@ -13,5 +13,11 @@ export function useTermsEditor() {
     saveOrder: async (item) => updateTac(item.id, item.section, item.content, item.display_order, await getToken(), currentUser?.id),
     what: "Terms & Conditions",
   });
-  return { list, getToken, clerkId: currentUser?.id };
+  return {
+    list,
+    getToken,
+    clerkId: currentUser?.id,
+    /** The empty section for the Add form, placed after the others */
+    newTac: { id: 0, section: "", content: "", display_order: list.items.length + 1 },
+  };
 }

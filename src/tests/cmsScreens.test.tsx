@@ -1,19 +1,19 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Homepage from "@/admin/content-management/Homepage";
-import ContactUs from "@/admin/content-management/ContactUs";
-import AboutUs from "@/admin/content-management/AboutUs";
-import NailServices from "@/admin/content-management/NailServices";
-import NailArtists from "@/admin/content-management/NailArtists";
-import FAQs from "@/admin/content-management/FAQs";
+import Homepage from "@/app/(admin)/homepage/page";
+import ContactUs from "@/app/(admin)/contact-info/page";
+import AboutUs from "@/app/(admin)/about-us/page";
+import NailServices from "@/app/(admin)/nail-services/page";
+import NailArtists from "@/app/(admin)/nail-artists/page";
+import FAQs from "@/app/(admin)/faqs/page";
 
 // The Homepage editor draws about sixty fields; under a full parallel run its first render can
 // pass the default 5s
 vi.setConfig({ testTimeout: 15_000 });
 
-vi.mock("@/components/admin/SideBar", () => ({ default: () => <div /> }));
+vi.mock("@/components/features/admin/shell/SideBar", () => ({ default: () => <div /> }));
 const show = vi.fn();
-vi.mock("@/components/ui/ToastProvider", () => ({ useToast: () => ({ show }) }));
+vi.mock("@/components/molecules", async (orig) => ({ ...(await orig<object>()), useToast: () => ({ show }) }));
 vi.mock("@clerk/nextjs", () => {
   const auth = { getToken: async () => "tok" };
   const user = { user: { id: "admin_1" } };

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEditorSource } from "./useEditorSource";
-import { useToast } from "../../components/ui/ToastProvider";
+import { useToast } from "@/components/molecules";
 import { PUBLIC } from "../../lib/publicQueries";
 import { fromForm, sameForm, settingsProblem, toForm, type SettingsForm } from "../../lib/admin/settings";
 import { fetchSettings, updateSettings, type SalonSettings } from "../../services/settingsService";

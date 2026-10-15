@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import Schedule from "@/admin/front-desk/Schedule";
+import Schedule from "@/app/(admin)/schedule/page";
 import type { MonthlySchedule, ScheduleAppointment } from "@/services/scheduleService";
 
 const appt = (id: number, date: string, client: string): ScheduleAppointment => ({
@@ -17,8 +17,8 @@ vi.mock("@/services/scheduleService", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/services/scheduleService")>()),
   fetchMonthlySchedule: (month: string) => fetchMonthlySchedule(month),
 }));
-vi.mock("@/components/admin/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
-vi.mock("@/components/ui/ToastProvider", () => ({ useToast: () => ({ show: vi.fn() }) }));
+vi.mock("@/components/features/admin/shell/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
+vi.mock("@/components/molecules", async (orig) => ({ ...(await orig<object>()), useToast: () => ({ show: vi.fn() }) }));
 
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ["Date"] });

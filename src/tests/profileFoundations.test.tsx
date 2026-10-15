@@ -1,9 +1,9 @@
 import { fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import Sheet from "@/components/ui/Sheet";
-import StatusPill from "@/components/profile/StatusPill";
+import { Dialog } from "@/components/organisms";
+import { Badge } from "@/components/atoms";
 import { pickNext, relativeDay, sortSoonest, stampsToGo, startOf } from "@/utils/profileView";
-import type { AppointmentView } from "@/components/profile/types";
+import type { AppointmentView } from "@/types/profile";
 import { useServicePhotos } from "@/hooks/useServicePhotos";
 
 const fetchServices = vi.fn();
@@ -12,21 +12,21 @@ vi.mock("@/services/serviceService", () => ({ fetchServices: () => fetchServices
 const view = (over: Partial<AppointmentView> & { date?: string } = {}): AppointmentView => ({
   appt: { id: 1, service_name: "Hard Gel", nailist_id: 1, nailist_name: "Max", appointment_date: over.date ?? "2026-10-20", appointment_time: "09:00-11:00", status: "confirmed" },
   displayStatus: "confirmed", remainingTime: 0, isExpired: false, canReschedule: true, canCancel: true,
-  statusLabel: "confirmed", statusDot: "bg-info", dateLabel: "October 20, 2026", timeLabel: "9:00 AM - 11:00 AM",
+  statusLabel: "confirmed", dateLabel: "October 20, 2026", timeLabel: "9:00 AM - 11:00 AM",
   canPay: false, payLabel: "", isLocked: false, ...over,
 });
 
 describe("Sheet", () => {
   it("renders nothing when closed, and a labelled dialog when open", () => {
-    const { rerender } = render(<Sheet open={false} title="Details" onClose={() => {}}>body</Sheet>);
+    const { rerender } = render(<Dialog open={false} title="Details" onClose={() => {}}>body</Dialog>);
     expect(screen.queryByRole("dialog")).toBeNull();
-    rerender(<Sheet open title="Details" onClose={() => {}}>body</Sheet>);
+    rerender(<Dialog open title="Details" onClose={() => {}}>body</Dialog>);
     expect(screen.getByRole("dialog", { name: "Details" })).toHaveTextContent("body");
   });
 
   it("closes from the X, the backdrop and Escape, but not from a click inside", () => {
     const onClose = vi.fn();
-    const { container } = render(<Sheet open title="T" onClose={onClose}>body</Sheet>);
+    const { container } = render(<Dialog open title="T" onClose={onClose}>body</Dialog>);
     fireEvent.click(screen.getByText("body"));
     expect(onClose).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "Close" }));
@@ -36,9 +36,9 @@ describe("Sheet", () => {
   });
 });
 
-describe("StatusPill", () => {
+describe("Badge", () => {
   it("shows the label with a coloured dot", () => {
-    const { container } = render(<StatusPill label="awaiting proof" dotClass="bg-warning" />);
+    const { container } = render(<Badge dot="warning" caps>awaiting proof</Badge>);
     expect(screen.getByText("awaiting proof")).toBeInTheDocument();
     expect(container.querySelector(".bg-warning")).not.toBeNull();
   });

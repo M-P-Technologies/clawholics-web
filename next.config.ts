@@ -36,6 +36,12 @@ const nextConfig: NextConfig = {
   async redirects() {
     // Pages that moved; keep old links and bookmarks working
     return [
+      // The client's pages moved into the client app (/my); the query (e.g. ?appointment_id=) is kept
+      { source: "/profile", destination: "/my/profile", permanent: true },
+      { source: "/booking", destination: "/my/book", permanent: true },
+      { source: "/payment", destination: "/my/payment", permanent: true },
+      { source: "/payment-confirmation", destination: "/my/confirmation", permanent: true },
+      { source: "/reschedule", destination: "/my/reschedule", permanent: true },
       { source: "/team", destination: "/artists", permanent: true },
       { source: "/contact-us", destination: "/contact", permanent: true },
       // The service page used to live at /appointment/<id>

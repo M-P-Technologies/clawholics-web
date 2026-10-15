@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import Image from "next/image";
 import { startingPrice } from "../../services/pricing";
 import type { NailService } from "../../services/serviceService";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 
 interface ServicePickerModalProps {
   open: boolean;

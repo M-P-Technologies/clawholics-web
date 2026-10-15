@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import SalonNotes from "@/components/admin/dashboard/SalonNotes";
+import SalonNotes from "@/components/features/admin/dashboard/SalonNotes";
 import type { DashboardResponse } from "@/services/dashboardTypes";
 
 vi.mock("@/lib/router", () => ({

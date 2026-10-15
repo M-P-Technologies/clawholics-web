@@ -72,6 +72,12 @@ export const HOME_TEXT_DEFAULTS = {
     "Clawholics by Max was founded in 2023 with a simple dream. What began in a tiny corner of an eatery is now a nail studio built on dedication and heart.",
   home_about_link_label: "Read our story",
   home_reviews_title: "What our clients say",
+  // The client app (/my): the birthday banner on Home, and the Explore screen's subtitle
+  home_birthday_enabled: "1",
+  home_birthday_title: "Happy birthday, {name}!",
+  home_birthday_line: "Enjoy a birthday treat this month",
+  home_birthday_note: "Show this to our staff when you visit",
+  home_explore_subtitle: "Find the perfect service for you",
   home_faq_title: "Frequently asked questions",
   home_cta_title: "Ready for your next set?",
   home_cta_text: "Pick a service and a time. We handle the rest.",
@@ -208,6 +214,43 @@ export interface StripSlide {
 
 export const MAX_STRIP_SLIDES = 12;
 
+/** One banner of the client app's Special offers */
+export interface HomeOffer {
+  title: string;
+  line: string;
+  note: string;
+  /** Empty shows the banner without a photo */
+  image: string;
+  buttonLabel: string;
+  /** /my/explore, /my/explore/<service id>, a page of the site, or a web address */
+  link: string;
+}
+
+export const MAX_OFFERS = 6;
+
+const textOf = (value: unknown) => (typeof value === "string" ? value : "");
+
+/** The saved offers; anything unreadable, and items without a title, are left out */
+export function readOffers(raw: unknown): HomeOffer[] {
+  if (typeof raw !== "string" || !raw.trim()) return [];
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((o): o is Record<string, unknown> => !!o && typeof o === "object" && textOf((o as Record<string, unknown>).title).trim() !== "")
+      .map((o) => ({ title: textOf(o.title), line: textOf(o.line), note: textOf(o.note), image: textOf(o.image), buttonLabel: textOf(o.buttonLabel), link: textOf(o.link) }))
+      .slice(0, MAX_OFFERS);
+  } catch {
+    return [];
+  }
+}
+
+/** An offer's button may also open the app's services, or one service */
+export function offerLinkProblem(link: string, what: string): string | null {
+  if (/^\/my\/explore(\/\d+)?$/.test(link)) return null;
+  return linkProblem(link, what);
+}
+
 export interface HomeSections {
   text: Record<HomeTextKey, string>;
   features: HomeFeature[];
@@ -217,6 +260,8 @@ export interface HomeSections {
   footerLogo: string;
   /** The strip's slides; null shows every service that has a photo, as the site always did */
   strip: StripSlide[] | null;
+  /** The client app's Special offers banners */
+  offers: HomeOffer[];
 }
 
 const featureKey = (n: number, field: keyof HomeFeature) => `home_feature_${n}_${field}`;
@@ -254,6 +299,7 @@ export function readHomeSections(content: object | null | undefined): HomeSectio
     offerImage: read("home_offer_image", ""),
     footerLogo: read("home_footer_logo", ""),
     strip: readStrip(values.home_strip),
+    offers: readOffers(values.home_offers),
   };
 }
 
@@ -269,6 +315,7 @@ export function homeSectionsToContent(sections: HomeSections): Record<string, st
     home_offer_image: sections.offerImage,
     home_footer_logo: sections.footerLogo,
     home_strip: sections.strip?.length ? JSON.stringify(sections.strip) : "",
+    home_offers: sections.offers.length ? JSON.stringify(sections.offers) : "",
   };
 }
 
@@ -280,6 +327,11 @@ export function homeSectionsProblem(sections: HomeSections): string | null {
   if (cta) return cta;
   for (const [i, feature] of sections.features.entries()) {
     if (!feature.title.trim() || !feature.text.trim()) return `Why choose us card ${i + 1} needs a title and a description.`;
+  }
+  for (const [i, offer] of sections.offers.entries()) {
+    if (!offer.title.trim() || !offer.buttonLabel.trim()) return `Offer ${i + 1} needs a headline and a button text.`;
+    const problem = offerLinkProblem(offer.link, `Offer ${i + 1}'s button`);
+    if (problem) return problem;
   }
   return null;
 }

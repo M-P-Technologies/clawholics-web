@@ -5,9 +5,8 @@ import React,{ useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@/lib/router";
 import { accountQueries, isAdminProfile } from "@/lib/accountQueries";
-import Button from "../ui/Button";
-import { LoadingBar } from "../ui/LoadingBar";
-import PageHeader from "../layout/PageHeader";
+import { Button, LoadingBar } from "@/components/atoms";
+import { SectionHeader } from "@/components/molecules";
 import PageShell from "../layout/PageShell";
 import Section from "../layout/Section";
 
@@ -53,7 +52,7 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ children }) => {
     return (
       <PageShell>
         <Section innerClassName="flex min-h-[70vh] flex-col items-center justify-center text-center">
-          <PageHeader
+          <SectionHeader
             align="center"
             title="We couldn't load your profile"
             subtitle="Please check your connection and try again."

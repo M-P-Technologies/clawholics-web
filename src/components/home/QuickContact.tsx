@@ -2,7 +2,7 @@ import { Check } from "lucide-react";
 import { WEEK } from "../../data/home";
 import { readGoodToKnow } from "../../lib/homeSections";
 import { type AboutContent } from "../../services/aboutService";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 
 // Where we are and when we are open. Everything comes from the About page content, so
 // the owner can change it in the admin.

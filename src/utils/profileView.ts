@@ -1,4 +1,5 @@
-import type { AppointmentView } from "../components/profile/types";
+import type { BadgeTone } from "@/components/atoms";
+import type { AppointmentView } from "@/types/profile";
 
 /** The stamps a loyalty card needs for a reward until the salon's setting loads (hooks/useStampTarget) */
 export const DEFAULT_STAMP_TARGET = 10;
@@ -30,4 +31,15 @@ export function relativeDay(dateStr: string, timeStr: string, now: number): stri
 /** The hero: the soonest appointment that is still live (an expired payment hold is not). */
 export function pickNext(views: AppointmentView[]): AppointmentView | null {
   return sortSoonest(views.filter((v) => !v.isExpired))[0] ?? null;
+}
+
+/** The dot of a client's appointment status */
+export function statusDotTone(status: string): BadgeTone {
+  const s = status.toLowerCase();
+  if (s === "pending" || s === "awaiting_proof") return "warning";
+  if (s === "confirmed") return "info";
+  if (s === "completed") return "success";
+  if (s === "cancelled") return "danger";
+  if (s === "refunded") return "brand";
+  return "neutral";
 }

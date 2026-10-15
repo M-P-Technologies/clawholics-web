@@ -3,9 +3,7 @@ import { publicQueries } from "@/lib/publicQueries";
 import { Link } from "@/lib/router";
 import logo from "../../assets/logo/logo-pink-transparent.png";
 import { readHomeSections } from "../../lib/homeSections";
-import Button from "../ui/Button";
-import Blush from "../ui/Blush";
-import { FacebookIcon } from "../ui/SocialIcons";
+import { Button, Blush, FacebookIcon } from "@/components/atoms";
 import { platformOf, readSocialLinks, socialHref } from "../../lib/socialLinks";
 
 // Opens a chat with the studio on Facebook.

@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useToast } from "@/components/molecules";
 import { useEditorSource } from "./useEditorSource";
-import { useToast } from "../../components/ui/ToastProvider";
 
 interface PageWordsOptions<K extends string> {
   /** Loads the saved words (with their defaults filled in) */

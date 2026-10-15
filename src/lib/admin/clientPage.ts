@@ -1,8 +1,7 @@
 import { Cake, CalendarClock, CalendarDays, Mail, MessageCircle, Phone, Sparkles } from "lucide-react";
 import type { ComponentType } from "react";
-import { FacebookIcon, InstagramIcon } from "../../components/ui/SocialIcons";
-import type { StepState } from "../bookingTracker";
-import type { ClientDetails } from "../../services/clientNotesService";
+import { FacebookIcon, InstagramIcon, type BadgeTone } from "@/components/atoms";
+import type { ClientAppointment, ClientDetails } from "../../services/clientNotesService";
 import { parseServerTime } from "../../services/serverTime";
 
 // The admin client page's labels, styles and the rows of its Client info list
@@ -22,17 +21,17 @@ export const whenLabel = (value: string | null | undefined) => {
   return Number.isNaN(time) ? "" : new Date(time).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
 };
 
-const STATUS: Record<string, { label: string; className: string }> = {
-  COMPLETED: { label: "Completed", className: "bg-success/20 text-gray-red" },
-  CONFIRMED: { label: "Confirmed", className: "bg-crimson-light/50 text-berry" },
-  PENDING: { label: "Pending", className: "bg-sand text-gray-red" },
-  AWAITING_PROOF: { label: "Awaiting proof", className: "bg-sand text-gray-red" },
-  CANCELLED: { label: "Cancelled", className: "bg-danger/15 text-gray-red" },
-  CANCELED: { label: "Cancelled", className: "bg-danger/15 text-gray-red" },
-  REFUNDED: { label: "Refunded", className: "bg-danger/15 text-gray-red" },
+const STATUS: Record<string, { label: string; className: string; tone: BadgeTone }> = {
+  COMPLETED: { label: "Completed", className: "bg-success/20 text-gray-red", tone: "success" },
+  CONFIRMED: { label: "Confirmed", className: "bg-crimson-light/50 text-berry", tone: "brand" },
+  PENDING: { label: "Pending", className: "bg-sand text-gray-red", tone: "warning" },
+  AWAITING_PROOF: { label: "Awaiting proof", className: "bg-sand text-gray-red", tone: "warning" },
+  CANCELLED: { label: "Cancelled", className: "bg-danger/15 text-gray-red", tone: "danger" },
+  CANCELED: { label: "Cancelled", className: "bg-danger/15 text-gray-red", tone: "danger" },
+  REFUNDED: { label: "Refunded", className: "bg-danger/15 text-gray-red", tone: "danger" },
 };
-/** An appointment status's label and pill colours */
-export const statusOf = (status: string) => STATUS[status] ?? { label: status, className: "bg-sand text-gray-red" };
+/** An appointment status's label, pill colours and Badge tone */
+export const statusOf = (status: string) => STATUS[status] ?? { label: status, className: "bg-sand text-gray-red", tone: "warning" as BadgeTone };
 
 export const noteFieldClass =
   "w-full rounded-md border border-crimson-light bg-milk px-3 py-2 text-sm text-gray-red outline-none focus:ring-2 focus:ring-crimson";
@@ -44,17 +43,7 @@ export const CLIENT_TABS: { value: ClientTab; label: string }[] = [
   { value: "appointments", label: "Appointments" },
 ];
 
-/** The booking tracker's colours for each step state */
-export const STEP_STYLE: Record<StepState, { dot: string; bar: string; title: string }> = {
-  done: { dot: "bg-crimson text-light-orange", bar: "bg-crimson", title: "text-gray-red" },
-  current: { dot: "border-2 border-crimson bg-milk text-berry", bar: "bg-crimson-light", title: "text-berry" },
-  upcoming: { dot: "bg-crimson-light/40 text-gray-red/50", bar: "bg-crimson-light/50", title: "text-gray-red/50" },
-  stopped: { dot: "bg-danger/15 text-danger", bar: "bg-crimson-light/50", title: "text-danger" },
-};
 
-/** A step state, read out after the step's title */
-export const stepStateLabel = (state: StepState) =>
-  state === "done" ? "done" : state === "current" ? "in progress" : state === "stopped" ? "stopped" : "not yet";
 
 /** A date of birth ("1998-03-14") as "Mar 14, 1998"; null when there is none or it is not a date */
 export const birthdayLabel = (dob?: string | null) => (dob && /^\d{4}-\d{2}-\d{2}/.test(dob) ? dateLabel(dob.slice(0, 10)) : null);
@@ -85,3 +74,22 @@ export const clientName = (client: ClientDetails["client"]) => `${client.first_n
 
 /** Today's date in Manila ("YYYY-MM-DD") */
 export const manilaToday = () => new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
+
+/** The client panel's next-visit box */
+export const nextVisitHighlight = (next?: ClientAppointment) => ({
+  title: "Next visit",
+  icon: CalendarClock,
+  value: next ? dateLabel(next.appointment_date) : undefined,
+  detail: next ? `${next.appointment_time} · ${next.service_name} with ${next.nailist_name}` : undefined,
+  empty: "Nothing booked ahead.",
+});
+
+/** The client panel's rows, with their icons */
+export const clientPanelRows = (details: Pick<ClientDetails, "client" | "summary">) =>
+  clientInfoRows(details).map(({ label, value, Icon }) => ({ label, value, icon: Icon }));
+
+/** "1 stamp", "4 stamps" */
+export const stampsLabel = (stamps: number) => `${stamps} ${stamps === 1 ? "stamp" : "stamps"}`;
+
+/** What a visit note is about: "About the Sep 5, 2026 visit (Gel polish)" */
+export const visitNoteLabel = (visit?: ClientAppointment) => (visit ? `About the ${dateLabel(visit.appointment_date)} visit (${visit.service_name})` : "About a visit");

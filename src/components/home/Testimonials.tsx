@@ -1,5 +1,5 @@
 import type { PublicReview } from "../../services/reviewService";
-import { Stars } from "../ui/StarRating";
+import { Stars } from "@/components/atoms";
 
 // What clients said about their visits: only the reviews an admin approved for the home page
 export default function Testimonials({ reviews }: { reviews: PublicReview[] }) {

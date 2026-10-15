@@ -1,17 +1,6 @@
 import { Globe, Mail } from "lucide-react";
 import type { ComponentType } from "react";
-import {
-  FacebookIcon,
-  InstagramIcon,
-  LinkedInIcon,
-  MessengerIcon,
-  PinterestIcon,
-  ThreadsIcon,
-  TikTokIcon,
-  WhatsAppIcon,
-  XIcon,
-  YouTubeIcon,
-} from "../components/ui/SocialIcons";
+import { FacebookIcon, InstagramIcon, LinkedInIcon, MessengerIcon, PinterestIcon, ThreadsIcon, TikTokIcon, WhatsAppIcon, XIcon, YouTubeIcon } from "@/components/atoms";
 
 // The salon's social media links, shown in the footer of every page and on the Contact page.
 // They're one list (social_links, JSON) so the admin can add, remove and reorder them; until it's

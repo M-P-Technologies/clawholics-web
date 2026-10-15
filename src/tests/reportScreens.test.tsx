@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Performance from "@/admin/overview/Performance";
-import Sales from "@/admin/overview/Sales";
+import Performance from "@/app/(admin)/performance/page";
+import Sales from "@/app/(admin)/sales/page";
 import { dashboardData } from "./dashboardFixture";
 
 const fetchDashboard = vi.fn();
@@ -10,7 +10,7 @@ vi.mock("@/services/dashboardService", () => ({
   fetchDashboard: (...args: unknown[]) => fetchDashboard(...args),
   fetchUtilization: (...args: unknown[]) => fetchUtilization(...(args as [])),
 }));
-vi.mock("@/components/admin/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
+vi.mock("@/components/features/admin/shell/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
 vi.mock("@/lib/router", () => ({
   Link: ({ to, children, ...rest }: { to: string; children: React.ReactNode }) => <a href={to} {...rest}>{children}</a>,
   useLocation: () => ({ pathname: "/sales" }),

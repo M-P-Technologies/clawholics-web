@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ADMIN } from "../../lib/adminQueries";
 import { useEditorSource } from "./useEditorSource";
 import { useAuth, useUser } from "@clerk/nextjs";
-import { useToast } from "../../components/ui/ToastProvider";
+import { useToast } from "@/components/molecules";
 import { readServicesPage, servicesPageProblem, type ServicesPageKey } from "../../lib/homeSections";
 import { fetchCategories, type ServiceCategory } from "../../services/catalogService";
 import { fetchHomeContent, updateHomeContent } from "../../services/contentService";

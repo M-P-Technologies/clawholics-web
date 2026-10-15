@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Activity, Moon, ShieldCheck, UserPlus } from "lucide-react";
-import type { DirectoryProfile, DirectoryUser } from "../../components/admin/DirectoryProfileCard";
-import { useToast } from "../../components/ui/ToastProvider";
+import type { DirectoryProfile, DirectoryUser } from "@/components/features/admin/directory/DirectoryProfileCard";
+import { useToast } from "@/components/molecules";
 import { countIdle, countWithin } from "../../lib/directoryStats";
 import { adminQueries, directoryChanged } from "../../lib/adminQueries";
 import { deleteDirectoryUser, promoteAdmin, updateDirectoryUser } from "../../services/directoryService";
@@ -173,6 +173,8 @@ export function useAdminDirectory() {
     total,
     pageSize: ADMIN_PAGE_SIZE,
     setPage,
+    /** The same, in the shape the table's pager takes */
+    serverPage: { page: shownPage, pageSize: ADMIN_PAGE_SIZE, total, onPage: setPage },
     profiles,
     selected,
     setProfileElement,

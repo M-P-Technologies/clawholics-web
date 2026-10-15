@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Cake } from "lucide-react";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 import { useLocation } from "@/lib/router";
 import { useBirthdayVoucher } from "../../hooks/useBirthdayVoucher";
 import { CLAIMED_HINT, voucherUntil } from "./voucherText";

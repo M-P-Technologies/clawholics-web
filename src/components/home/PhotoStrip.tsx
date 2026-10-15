@@ -3,7 +3,7 @@ import { Link } from "@/lib/router";
 import { ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import { type StripItem } from "../../types/home";
 import { servicePath } from "../../utils/slug";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 
 interface PhotoStripProps {
   items: StripItem[];

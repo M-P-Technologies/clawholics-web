@@ -2,16 +2,17 @@ import React, { useCallback, useMemo, useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { useNavigate, useSearchParams } from "@/lib/router";
-import { updateProfile, redeemUserReward, cancelAppointment, type UserProfile } from "../services/userService";
+import { updateProfile, redeemUserReward, cancelAppointment, isTemporaryFailure, type UserProfile } from "../services/userService";
 import { accountKeys, accountQueries } from "@/lib/accountQueries";
 import { type Appointment } from "../utils/profile";
 import type { ChangeEvent } from "react";
 import { isActiveAppointmentStatus } from "../services/proofState";
 import { PROFILE_FIELDS } from "../data/profile";
-import { useToast } from "../components/ui/ToastProvider";
+import { useToast } from "@/components/molecules";
 import { pickNext, sortSoonest } from "../utils/profileView";
 import { useStampTarget } from "./useStampTarget";
-import type { AppointmentView } from "../components/profile/types";
+import type { AppointmentView } from "@/types/profile";
+import { CLIENT_PATHS } from "../lib/client/clientNav";
 
 export function useProfile() {
   const { isLoaded, isSignedIn, user: clerkUser } = useUser();
@@ -122,8 +123,15 @@ export function useProfile() {
   }, [isLoaded, isSignedIn, clerkUser, navigate]);
 
   useEffect(() => {
-    if (profileQuery.isError) console.error("Error fetching data:", profileQuery.error);
-  }, [profileQuery.isError, profileQuery.error]);
+    if (!profileQuery.isError) return;
+    // A background refresh that hits a brief outage (the server answers 503 when the database is
+    // slow) keeps what is on screen; the next refresh will try again
+    if (profileQuery.data !== undefined && isTemporaryFailure(profileQuery.error)) {
+      console.warn("Couldn't refresh the account; showing what was loaded before:", profileQuery.error);
+    } else {
+      console.error("Error fetching data:", profileQuery.error);
+    }
+  }, [profileQuery.isError, profileQuery.error, profileQuery.data]);
 
   useEffect(() => {
     if (appointmentsQuery.isError) console.error("Error fetching data:", appointmentsQuery.error);
@@ -373,18 +381,6 @@ export function useProfile() {
     return `${format(start)} - ${format(end)}`;
   };
 
-  const getStatusDotColor = (status: string) => {
-    const s = status.toLowerCase();
-    if (s === "pending") return "bg-warning";
-    if (s === "awaiting_proof") return "bg-warning";
-    if (s === "confirmed") return "bg-info";
-    if (s === "completed") return "bg-success";
-    if (s === "cancelled") return "bg-danger";
-    if (s === "refunded") return "bg-crimson-light";
-    return "bg-gray-red/50";
-  };
-
-
   const todayIso = new Date().toISOString().split("T")[0];
 
   // Active appointments together with everything the list needs to show each one.
@@ -417,7 +413,6 @@ export function useProfile() {
         canCancel,
         // What the card shows, so the page only lays it out
         statusLabel: displayStatus.replace(/_/g, " "),
-        statusDot: getStatusDotColor(displayStatus),
         dateLabel: formatDisplayDate(appt.appointment_date),
         timeLabel: formatSlot(appt.appointment_time),
         canPay: displayStatus.toLowerCase() === "pending" && !isExpired,
@@ -430,7 +425,7 @@ export function useProfile() {
     if (appt.invoice_url) {
       window.location.href = appt.invoice_url;
     } else {
-      navigate("/payment", {
+      navigate(CLIENT_PATHS.payment, {
         state: {
           appointment_id: appt.id,
           service_name: appt.service_name,
@@ -445,7 +440,7 @@ export function useProfile() {
   };
 
   const rescheduleAppointment = (appt: Appointment) => {
-    navigate("/reschedule", { state: { appointment: appt } });
+    navigate(CLIENT_PATHS.reschedule, { state: { appointment: appt } });
   };
 
   const startCancel = (appt: Appointment) => {
@@ -490,13 +485,12 @@ export function useProfile() {
       appt,
       dateLabel: formatDisplayDate(appt.appointment_date),
       timeLabel: formatSlot(appt.appointment_time.replace(" (Cancelled)", "")),
-      statusDot: getStatusDotColor(appt.status),
     }));
   const hasMoreHistory = processedPastAppointments.length > 5;
   const noHistory = processedPastAppointments.length === 0;
 
   // Same shape as the upcoming list, so one card component shows both
-  const pastViews: AppointmentView[] = history.map(({ appt, dateLabel, timeLabel, statusDot }) => ({
+  const pastViews: AppointmentView[] = history.map(({ appt, dateLabel, timeLabel }) => ({
     appt,
     displayStatus: appt.status,
     remainingTime: 0,
@@ -504,7 +498,6 @@ export function useProfile() {
     canReschedule: false,
     canCancel: false,
     statusLabel: appt.status.replace(/_/g, " "),
-    statusDot,
     dateLabel,
     timeLabel,
     canPay: false,
@@ -530,5 +523,10 @@ export function useProfile() {
   const toggleHistory = () => setShowAllHistory(!showAllHistory);
   const closeRewardModal = () => setShowRewardModal(false);
 
-  return { toggleGender, toggleHistory, closeRewardModal, loyaltyCardNumber, isBusy, genderLabel, history, hasMoreHistory, noHistory, stampCells, stampTarget, isLateCancellation, selectedApptDateLabel, profileFields, isLoaded, clerkUser, getToken, navigate, highlightedAppointmentId, upcoming, nextAppointment, pastViews, dbUser, isEditing, formData, error, appointments, setAppointments, stamps, isGenderOpen, setIsGenderOpen, showRewardModal, setShowRewardModal, selectedAppt, setSelectedAppt, isCancelModalOpen, setIsCancelModalOpen, actionError, setActionError, currentTime, showAllHistory, setShowAllHistory, isCancelling, historySortBy, setHistorySortBy, historyFilter, setHistoryFilter, processedPastAppointments, todayFormatted, formatDisplayDate, handleEditClick, genderOptions, handleGenderSelect, handleContactMethodSelect, formatTime, handleChange, handleSave, handleCancel, handleClientRedeem, handleCancelAppointment, isEligibleForChanges, formatSlot, getStatusDotColor, todayIso, currentAppointments, payForAppointment, rescheduleAppointment, startCancel, closeCancelModal, handleProofUploaded, handleHistoryFilterChange, handleHistorySortChange };
+  // The profile couldn't load (not a missing one) and nothing was loaded before: the client app
+  // shows a retry instead of loading forever. A failed background refresh keeps what's on screen.
+  const loadError = profileQuery.isError && !profileQuery.data;
+  const retryLoad = () => void profileQuery.refetch();
+
+  return { loadError, retryLoad, toggleGender, toggleHistory, closeRewardModal, loyaltyCardNumber, isBusy, genderLabel, history, hasMoreHistory, noHistory, stampCells, stampTarget, isLateCancellation, selectedApptDateLabel, profileFields, isLoaded, clerkUser, getToken, navigate, highlightedAppointmentId, upcoming, nextAppointment, pastViews, dbUser, isEditing, formData, error, appointments, setAppointments, stamps, isGenderOpen, setIsGenderOpen, showRewardModal, setShowRewardModal, selectedAppt, setSelectedAppt, isCancelModalOpen, setIsCancelModalOpen, actionError, setActionError, currentTime, showAllHistory, setShowAllHistory, isCancelling, historySortBy, setHistorySortBy, historyFilter, setHistoryFilter, processedPastAppointments, todayFormatted, formatDisplayDate, handleEditClick, genderOptions, handleGenderSelect, handleContactMethodSelect, formatTime, handleChange, handleSave, handleCancel, handleClientRedeem, handleCancelAppointment, isEligibleForChanges, formatSlot, todayIso, currentAppointments, payForAppointment, rescheduleAppointment, startCancel, closeCancelModal, handleProofUploaded, handleHistoryFilterChange, handleHistorySortChange };
 }

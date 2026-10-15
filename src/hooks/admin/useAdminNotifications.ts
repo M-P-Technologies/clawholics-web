@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "../../components/ui/ToastProvider";
+import { useToast } from "@/components/molecules";
 import { adminDataChanged, adminKeys, adminQueries } from "../../lib/adminQueries";
 import { NOTIFICATIONS_POLL_MS, notificationLine, notificationTitle } from "../../lib/admin/notifications";
 import { markAdminNotificationsRead, type AdminNotifications } from "../../services/notificationService";

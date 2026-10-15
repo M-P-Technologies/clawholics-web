@@ -1,7 +1,22 @@
-import Terms from "@/views/legal/Terms";
+"use client";
 
-export default function Page() {
+import PageShell from "@/components/layout/PageShell";
+import BackButton from "@/components/layout/BackButton";
+import Panel from "@/components/layout/Panel";
+import Section from "@/components/layout/Section";
+import { useTermsOfUse } from "@/hooks/useTermsOfUse";
+
+export default function Terms() {
+  const html = useTermsOfUse();
+
   return (
-    <Terms />
+    <PageShell>
+      <Section innerClassName="max-w-4xl !gap-8">
+        <BackButton />
+        <Panel as="article">
+          <div className="legal-text" dangerouslySetInnerHTML={{ __html: html }} />
+        </Panel>
+      </Section>
+    </PageShell>
   );
 }

@@ -44,6 +44,11 @@ export class ProfileError extends Error {
 export const isMissingProfile = (err: unknown): boolean =>
   err instanceof ProfileError && err.status === 404;
 
+// The server was briefly unavailable (it answers 503 when the database is slow) or the request never
+// got through: asking again later is likely to work.
+export const isTemporaryFailure = (err: unknown): boolean =>
+  (err instanceof ProfileError && err.status >= 500) || err instanceof TypeError;
+
 export const fetchProfile = async (clerkId: string, token?: string | null): Promise<UserProfile> => {
   const res = await fetch(`${API_BASE_URL}/users/profile?clerk_id=${clerkId}&t=${Date.now()}`, {
     headers: getHeaders(token, clerkId)

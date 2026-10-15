@@ -1,7 +1,9 @@
 import React, { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { publicQueries } from "@/lib/publicQueries";
-import { type ModalType } from "../components/ui/FeedbackModal";
+import { CONTACT_FEEDBACK, type ContactFeedback } from "@/lib/contactFeedback";
+import { platformOf, readSocialLinks, socialHref } from "@/lib/socialLinks";
+import { DEFAULT_HERO_IMAGE } from "@/data/home";
 import { withSalonLocation } from "../lib/homeSections";
 import { API_BASE_URL } from "../apiConfig";
 import type { ChangeEvent } from "react";
@@ -32,7 +34,7 @@ export function useContactUs() {
 
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
-    type: ModalType;
+    type: ContactFeedback;
   }>({ isOpen: false, type: "success" });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -109,5 +111,19 @@ export function useContactUs() {
   const descriptionLength = formData.description.length;
   const isDescriptionFull = descriptionLength >= 500;
 
-  return { descriptionLength, isDescriptionFull, contactFields, pageData, isPageLoading, pageError, emailError, setEmailError, formData, modalState, isSubmitting, closeModal, handleChange, handleSubmit, handleEmailChange, reloadPage };
+  // The social links as edited in Admin > Contact Us, each with its platform's name and icon
+  const socialLinks = pageData
+    ? readSocialLinks(pageData).map((link) => ({ name: link.name, href: socialHref(link), ...platformOf(link.platform) }))
+    : [];
+  const heroImage = pageData?.home_hero_image || DEFAULT_HERO_IMAGE;
+  // The dialog after sending: its words, and whether it's an error
+  const feedback = modalState.type ? CONTACT_FEEDBACK[modalState.type] : null;
+  const feedbackDialog = {
+    open: modalState.isOpen && !!modalState.type,
+    title: feedback?.title ?? "",
+    message: feedback?.message ?? "",
+    isError: modalState.type !== "success",
+  };
+
+  return { socialLinks, heroImage, feedbackDialog, descriptionLength, isDescriptionFull, contactFields, pageData, isPageLoading, pageError, emailError, setEmailError, formData, modalState, isSubmitting, closeModal, handleChange, handleSubmit, handleEmailChange, reloadPage };
 }

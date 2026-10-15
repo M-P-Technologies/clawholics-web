@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import DirectoryTable from "@/components/admin/DirectoryTable";
-import type { DirectoryUser } from "@/components/admin/DirectoryProfileCard";
+import DirectoryTable from "@/components/features/admin/directory/DirectoryTable";
+import type { DirectoryUser } from "@/components/features/admin/directory/DirectoryProfileCard";
 
 const person = (i: number, over: Partial<DirectoryUser> = {}): DirectoryUser => ({
   id: `user_${i}`, clerk_id: `user_${i}`, firstName: `Client${i}`, lastName: "Cruz", email: `c${i}@x.test`, phoneNumber: `0917 000 00${String(i).padStart(2, "0")}`,

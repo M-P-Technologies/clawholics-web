@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import clsx from "clsx";
-import SharpenFilter, { SHARPEN_FILTER } from "../ui/SharpenFilter";
+import { SharpenFilter, SHARPEN_FILTER } from "@/components/atoms";
 
 export interface GalleryPhoto {
   id: number | string;

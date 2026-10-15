@@ -90,6 +90,8 @@ export function useArtistDetail() {
     reload,
     nailist,
     gallery,
+    /** Phones: the portrait first, then the photos of their work, in one carousel */
+    carouselPhotos: nailist ? [{ id: "portrait", image_url: nailist.image }, ...gallery] : [],
     offeredServices,
     pickerOpen,
     setPickerOpen,

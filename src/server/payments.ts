@@ -189,8 +189,8 @@ export async function createXenditInvoice(appointmentId: number, externalId: str
       amount,
       currency: "PHP",
       payment_methods: [paymentMethod],
-      success_redirect_url: `${base}/payment-confirmation?appointment_id=${appointmentId}`,
-      failure_redirect_url: `${base}/booking`,
+      success_redirect_url: `${base}/my/confirmation?appointment_id=${appointmentId}`,
+      failure_redirect_url: `${base}/my/book`,
     }),
   });
   const data = (await res.json().catch(() => ({}))) as { invoice_url?: string; error_code?: string; message?: string };

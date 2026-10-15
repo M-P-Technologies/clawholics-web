@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import ClientDirectory from "@/admin/front-desk/ClientDirectory";
+import ClientDirectory from "@/app/(admin)/clients/page";
 import type { Appointment } from "@/services/appointmentService";
 import { pageOf } from "./fakeAppointmentPages";
 import type { AppointmentPageParams } from "@/services/appointmentService";
@@ -10,14 +10,14 @@ vi.mock("@/lib/router", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/router")>()),
   useSearchParams: () => [params] as const,
 }));
-vi.mock("@/components/admin/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
+vi.mock("@/components/features/admin/shell/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
 // A stable getToken, as the real Clerk hook has
 vi.mock("@clerk/nextjs", () => {
   const auth = { getToken: async () => "tok", isLoaded: true };
   const user = { user: { id: "admin_1" } };
   return { useAuth: () => auth, useUser: () => user };
 });
-vi.mock("@/components/ui/ToastProvider", () => ({ useToast: () => ({ show: vi.fn() }) }));
+vi.mock("@/components/molecules", async (orig) => ({ ...(await orig<object>()), useToast: () => ({ show: vi.fn() }) }));
 vi.mock("@/hooks/usePolling", () => ({ usePolling: () => {} }));
 vi.mock("@/services/directoryService", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/services/directoryService")>()),

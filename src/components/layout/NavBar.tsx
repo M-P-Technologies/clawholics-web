@@ -5,8 +5,9 @@ import { useNavIndicator } from "../../hooks/useNavIndicator";
 import { useScrolled } from "../../hooks/useScrolled";
 
 import Logo from "../../assets/logo/logo-primary.svg";
-import { userButtonAppearance } from "../ui/clerkAppearance";
-import Button from "../ui/Button";
+import { userButtonAppearance } from "@/lib/clerkAppearance";
+import { Button } from "@/components/atoms";
+import { CLIENT_PATHS } from "../../lib/client/clientNav";
 import { BACK_SLOT_ID } from "./BackButton";
 
 const NAV_LINKS = [
@@ -82,9 +83,9 @@ export default function Navbar() {
           <Show when="signed-in">
             <Link
               className="whitespace-nowrap text-sm font-medium tracking-wide text-gray-red transition-colors hover:text-crimson"
-              to="/profile"
+              to={CLIENT_PATHS.home}
             >
-              My profile
+              My account
             </Link>
             <div className="flex items-center justify-center rounded-full border border-crimson p-0.5">
               <UserButton appearance={userButtonAppearance} />

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import ContactUs from "../views/site/ContactUs";
+import ContactUs from "@/app/(site)/contact/page";
 import { fetchHomeContent } from "../services/contentService";
 
 vi.mock("../services/contentService", () => ({

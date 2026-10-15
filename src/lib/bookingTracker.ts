@@ -39,7 +39,22 @@ export function appointmentToTrack(appointments: ClientAppointment[], today: str
   return appointments[0] ?? null;
 }
 
-export function trackerSteps(a: ClientAppointment): TrackerStep[] {
+/** What the tracker reads from an appointment: the admin passes its own, the client maps its (lib/client/tracker) */
+export interface TrackInput {
+  status: string;
+  service_name: string;
+  nailist_name: string;
+  appointment_date: string;
+  appointment_time: string;
+  booked_at?: string | null;
+  payment_status?: string | null;
+  proof_status?: string | null;
+  proof_sent_at?: string | null;
+  proof_reviewed_at?: string | null;
+}
+
+/** settledDetail: the downpayment step's words for a confirmed booking with no payment record */
+export function trackerSteps(a: TrackInput, { settledDetail = "Settled with the salon" }: { settledDetail?: string } = {}): TrackerStep[] {
   const status = a.status.toUpperCase();
   const confirmed = status === "CONFIRMED" || status === "COMPLETED";
   const visit = `${dateLabel(a.appointment_date)}, ${a.appointment_time}`;
@@ -48,7 +63,7 @@ export function trackerSteps(a: ClientAppointment): TrackerStep[] {
   let downpayment: Omit<TrackerStep, "key" | "title">;
   if (a.payment_status === "PAID") downpayment = { state: "done", detail: "Paid online" };
   else if (a.proof_status === "APPROVED") downpayment = { state: "done", detail: "Payment proof approved", when: manilaTime(a.proof_reviewed_at) };
-  else if (confirmed) downpayment = { state: "done", detail: "Settled with the salon" };
+  else if (confirmed) downpayment = { state: "done", detail: settledDetail };
   else if (a.proof_status === "PENDING") downpayment = { state: "current", detail: "Payment proof sent, waiting for review", when: manilaTime(a.proof_sent_at) };
   else if (a.proof_status === "REJECTED") downpayment = { state: "current", detail: "Payment proof rejected, waiting for a new one", when: manilaTime(a.proof_reviewed_at) };
   else if (status === "AWAITING_PROOF") downpayment = { state: "current", detail: "Waiting for the payment proof" };

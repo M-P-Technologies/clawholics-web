@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import CategoryPanel from "../components/admin/CategoryPanel";
+import CategoryPanel from "@/components/features/admin/catalog/CategoryPanel";
 import * as catalog from "../services/catalogService";
 
 vi.mock("../services/catalogService", async () => {

@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import ClientNotesPanel from "../components/admin/ClientNotesPanel";
+import ClientNotesPanel from "@/components/features/admin/clients/ClientNotesPanel";
 import { ApiError } from "../services/catalogService";
 import * as notes from "../services/clientNotesService";
 

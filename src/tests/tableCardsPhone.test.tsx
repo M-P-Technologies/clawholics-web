@@ -1,13 +1,13 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import BookingsTable from "@/components/admin/dashboard/BookingsTable";
-import SalesRecord from "@/components/admin/dashboard/SalesRecord";
-import ArtistUtilization from "@/components/admin/dashboard/ArtistUtilization";
-import DirectoryTable from "@/components/admin/DirectoryTable";
+import BookingsTable from "@/components/features/admin/dashboard/BookingsTable";
+import SalesRecord from "@/components/features/admin/dashboard/SalesRecord";
+import ArtistUtilization from "@/components/features/admin/dashboard/ArtistUtilization";
+import DirectoryTable from "@/components/features/admin/directory/DirectoryTable";
 import type { Appointment } from "@/services/appointmentService";
 import { paged } from "./fakeAppointmentPages";
 import type { DashboardResponse, Utilization } from "@/services/dashboardTypes";
-import type { DirectoryUser } from "@/components/admin/DirectoryProfileCard";
+import type { DirectoryUser } from "@/components/features/admin/directory/DirectoryProfileCard";
 
 vi.mock("@/lib/router", () => ({
   Link: ({ to, children, ...rest }: { to: string; children: React.ReactNode }) => <a href={to} {...rest}>{children}</a>,

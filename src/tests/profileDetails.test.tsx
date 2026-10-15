@@ -1,19 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import DetailsCard from "@/components/profile/DetailsCard";
-import EditDetailsSheet from "@/components/profile/EditDetailsSheet";
-
-describe("DetailsCard", () => {
-  it("lists the details read-only, shows a dash for empty ones, and offers Edit", () => {
-    const onEdit = vi.fn();
-    render(<DetailsCard rows={[{ label: "Email", value: "a@b.co" }, { label: "Phone", value: "" }]} onEdit={onEdit} />);
-    expect(screen.getByText("a@b.co")).toBeInTheDocument();
-    expect(screen.getByText("-")).toBeInTheDocument();
-    expect(screen.queryByRole("textbox")).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
-    expect(onEdit).toHaveBeenCalled();
-  });
-});
+import EditDetailsSheet from "@/components/features/client/profile/EditDetailsSheet";
 
 describe("EditDetailsSheet", () => {
   const base = () => ({

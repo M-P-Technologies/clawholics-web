@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/components/molecules";
 import { adminDataChanged, adminKeys, adminQueries } from "../../lib/adminQueries";
-import { useToast } from "../../components/ui/ToastProvider";
 import { isDesktopWidth } from "../../lib/viewport";
 import { useStampTarget } from "../useStampTarget";
 import { fetchScannedClient, recordScanAction, type ScanRecord, type ScannedClient } from "../../services/scanService";
@@ -67,6 +67,11 @@ export function useAdminScanner() {
     }
   };
 
+  /** The camera's reading: the first code it found, if any */
+  const handleScan = (result: { rawValue: string }[] | undefined) => {
+    if (result && result.length > 0) handleResult(result[0].rawValue);
+  };
+
   const handleScanError = (error: unknown) => {
     const errorString = String(error);
     if (errorString.includes("NotAllowedError") || errorString.includes("Permission denied")) {
@@ -121,6 +126,9 @@ export function useAdminScanner() {
     loading,
     /** The stamps a card needs for a reward */
     stampTarget,
+    /** The scanned card's stamps, capped at the target, and whether it's full */
+    shownStamps: lastScan?.client ? Math.min(lastScan.client.stamps, stampTarget) : 0,
+    cardFull: !!lastScan?.client && lastScan.client.stamps >= stampTarget,
     isProcessing,
     isScanning,
     lastScan,
@@ -128,6 +136,7 @@ export function useAdminScanner() {
     cameraError,
     resultRef,
     handleResult,
+    handleScan,
     handleScanError,
     recordAction,
     startScanner: () => {

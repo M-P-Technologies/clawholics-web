@@ -1,5 +1,5 @@
 import { Cake } from "lucide-react";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 import type { BirthdayVoucher } from "../../services/voucherService";
 import { CLAIMED_HINT, voucherUntil } from "./voucherText";
 

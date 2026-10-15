@@ -2,10 +2,10 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Activity, Flame, UserPlus, Users } from "lucide-react";
-import type { DirectoryProfile, DirectoryUser } from "../../components/admin/DirectoryProfileCard";
+import type { DirectoryProfile, DirectoryUser } from "@/components/features/admin/directory/DirectoryProfileCard";
 import { adminQueries } from "../../lib/adminQueries";
 import { countWithin, isClientRole } from "../../lib/directoryStats";
-import { useSearchParams } from "../../lib/router";
+import { useNavigate, useSearchParams } from "../../lib/router";
 import { useAdminSession } from "./useAdminSession";
 
 const NO_PROFILES: Record<string, DirectoryProfile> = {};
@@ -15,6 +15,7 @@ const NO_PROFILES: Record<string, DirectoryProfile> = {};
 export function useClientDirectory() {
   const { session, ready } = useAdminSession();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const usersQuery = useQuery({ ...adminQueries.directoryUsers(session), enabled: ready });
   // The clients' photos and dates from Clerk, by Clerk id; without them the rows show initials
@@ -51,6 +52,8 @@ export function useClientDirectory() {
     /** Opened from the dashboard's warm leads (?view=leads) */
     leadsView: searchParams.get("view") === "leads",
     leads,
+    /** Opens a warm lead's client page */
+    openLead: (user: DirectoryUser) => user.user_id && navigate(`/clients/${user.user_id}`),
     leadsLoaded,
     leadsFailed,
     /** The warm leads are still on their way: the list shows placeholder rows */

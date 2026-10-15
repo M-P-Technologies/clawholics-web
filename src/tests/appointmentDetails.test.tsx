@@ -1,11 +1,11 @@
 import userEvent from "@testing-library/user-event";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import AppointmentDetailsModal from "@/components/admin/AppointmentDetailsModal";
+import AppointmentDetailsModal from "@/components/features/admin/bookings/AppointmentDetailsModal";
 import type { Appointment } from "@/services/appointmentService";
 
-vi.mock("@/components/admin/ClientNotesPanel", () => ({ default: () => <div>Private notes</div> }));
-vi.mock("@/components/admin/ProofReviewPanel", () => ({ default: () => <div>Proof review</div> }));
+vi.mock("@/components/features/admin/clients/ClientNotesPanel", () => ({ default: () => <div>Private notes</div> }));
+vi.mock("@/components/features/admin/bookings/ProofReviewPanel", () => ({ default: () => <div>Proof review</div> }));
 
 const appt = (over: Partial<Appointment> = {}): Appointment => ({
   id: 24, user_id: 73, first_name: "Cherie", last_name: "Estrera", email: "cherie@x.test", phone: "09755222061",

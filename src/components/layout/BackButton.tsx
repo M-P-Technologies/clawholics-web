@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { ArrowLeft } from "lucide-react";
 import clsx from "clsx";
 import { useNavigate } from "@/lib/router";
-import Button from "../ui/Button";
+import { Button } from "@/components/atoms";
 
 interface BackButtonProps {
   label?: string;

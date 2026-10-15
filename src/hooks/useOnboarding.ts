@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { useNavigate } from "@/lib/router";
+import { CLIENT_PATHS } from "../lib/client/clientNav";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { updateProfile, isEmailTaken, type UserProfile } from "../services/userService";
 import { accountKeys, accountQueries, isAdminProfile } from "@/lib/accountQueries";
 import type { ChangeEvent } from "react";
 import { ONBOARDING_CONTACT_FIELDS, ONBOARDING_NAME_FIELDS } from "../data/onboarding";
-import { useToast } from "../components/ui/ToastProvider";
+import { useToast } from "@/components/molecules";
 
 export function useOnboarding() {
   const { user, isLoaded } = useUser();
@@ -59,7 +60,7 @@ export function useOnboarding() {
     if (!isLoaded || !user) return;
     if (isAdmin) navigate("/dashboard", { replace: true });
     // Already onboarded (but not just now: the save goes to the profile itself)
-    else if (existingProfile?.onboarded && !saved.current) navigate("/profile", { replace: true });
+    else if (existingProfile?.onboarded && !saved.current) navigate(CLIENT_PATHS.home, { replace: true });
   }, [isLoaded, user, isAdmin, existingProfile, navigate]);
 
   useEffect(() => {
@@ -186,7 +187,7 @@ export function useOnboarding() {
       queryClient.setQueryData(key, (old: UserProfile | null | undefined) => ({ ...old, ...completeUserData, onboarded: true }) as UserProfile);
       void queryClient.invalidateQueries({ queryKey: key });
       toast.show("success", "Profile saved", "Thank you! You can now book appointments. You can change these details any time from your profile.");
-      navigate("/profile");
+      navigate(CLIENT_PATHS.home);
     } catch (error) {
       if (isEmailTaken(error)) {
         // Not a connection problem, so retrying won't help
