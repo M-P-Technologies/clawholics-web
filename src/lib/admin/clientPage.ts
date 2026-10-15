@@ -1,7 +1,6 @@
 import { Cake, CalendarClock, CalendarDays, Mail, MessageCircle, Phone, Sparkles } from "lucide-react";
 import type { ComponentType } from "react";
 import { FacebookIcon, InstagramIcon, type BadgeTone } from "@/components/atoms";
-import type { StepState } from "../bookingTracker";
 import type { ClientDetails } from "../../services/clientNotesService";
 import { parseServerTime } from "../../services/serverTime";
 
@@ -44,17 +43,7 @@ export const CLIENT_TABS: { value: ClientTab; label: string }[] = [
   { value: "appointments", label: "Appointments" },
 ];
 
-/** The booking tracker's colours for each step state */
-export const STEP_STYLE: Record<StepState, { dot: string; bar: string; title: string }> = {
-  done: { dot: "bg-crimson text-light-orange", bar: "bg-crimson", title: "text-gray-red" },
-  current: { dot: "border-2 border-crimson bg-milk text-berry", bar: "bg-crimson-light", title: "text-berry" },
-  upcoming: { dot: "bg-crimson-light/40 text-gray-red/50", bar: "bg-crimson-light/50", title: "text-gray-red/50" },
-  stopped: { dot: "bg-danger/15 text-danger", bar: "bg-crimson-light/50", title: "text-danger" },
-};
 
-/** A step state, read out after the step's title */
-export const stepStateLabel = (state: StepState) =>
-  state === "done" ? "done" : state === "current" ? "in progress" : state === "stopped" ? "stopped" : "not yet";
 
 /** A date of birth ("1998-03-14") as "Mar 14, 1998"; null when there is none or it is not a date */
 export const birthdayLabel = (dob?: string | null) => (dob && /^\d{4}-\d{2}-\d{2}/.test(dob) ? dateLabel(dob.slice(0, 10)) : null);
