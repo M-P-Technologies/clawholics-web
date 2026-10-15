@@ -19,11 +19,15 @@ const services = [svc(1, "Gel manicure", "Nails", "Glossy gel", "https://x/1.jpg
 vi.mock("@/services/serviceService", () => ({ fetchServices: () => Promise.resolve(services) }));
 vi.mock("@/services/catalogService", () => ({ fetchCategories: () => Promise.resolve([{ id: 1, name: "Nails" }, { id: 2, name: "Lashes" }]) }));
 vi.mock("@/services/contentService", () => ({ fetchHomeContent: () => Promise.resolve({}) }));
+// Phone layout (cards) unless a case asks for the table
+const layout = { table: false };
+vi.mock("@/hooks/useMinWidth", () => ({ useTableLayout: () => layout.table }));
 vi.mock("@/hooks/client/useMyAccount", () => ({ useMyAccount: () => ({ dbUser: { first_name: "Ana" }, clerkUser: null }) }));
 
 beforeEach(() => {
   search = "";
   startBooking.mockReset();
+  layout.table = false;
 });
 
 describe("filterServices", () => {
@@ -60,8 +64,8 @@ describe("Explore", () => {
   it("filters by category and clears", async () => {
     render(<Explore />);
     await screen.findAllByRole("listitem");
-    fireEvent.click(screen.getByRole("button", { name: "Filter by category" }));
-    fireEvent.click(await screen.findByRole("button", { name: "Lashes" }));
+    fireEvent.click(screen.getByRole("button", { name: "Category" }));
+    fireEvent.click(await screen.findByRole("option", { name: "Lashes" }));
     expect(screen.getAllByRole("listitem")).toHaveLength(1);
     fireEvent.change(screen.getByRole("searchbox"), { target: { value: "zzz" } });
     expect(screen.getByText("No services match")).toBeInTheDocument();
@@ -82,5 +86,12 @@ describe("Explore", () => {
     const rows = await screen.findAllByRole("listitem");
     expect(rows[1].querySelector("img")).toBeNull();
     expect(within(rows[1]).getByTestId("no-photo")).toBeInTheDocument();
+  });
+
+  it("lists the services as a table on a computer", async () => {
+    layout.table = true;
+    render(<Explore />);
+    const table = await screen.findByRole("table", { name: "Services" });
+    expect(within(table).getAllByRole("row")).toHaveLength(4); // the header and three services
   });
 });

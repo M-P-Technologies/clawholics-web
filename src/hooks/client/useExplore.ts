@@ -22,7 +22,6 @@ export function useExplore() {
   const [attempt, setAttempt] = useState(0);
   const [q, setQ] = useState(() => params.get("q") ?? "");
   const [category, setCategory] = useState(() => params.get("category") ?? "");
-  const [filterOpen, setFilterOpen] = useState(false);
   // Inside the app the client is signed in and onboarded, so these notes are rare: a toast is enough
   const startBooking = useStartBooking((title, message, action) => {
     toast.show("error", title, message);
@@ -41,10 +40,9 @@ export function useExplore() {
     q,
     setQ,
     category,
-    setCategory: (name: string) => setCategory((current) => (current === name ? "" : name)),
+    /** Picks a category ("" for all) */
+    chooseCategory: (name: string) => setCategory(name),
     categories,
-    filterOpen,
-    toggleFilter: () => setFilterOpen((open) => !open),
     clear: () => {
       setQ("");
       setCategory("");
