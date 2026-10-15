@@ -1,15 +1,15 @@
 "use client";
 
 import type { ReactNode } from "react";
+import clsx from "clsx";
 import { useClerk } from "@clerk/nextjs";
 import { ArrowLeft, LogOut } from "lucide-react";
-import { Link, useLocation } from "@/lib/router";
+import { useLocation } from "@/lib/router";
 import { Button } from "@/components/atoms";
 import { AppShell, SideBar, TabBar } from "@/components/organisms";
 import { useSiteTheme } from "@/hooks/useSiteTheme";
 import { CLIENT_TABS, isInnerScreen, isTabActive } from "@/lib/client/clientNav";
 
-const footerLink = "flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-gray-red hover:bg-crimson-light/30";
 
 // The client app's frame: the library's shell with the four tabs, back to the site and log out.
 // The site's colours and fonts apply here (not in the admin).
@@ -31,12 +31,12 @@ export default function ClientShell({ children }: { children: ReactNode }) {
             isActive={active}
             storageKey="clawholics-client-sidebar-collapsed"
             footer={(collapsed) => (
-              <div className="flex flex-col gap-1">
-                <Link to="/" className={footerLink} aria-label={collapsed ? "Back to site" : undefined}>
+              <div className="flex flex-col gap-2">
+                <Button variant="secondary" to="/" aria-label={collapsed ? "Back to site" : undefined} className={clsx("w-full gap-2", collapsed && "!px-0")}>
                   <ArrowLeft size={16} aria-hidden="true" />
                   {!collapsed && "Back to site"}
-                </Link>
-                <Button variant="bare" type="button" onClick={() => signOut({ redirectUrl: "/" })} aria-label="Log out" className={footerLink}>
+                </Button>
+                <Button type="button" onClick={() => signOut({ redirectUrl: "/" })} aria-label="Log out" className={clsx("w-full gap-2", collapsed && "!px-0")}>
                   <LogOut size={16} aria-hidden="true" />
                   {!collapsed && "Log out"}
                 </Button>

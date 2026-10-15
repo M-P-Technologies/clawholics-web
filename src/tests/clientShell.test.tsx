@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ClientShell from "@/components/features/client/shell/ClientShell";
 
@@ -10,7 +10,8 @@ vi.mock("@/lib/router", () => ({
   Link: ({ to, children, ...rest }: { to: string; children: React.ReactNode }) => <a href={to} {...rest}>{children}</a>,
 }));
 vi.mock("@/hooks/useSiteTheme", () => ({ useSiteTheme: () => {} }));
-vi.mock("@clerk/nextjs", () => ({ useClerk: () => ({ signOut: vi.fn() }) }));
+const signOut = vi.fn();
+vi.mock("@clerk/nextjs", () => ({ useClerk: () => ({ signOut }) }));
 
 beforeEach(() => {
   pathname = "/my";
@@ -34,6 +35,16 @@ describe("ClientShell", () => {
     expect(side.closest("aside")!.className).toContain("lg:flex");
     expect(within(side).getByRole("button", { name: "Home" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: /Back to site/ })).toHaveAttribute("href", "/");
+  });
+
+  it("ends the sidebar with the library buttons: Back to site secondary, Log out primary", () => {
+    render(<ClientShell><p>x</p></ClientShell>);
+    const back = screen.getByRole("link", { name: /Back to site/ });
+    expect(back).toHaveClass("border-crimson"); // secondary
+    const logOut = screen.getByRole("button", { name: "Log out" });
+    expect(logOut).toHaveClass("bg-crimson"); // primary
+    fireEvent.click(logOut);
+    expect(signOut).toHaveBeenCalledWith({ redirectUrl: "/" });
   });
 
   it("hides the tab bar on a service's page and the booking steps", () => {
