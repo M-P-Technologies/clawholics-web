@@ -3,7 +3,9 @@ import PaymentProofCard from "@/components/features/client/appointments/PaymentP
 import { Badge, Button } from "@/components/atoms";
 import { statusDotTone } from "@/utils/profileView";
 import { Dialog } from "@/components/organisms";
-import { AppointmentThumb, isCompleted } from "@/components/features/client/appointments/AppointmentCard";
+import Image from "next/image";
+import emblem from "@/assets/logo/emblem-pink.png";
+import { isCompleted } from "@/lib/client/appointments";
 import ReviewCard from "@/components/features/client/appointments/ReviewCard";
 import type { AppointmentView } from "@/types/profile";
 import type { PaymentProof } from "@/services/proofService";
@@ -23,6 +25,18 @@ interface AppointmentSheetProps {
   /** The client's review of this visit, once left */
   review?: Review;
   onSubmitReview: (appointmentId: number, draft: ReviewDraft) => Promise<unknown>;
+}
+
+export function AppointmentThumb({ photo, size = 64 }: { photo: string; size?: number }) {
+  return (
+    <span className="relative shrink-0 overflow-hidden rounded-lg bg-sand/50" style={{ width: size, height: size }}>
+      {photo ? (
+        <Image src={photo} alt="" fill sizes={`${size}px`} className="object-cover" />
+      ) : (
+        <Image src={emblem} alt="" fill sizes={`${size}px`} className="object-contain p-2" />
+      )}
+    </span>
+  );
 }
 
 // One appointment in full: what, who, when, its payment proof and every action that applies.

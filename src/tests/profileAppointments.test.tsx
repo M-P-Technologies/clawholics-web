@@ -1,7 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import AppointmentSheet from "@/components/features/client/appointments/AppointmentSheet";
-import AppointmentsSection from "@/components/features/client/appointments/AppointmentsSection";
 import type { AppointmentView } from "@/types/profile";
 
 vi.mock("@/lib/router", () => ({
@@ -20,11 +19,6 @@ const make = (id: number, over: Partial<AppointmentView> = {}, status = "confirm
 const sheetProps = () => ({
   photo: "", now: 0, tokenFetcher: async () => "t", clerkId: "u",
   onClose: vi.fn(), onPay: vi.fn(), onReschedule: vi.fn(), onCancel: vi.fn(), onProofUploaded: vi.fn(), onSubmitReview: vi.fn(async () => undefined),
-});
-const sectionProps = (over = {}) => ({
-  upcoming: [make(1), make(2)], past: [make(3, {}, "completed")], photoFor: () => "", highlightedId: null, onOpen: vi.fn(),
-  historyFilter: "all", onFilterChange: vi.fn(), historySort: "appointmentDateDesc", onSortChange: vi.fn(),
-  hasMore: false, showAll: false, onToggleAll: vi.fn(), reviewedIds: new Set<number>(), ...over,
 });
 
 describe("AppointmentSheet", () => {
@@ -80,47 +74,3 @@ describe("AppointmentSheet", () => {
   });
 });
 
-describe("AppointmentsSection", () => {
-  it("starts on Upcoming and switches to Past", () => {
-    render(<AppointmentsSection {...sectionProps()} />);
-    expect(screen.getByRole("tab", { name: /Upcoming/ })).toHaveAttribute("aria-selected", "true");
-    expect(screen.getByText("Service 1")).toBeInTheDocument();
-    expect(screen.queryByText("Service 3")).toBeNull();
-    fireEvent.click(screen.getByRole("tab", { name: /Past/ }));
-    expect(screen.getByText("Service 3")).toBeInTheDocument();
-    expect(screen.queryByText("Service 1")).toBeNull();
-  });
-
-  it("marks a completed visit that hasn't been reviewed", () => {
-    const { rerender } = render(<AppointmentsSection {...sectionProps()} />);
-    fireEvent.click(screen.getByRole("tab", { name: /Past/ }));
-    expect(screen.getByText("Leave a review")).toBeInTheDocument();
-    rerender(<AppointmentsSection {...sectionProps({ reviewedIds: new Set([3]) })} />);
-    expect(screen.queryByText("Leave a review")).toBeNull();
-  });
-
-  it("opens the tapped appointment", () => {
-    const p = sectionProps();
-    render(<AppointmentsSection {...p} />);
-    fireEvent.click(screen.getByRole("button", { name: /Service 2/ }));
-    expect(p.onOpen).toHaveBeenCalledWith(expect.objectContaining({ appt: expect.objectContaining({ id: 2 }) }));
-  });
-
-  it("says so when a list is empty", () => {
-    render(<AppointmentsSection {...sectionProps({ upcoming: [], past: [] })} />);
-    expect(screen.getByText(/nothing coming up/i)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("tab", { name: /Past/ }));
-    expect(screen.getByText(/no past appointments/i)).toBeInTheDocument();
-  });
-
-  it("keeps the past filter and 'view more'", () => {
-    const p = sectionProps({ hasMore: true });
-    render(<AppointmentsSection {...p} />);
-    fireEvent.click(screen.getByRole("tab", { name: /Past/ }));
-    fireEvent.click(screen.getByRole("button", { name: "Filter past appointments" }));
-    fireEvent.click(screen.getByRole("option", { name: /Cancelled/ }));
-    expect(p.onFilterChange).toHaveBeenCalledWith(expect.objectContaining({ target: { value: "cancelled" } }));
-    fireEvent.click(screen.getByRole("button", { name: /view more/i }));
-    expect(p.onToggleAll).toHaveBeenCalled();
-  });
-});

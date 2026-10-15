@@ -1,6 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import AppointmentCard from "@/components/features/client/appointments/AppointmentCard";
 import NextAppointmentCard from "@/components/features/client/home/NextAppointmentCard";
 import type { AppointmentView } from "@/types/profile";
 
@@ -16,28 +15,6 @@ const make = (over: Partial<AppointmentView> = {}, apptOver: Partial<Appointment
 });
 const NOW = Date.parse("2026-10-17T09:00:00+08:00");
 const actions = () => ({ onPay: vi.fn(), onReschedule: vi.fn(), onCancel: vi.fn() });
-
-describe("AppointmentCard", () => {
-  it("shows the service, artist, date, time and status, and opens on tap", () => {
-    const onOpen = vi.fn();
-    render(<AppointmentCard view={make()} photo="" onOpen={onOpen} />);
-    const card = screen.getByRole("button", { name: /Hard Gel/ });
-    expect(card).toHaveTextContent("With Miss Max");
-    expect(card).toHaveTextContent("October 20, 2026");
-    expect(card).toHaveTextContent("9:00 AM - 11:00 AM");
-    expect(card).toHaveTextContent("confirmed");
-    fireEvent.click(card);
-    expect(onOpen).toHaveBeenCalled();
-  });
-
-  it("falls back to the emblem when there is no photo, and keeps long names from overflowing", () => {
-    const long = { service_name: "A very long service name ".repeat(6), nailist_name: "An equally long artist name ".repeat(6) };
-    const { container } = render(<AppointmentCard view={make({}, long)} photo="" onOpen={() => {}} />);
-    expect(container.querySelector("img")).not.toBeNull(); // the emblem
-    expect(screen.getAllByText(/A very long service name/)[0].className).toContain("truncate");
-    expect(screen.getByText(/With An equally long/).className).toContain("truncate");
-  });
-});
 
 describe("NextAppointmentCard", () => {
   it("offers Reschedule and Cancel for a confirmed appointment, with how far away it is", () => {
