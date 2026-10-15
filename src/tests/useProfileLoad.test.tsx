@@ -19,6 +19,7 @@ vi.mock("@/services/userService", () => ({
   fetchProfile: (...args: unknown[]) => fetchProfile(...args),
   fetchUserAppointments: async () => [],
   isMissingProfile: () => false,
+  isTemporaryFailure: () => false,
   updateProfile: vi.fn(), redeemUserReward: vi.fn(), cancelAppointment: vi.fn(),
 }));
 

@@ -1,7 +1,7 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { useNavigate, useSearchParams } from "@/lib/router";
-import { fetchProfile, isMissingProfile, updateProfile, fetchUserAppointments, redeemUserReward, cancelAppointment, type UserProfile } from "../services/userService";
+import { fetchProfile, isMissingProfile, isTemporaryFailure, updateProfile, fetchUserAppointments, redeemUserReward, cancelAppointment, type UserProfile } from "../services/userService";
 import { type Appointment } from "../utils/profile";
 import type { ChangeEvent } from "react";
 import { isActiveAppointmentStatus } from "../services/proofState";
@@ -49,6 +49,8 @@ export function useProfile() {
   const [historyFilter, setHistoryFilter] = useState("all");
   // The last load failed (not a missing profile): the client app shows a retry instead of loading forever
   const [loadError, setLoadError] = useState(false);
+  // Whether the account has been on screen once, so a later refresh that fails can keep it
+  const hasLoaded = useRef(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
 
   const processedPastAppointments = useMemo(() => {
@@ -125,10 +127,17 @@ export function useProfile() {
           setDbUser(data);
           setStamps(data.stamps || 0);
           setLoadError(false);
+          hasLoaded.current = true;
 
           const appts = await fetchUserAppointments(clerkUser.id, token);
           setAppointments(appts || []);
         } catch (err) {
+          // A background refresh that hits a brief outage (the server answers 503 when the database is
+          // slow) keeps what is on screen; the next refresh will try again
+          if (hasLoaded.current && isTemporaryFailure(err)) {
+            console.warn("Couldn't refresh the account; showing what was loaded before:", err);
+            return;
+          }
           // A missing profile is expected for a new account, so it isn't logged
           if (!isMissingProfile(err)) {
             console.error(
