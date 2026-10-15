@@ -1,10 +1,11 @@
+import { Card } from "@/components/atoms";
 import { describeChange, describePoints, peso, percent } from "@/lib/dashboardFormat";
 import type { DashboardResponse, Utilization } from "@/services/dashboardTypes";
 import ArtistUtilization from "@/components/features/admin/dashboard/ArtistUtilization";
 import GlanceCards from "@/components/features/admin/dashboard/GlanceCards";
-import { StatCard } from "@/components/molecules";
+import { StatCard, SectionHeader } from "@/components/molecules";
 import RankedBars from "@/components/features/admin/dashboard/RankedBars";
-import { Panel, ViewBody, WEEKDAYS } from "@/components/features/admin/dashboard/dashboardParts";
+import { ViewBody, WEEKDAYS } from "@/components/features/admin/dashboard/dashboardParts";
 
 interface PerformanceViewProps {
   data: DashboardResponse;
@@ -36,12 +37,12 @@ export default function PerformanceView({ data, loading, failed, loadUtilization
       {loadUtilization && <ArtistUtilization load={loadUtilization} />}
 
       <div className="grid grid-cols-1 gap-4 md:gap-6 xl:grid-cols-2">
-        <Panel title="Busiest weekdays">
+        <Card as="section" aria-label="Busiest weekdays" className="flex min-w-0 flex-col gap-4"><SectionHeader size="card" title="Busiest weekdays" />
           <RankedBars title="Bookings by weekday" rows={data.weekdays.map((w) => ({ label: WEEKDAYS[w.weekday - 1], value: w.bookings }))} emptyText="Nothing to show yet." />
-        </Panel>
-        <Panel title="Bookings per artist">
+        </Card>
+        <Card as="section" aria-label="Bookings per artist" className="flex min-w-0 flex-col gap-4"><SectionHeader size="card" title="Bookings per artist" />
           <RankedBars title="Bookings by artist" rows={data.artists.map((a) => ({ label: a.name, value: a.bookings }))} emptyText="Nothing to show yet." />
-        </Panel>
+        </Card>
       </div>
     </ViewBody>
   );

@@ -1,10 +1,12 @@
+import { SectionHeader } from "@/components/molecules";
+import { Card } from "@/components/atoms";
 import { peso } from "@/lib/dashboardFormat";
 import type { DashboardResponse } from "@/services/dashboardTypes";
 import MoneyCards from "@/components/features/admin/dashboard/MoneyCards";
 import RankedBars from "@/components/features/admin/dashboard/RankedBars";
 import SalesRecord from "@/components/features/admin/dashboard/SalesRecord";
 import { BAR_COLOR, STATUS_COLORS } from "@/components/features/admin/dashboard/chartColors";
-import { Panel, ViewBody } from "@/components/features/admin/dashboard/dashboardParts";
+import { ViewBody } from "@/components/features/admin/dashboard/dashboardParts";
 
 interface SalesViewProps {
   data: DashboardResponse;
@@ -20,15 +22,15 @@ export default function SalesView({ data, loading, failed }: SalesViewProps) {
       <MoneyCards money={data.money} revenue={data.kpis.estimatedSales.value} trend={data.trend} />
 
       <div className="grid grid-cols-1 gap-4 md:gap-6 xl:grid-cols-2">
-        <Panel title="Top services">
+        <Card as="section" aria-label="Top services" className="flex min-w-0 flex-col gap-4"><SectionHeader size="card" title="Top services" />
           <RankedBars
             title="Top services"
             rows={data.services.map((s) => ({ label: s.name, value: s.bookings, valueLabel: `${s.bookings} · ${peso(s.estimatedSales)}`, color: BAR_COLOR }))}
             emptyText="Nothing to show yet."
           />
-        </Panel>
+        </Card>
 
-        <Panel title="How bookings ended">
+        <Card as="section" aria-label="How bookings ended" className="flex min-w-0 flex-col gap-4"><SectionHeader size="card" title="How bookings ended" />
           <RankedBars
             title="Appointments by status"
             rows={[
@@ -40,7 +42,7 @@ export default function SalesView({ data, loading, failed }: SalesViewProps) {
             ]}
             emptyText="Nothing to show yet."
           />
-        </Panel>
+        </Card>
       </div>
 
       <SalesRecord sales={data.sales} />

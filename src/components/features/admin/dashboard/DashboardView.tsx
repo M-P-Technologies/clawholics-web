@@ -1,3 +1,4 @@
+import { Card } from "@/components/atoms";
 import { ArrowRight, CalendarHeart, Receipt, UserPlus, Wallet } from "lucide-react";
 import { describeChange, peso } from "@/lib/dashboardFormat";
 import { formatBucketLabel, granularityWord, type DayValues } from "@/lib/dashboardTrend";
@@ -8,12 +9,12 @@ import ActiveBookings from "@/components/features/admin/dashboard/ActiveBookings
 import BarChart from "@/components/features/admin/dashboard/BarChart";
 import BookingsTable from "@/components/features/admin/dashboard/BookingsTable";
 import DonutChart from "@/components/features/admin/dashboard/DonutChart";
-import { StatCard } from "@/components/molecules";
+import { StatCard, SectionHeader } from "@/components/molecules";
 import NextAppointments from "@/components/features/admin/dashboard/NextAppointments";
 import SalonNotes from "@/components/features/admin/dashboard/SalonNotes";
 import Sparkline from "@/components/features/admin/dashboard/Sparkline";
 import { OTHER_COLOR, SERIES_COLORS, STACK_COLORS } from "@/components/features/admin/dashboard/chartColors";
-import { Panel, ViewBody, monthName } from "@/components/features/admin/dashboard/dashboardParts";
+import { ViewBody, monthName } from "@/components/features/admin/dashboard/dashboardParts";
 
 interface DashboardViewProps {
   data: DashboardResponse;
@@ -76,7 +77,7 @@ export default function DashboardView({ data, loading = false, failed = false, l
 
         <div className="flex min-w-0 flex-col gap-4 md:gap-6 lg:col-span-3">
           <div className="grid grid-cols-1 gap-4 md:gap-6 xl:grid-cols-2">
-            <Panel title="Bookings per month">
+            <Card as="section" aria-label="Bookings per month" className="flex min-w-0 flex-col gap-4"><SectionHeader size="card" title="Bookings per month" />
               <BarChart
                 title="Bookings per month"
                 data={data.monthly.map((m) => ({ label: monthName(m.month), a: m.completed, b: m.cancelled }))}
@@ -86,19 +87,19 @@ export default function DashboardView({ data, loading = false, failed = false, l
                 bColor={STACK_COLORS.lost}
                 emptyText="No bookings in these months yet."
               />
-            </Panel>
+            </Card>
 
-            <Panel title="Service mix">
+            <Card as="section" aria-label="Service mix" className="flex min-w-0 flex-col gap-4"><SectionHeader size="card" title="Service mix" />
               <DonutChart title="Service mix" slices={serviceSlices} centerLabel="bookings" emptyText="No bookings in this period." />
-            </Panel>
+            </Card>
           </div>
 
           {loadBookings ? (
             <BookingsTable load={loadBookings} />
           ) : (
-            <Panel title="Next appointments">
+            <Card as="section" aria-label="Next appointments" className="flex min-w-0 flex-col gap-4"><SectionHeader size="card" title="Next appointments" />
               <NextAppointments items={data.next} />
-            </Panel>
+            </Card>
           )}
 
           {/* Where the other numbers went */}

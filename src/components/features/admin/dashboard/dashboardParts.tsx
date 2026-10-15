@@ -9,14 +9,6 @@ export const monthName = (key: string) => {
   return new Date(Date.UTC(year, month - 1, 1)).toLocaleString("en-US", { month: "short", timeZone: "UTC" });
 };
 
-export function Panel({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section aria-label={title} className="flex min-w-0 flex-col gap-4 rounded-2xl border border-crimson-light/40 bg-milk p-5 shadow-petal">
-      <h2 className="font-display text-xl font-normal leading-tight text-gray-red">{title}</h2>
-      {children}
-    </section>
-  );
-}
 
 // The page body: a column of cards, faded while a new period loads, with a note when the last
 // refresh failed (the numbers shown may then be out of date)
