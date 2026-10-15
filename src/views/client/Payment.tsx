@@ -8,7 +8,7 @@ import { AlertDialog } from "@/components/organisms";
 import { Button, Card, LoadingBar } from "@/components/atoms";
 import { ChoiceRow, SectionHeader, SummaryRow } from "@/components/molecules";
 import { surface } from "@/components/tokens";
-import ClientPage from "@/components/features/client/shell/ClientPage";
+import ClientScreen from "@/components/features/client/shell/ClientScreen";
 import { usePayment } from "@/hooks/client/usePayment";
 import { CLIENT_PATHS } from "@/lib/client/clientNav";
 
@@ -18,7 +18,7 @@ export default function Payment() {
   // If loading or invalid, show the LoadingBar (effectively hiding the pay UI)
   if (loading || isInvalid) {
     return (
-      <ClientPage title="Payment">
+      <ClientScreen title="Payment" back="history">
         <div className="flex min-h-[70vh] items-center justify-center">
           <LoadingBar label="Loading your payment details" />
         </div>
@@ -31,25 +31,25 @@ export default function Payment() {
           onClose={handleModalClose}
           onAction={modalAction}
         />
-      </ClientPage>
+      </ClientScreen>
     );
   }
 
   if (!appointment) {
     return (
-      <ClientPage title="Payment">
+      <ClientScreen title="Payment" back="history">
         <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
           <SectionHeader size="section" title="Invalid access" subtitle="Start a booking from the services page to pay a downpayment." className="items-center" />
           <Button to={CLIENT_PATHS.home}>
             Go home
           </Button>
         </div>
-      </ClientPage>
+      </ClientScreen>
     );
   }
 
   return (
-    <ClientPage title="Payment">
+    <ClientScreen title="Payment" back="history">
       <div className="flex flex-col gap-6">
         <div className="grid grid-cols-1 items-start gap-4 md:gap-8 lg:grid-cols-2">
           {/* PAYMENT FORM */}
@@ -147,6 +147,6 @@ export default function Payment() {
         onClose={handleModalClose}
         onAction={modalAction}
       />
-    </ClientPage>
+    </ClientScreen>
   );
 }

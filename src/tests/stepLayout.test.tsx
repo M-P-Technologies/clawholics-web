@@ -9,6 +9,8 @@ const booking = vi.fn();
 const reschedule = vi.fn();
 const payment = vi.fn();
 const confirmation = vi.fn();
+// The screens draw ClientScreen, which reads the account the client app provides
+vi.mock("@/hooks/client/useMyAccount", () => ({ useMyAccount: () => ({ dbUser: null, clerkUser: null }) }));
 vi.mock("@/hooks/client/useBooking", () => ({ useBooking: () => booking() }));
 vi.mock("@/hooks/client/useReschedule", () => ({ useReschedule: () => reschedule() }));
 vi.mock("@/hooks/client/usePayment", () => ({ usePayment: () => payment() }));

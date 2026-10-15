@@ -4,6 +4,7 @@ import MyAppointments from "@/views/client/MyAppointments";
 import MyProfile from "@/views/client/MyProfile";
 
 vi.mock("@/lib/router", () => ({
+  useNavigate: () => () => {},
   Link: ({ to, children, ...rest }: { to: string; children: React.ReactNode }) => <a href={to} {...rest}>{children}</a>,
 }));
 const signOut = vi.fn();

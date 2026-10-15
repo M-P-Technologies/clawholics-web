@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import Booking from "@/views/client/Booking";
 
 const hook = vi.fn();
+// The screens draw ClientScreen, which reads the account the client app provides
+vi.mock("@/hooks/client/useMyAccount", () => ({ useMyAccount: () => ({ dbUser: null, clerkUser: null }) }));
 vi.mock("@/hooks/client/useBooking", () => ({ useBooking: () => hook() }));
 vi.mock("@/lib/router", () => ({
   useNavigate: () => vi.fn(),

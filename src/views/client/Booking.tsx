@@ -9,7 +9,7 @@ import DayCalendar from "@/components/molecules/DayCalendar";
 import { surface } from "@/components/tokens";
 import BookingOptions from "@/components/features/client/booking/BookingOptions";
 import ArtistSelect from "@/components/features/client/booking/ArtistSelect";
-import ClientPage from "@/components/features/client/shell/ClientPage";
+import ClientScreen from "@/components/features/client/shell/ClientScreen";
 import { useBooking } from "@/hooks/client/useBooking";
 
 export default function Booking() {
@@ -21,7 +21,7 @@ export default function Booking() {
 
   if (pageError || !pageData) {
     return (
-      <ClientPage title="Book">
+      <ClientScreen title="Book" back="history">
         <div className="flex min-h-[60vh] items-center justify-center">
           <EmptyState
             kind="error"
@@ -36,12 +36,12 @@ export default function Booking() {
             </Button>
           </EmptyState>
         </div>
-      </ClientPage>
+      </ClientScreen>
     );
   }
 
   return (
-    <ClientPage title="Book">
+    <ClientScreen title="Book" back="history">
       <div className="flex flex-col gap-6">
         <div className="grid grid-cols-1 items-start gap-4 md:gap-8 lg:grid-cols-2">
           {/* BOOKING FORM */}
@@ -168,6 +168,6 @@ export default function Booking() {
         onClose={closeModal}
         onAction={modalAction}
       />
-    </ClientPage>
+    </ClientScreen>
   );
 }

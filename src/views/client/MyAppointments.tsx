@@ -2,7 +2,7 @@
 
 import AppointmentsSection from "@/components/features/client/appointments/AppointmentsSection";
 import { TabSection } from "@/components/molecules";
-import ClientTopBar from "@/components/features/client/shell/ClientTopBar";
+import ClientScreen from "@/components/features/client/shell/ClientScreen";
 import { useMyAccount } from "../../hooks/client/useMyAccount";
 import { useServicePhotos } from "../../hooks/useServicePhotos";
 
@@ -12,8 +12,7 @@ export default function MyAppointments() {
   const reviewedIds = new Set(Object.keys(a.reviews).map(Number));
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-4 pb-8 pt-4 lg:pt-8">
-      <ClientTopBar title="My appointments" />
+    <ClientScreen title="My appointments">
       <div className="rounded-2xl bg-milk p-5 shadow-petal">
         <TabSection title="Your visits" description="Open one to see its details, pay, reschedule, or leave a review after your visit.">
           <AppointmentsSection
@@ -33,6 +32,6 @@ export default function MyAppointments() {
           />
         </TabSection>
       </div>
-    </div>
+    </ClientScreen>
   );
 }

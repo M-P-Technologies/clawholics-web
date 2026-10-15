@@ -3,7 +3,7 @@
 import { CircleCheckBig as CheckIcon } from "lucide-react";
 import { Button, Card, LoadingBar } from "@/components/atoms";
 import { SectionHeader, EmptyState, SummaryRow } from "@/components/molecules";
-import ClientPage from "@/components/features/client/shell/ClientPage";
+import ClientScreen from "@/components/features/client/shell/ClientScreen";
 import { usePaymentConfirmation } from "@/hooks/client/usePaymentConfirmation";
 import { CLIENT_PATHS } from "@/lib/client/clientNav";
 
@@ -12,11 +12,11 @@ export default function PaymentConfirmation() {
 
   if (!appointment_id) {
     return (
-      <ClientPage title="Payment" back={CLIENT_PATHS.appointments}>
+      <ClientScreen title="Payment" back={CLIENT_PATHS.appointments}>
         <div className="flex min-h-[60vh] items-center justify-center text-center">
           <p className="text-lg text-gray-red">Invalid access. No appointment ID.</p>
         </div>
-      </ClientPage>
+      </ClientScreen>
     );
   }
 
@@ -26,7 +26,7 @@ export default function PaymentConfirmation() {
 
   if (isFailed) {
     return (
-      <ClientPage title="Payment" back={CLIENT_PATHS.appointments}>
+      <ClientScreen title="Payment" back={CLIENT_PATHS.appointments}>
         <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
           <SectionHeader size="section" title="Payment failed" className="items-center" />
           <p className="mx-auto max-w-xl text-gray-red/90">
@@ -46,7 +46,7 @@ export default function PaymentConfirmation() {
             </Button>
           </div>
         </div>
-      </ClientPage>
+      </ClientScreen>
     );
   }
 
@@ -54,7 +54,7 @@ export default function PaymentConfirmation() {
     // We stopped asking after two minutes. Say so, and what to do, instead of spinning forever.
     if (timedOut) {
       return (
-        <ClientPage title="Payment" back={CLIENT_PATHS.appointments}>
+        <ClientScreen title="Payment" back={CLIENT_PATHS.appointments}>
           <div className="flex min-h-[60vh] items-center justify-center">
             <EmptyState
               kind="info"
@@ -72,7 +72,7 @@ export default function PaymentConfirmation() {
               </Button>
             </EmptyState>
           </div>
-        </ClientPage>
+        </ClientScreen>
       );
     }
 
@@ -87,7 +87,7 @@ export default function PaymentConfirmation() {
   }
 
   return (
-    <ClientPage title="Payment" back={CLIENT_PATHS.appointments}>
+    <ClientScreen title="Payment" back={CLIENT_PATHS.appointments}>
       <div className="mx-auto flex min-h-[60vh] w-full max-w-3xl flex-col items-center gap-4 text-center md:gap-6">
         <CheckIcon size={56} className="text-crimson" strokeWidth={1.5} aria-hidden="true" />
 
@@ -117,6 +117,6 @@ export default function PaymentConfirmation() {
           Back to home
         </Button>
       </div>
-    </ClientPage>
+    </ClientScreen>
   );
 }

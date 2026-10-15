@@ -5,15 +5,14 @@ import clsx from "clsx";
 import { Button } from "@/components/atoms";
 import { SearchBar } from "@/components/molecules";
 import ServiceRow from "@/components/features/client/explore/ServiceRow";
-import ClientTopBar from "@/components/features/client/shell/ClientTopBar";
+import ClientScreen from "@/components/features/client/shell/ClientScreen";
 import { useExplore } from "../../hooks/client/useExplore";
 
 export default function Explore() {
   const e = useExplore();
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col px-4 pb-8 pt-4 lg:pt-8">
-      <ClientTopBar title="Our services" />
+    <ClientScreen title="Our services">
 
       <div className="mt-4 rounded-3xl bg-crimson px-5 pb-14 pt-5 text-milk">
         <p className="text-milk/90">{e.subtitle}</p>
@@ -82,6 +81,6 @@ export default function Explore() {
           )}
         </section>
       </div>
-    </div>
+    </ClientScreen>
   );
 }

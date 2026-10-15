@@ -6,7 +6,7 @@ import DetailsCard from "@/components/features/client/profile/DetailsCard";
 import ProfileHeader from "@/components/features/client/profile/ProfileHeader";
 import RewardsStrip from "@/components/features/client/home/RewardsStrip";
 import { Button } from "@/components/atoms";
-import ClientTopBar from "@/components/features/client/shell/ClientTopBar";
+import ClientScreen from "@/components/features/client/shell/ClientScreen";
 import { contactMethodLabel } from "../../data/profile";
 import { useMyAccount } from "../../hooks/client/useMyAccount";
 
@@ -30,8 +30,7 @@ export default function MyProfile() {
   ];
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-4 pb-8 pt-4 lg:pt-8">
-      <ClientTopBar title="My profile" />
+    <ClientScreen title="My profile">
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
         <section aria-label="Your profile" className="flex flex-col gap-5 rounded-2xl bg-milk p-5 shadow-petal">
           <ProfileHeader firstName={u.first_name ?? ""} imageUrl={a.clerkUser?.imageUrl ?? ""} memberSince={memberSince} />
@@ -51,6 +50,6 @@ export default function MyProfile() {
           </div>
         </section>
       </div>
-    </div>
+    </ClientScreen>
   );
 }

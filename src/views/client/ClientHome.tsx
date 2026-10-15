@@ -6,7 +6,7 @@ import NextAppointmentCard from "@/components/features/client/home/NextAppointme
 import RewardsStrip from "@/components/features/client/home/RewardsStrip";
 import OffersCarousel from "@/components/features/client/home/OffersCarousel";
 import ServiceCard from "@/components/features/client/home/ServiceCard";
-import ClientTopBar from "@/components/features/client/shell/ClientTopBar";
+import ClientScreen from "@/components/features/client/shell/ClientScreen";
 import { useClientHome } from "../../hooks/client/useClientHome";
 import { CLIENT_PATHS } from "../../lib/client/clientNav";
 
@@ -15,8 +15,7 @@ export default function ClientHome() {
   const hero = h.account.nextAppointment;
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-7 px-4 pb-8 pt-4 lg:pt-8">
-      <ClientTopBar title={h.firstName ? `Hi, ${h.firstName}` : "Hi there"} />
+    <ClientScreen title={h.firstName ? `Hi, ${h.firstName}` : "Hi there"}>
 
       <SearchBar value={h.query} onChange={h.setQuery} onSubmit={h.search} />
 
@@ -54,6 +53,6 @@ export default function ClientHome() {
           <RewardsStrip stamps={h.account.stamps} onOpen={h.account.openRewards} />
         </div>
       </section>
-    </div>
+    </ClientScreen>
   );
 }

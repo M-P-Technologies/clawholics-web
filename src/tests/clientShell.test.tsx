@@ -1,7 +1,6 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ClientShell from "@/components/features/client/shell/ClientShell";
-import ClientPage from "@/components/features/client/shell/ClientPage";
 
 let pathname = "/my";
 const navigate = vi.fn();
@@ -44,20 +43,5 @@ describe("ClientShell", () => {
       expect(screen.queryByRole("navigation", { name: "App tabs" })).not.toBeInTheDocument();
       unmount();
     }
-  });
-});
-
-describe("ClientPage", () => {
-  it("has a title and a back button", () => {
-    render(<ClientPage title="Book" back="/my/explore"><p>Steps</p></ClientPage>);
-    expect(screen.getByRole("heading", { name: "Book" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Back" }));
-    expect(navigate).toHaveBeenCalledWith("/my/explore");
-  });
-
-  it("goes back in history without a fixed target", () => {
-    render(<ClientPage title="Pay"><p>x</p></ClientPage>);
-    fireEvent.click(screen.getByRole("button", { name: "Back" }));
-    expect(navigate).toHaveBeenCalledWith(-1);
   });
 });

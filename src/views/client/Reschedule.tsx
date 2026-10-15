@@ -6,7 +6,7 @@ import { Button, Card, LoadingBar } from "@/components/atoms";
 import { SectionHeader, SummaryRow, TimeSlotList } from "@/components/molecules";
 import DayCalendar from "@/components/molecules/DayCalendar";
 import { surface } from "@/components/tokens";
-import ClientPage from "@/components/features/client/shell/ClientPage";
+import ClientScreen from "@/components/features/client/shell/ClientScreen";
 import { useReschedule } from "@/hooks/client/useReschedule";
 import { formatSlot } from "@/utils/reschedule";
 
@@ -16,7 +16,7 @@ export default function Reschedule() {
   if (!isLoaded || !appointment) return <LoadingBar label="Loading your appointment" />;
 
   return (
-    <ClientPage title="Reschedule">
+    <ClientScreen title="Reschedule" back="history">
       <div className="flex flex-col gap-6">
 
         <div className="grid grid-cols-1 gap-4 md:gap-8 lg:grid-cols-5 lg:gap-16 xl:grid-cols-2">
@@ -110,6 +110,6 @@ export default function Reschedule() {
         buttonText="OK"
         onClose={handleModalClose}
       />
-    </ClientPage>
+    </ClientScreen>
   );
 }

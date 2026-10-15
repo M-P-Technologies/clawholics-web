@@ -3,6 +3,8 @@ import { describe, expect, it, vi } from "vitest";
 import PaymentConfirmation from "@/views/client/PaymentConfirmation";
 
 const hook = vi.fn();
+// The screens draw ClientScreen, which reads the account the client app provides
+vi.mock("@/hooks/client/useMyAccount", () => ({ useMyAccount: () => ({ dbUser: null, clerkUser: null }) }));
 vi.mock("@/hooks/client/usePaymentConfirmation", () => ({ usePaymentConfirmation: () => hook() }));
 
 const waiting = {

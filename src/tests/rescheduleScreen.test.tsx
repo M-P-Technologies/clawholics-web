@@ -4,6 +4,8 @@ import Reschedule from "@/views/client/Reschedule";
 import { formatSlot } from "@/utils/reschedule";
 
 const hook = vi.fn();
+// The screens draw ClientScreen, which reads the account the client app provides
+vi.mock("@/hooks/client/useMyAccount", () => ({ useMyAccount: () => ({ dbUser: null, clerkUser: null }) }));
 vi.mock("@/hooks/client/useReschedule", () => ({ useReschedule: () => hook() }));
 vi.mock("@/lib/router", () => ({ useNavigate: () => vi.fn() }));
 
