@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import clsx from "clsx";
+import { field } from "@/components/tokens";
 
 interface SummaryRowProps {
   label: string;
@@ -7,11 +9,11 @@ interface SummaryRowProps {
   icon?: ReactNode;
 }
 
-// One label and value line in a summary list (payment, booking, receipt).
+// One label and value line in a summary list (payment, booking, receipt). A long value wraps.
 export default function SummaryRow({ label, value, icon }: SummaryRowProps) {
   return (
-    <div className="flex items-start justify-between gap-8 border-b border-crimson-light/80 py-4 text-gray-red">
-      <dt className="label-caps flex items-center gap-2">
+    <div className="flex items-start justify-between gap-6 border-b border-crimson-light/40 py-3 text-gray-red last:border-b-0">
+      <dt className={clsx(field.label, "flex shrink-0 items-center gap-2")}>
         {icon && (
           <span aria-hidden="true" className="shrink-0 text-crimson">
             {icon}
@@ -19,7 +21,7 @@ export default function SummaryRow({ label, value, icon }: SummaryRowProps) {
         )}
         {label}
       </dt>
-      <dd className="text-right">{value}</dd>
+      <dd className="min-w-0 break-words text-right text-sm font-bold">{value}</dd>
     </div>
   );
 }

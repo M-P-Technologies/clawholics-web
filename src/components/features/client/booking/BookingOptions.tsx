@@ -1,4 +1,5 @@
 import { ChoiceRow } from "@/components/molecules";
+import { field } from "@/components/tokens";
 
 type Props = {
   variants: { id: number; name: string; price: number }[];
@@ -13,10 +14,10 @@ export default function BookingOptions({ variants, addons, variantId, addonIds, 
   if (variants.length === 0 && addons.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-4 md:gap-8">
+    <div className="flex flex-col gap-5">
       {variants.length > 0 && (
         <fieldset>
-          <legend className="mb-4 label-caps">CHOOSE AN OPTION</legend>
+          <legend className={`mb-3 ${field.label}`}>Choose an option</legend>
           <div className="flex flex-col gap-2">
             {variants.map((variant) => (
               <ChoiceRow
@@ -34,7 +35,7 @@ export default function BookingOptions({ variants, addons, variantId, addonIds, 
 
       {addons.length > 0 && (
         <fieldset>
-          <legend className="mb-4 label-caps">ADD-ONS</legend>
+          <legend className={`mb-3 ${field.label}`}>Add-ons</legend>
           <div className="flex flex-col gap-2">
             {addons.map((addon) => {
               const checked = addonIds.includes(addon.id);

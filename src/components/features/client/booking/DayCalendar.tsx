@@ -10,7 +10,7 @@ interface DayCalendarProps {
   isFullyBooked: (date: Date) => boolean;
 }
 
-// Single-date calendar for choosing a booking day, styled with the site tokens.
+// Single-date calendar for choosing a booking day, in the app look (round days on milk).
 // It allows the current month and the next one.
 export default function DayCalendar({
   month,
@@ -38,9 +38,8 @@ export default function DayCalendar({
       classNames={{
         root: "relative w-fit",
         month: "w-full",
-        month_caption:
-          "flex items-center justify-center h-8 label-caps",
-        caption_label: "text-sm font-bold uppercase",
+        month_caption: "flex items-center justify-center h-8 text-[13px] font-bold text-gray-red",
+        caption_label: "text-[13px] font-bold",
         nav: "absolute left-0 right-0 top-0 flex items-center justify-between",
         button_previous:
           "w-8 h-8 flex items-center justify-center transition hover:scale-110 aria-disabled:opacity-20 cursor-pointer aria-disabled:cursor-not-allowed",
@@ -48,22 +47,22 @@ export default function DayCalendar({
           "w-8 h-8 flex items-center justify-center transition hover:scale-110 aria-disabled:opacity-20 cursor-pointer aria-disabled:cursor-not-allowed",
         chevron: "w-4 h-4 fill-crimson text-crimson",
         month_grid: "w-full border-separate border-spacing-2",
-        weekday: "text-center text-sm font-bold uppercase text-gray-red pb-1",
+        weekday: "text-center text-[11px] font-bold text-gray-red/70 pb-1",
         day: "h-7 w-7 p-0 text-center",
         day_button: `
-          h-9 w-9 rounded-sm text-sm font-bold text-gray-red transition-colors duration-200
-          bg-crimson-light/50 cursor-pointer
-          hover:bg-crimson hover:text-light-orange
-          focus:bg-crimson focus:text-light-orange
+          h-9 w-9 rounded-full text-sm font-bold text-gray-red transition-colors duration-200
+          bg-milk cursor-pointer
+          hover:bg-crimson hover:text-milk
+          focus:bg-crimson focus:text-milk
           disabled:opacity-30 disabled:line-through disabled:cursor-not-allowed
-          disabled:hover:bg-crimson-light/50 disabled:hover:text-gray-red
+          disabled:hover:bg-milk disabled:hover:text-gray-red
         `,
-        selected: "rounded-sm !bg-crimson !text-light-orange hover:!bg-crimson focus:!bg-crimson",
+        selected: "rounded-full !bg-crimson !text-milk hover:!bg-crimson focus:!bg-crimson",
         range_start: "!bg-transparent",
         range_middle: "!bg-transparent",
         range_end: "!bg-transparent",
         disabled: "pointer-events-none",
-        today: "rounded-sm border border-crimson",
+        today: "rounded-full ring-1 ring-crimson",
         outside: "opacity-0 pointer-events-none",
       }}
     />
