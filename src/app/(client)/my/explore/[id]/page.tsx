@@ -31,7 +31,7 @@ export default function ServiceDetail() {
 
   return (
     <ClientScreen title={s.name} back={CLIENT_PATHS.explore}>
-      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)]">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)]">
         <div className="flex h-[40vh] snap-x snap-mandatory overflow-x-auto rounded-2xl bg-crimson-light/40 shadow-petal [scrollbar-width:none] lg:h-[28rem] [&::-webkit-scrollbar]:hidden">
           {d.photos.length ? (
             d.photos.map((url) => (
@@ -39,15 +39,15 @@ export default function ServiceDetail() {
               <img key={url} src={url} alt="" className="h-full w-full shrink-0 snap-center object-cover" />
             ))
           ) : (
-            <span className="flex h-full w-full items-center justify-center text-crimson">
+            <span className="flex h-full w-full items-center justify-center text-crimson-ink">
               <Sparkles size={48} aria-hidden="true" />
             </span>
           )}
         </div>
 
-        <Card as="article" className="flex flex-col gap-5">
+        <Card as="article" className="flex flex-col gap-6">
           <div className="flex items-baseline justify-between gap-3">
-            <span className="text-[13px] text-gray-red/70">Price</span>
+            <span className="text-[13px] text-gray-red">Price</span>
             <span className="font-display text-2xl text-berry">{d.price}</span>
           </div>
 
@@ -59,7 +59,7 @@ export default function ServiceDetail() {
 
           <section className="flex flex-col gap-2">
             <SectionHeader size="label" title="About this service" />
-            <p className="text-sm leading-relaxed text-gray-red/80">{s.description}</p>
+            <p className="text-sm leading-relaxed text-gray-red">{s.description}</p>
           </section>
 
           <Button type="button" onClick={d.book} className="w-full">Book now</Button>

@@ -79,7 +79,7 @@ const fieldClass =
 
 const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
   <div className={card}>
-    <h3 className="text-[13px] font-medium text-gray-red/80">{label}</h3>
+    <h3 className="text-[13px] font-medium text-gray-red">{label}</h3>
     {children}
   </div>
 );
@@ -158,8 +158,8 @@ export default function ServicePricingFields({ draft, onChange, isEditing, categ
       )}
 
       <div className="flex flex-col gap-1.5">
-        <h3 className="text-[13px] font-medium text-gray-red/80">Options (optional)</h3>
-        <p className="text-[14px] text-gray-red/80 mb-2">
+        <h3 className="text-[13px] font-medium text-gray-red">Options (optional)</h3>
+        <p className="text-[14px] text-gray-red mb-2">
           Use options when a service has several fully priced choices, for example "Cat Eye - Volume" and "Cat Eye - Mega Volume". Clients must pick one.
         </p>
 
@@ -200,7 +200,7 @@ export default function ServicePricingFields({ draft, onChange, isEditing, categ
           <Button
             variant="secondary"
             type="button"
-            className="mt-4"
+            className="mt-3"
             onClick={() => set({ variants: [...draft.variants, { name: "", price: "" }] })}
           >
             Add option

@@ -24,7 +24,7 @@ export default function MyAccountProvider({ children }: { children: ReactNode })
 
   if (profile.loadError && !profile.dbUser) {
     return (
-      <div className="flex min-h-[70vh] flex-col items-center justify-center gap-4 px-4 text-center text-gray-red">
+      <div className="flex min-h-[70vh] flex-col items-center justify-center gap-3 px-3 text-center text-gray-red">
         <h1 className="font-display text-2xl font-normal normal-case tracking-normal">We couldn&apos;t load your account</h1>
         <p>Please check your connection and try again.</p>
         <div className="flex gap-3">

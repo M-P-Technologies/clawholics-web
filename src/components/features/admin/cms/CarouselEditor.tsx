@@ -68,7 +68,7 @@ export default function CarouselEditor({ photos, onChange, uploading, upload }: 
           }
         />
       ) : (
-        <p className="text-[13px] text-gray-red/70">The gallery is full. Remove a photo to add another.</p>
+        <p className="text-[13px] text-gray-red">The gallery is full. Remove a photo to add another.</p>
       )}
     </>
   );
@@ -82,7 +82,7 @@ function CarouselRow({ item, dragHandle, faded = false, onRemove }: { item: Caro
       <img src={item.image_url} alt="" className="h-12 w-16 shrink-0 rounded-md object-cover" />
       <span className="min-w-0 flex-1 truncate text-[13px] text-gray-red">{fileName(item.image_url)}</span>
       {onRemove && (
-        <Button type="button" variant="bare" aria-label={`Remove ${fileName(item.image_url)}`} onClick={onRemove} className="rounded-full p-1.5 text-crimson hover:bg-crimson-light/30">
+        <Button type="button" variant="bare" aria-label={`Remove ${fileName(item.image_url)}`} onClick={onRemove} className="rounded-full p-1.5 text-crimson-ink hover:bg-crimson-light/30">
           <X size={16} aria-hidden="true" />
         </Button>
       )}

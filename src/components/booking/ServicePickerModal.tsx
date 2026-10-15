@@ -28,7 +28,7 @@ export default function ServicePickerModal({ open, artistName, services, onPick,
 
   return (
     <div
-      className="fixed inset-0 z-999 flex items-end sm:items-center justify-center bg-gray-red/40 px-8 backdrop-blur-sm drawer-backdrop max-sm:p-0"
+      className="fixed inset-0 z-999 flex items-end sm:items-center justify-center bg-gray-red/40 px-9 backdrop-blur-sm drawer-backdrop max-sm:p-0"
       onClick={onClose}
     >
       <div
@@ -36,7 +36,7 @@ export default function ServicePickerModal({ open, artistName, services, onPick,
         aria-modal="true"
         aria-labelledby="service-picker-title"
         onClick={(e) => e.stopPropagation()}
-        className="flex max-h-[90vh] w-full max-w-2xl flex-col gap-4 overflow-y-auto rounded-sm border border-crimson-light bg-light-orange p-4 shadow-2xl shadow-crimson/20 md:gap-8 md:p-8 drawer-panel max-sm:min-h-[40vh] max-sm:max-w-none max-sm:rounded-t-md max-sm:rounded-b-none"
+        className="flex max-h-[90vh] w-full max-w-2xl flex-col gap-3 overflow-y-auto rounded-sm border border-crimson-light bg-light-orange p-3 shadow-2xl shadow-crimson/20 md:gap-9 md:p-9 drawer-panel max-sm:min-h-[40vh] max-sm:max-w-none max-sm:rounded-t-md max-sm:rounded-b-none"
       >
         <div className="flex flex-col gap-1">
           <h2 id="service-picker-title" className="font-display text-2xl font-normal uppercase tracking-widest text-gray-red">
@@ -52,7 +52,7 @@ export default function ServicePickerModal({ open, artistName, services, onPick,
             {artistName} has no services set up for booking yet. Please check back soon, or contact us and we will gladly help.
           </p>
         ) : (
-          <ul className="grid grid-cols-2 gap-4">
+          <ul className="grid grid-cols-2 gap-3">
             {services.map((service) => {
               const from = startingPrice(service);
               return (
@@ -70,8 +70,8 @@ export default function ServicePickerModal({ open, artistName, services, onPick,
                     </span>
                     <span className="flex flex-1 flex-col gap-1 p-3">
                       <span className="font-bold leading-snug text-gray-red">{service.name}</span>
-                      {service.duration && <span className="text-sm text-gray-red/70">{service.duration}</span>}
-                      {from !== null && <span className="mt-auto pt-1 text-sm font-bold text-crimson">From ₱{from}</span>}
+                      {service.duration && <span className="text-sm text-gray-red">{service.duration}</span>}
+                      {from !== null && <span className="mt-auto pt-1 text-sm font-bold text-crimson-ink">From ₱{from}</span>}
                     </span>
                   </Button>
                 </li>

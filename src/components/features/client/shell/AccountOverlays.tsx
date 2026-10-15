@@ -71,8 +71,8 @@ export default function AccountOverlays({ account: a, openId, setOpenId, rewards
 
       {/* THE REWARD MODAL */}
       {a.showRewardModal && (
-        <div className="fixed inset-0 z-100 flex items-end sm:items-center justify-center bg-gray-red/40 backdrop-blur-sm px-4 sm:px-8 drawer-backdrop max-sm:p-0">
-          <div className="bg-light-orange border border-crimson-light rounded-sm p-8 md:p-12 max-w-2xl w-full text-center text-gray-red shadow-2xl relative flex flex-col items-center gap-4 md:gap-8 drawer-panel max-sm:max-h-[90vh] max-sm:min-h-[40vh] max-sm:w-full max-sm:max-w-none max-sm:overflow-y-auto max-sm:rounded-t-md max-sm:rounded-b-none">
+        <div className="fixed inset-0 z-100 flex items-end sm:items-center justify-center bg-gray-red/40 backdrop-blur-sm px-3 sm:px-9 drawer-backdrop max-sm:p-0">
+          <div className="bg-light-orange border border-crimson-light rounded-sm p-9 md:p-12 max-w-2xl w-full text-center text-gray-red shadow-2xl relative flex flex-col items-center gap-3 md:gap-9 drawer-panel max-sm:max-h-[90vh] max-sm:min-h-[40vh] max-sm:w-full max-sm:max-w-none max-sm:overflow-y-auto max-sm:rounded-t-md max-sm:rounded-b-none">
             <h1 className="font-display text-3xl font-normal uppercase tracking-widest text-gray-red md:text-4xl">
               Congratulations, {a.dbUser?.first_name}!
             </h1>
@@ -86,7 +86,7 @@ export default function AccountOverlays({ account: a, openId, setOpenId, rewards
             </p>
             <Button
               onClick={a.closeRewardModal}
-              className="px-8 sm:px-12"
+              className="px-9 sm:px-12"
             >
               Continue
             </Button>
@@ -96,8 +96,8 @@ export default function AccountOverlays({ account: a, openId, setOpenId, rewards
 
       {/* CANCEL CONFIRMATION MODAL */}
       {a.isCancelModalOpen && a.selectedAppt && (
-        <div className="fixed inset-0 z-100 flex items-end sm:items-center justify-center bg-gray-red/40 backdrop-blur-sm px-4 drawer-backdrop max-sm:p-0">
-          <div className="bg-light-orange border border-crimson-light rounded-sm p-8 md:p-8 max-w-md w-full text-gray-red shadow-xl flex flex-col gap-4 drawer-panel max-sm:max-h-[90vh] max-sm:min-h-[40vh] max-sm:w-full max-sm:max-w-none max-sm:overflow-y-auto max-sm:rounded-t-md max-sm:rounded-b-none">
+        <div className="fixed inset-0 z-100 flex items-end sm:items-center justify-center bg-gray-red/40 backdrop-blur-sm px-3 drawer-backdrop max-sm:p-0">
+          <div className="bg-light-orange border border-crimson-light rounded-sm p-9 md:p-9 max-w-md w-full text-gray-red shadow-xl flex flex-col gap-3 drawer-panel max-sm:max-h-[90vh] max-sm:min-h-[40vh] max-sm:w-full max-sm:max-w-none max-sm:overflow-y-auto max-sm:rounded-t-md max-sm:rounded-b-none">
             <h1 className="font-display text-2xl font-normal uppercase tracking-widest text-gray-red">Cancel appointment?</h1>
             <p className="opacity-80">
               Are you sure you want to cancel your appointment for{" "}
@@ -109,7 +109,7 @@ export default function AccountOverlays({ account: a, openId, setOpenId, rewards
             </p>
 
             {a.isLateCancellation ? (
-              <div className="bg-danger/10 border-l-4 border-danger text-gray-red p-4 text-sm text-left rounded-r-sm">
+              <div className="bg-danger/10 border-l-4 border-danger text-gray-red p-3 text-sm text-left rounded-r-sm">
                 <strong>Late Cancellation</strong>
                 <br />
                 This is within 3 days of your appointment. Per our salon policy,
@@ -124,17 +124,17 @@ export default function AccountOverlays({ account: a, openId, setOpenId, rewards
             )}
 
             {a.actionError && (
-              <div className="p-4 bg-danger/10 border border-danger/40 text-danger rounded text-sm">
+              <div className="p-3 bg-danger/10 border border-danger/40 text-danger-ink rounded text-sm">
                 {a.actionError}
               </div>
             )}
 
-            <div className="flex flex-row justify-end gap-4">
+            <div className="flex flex-row justify-end gap-3">
               <Button
                 variant="bare"
                 onClick={a.closeCancelModal}
                 disabled={a.isCancelling}
-                className={`px-4 py-2 rounded-md border border-crimson text-sm uppercase tracking-widest font-bold ${
+                className={`px-3 py-2 rounded-md border border-crimson text-sm uppercase tracking-widest font-bold ${
                   a.isCancelling
                     ? "opacity-30 cursor-not-allowed"
                     : "opacity-70 hover:bg-crimson-light"
@@ -146,10 +146,10 @@ export default function AccountOverlays({ account: a, openId, setOpenId, rewards
                 variant="bare"
                 onClick={a.handleCancelAppointment}
                 disabled={a.isCancelling}
-                className={`px-4 py-2 rounded-md text-sm uppercase tracking-widest font-bold shadow-md transition-colors ${
+                className={`px-3 py-2 rounded-md text-sm uppercase tracking-widest font-bold shadow-md transition-colors ${
                   a.isCancelling
                     ? "bg-crimson/30 text-light-orange cursor-wait"
-                    : "bg-crimson text-light-orange hover:bg-crimson/80"
+                    : "bg-crimson text-on-crimson hover:bg-crimson/80"
                 }`}
               >
                 {a.isCancelling ? "Cancelling..." : "Confirm Cancel"}

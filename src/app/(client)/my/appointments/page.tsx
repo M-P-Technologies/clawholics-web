@@ -16,7 +16,7 @@ export default function MyAppointments() {
     <ClientScreen title="My appointments">
       <Card as="section" aria-label="Appointments" padding="none" className="flex min-w-0 flex-col overflow-clip">
         <Tabs label="Your visits" idPrefix="visits" value={tab} onChange={setTab} tabs={tabs} />
-        <div role="tabpanel" id={`visits-panel-${tab}`} aria-labelledby={`visits-tab-${tab}`} className="flex min-w-0 flex-col gap-4 p-5">
+        <div role="tabpanel" id={`visits-panel-${tab}`} aria-labelledby={`visits-tab-${tab}`} className="flex min-w-0 flex-col gap-3 p-6">
           <TabSection title="Your visits" description="Open one to see its details, pay, reschedule, or leave a review after your visit.">
             {tab === "past" && (
               <div className="flex flex-wrap gap-2">
@@ -25,7 +25,7 @@ export default function MyAppointments() {
               </div>
             )}
             {views.length === 0 ? (
-              <p className={clsx(surface.tint, "px-4 py-6 text-center text-[13px] text-gray-red/70")}>{emptyText}</p>
+              <p className={clsx(surface.tint, "px-3 py-6 text-center text-[13px] text-gray-red")}>{emptyText}</p>
             ) : (
               <AppointmentsTable label={tableLabel} views={views} highlightedId={a.highlightedAppointmentId} reviewedIds={reviewedIds} onOpen={openView} />
             )}

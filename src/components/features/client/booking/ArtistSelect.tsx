@@ -22,7 +22,7 @@ export default function ArtistSelect({ nailists, selectedId, onSelect }: ArtistS
         label: (
           <span className="flex min-w-0 flex-col">
             <span className="truncate">{n.name}</span>
-            <span className="truncate text-xs font-normal text-gray-red/70">{titleOf(n)}</span>
+            <span className="truncate text-xs font-normal text-gray-red">{titleOf(n)}</span>
           </span>
         ),
         leading: <Avatar name={n.name} imageUrl={n.image ?? ""} size="sm" cropTop decorative />,

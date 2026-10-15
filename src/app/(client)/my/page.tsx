@@ -27,8 +27,8 @@ export default function ClientHome() {
         <StatCard size="compact" icon={CalendarCheck} label="Visits" value={String(h.visits)} hint="completed" />
       </div>
 
-      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
-        <Card as="section" aria-label="Upcoming appointment" className="flex flex-col gap-4">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+        <Card as="section" aria-label="Upcoming appointment" className="flex flex-col gap-3">
           <SectionHeader size="section" title="Upcoming appointment" action={<Link to={CLIENT_PATHS.appointments}>See all</Link>} />
           {next ? (
             <>
@@ -54,31 +54,31 @@ export default function ClientHome() {
                   <Button type="button" variant="secondary" onClick={() => h.account.startCancel(next.appt)} className="w-full sm:w-auto">Cancel</Button>
                 )}
               </div>
-              {next.isLocked && <p className="text-[13px] text-gray-red/70">Changes close 3 days before your appointment.</p>}
+              {next.isLocked && <p className="text-[13px] text-gray-red">Changes close 3 days before your appointment.</p>}
             </>
           ) : (
             <div className="flex flex-col items-start gap-3">
-              <p className="text-sm text-gray-red/80">You have no upcoming appointments.</p>
+              <p className="text-sm text-gray-red">You have no upcoming appointments.</p>
               <Button to={CLIENT_PATHS.explore}>Book now</Button>
             </div>
           )}
         </Card>
 
         {next && (
-          <Card as="section" aria-label="Where your booking is" className="flex flex-col gap-4">
+          <Card as="section" aria-label="Where your booking is" className="flex flex-col gap-3">
             <SectionHeader size="card" title="Where your booking is" />
             <StepTracker label="Booking progress" steps={h.trackerSteps} />
           </Card>
         )}
       </div>
 
-      <Card as="section" aria-label="Popular services" className="flex flex-col gap-4">
+      <Card as="section" aria-label="Popular services" className="flex flex-col gap-3">
         <SectionHeader size="section" title="Popular services" action={<Link to={CLIENT_PATHS.explore}>See all</Link>} />
         <ServicesTable label="Popular services" services={h.popular} onBook={h.book} />
       </Card>
 
       {h.offers.length > 0 && (
-        <Card as="section" aria-label="Special offers" className="flex flex-col gap-4">
+        <Card as="section" aria-label="Special offers" className="flex flex-col gap-3">
           <SectionHeader size="section" title="Special offers" />
           <OffersCarousel offers={h.offers} />
         </Card>

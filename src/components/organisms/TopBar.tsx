@@ -24,11 +24,11 @@ interface TopBarProps {
 // bookings) and who is signed in on the right.
 export default function TopBar({ title, greeting, titleAside, actions, account, today, bell, wide = true }: TopBarProps) {
   return (
-    <header className="flex w-full flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk/80 px-4 py-3 shadow-petal backdrop-blur-sm sm:px-5 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
+    <header className="flex w-full flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk/80 px-3 py-3 shadow-petal backdrop-blur-sm sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
       <div className="flex min-w-0 items-center justify-between gap-3 lg:shrink-0">
         <div className="flex min-w-0 flex-col gap-0.5">
           {greeting && <p className="hidden font-display text-base leading-none text-berry lg:block">{greeting}</p>}
-          <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
             <h1 className="font-display text-2xl font-normal normal-case leading-tight tracking-normal text-gray-red sm:text-3xl">{title}</h1>
             {titleAside}
           </div>
@@ -44,7 +44,7 @@ export default function TopBar({ title, greeting, titleAside, actions, account, 
       <div className="flex min-w-0 flex-wrap items-center gap-3 lg:flex-1 lg:flex-nowrap lg:justify-end">
         {actions}
         {today && (
-          <p className="hidden shrink-0 items-center gap-1.5 whitespace-nowrap text-[13px] font-medium text-gray-red/80 xl:flex">
+          <p className="hidden shrink-0 items-center gap-1.5 whitespace-nowrap text-[13px] font-medium text-gray-red xl:flex">
             <CalendarDays size={15} aria-hidden="true" className="text-berry" />
             {today}
           </p>
@@ -62,11 +62,11 @@ export default function TopBar({ title, greeting, titleAside, actions, account, 
         {/* The bell is drawn once, in the place for the screen's width */}
         {bell && wide && <div className="hidden lg:block">{bell}</div>}
 
-        <div className="hidden shrink-0 items-center gap-2.5 border-l border-crimson-light/60 pl-3 lg:flex">
+        <div className="hidden shrink-0 items-center gap-3 border-l border-crimson-light/60 pl-3 lg:flex">
           <Avatar name={account.name} imageUrl={account.imageUrl} />
           <div className="hidden min-w-0 flex-col leading-tight 2xl:flex">
             <span className="max-w-40 truncate text-[13px] font-bold text-gray-red">{account.name}</span>
-            <span className="max-w-40 truncate text-[11px] text-gray-red/60">{account.email}</span>
+            <span className="max-w-40 truncate text-[11px] text-gray-red">{account.email}</span>
           </div>
         </div>
       </div>

@@ -14,7 +14,7 @@ export interface DirectoryStat {
 // The four totals above a directory, drawn like the dashboard's stat cards
 export default function DirectoryStats({ label, stats }: { label: string; stats: DirectoryStat[] }) {
   return (
-    <section aria-label={label} className="grid grid-cols-2 gap-4 md:gap-6 lg:grid-cols-4">
+    <section aria-label={label} className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-4">
       {stats.map((stat) => (
         <StatCard key={stat.label} label={stat.label} value={stat.value === null ? "–" : String(stat.value)} hint={stat.hint} icon={stat.icon} loading={stat.loading} />
       ))}

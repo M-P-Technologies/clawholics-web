@@ -12,12 +12,16 @@ import Section from "../layout/Section";
 
 interface OnboardingGateProps {
   children: React.ReactNode;
+  /** A public page (the service page): shown while the account is checked instead of a loading
+   *  screen, so visitors don't wait for Clerk to load; an unfinished profile is still sent to
+   *  onboarding once that's known */
+  showWhileChecking?: boolean;
 }
 
 // Every gated page mounts its own gate. The profile is one cached query (lib/accountQueries), so
 // after the first check a page change shows the page at once, while the profile is refreshed
 // behind it when it's no longer fresh.
-export const OnboardingGate: React.FC<OnboardingGateProps> = ({ children }) => {
+export const OnboardingGate: React.FC<OnboardingGateProps> = ({ children, showWhileChecking = false }) => {
   const { isLoaded, isSignedIn, user } = useUser();
   const { getToken } = useAuth();
   const navigate = useNavigate();
@@ -44,7 +48,7 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ children }) => {
   const failed = profileQuery.isError && profile === undefined && !profileQuery.isFetching;
   const checking = isSignedIn && !!user && !clerkAdmin && (profile === undefined || needsOnboarding);
 
-  if (!isLoaded || (checking && !failed)) {
+  if (!showWhileChecking && (!isLoaded || (checking && !failed))) {
     return <LoadingBar label="Checking your account" />;
   }
 
@@ -57,7 +61,7 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ children }) => {
             title="We couldn't load your profile"
             subtitle="Please check your connection and try again."
           />
-          <div className="mt-8 flex gap-4">
+          <div className="mt-9 flex gap-3">
             <Button
               type="button"
               onClick={() => void profileQuery.refetch()}

@@ -19,11 +19,11 @@ const MORE_PATHS = ["/about", "/faq", "/contact", "/login", "/signup"];
 const tabClass = (active: boolean) =>
   clsx(
     "flex min-w-0 flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium tracking-wide transition-colors",
-    active ? "text-crimson" : "text-gray-red hover:text-crimson",
+    active ? "text-crimson-ink" : "text-gray-red hover:text-crimson-ink",
   );
 
 const sheetLink = (active: boolean) =>
-  clsx("block py-3 text-sm font-medium tracking-wide", active ? "text-crimson" : "text-gray-red");
+  clsx("block py-3 text-sm font-medium tracking-wide", active ? "text-crimson-ink" : "text-gray-red");
 
 export default function MobileTabBar() {
   const { pathname } = useLocation();
@@ -91,7 +91,7 @@ export default function MobileTabBar() {
         <div
           id="more-menu"
           ref={sheetRef}
-          className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-40 max-h-[70vh] overflow-y-auto border-t border-crimson-light/70 bg-light-orange px-4 py-2 shadow-2xl shadow-crimson/20 drawer-panel"
+          className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-40 max-h-[70vh] overflow-y-auto border-t border-crimson-light/70 bg-light-orange px-3 py-2 shadow-2xl shadow-crimson/20 drawer-panel"
         >
           <Link to="/about" className={sheetLink(pathname === "/about")}>About Us</Link>
           <Link to="/faq" className={sheetLink(pathname === "/faq")}>FAQ</Link>
@@ -109,7 +109,7 @@ export default function MobileTabBar() {
             <Button
               variant="bare"
               type="button"
-              className="block w-full py-3 text-left text-sm text-gray-red/80 transition-colors hover:text-crimson"
+              className="block w-full py-3 text-left text-sm text-gray-red transition-colors hover:text-crimson-ink"
               onClick={() => {
                 clerk.openUserProfile();
                 setMoreOpen(false);
@@ -120,7 +120,7 @@ export default function MobileTabBar() {
             <Button
               variant="bare"
               type="button"
-              className="block w-full py-3 text-left text-sm text-gray-red/80 transition-colors hover:text-crimson"
+              className="block w-full py-3 text-left text-sm text-gray-red transition-colors hover:text-crimson-ink"
               onClick={async () => {
                 await clerk.signOut();
                 setMoreOpen(false);
@@ -149,9 +149,9 @@ export default function MobileTabBar() {
           <Link
             to="/services"
             aria-label="Book an appointment"
-            className="flex min-w-0 flex-1 flex-col items-center justify-center gap-1 text-[11px] font-bold tracking-wide text-crimson"
+            className="flex min-w-0 flex-1 flex-col items-center justify-center gap-1 text-[11px] font-bold tracking-wide text-crimson-ink"
           >
-            <span className="-mt-5 flex h-12 w-12 items-center justify-center rounded-full bg-crimson text-light-orange shadow-lg shadow-crimson/30">
+            <span className="-mt-6 flex h-12 w-12 items-center justify-center rounded-full bg-crimson text-on-crimson shadow-lg shadow-crimson/30">
               <CalendarPlus size={22} aria-hidden="true" />
             </span>
             <span>Book</span>

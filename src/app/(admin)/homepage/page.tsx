@@ -87,7 +87,7 @@ export default function Homepage() {
           <TextField label="Birthday headline" value={t.home_birthday_title} onChange={setText("home_birthday_title")} />
           <TextField label="Line under it" value={t.home_birthday_line} onChange={setText("home_birthday_line")} />
           <TextField label="Small print" value={t.home_birthday_note} onChange={setText("home_birthday_note")} />
-          <p className="text-[12px] text-gray-red/70">{"{name}"} becomes the client&apos;s first name. Staff apply the treat at the salon.</p>
+          <p className="text-[12px] text-gray-red">{"{name}"} becomes the client&apos;s first name. Staff apply the treat at the salon.</p>
         </SubCard>
         <SubCard title="Special offers">
           <OffersEditor offers={sections.offers} services={services} onChange={setOffers} upload={upload} uploading={uploading} />

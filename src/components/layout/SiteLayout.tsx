@@ -8,6 +8,7 @@ import MobileTabBar from "./MobileTabBar";
 import Navbar from "./NavBar";
 import Footer from "./Footer";
 import BirthdayVoucherPopup from "../birthday/BirthdayVoucherPopup";
+import CookieNotice from "./CookieNotice";
 
 // Screens that end without the site footer.
 const NO_FOOTER_PATHS = ["/login", "/signup", "/onboarding"];
@@ -37,7 +38,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
     >
       <a
         href="#main-content"
-        className="sr-only z-9999 rounded bg-light-orange p-4 text-gray-red focus:not-sr-only focus:absolute focus:left-4 focus:top-4"
+        className="sr-only z-9999 rounded bg-light-orange p-3 text-gray-red focus:not-sr-only focus:absolute focus:left-4 focus:top-4"
       >
         Skip to main content
       </a>
@@ -45,8 +46,9 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
       <Navbar />
       <MobileTabBar />
       <BirthdayVoucherPopup />
+      <CookieNotice />
 
-      <main id="main-content" className="relative flex-1">
+      <main id="main-content" className="relative min-h-screen flex-1">
         {children}
       </main>
 

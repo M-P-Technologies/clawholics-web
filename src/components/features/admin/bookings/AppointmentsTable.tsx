@@ -104,14 +104,14 @@ const statusOf = (a: Appointment) => (a.status?.trim().toUpperCase() || "PENDING
 // A proof waiting for review is a button: it opens the review (the client page has no proof review)
 function ProofBadge({ appointment, now, onReview }: { appointment: Appointment; now: number; onReview: () => void }) {
   const kind = isProofOverdue(appointment, now) ? "overdue" : getProofState(appointment, now).kind;
-  if (kind === "overdue") return <span className="whitespace-nowrap rounded-md bg-danger/10 px-2 py-0.5 text-[11px] font-bold text-danger">Proof overdue</span>;
+  if (kind === "overdue") return <span className="whitespace-nowrap rounded-md bg-danger/10 px-2 py-0.5 text-[11px] font-bold text-danger-ink">Proof overdue</span>;
   if (kind === "in_review")
     return (
       <button
         type="button"
         onClick={onReview}
         aria-label={`Review the payment proof for appointment #${appointment.id}`}
-        className="whitespace-nowrap rounded-md bg-warning/15 px-2 py-0.5 text-[11px] font-bold text-warning underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-crimson"
+        className="whitespace-nowrap rounded-md bg-warning/15 px-2 py-0.5 text-[11px] font-bold text-warning-ink underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-crimson"
       >
         Proof to review
       </button>
@@ -241,7 +241,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
     const { profile } = clientFacts(a);
     const box = size === "row" ? "h-9 w-9" : "h-10 w-10";
     return (
-      <span className="flex min-w-0 items-center gap-2.5">
+      <span className="flex min-w-0 items-center gap-3">
         {profile?.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- Clerk's image host
           <img src={profile.imageUrl} alt="" className={clsx(box, "shrink-0 rounded-full object-cover")} />
@@ -258,7 +258,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
               {name}
             </Link>
           )}
-          <span className="flex flex-wrap items-center gap-1.5 text-[12px] text-gray-red/70">
+          <span className="flex flex-wrap items-center gap-1.5 text-[12px] text-gray-red">
             {isWalkin(a) ? "Walk-in" : a.email || `ID #${a.id}`}
             <ProofBadge appointment={a} now={now} onReview={() => setSelected(a)} />
           </span>
@@ -294,7 +294,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
       onChange={(e) => changeStatus(a.id, e.target.value as AppointmentStatus)}
       options={STATUS_CHOICES}
       className="w-[150px]"
-      triggerClassName="!h-8 !px-2.5 !py-0 text-[12px]"
+      triggerClassName="!h-8 !px-3 !py-0 text-[12px]"
     />
   );
   // Manage opens the client's page; a walk-in has none, so theirs is turned off
@@ -320,11 +320,11 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
   };
 
   return (
-    <section id="appointments" aria-label="Appointments" className="flex min-w-0 scroll-mt-4 flex-col gap-4 rounded-2xl border border-crimson-light/40 bg-milk p-4 shadow-petal sm:p-5">
+    <section id="appointments" aria-label="Appointments" className="flex min-w-0 scroll-mt-3 flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-3 shadow-petal sm:p-6">
       {/* One row at every width; on a phone the button drops its icon to fit */}
       <div className="flex items-center justify-between gap-3">
         <h2 className="min-w-0 truncate font-display text-2xl font-normal text-gray-red">Appointments</h2>
-        <Button type="button" onClick={() => setCreating(true)} className="shrink-0 whitespace-nowrap !px-3 !py-2 text-[12px] sm:!px-4 sm:text-[13px]">
+        <Button type="button" onClick={() => setCreating(true)} className="shrink-0 whitespace-nowrap !px-3 !py-2 text-[12px] sm:!px-3 sm:text-[13px]">
           <Plus size={14} aria-hidden="true" className="hidden sm:block" />
           New appointment
         </Button>
@@ -352,7 +352,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
                 type="button"
                 aria-label={`${filter.title}: ${filter.options.find((o) => o.value === filter.value)?.label}`}
                 onClick={() => setOpenFilter(filter.key)}
-                className="flex h-9 min-w-0 items-center justify-between gap-1 rounded-md border border-crimson-light bg-light-orange/70 px-2.5 text-[12px] text-gray-red focus-visible:outline-2 focus-visible:outline-crimson"
+                className="flex h-9 min-w-0 items-center justify-between gap-1 rounded-md border border-crimson-light bg-light-orange/70 px-3 text-[12px] text-gray-red focus-visible:outline-2 focus-visible:outline-crimson"
               >
                 <span className="min-w-0 truncate">{filter.options.find((o) => o.value === filter.value)?.label}</span>
                 <ChevronDown size={14} aria-hidden="true" className="shrink-0 text-crimson" />
@@ -368,9 +368,9 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
             value={query}
             onChange={(e) => choose(setQuery)(e.target.value)}
             placeholder="Search client, service, artist, ID…"
-            className="h-9 w-full rounded-full border border-crimson-light bg-milk pl-4 pr-9 text-[13px] text-gray-red outline-none placeholder:text-gray-red/60 focus:ring-2 focus:ring-crimson"
+            className="h-9 w-full rounded-full border border-crimson-light bg-milk pl-3 pr-9 text-[13px] text-gray-red outline-none placeholder:text-gray-red/60 focus:ring-2 focus:ring-crimson"
           />
-          <Search size={16} aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-red/60" />
+          <Search size={16} aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-red" />
         </label>
       </div>
 
@@ -389,7 +389,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
                         setOpenFilter(null);
                       }}
                       className={clsx(
-                        "flex w-full items-center justify-between gap-3 rounded-xl px-4 py-3 text-left text-sm transition-colors",
+                        "flex w-full items-center justify-between gap-3 rounded-xl px-3 py-3 text-left text-sm transition-colors",
                         chosen ? "bg-crimson-light/40 font-bold text-berry" : "text-gray-red hover:bg-crimson-light/20",
                       )}
                     >
@@ -413,7 +413,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
       ) : appointments === null ? (
         <ListSkeleton label="Loading appointments" columns={9} />
       ) : shown.length === 0 ? (
-        <p className="text-sm text-gray-red/70">{q || artist !== "All" ? "No appointments match your search." : status === "ALL" ? "No appointments yet." : "No appointments with this status."}</p>
+        <p className="text-sm text-gray-red">{q || artist !== "All" ? "No appointments match your search." : status === "ALL" ? "No appointments yet." : "No appointments with this status."}</p>
       ) : !asTable ? (
         <RowCards label="Appointments">
           {view.rows.map((a) => (
@@ -442,7 +442,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
       ) : (
         <TableFrame label="Appointments" minWidthClass="min-w-[1220px]"
           head={
-            <tr className="text-left text-[12px] text-gray-red/70">
+            <tr className="text-left text-[12px] text-gray-red">
               {["Client", "Phone", "Joined", "Last active", "Visits", "Service", "Artist", "Date", "Time", "Status", "Manage"].map((h) => (
                 <th key={h} scope="col" className={clsx("pb-2 pr-3 font-medium", h === "Manage" && "pr-0 text-center", h === "Visits" && "text-right")}>
                   {h}
@@ -465,7 +465,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
               <td className={clsx(cell, "text-right font-bold")}>{facts.visits}</td>
               <td className={cell}>
                 {a.service_name || "–"}
-                <span className="block text-[12px] text-gray-red/60">#{a.id}</span>
+                <span className="block text-[12px] text-gray-red">#{a.id}</span>
               </td>
               <td className={cell}>{a.nailist_name || "–"}</td>
               <td className={clsx(cell, "whitespace-nowrap")}>{dateLabel(a.appointment_date)}</td>

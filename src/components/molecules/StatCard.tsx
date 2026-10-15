@@ -44,12 +44,12 @@ export default function StatCard({
   if (size === "compact") {
     return (
       <div role="group" aria-label={label} className={clsx("flex min-w-0 flex-col gap-1 rounded-xl bg-crimson-light/15 p-3", className)}>
-        <span className="flex items-center gap-1.5 text-[12px] font-medium text-gray-red/80">
+        <span className="flex items-center gap-1.5 text-[12px] font-medium text-gray-red">
           {CardIcon && <CardIcon size={14} aria-hidden="true" className="text-berry" />}
           {label}
         </span>
         <span className="truncate font-display text-2xl leading-tight text-berry">{value}</span>
-        {hint && <span className="text-[11px] text-gray-red/60">{hint}</span>}
+        {hint && <span className="text-[11px] text-gray-red">{hint}</span>}
       </div>
     );
   }
@@ -60,7 +60,7 @@ export default function StatCard({
       aria-label={label}
       className={clsx(
         "relative flex min-w-0 flex-col gap-2",
-        variant === "card" && "rounded-2xl border border-crimson-light/40 bg-milk p-4 shadow-petal sm:p-5",
+        variant === "card" && "rounded-2xl border border-crimson-light/40 bg-milk p-3 shadow-petal sm:p-6",
         variant === "card" && size === "hero" && "bg-gradient-to-br from-milk via-milk to-crimson-light/30",
         className,
       )}
@@ -74,7 +74,7 @@ export default function StatCard({
           <CardIcon className="h-4 w-4 sm:h-5 sm:w-5 lg:h-4 lg:w-4 xl:h-5 xl:w-5" strokeWidth={1.75} />
         </span>
       )}
-      <p className={clsx("text-[13px] font-medium text-gray-red/80", CardIcon && "pr-10")}>{label}</p>
+      <p className={clsx("text-[13px] font-medium text-gray-red", CardIcon && "pr-9")}>{label}</p>
       {loading ? (
         // As tall as the figure it stands in for, so the card doesn't change size when it arrives.
         // Read as part of the card ("New clients, Loading"), not as a live region: a row of cards
@@ -96,7 +96,7 @@ export default function StatCard({
       {change && (
         <p
           className={clsx(
-            "inline-flex w-fit items-center gap-1 rounded-full px-2.5 py-0.5 text-[12px] font-bold text-gray-red",
+            "inline-flex w-fit items-center gap-1 rounded-full px-3 py-0.5 text-[12px] font-bold text-gray-red",
             good === true && "bg-success/20",
             good === false && "bg-danger/15",
             good === null && "bg-sand",
@@ -107,7 +107,7 @@ export default function StatCard({
           <span className="sr-only">{WORDS[change.kind]}</span>
         </p>
       )}
-      {hint && <p className="text-[12px] leading-snug text-gray-red/70">{hint}</p>}
+      {hint && <p className="text-[12px] leading-snug text-gray-red">{hint}</p>}
       {sparkline && <div className="mt-auto pt-2">{sparkline}</div>}
     </div>
   );

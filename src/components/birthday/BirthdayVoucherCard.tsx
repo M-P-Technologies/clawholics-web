@@ -14,19 +14,19 @@ interface Props {
 export default function BirthdayVoucherCard({ voucher, onClaim, isClaiming, error }: Props) {
   const claimed = voucher.status === "CLAIMED";
   return (
-    <section aria-label="Your birthday voucher" className="flex flex-col gap-3 rounded-xl border border-crimson bg-crimson-light/30 p-4 sm:flex-row sm:items-center sm:justify-between">
+    <section aria-label="Your birthday voucher" className="flex flex-col gap-3 rounded-xl border border-crimson bg-crimson-light/30 p-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-start gap-3">
         <Cake size={22} aria-hidden="true" className="mt-0.5 shrink-0 text-berry" />
         <div className="flex flex-col gap-1">
           <h3 className="font-display text-lg leading-tight text-berry">Happy birthday! {voucher.discount_pct}% off this month</h3>
           {claimed ? (
-            <p className="text-[13px] text-gray-red/80">
+            <p className="text-[13px] text-gray-red">
               Your code: <strong className="font-mono tracking-wider text-berry">{voucher.code}</strong>. {CLAIMED_HINT} Valid until {voucherUntil(voucher)}.
             </p>
           ) : (
-            <p className="text-[13px] text-gray-red/80">A treat from us for your birthday month. Claim it before {voucherUntil(voucher)}.</p>
+            <p className="text-[13px] text-gray-red">A treat from us for your birthday month. Claim it before {voucherUntil(voucher)}.</p>
           )}
-          {error && <p role="alert" className="text-[13px] text-danger">{error}</p>}
+          {error && <p role="alert" className="text-[13px] text-danger-ink">{error}</p>}
         </div>
       </div>
       {!claimed && (

@@ -24,10 +24,10 @@ const ICONS = {
 };
 
 const ICON_COLORS = {
-  error: "text-danger",
-  empty: "text-crimson",
-  success: "text-success",
-  info: "text-crimson",
+  error: "text-danger-ink",
+  empty: "text-crimson-ink",
+  success: "text-success-ink",
+  info: "text-crimson-ink",
 };
 
 // One look for every "nothing to show" moment: it failed, it is empty, it worked, or FYI.
@@ -39,7 +39,7 @@ export default function EmptyState({ kind, title, message, children, className }
     <div
       role={kind === "error" ? "alert" : "status"}
       className={clsx(
-        "mx-auto flex w-full max-w-xl flex-col items-center gap-4 rounded-sm border border-crimson-light/80 bg-light-orange p-8 text-center",
+        "mx-auto flex w-full max-w-xl flex-col items-center gap-3 rounded-sm border border-crimson-light/80 bg-light-orange p-9 text-center",
         className,
       )}
     >
@@ -48,7 +48,7 @@ export default function EmptyState({ kind, title, message, children, className }
         {title}
       </h2>
       {message && <p className="copy-body">{message}</p>}
-      {children && <div className="flex flex-wrap items-center justify-center gap-4">{children}</div>}
+      {children && <div className="flex flex-wrap items-center justify-center gap-3">{children}</div>}
     </div>
   );
 }
@@ -56,7 +56,7 @@ export default function EmptyState({ kind, title, message, children, className }
 /** Shown in place of a whole page when its content could not be loaded */
 export function LoadError({ what, onRetry }: { what: string; onRetry: () => void }) {
   return (
-    <div className="flex min-h-[70vh] items-center justify-center px-4 py-12">
+    <div className="flex min-h-[70vh] items-center justify-center px-3 py-12">
       <EmptyState
         kind="error"
         title={`We couldn't load the ${what}`}

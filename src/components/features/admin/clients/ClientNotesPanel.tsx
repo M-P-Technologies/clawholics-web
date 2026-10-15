@@ -26,9 +26,9 @@ const formatWhen = (value?: string | null) => {
 };
 
 const primaryClass =
-  "rounded-md bg-crimson px-4 py-1 text-[12px] font-bold text-light-orange disabled:cursor-not-allowed disabled:opacity-40";
+  "rounded-md bg-crimson px-3 py-1 text-[12px] font-bold text-on-crimson disabled:cursor-not-allowed disabled:opacity-40";
 const fieldClass =
-  "w-full rounded-md border border-crimson-light bg-milk px-4 py-2 text-[13px] text-gray-red outline-none focus:ring-2 focus:ring-crimson";
+  "w-full rounded-md border border-crimson-light bg-milk px-3 py-2 text-[13px] text-gray-red outline-none focus:ring-2 focus:ring-crimson";
 
 export default function ClientNotesPanel({ clientUserId, tokenFetcher, clerkId }: Props) {
   const queryClient = useQueryClient();
@@ -122,7 +122,7 @@ export default function ClientNotesPanel({ clientUserId, tokenFetcher, clerkId }
     });
 
   return (
-    <section aria-label="Client notes" className="rounded-xl bg-crimson-light/15 px-4 py-4 text-gray-red sm:px-5">
+    <section aria-label="Client notes" className="rounded-xl bg-crimson-light/15 px-3 py-3 text-gray-red sm:px-6">
       <p className="mb-2 text-[14px] font-bold uppercase">
         Private notes <span className="text-[11px] font-semibold normal-case">(admin only)</span>
       </p>
@@ -132,7 +132,7 @@ export default function ClientNotesPanel({ clientUserId, tokenFetcher, clerkId }
       {!loading && unavailable && <p className="text-[13px]">Notes aren't available yet.</p>}
 
       {!loading && !unavailable && (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
             <label htmlFor={`next-steps-${clientUserId}`} className="text-[12px] font-bold uppercase">
               Next steps
@@ -178,7 +178,7 @@ export default function ClientNotesPanel({ clientUserId, tokenFetcher, clerkId }
           </div>
 
           {error && (
-            <p role="alert" className="text-[13px] font-medium text-danger">
+            <p role="alert" className="text-[13px] font-medium text-danger-ink">
               {error}
             </p>
           )}
@@ -188,7 +188,7 @@ export default function ClientNotesPanel({ clientUserId, tokenFetcher, clerkId }
           ) : (
             <ul className="flex flex-col gap-2">
               {notes.map((n) => (
-                <li key={n.id} className="rounded-xl bg-milk px-4 py-2">
+                <li key={n.id} className="rounded-xl bg-milk px-3 py-2">
                   {editingId === n.id ? (
                     <div className="flex flex-col gap-2">
                       <textarea

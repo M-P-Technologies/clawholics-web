@@ -4,12 +4,12 @@ import type { CreateAppointment } from "@/hooks/admin/useCreateAppointment";
 // The create-appointment form's artist and service section: the services offered by the chosen artist
 export default function ServiceFields({ a }: { a: CreateAppointment }) {
   return (
-    <section className="flex flex-col gap-3 rounded-xl border border-crimson-light/50 p-4">
+    <section className="flex flex-col gap-3 rounded-xl border border-crimson-light/50 p-3">
       <h4 className="font-display text-lg font-normal text-gray-red">
         Artist and service
       </h4>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3">
         <Select
             value={a.nailistId}
             onChange={(e) => a.chooseArtist(e.target.value)}

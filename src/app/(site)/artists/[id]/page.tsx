@@ -28,7 +28,7 @@ export default function ArtistDetail() {
   if (notFound || !nailist) {
     return (
       <PageShell>
-        <Section innerClassName="min-h-[70vh] items-center justify-center text-center gap-4 md:gap-8">
+        <Section innerClassName="min-h-[70vh] items-center justify-center text-center gap-3 md:gap-9">
           <SectionHeader
             align="center"
             title="Artist not found"
@@ -42,14 +42,14 @@ export default function ArtistDetail() {
 
   return (
     <PageShell>
-      <Section innerClassName="max-lg:pt-4">
-        <div className="grid grid-cols-1 items-start gap-4 md:gap-8 lg:grid-cols-2">
+      <Section innerClassName="max-lg:pt-3">
+        <div className="grid grid-cols-1 items-start gap-3 md:gap-9 lg:grid-cols-2">
           {/* ARTIST DETAILS */}
-          <div className="flex flex-col gap-4 md:gap-8">
+          <div className="flex flex-col gap-3 md:gap-9">
             <BackButton to="/artists" label="All artists" />
             {/* Phones and tablets: the position pill, the photos as a carousel, then the compact
                 overview. From `lg` up: the details here and the photo beside them. */}
-            <p className="w-fit rounded-md border border-crimson-light px-4 py-1 label-caps text-crimson lg:hidden">
+            <p className="w-fit rounded-md border border-crimson-light px-3 py-1 label-caps text-crimson-ink lg:hidden">
               {nailist.position}
             </p>
             <div className="lg:hidden">
@@ -58,14 +58,15 @@ export default function ArtistDetail() {
             <div className="lg:hidden">
               <ArtistOverview nailist={nailist} workCount={gallery.length} />
             </div>
-            <div className="hidden flex-col gap-4 lg:flex">
-              <p className="w-fit rounded-md border border-crimson-light px-4 py-1 label-caps text-crimson">
+            <div className="hidden flex-col gap-3 lg:flex">
+              <p className="w-fit rounded-md border border-crimson-light px-3 py-1 label-caps text-crimson-ink">
                 {nailist.position}
               </p>
-              <SectionHeader title={nailist.name} subtitle={nailist.bio} />
+              {/* The phone overview above holds the page's one h1 (both are in the HTML; CSS shows one) */}
+              <SectionHeader level={2} title={nailist.name} subtitle={nailist.bio} />
             </div>
 
-            <dl className="hidden grid-cols-1 gap-x-4 gap-y-1 border-t border-crimson-light/80 pt-4 text-gray-red lg:grid sm:grid-cols-[140px_1fr] sm:gap-y-4 md:pt-8 [&>dd:not(:last-child)]:mb-3 sm:[&>dd:not(:last-child)]:mb-0">
+            <dl className="hidden grid-cols-1 gap-x-3 gap-y-1 border-t border-crimson-light/80 pt-3 text-gray-red lg:grid sm:grid-cols-[140px_1fr] sm:gap-y-3 md:pt-9 [&>dd:not(:last-child)]:mb-3 sm:[&>dd:not(:last-child)]:mb-0">
               {nailist.specialty && (
                 <>
                   <dt className={infoLabelClass}>Specialties</dt>
@@ -78,7 +79,7 @@ export default function ArtistDetail() {
                   <dt className={infoLabelClass}>Services</dt>
                   <dd className="flex flex-wrap gap-2">
                     {nailist.offered_services.map((name) => (
-                      <span key={name} className="rounded-md border border-crimson-light px-4 py-1 text-sm text-crimson">
+                      <span key={name} className="rounded-md border border-crimson-light px-3 py-1 text-sm text-crimson-ink">
                         {name}
                       </span>
                     ))}
@@ -99,7 +100,7 @@ export default function ArtistDetail() {
         </div>
 
         {gallery.length > 0 && (
-          <div className="hidden flex-col gap-4 lg:flex">
+          <div className="hidden flex-col gap-3 lg:flex">
             <h2 className="font-display text-xl font-normal not-italic uppercase tracking-widest text-gray-red md:text-2xl">
               {nailist.name}&apos;s work
             </h2>
@@ -108,7 +109,7 @@ export default function ArtistDetail() {
         )}
 
         <div className="flex justify-center">
-          <Button onClick={() => setPickerOpen(true)} className="w-full px-8 sm:w-auto sm:px-16">
+          <Button onClick={() => setPickerOpen(true)} className="w-full px-9 sm:w-auto sm:px-15">
             Book this artist
           </Button>
         </div>

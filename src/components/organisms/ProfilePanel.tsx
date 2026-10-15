@@ -32,7 +32,7 @@ export interface ProfilePanelProps {
 export default function ProfilePanel({ label, name, imageUrl, badges, highlight, rowsTitle, rows, children, className }: ProfilePanelProps) {
   const HighlightIcon = highlight?.icon;
   return (
-    <aside aria-label={label} className={clsx("flex min-w-0 flex-col gap-5 p-5", surface.card, className)}>
+    <aside aria-label={label} className={clsx("flex min-w-0 flex-col gap-6 p-6", surface.card, className)}>
       <div className="flex items-center gap-3">
         <Avatar name={name} imageUrl={imageUrl} size="xl" decorative />
         <div className="min-w-0">
@@ -42,30 +42,30 @@ export default function ProfilePanel({ label, name, imageUrl, badges, highlight,
       </div>
 
       {highlight && (
-        <div className="flex flex-col gap-1 rounded-xl border border-crimson-light/60 bg-light-orange/40 p-4">
-          <p className="flex items-center justify-between text-[12px] text-gray-red/70">
+        <div className="flex flex-col gap-1 rounded-xl border border-crimson-light/60 bg-light-orange/40 p-3">
+          <p className="flex items-center justify-between text-[12px] text-gray-red">
             {highlight.title}
             {HighlightIcon && <HighlightIcon size={14} aria-hidden="true" className="text-berry" />}
           </p>
           {highlight.value ? (
             <>
               <p className="font-display text-xl text-berry">{highlight.value}</p>
-              {highlight.detail && <p className="text-[13px] text-gray-red/80">{highlight.detail}</p>}
+              {highlight.detail && <p className="text-[13px] text-gray-red">{highlight.detail}</p>}
             </>
           ) : (
-            <p className="text-[13px] text-gray-red/70">{highlight.empty}</p>
+            <p className="text-[13px] text-gray-red">{highlight.empty}</p>
           )}
         </div>
       )}
 
-      <div className="flex flex-col gap-3 border-t border-crimson-light/50 pt-4">
+      <div className="flex flex-col gap-3 border-t border-crimson-light/50 pt-3">
         <h3 className="font-display text-lg font-normal text-gray-red">{rowsTitle}</h3>
         <dl className="flex flex-col gap-3">
           {rows
             .filter((row) => row.value)
             .map(({ label: rowLabel, value, icon: Icon }) => (
               <div key={rowLabel} className="flex flex-col gap-0.5">
-                <dt className="text-[12px] text-gray-red/70">{rowLabel}</dt>
+                <dt className="text-[12px] text-gray-red">{rowLabel}</dt>
                 <dd className="flex min-w-0 items-center gap-2 text-sm font-medium text-gray-red">
                   {Icon && <Icon className="h-4 w-4 shrink-0 text-berry" />}
                   <span className="min-w-0 break-words">{value}</span>
@@ -75,7 +75,7 @@ export default function ProfilePanel({ label, name, imageUrl, badges, highlight,
         </dl>
       </div>
 
-      {children && <div className="flex flex-col gap-2 border-t border-crimson-light/50 pt-4">{children}</div>}
+      {children && <div className="flex flex-col gap-2 border-t border-crimson-light/50 pt-3">{children}</div>}
     </aside>
   );
 }

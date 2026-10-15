@@ -16,6 +16,7 @@ import {
   XenditInvoiceError,
   closeOpenXenditInvoices,
 } from "../payments";
+import { imageBytes, NOT_AN_IMAGE } from "../imageFiles";
 import { publicBaseUrl, putObject } from "../r2";
 import { ported } from "../worker";
 
@@ -198,6 +199,8 @@ export const uploadPaymentProof = ported(async (req) => {
   const ext = PROOF_EXTENSIONS[file.type];
   if (!ext) return Response.json({ error: "Only JPG, PNG, and WEBP files are allowed." }, { status: 400 });
   if (file.size > MAX_PROOF_SIZE) return Response.json({ error: "Image must be 1MB or smaller." }, { status: 400 });
+  const bytes = await imageBytes(file);
+  if (!bytes) return Response.json({ error: NOT_AN_IMAGE }, { status: 400 });
 
   await cancelExpiredPendingAppointments();
   const appt = await getAppointment(appointmentId);
@@ -220,7 +223,7 @@ export const uploadPaymentProof = ported(async (req) => {
   // Random key so the public URL can't be guessed; the extension comes from the checked MIME type
   const key = `payment-proofs/${crypto.randomUUID()}.${ext}`;
   const imageUrl = `${publicBaseUrl()}/${key}`;
-  await putObject(key, new Uint8Array(await file.arrayBuffer()), file.type);
+  await putObject(key, bytes, file.type);
 
   const [proof] = await sql<{ id: number }[]>`
     insert into payment_proofs (appointment_id, user_id, image_url) values (${appointmentId}, ${requester.id}, ${imageUrl})

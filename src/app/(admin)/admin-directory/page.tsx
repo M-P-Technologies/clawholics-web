@@ -25,12 +25,12 @@ export default function AdminDirectory() {
 
       <div className="flex-1 overflow-y-auto pb-2">
         {d.error ? (
-          <div className="p-4 text-gray-red font-bold">{d.error}</div>
+          <div className="p-3 text-gray-red font-bold">{d.error}</div>
         ) : users.length === 0 ? (
-          <div className="p-4 font-bold text-gray-red">No admin profiles found.</div>
+          <div className="p-3 font-bold text-gray-red">No admin profiles found.</div>
         ) : (
           // The table (2/3) and the chosen admin's profile (1/3); on a phone the profile comes after the table
-          <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 md:gap-6 lg:grid-cols-3">
             <div className="min-w-0 lg:col-span-2 lg:h-full">
               <DirectoryTable label="Admins" users={users} profiles={d.profiles} selectedId={selected?.id ?? null} onSelect={d.select} serverPage={d.serverPage} />
             </div>

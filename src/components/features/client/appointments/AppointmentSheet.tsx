@@ -29,11 +29,11 @@ export default function AppointmentSheet({ view, now, tokenFetcher, clerkId, onC
   return (
     <Dialog open={view !== null} title="Appointment" onClose={onClose} placement="drawer">
       {view && (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 flex-col gap-1">
               <p className="break-words font-display text-xl text-berry">{view.appt.service_name}</p>
-              <p className="break-words text-[13px] text-gray-red/70">With {view.appt.nailist_name}</p>
+              <p className="break-words text-[13px] text-gray-red">With {view.appt.nailist_name}</p>
             </div>
             <Badge dot={statusDotTone(view.displayStatus)} caps>{view.statusLabel}</Badge>
           </div>
@@ -62,7 +62,7 @@ export default function AppointmentSheet({ view, now, tokenFetcher, clerkId, onC
             {(view.canReschedule || view.isLocked) && (
               <Button type="button" onClick={onReschedule} disabled={!view.canReschedule} className="w-full">Reschedule</Button>
             )}
-            {view.isLocked && <p className="text-[12px] text-gray-red/60">Changes close 3 days before your appointment.</p>}
+            {view.isLocked && <p className="text-[12px] text-gray-red">Changes close 3 days before your appointment.</p>}
             {view.canCancel && <Button type="button" variant="secondary" onClick={onCancel} className="w-full">Cancel appointment</Button>}
           </div>
         </div>

@@ -44,7 +44,7 @@ export default function MoneyCards({ money, revenue = 0, trend }: MoneyCardsProp
     );
 
   return (
-    <section aria-label="Money" className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6 xl:grid-cols-4">
+    <section aria-label="Money" className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:gap-6 xl:grid-cols-4">
       <StatCard
         icon={HandCoins}
         label="Balance at the salon"

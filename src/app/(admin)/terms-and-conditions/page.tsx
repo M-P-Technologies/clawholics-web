@@ -34,7 +34,7 @@ export default function TermsAndConditions() {
         ) : (
           <div className="flex flex-col gap-3">
             {tacs.length === 0 ? (
-              <p className="text-sm text-gray-red/70">No sections yet.</p>
+              <p className="text-sm text-gray-red">No sections yet.</p>
             ) : (
               <SortableList
                 items={tacs}

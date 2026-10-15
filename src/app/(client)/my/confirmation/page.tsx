@@ -27,17 +27,17 @@ export default function PaymentConfirmation() {
   if (isFailed) {
     return (
       <ClientScreen title="Payment" back={CLIENT_PATHS.appointments}>
-        <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
+        <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 text-center">
           <SectionHeader size="section" title="Payment failed" className="items-center" />
-          <p className="mx-auto max-w-xl text-gray-red/90">
+          <p className="mx-auto max-w-xl text-gray-red">
             Your payment session was <b>not completed</b> or may have <b>expired during payment</b>.
             No booking was confirmed and your selected timeslot has been released for other customers.
           </p>
-          <p className="mx-auto max-w-xl text-gray-red/90">
+          <p className="mx-auto max-w-xl text-gray-red">
             If your account was charged or if you have any other concerns, please don't hesitate to
             contact us. We're here to help!
           </p>
-          <div className="flex flex-col gap-4 sm:flex-row">
+          <div className="flex flex-col gap-3 sm:flex-row">
             <Button to={CLIENT_PATHS.home}>
               Back to home
             </Button>
@@ -88,12 +88,12 @@ export default function PaymentConfirmation() {
 
   return (
     <ClientScreen title="Payment" back={CLIENT_PATHS.appointments}>
-      <div className="mx-auto flex min-h-[60vh] w-full max-w-3xl flex-col items-center gap-4 text-center md:gap-6">
+      <div className="mx-auto flex min-h-[60vh] w-full max-w-3xl flex-col items-center gap-3 text-center md:gap-6">
         <CheckIcon size={56} className="text-crimson" strokeWidth={1.5} aria-hidden="true" />
 
         <SectionHeader size="section" title="Payment successful" className="items-center" />
 
-        <p className="mx-auto max-w-xl text-gray-red/90">
+        <p className="mx-auto max-w-xl text-gray-red">
           Thank you, {payment?.first_name}! Your downpayment of{" "}
           <b>₱500 via {payment?.payment_method ?? "N/A"}</b> has been received. Please check your
           email <b>({payment?.email ?? "your email"})</b> to view your complete appointment details

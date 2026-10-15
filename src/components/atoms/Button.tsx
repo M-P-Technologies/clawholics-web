@@ -41,9 +41,9 @@ const BASE =
 
 const VARIANTS: Record<ButtonVariant, string> = {
   primary:
-    "rounded-md bg-crimson px-4 py-2 text-sm font-bold uppercase tracking-extrawide text-light-orange sm:px-6 sm:py-3 shadow-md shadow-crimson/30 hover:bg-gray-red active:translate-y-px",
+    "rounded-md bg-crimson px-3 py-2 text-sm font-bold uppercase tracking-extrawide text-on-crimson sm:px-6 sm:py-3 shadow-md shadow-crimson/30 hover:bg-gray-red hover:text-light-orange active:translate-y-px",
   secondary:
-    "rounded-md border border-crimson px-4 py-2 text-sm font-bold uppercase tracking-extrawide text-crimson sm:px-6 sm:py-3 hover:bg-crimson hover:text-light-orange active:translate-y-px",
+    "rounded-md border border-crimson px-3 py-2 text-sm font-bold uppercase tracking-extrawide text-crimson-ink sm:px-6 sm:py-3 hover:bg-crimson hover:text-on-crimson active:translate-y-px",
   bare: "",
 };
 

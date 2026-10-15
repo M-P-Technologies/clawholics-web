@@ -1,9 +1,8 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const requireUser = vi.fn();
 const requireAdmin = vi.fn();
-vi.mock("../server/auth", () => ({ requireUser: () => requireUser(), requireAdmin: () => requireAdmin() }));
+vi.mock("../server/auth", () => ({ requireAdmin: () => requireAdmin() }));
 
 const putObject = vi.fn();
 const deleteObject = vi.fn();
@@ -24,12 +23,17 @@ const upload = (file: File | null, folder = "nailists") => {
   return POST(new Request("http://localhost/api/upload/image", { method: "POST", body: form, headers: ORIGIN }), {});
 };
 
-const webp = (name = "My Photo.webp", size = 1000) => new File([new Uint8Array(size)], name, { type: "image/webp" });
+// A real WEBP's first bytes ("RIFF", size, "WEBP"), then padding: the route checks the signature
+const WEBP_HEADER = [0x52, 0x49, 0x46, 0x46, 0x24, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50];
+const webp = (name = "My Photo.webp", size = 1000) => {
+  const bytes = new Uint8Array(size);
+  bytes.set(WEBP_HEADER);
+  return new File([bytes], name, { type: "image/webp" });
+};
 
 beforeEach(() => {
   vi.stubEnv("API_BACKEND", "next");
   vi.stubEnv("R2_PUBLIC_URL", "https://images.example.com/");
-  requireUser.mockResolvedValue({ clerkId: "user_1", role: "customer" });
   requireAdmin.mockResolvedValue({ clerkId: "user_a", role: "admin" });
 });
 
@@ -49,9 +53,16 @@ describe("POST /upload/image", () => {
     expect(putObject).toHaveBeenCalledWith(body.key, expect.any(Uint8Array), "image/webp");
   });
 
-  it("TC-UP-02: requires a signed-in user", async () => {
-    requireUser.mockResolvedValue(Response.json({ error: "Authentication required." }, { status: 401 }));
-    expect((await upload(webp())).status).toBe(401);
+  it("TC-UP-02: requires an admin (clients upload through their own proof and review endpoints)", async () => {
+    requireAdmin.mockResolvedValue(Response.json({ error: "Forbidden: Admin access required." }, { status: 403 }));
+    expect((await upload(webp())).status).toBe(403);
+    expect(putObject).not.toHaveBeenCalled();
+  });
+
+  it("TC-UP-02b: refuses a file that only claims to be a WEBP", async () => {
+    const res = await upload(new File(["<script>alert(1)</script>"], "x.webp", { type: "image/webp" }));
+    expect(res.status).toBe(400);
+    expect((await res.json()).message).toBe("That file isn't a valid JPG, PNG or WEBP image.");
     expect(putObject).not.toHaveBeenCalled();
   });
 
@@ -67,10 +78,14 @@ describe("POST /upload/image", () => {
     expect(putObject).not.toHaveBeenCalled();
   });
 
-  it("TC-UP-04: strips path characters from the folder", async () => {
-    const body = await (await upload(webp(), "../Etc Passwd")).json();
-    expect(body.key.startsWith("/etc-passwd/") || body.key.startsWith("etc-passwd/")).toBe(true);
-    expect(body.key).not.toContain("..");
+  it("TC-UP-04: only uploads into the admin screens' folders", async () => {
+    const res = await upload(webp(), "../Etc Passwd");
+    expect(res.status).toBe(400);
+    expect((await res.json()).message).toBe("Unknown upload folder.");
+    expect(putObject).not.toHaveBeenCalled();
+    for (const folder of ["carousel", "content", "services", "service-gallery", "nailists", "uploads"]) {
+      expect((await upload(webp(), folder)).status).toBe(200);
+    }
   });
 });
 

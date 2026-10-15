@@ -28,7 +28,7 @@ const ArtistInputField = ({ label, value, onChange, isEditing }: InputFieldProps
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
-        <h3 className="text-[13px] font-medium text-gray-red/80">{label}</h3>
+        <h3 className="text-[13px] font-medium text-gray-red">{label}</h3>
       </div>
 
 

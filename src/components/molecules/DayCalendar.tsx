@@ -46,7 +46,7 @@ export default function DayCalendar({ month, onMonthChange, selected, onSelect, 
       })}
       disabled={isDisabled}
       modifiers={{ fullyBooked: isFullyBooked }}
-      modifiersClassNames={{ fullyBooked: "[&>button]:text-crimson" }}
+      modifiersClassNames={{ fullyBooked: "[&>button]:text-crimson-ink" }}
       classNames={{
         root: "relative w-fit max-w-full",
         month: "w-full",
@@ -61,7 +61,7 @@ export default function DayCalendar({ month, onMonthChange, selected, onSelect, 
         day: s.day,
         day_button: clsx(
           s.button,
-          "rounded-md bg-crimson-light/40 font-bold text-gray-red transition-colors duration-200 hover:bg-crimson hover:text-light-orange focus:bg-crimson focus:text-light-orange disabled:cursor-not-allowed disabled:opacity-30 disabled:line-through disabled:hover:bg-crimson-light/40 disabled:hover:text-gray-red",
+          "rounded-md bg-crimson-light/40 font-bold text-gray-red transition-colors duration-200 hover:bg-crimson hover:text-on-crimson focus:bg-crimson focus:text-on-crimson disabled:cursor-not-allowed disabled:opacity-30 disabled:line-through disabled:hover:bg-crimson-light/40 disabled:hover:text-gray-red",
         ),
         // On the cell: fill its button, which would otherwise hide a background on the cell
         selected: "[&>button]:!bg-berry [&>button]:!text-pearl",

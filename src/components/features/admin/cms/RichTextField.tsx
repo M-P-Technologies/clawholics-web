@@ -105,7 +105,7 @@ export default function RichTextField({ label, initialHtml, resetKey, onChange }
             <Button type="button" variant="secondary" onClick={() => setLinkOpen(false)} className="!px-3 !py-1.5 text-[12px]">
               Cancel
             </Button>
-            <p className="w-full text-[12px] text-gray-red/60">Select the words first, then type a web address (https://…) or an email (mailto:…).</p>
+            <p className="w-full text-[12px] text-gray-red">Select the words first, then type a web address (https://…) or an email (mailto:…).</p>
           </div>
         )}
         <div

@@ -20,7 +20,7 @@ describe("site theme", () => {
       "--color-crimson-light": "#c5dccb",
       "--color-light-orange": "#f3f6f0",
       "--color-sand": "#dfe7da",
-      "--color-gray-red": "#4f5f52",
+      "--color-gray-red": "#4f5f52",      "--color-crimson-ink": "#4c6052",      "--color-on-crimson": "#374239",
       "--font-gloock": '"Playfair Display", serif',
       "--font-luxurious-script": "Parisienne, cursive",
       "--font-noto-sans": "Inter, sans-serif",

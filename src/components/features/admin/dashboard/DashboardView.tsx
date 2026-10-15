@@ -59,7 +59,7 @@ export default function DashboardView({ data, loading = false, failed = false, l
 
   return (
     <ViewBody loading={loading} failed={failed}>
-      <div className="grid grid-cols-2 gap-4 md:gap-6 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-4">
         <StatCard icon={Wallet} label="Collected" value={peso(kpis.collected.value)} change={describeChange(kpis.collected.value, kpis.collected.previous)} hint="downpayments received" sparkline={spark("Collected", "collected", peso)} />
         <StatCard icon={Receipt} label="Estimated sales" value={peso(kpis.estimatedSales.value)} change={describeChange(kpis.estimatedSales.value, kpis.estimatedSales.previous)} hint="list price of completed services" sparkline={spark("Estimated sales", "estimatedSales", peso)} />
         <StatCard icon={CalendarHeart} label="Bookings" value={String(kpis.bookings.value)} change={describeChange(kpis.bookings.value, kpis.bookings.previous)} hint="confirmed and completed" sparkline={spark("Bookings", "bookings", String)} />
@@ -69,15 +69,15 @@ export default function DashboardView({ data, loading = false, failed = false, l
       {/* Words on the right, figures on the left. On a phone the notes come straight after the
           stat cards; from lg up they take one column of the same four-column grid as the stat cards, so
           they are exactly one card wide, and stay in view while the charts scroll. */}
-      <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-4 lg:items-start">
-        <div className="flex flex-col gap-4 md:gap-6 lg:sticky lg:top-0 lg:order-last">
+      <div className="grid grid-cols-1 gap-3 md:gap-6 lg:grid-cols-4 lg:items-start">
+        <div className="flex flex-col gap-3 md:gap-6 lg:sticky lg:top-0 lg:order-last">
           <SalonNotes data={data} />
           {loadBookings && <ActiveBookings load={loadBookings} />}
         </div>
 
-        <div className="flex min-w-0 flex-col gap-4 md:gap-6 lg:col-span-3">
-          <div className="grid grid-cols-1 gap-4 md:gap-6 xl:grid-cols-2">
-            <Card as="section" aria-label="Bookings per month" className="flex min-w-0 flex-col gap-4"><SectionHeader size="card" title="Bookings per month" />
+        <div className="flex min-w-0 flex-col gap-3 md:gap-6 lg:col-span-3">
+          <div className="grid grid-cols-1 gap-3 md:gap-6 xl:grid-cols-2">
+            <Card as="section" aria-label="Bookings per month" className="flex min-w-0 flex-col gap-3"><SectionHeader size="card" title="Bookings per month" />
               <BarChart
                 title="Bookings per month"
                 data={data.monthly.map((m) => ({ label: monthName(m.month), a: m.completed, b: m.cancelled }))}
@@ -89,7 +89,7 @@ export default function DashboardView({ data, loading = false, failed = false, l
               />
             </Card>
 
-            <Card as="section" aria-label="Service mix" className="flex min-w-0 flex-col gap-4"><SectionHeader size="card" title="Service mix" />
+            <Card as="section" aria-label="Service mix" className="flex min-w-0 flex-col gap-3"><SectionHeader size="card" title="Service mix" />
               <DonutChart title="Service mix" slices={serviceSlices} centerLabel="bookings" emptyText="No bookings in this period." />
             </Card>
           </div>
@@ -97,22 +97,22 @@ export default function DashboardView({ data, loading = false, failed = false, l
           {loadBookings ? (
             <BookingsTable load={loadBookings} />
           ) : (
-            <Card as="section" aria-label="Next appointments" className="flex min-w-0 flex-col gap-4"><SectionHeader size="card" title="Next appointments" />
+            <Card as="section" aria-label="Next appointments" className="flex min-w-0 flex-col gap-3"><SectionHeader size="card" title="Next appointments" />
               <NextAppointments items={data.next} />
             </Card>
           )}
 
           {/* Where the other numbers went */}
-          <nav aria-label="More numbers" className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
+          <nav aria-label="More numbers" className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:gap-6">
             {MORE.map((m) => (
               <Link
                 key={m.to}
                 to={m.to}
-                className="group flex items-center justify-between gap-3 rounded-2xl border border-crimson-light/40 bg-milk px-5 py-4 shadow-petal transition-colors hover:bg-crimson-light/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson"
+                className="group flex items-center justify-between gap-3 rounded-2xl border border-crimson-light/40 bg-milk px-6 py-3 shadow-petal transition-colors hover:bg-crimson-light/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson"
               >
                 <span className="min-w-0">
                   <span className="block font-display text-lg text-gray-red">{m.label}</span>
-                  <span className="block text-[12px] text-gray-red/70">{m.hint}</span>
+                  <span className="block text-[12px] text-gray-red">{m.hint}</span>
                 </span>
                 <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-crimson-light/40 text-berry transition-transform group-hover:translate-x-0.5">
                   <ArrowRight size={16} />

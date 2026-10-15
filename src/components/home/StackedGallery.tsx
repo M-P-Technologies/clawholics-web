@@ -27,7 +27,7 @@ export default function StackedGallery({ photos, label = "Photo gallery" }: { ph
   const go = (step: number) => setCurrent((i) => (i + step + count) % count);
 
   return (
-    <div role="region" aria-roledescription="carousel" aria-label={label} className="flex flex-col gap-4 md:gap-8">
+    <div role="region" aria-roledescription="carousel" aria-label={label} className="flex flex-col gap-3 md:gap-9">
       <SharpenFilter />
       {/* The front photo is 3/4 of this box wide and as tall as the box: square photos need a box of 4:3 (phones), 16:9 photos a box of 64:27 */}
       <div className="relative z-10 aspect-4/3 w-full sm:aspect-64/27">
@@ -65,7 +65,7 @@ export default function StackedGallery({ photos, label = "Photo gallery" }: { ph
       </div>
 
       {count > 1 && (
-        <div className="relative z-10 flex items-center justify-center gap-4">
+        <div className="relative z-10 flex items-center justify-center gap-3">
           <button
             type="button"
             aria-label="Previous photo"
@@ -75,19 +75,25 @@ export default function StackedGallery({ photos, label = "Photo gallery" }: { ph
             <ChevronLeft size={20} aria-hidden="true" />
           </button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center">
             {photos.map((photo, index) => (
+              // The dot is drawn inside a 24px button, the smallest tap target WCAG allows
               <button
                 key={`${photo.id}-${index}`}
                 type="button"
                 aria-label={`Show photo ${index + 1}`}
                 aria-current={index === current}
                 onClick={() => setCurrent(index)}
-                className={clsx(
-                  "h-2 cursor-pointer rounded-full transition-all duration-300",
-                  index === current ? "w-6 bg-crimson" : "w-2 bg-light-orange/40 hover:bg-light-orange",
-                )}
-              />
+                className="group flex h-6 min-w-6 cursor-pointer items-center justify-center"
+              >
+                <span
+                  aria-hidden="true"
+                  className={clsx(
+                    "h-2 rounded-full transition-all duration-300",
+                    index === current ? "w-6 bg-crimson" : "w-2 bg-light-orange/40 group-hover:bg-light-orange",
+                  )}
+                />
+              </button>
             ))}
           </div>
 

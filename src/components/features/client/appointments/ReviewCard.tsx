@@ -11,7 +11,7 @@ interface ReviewCardProps {
   onSubmit: (appointmentId: number, draft: ReviewDraft) => Promise<unknown>;
 }
 
-const cardClass = "flex flex-col gap-3 rounded-xl border border-crimson-light/60 bg-light-orange/40 p-4 text-gray-red";
+const cardClass = "flex flex-col gap-3 rounded-xl border border-crimson-light/60 bg-light-orange/40 p-3 text-gray-red";
 
 // A completed visit's review: the form to leave one (stars, a few words, a photo), or the review left
 export default function ReviewCard({ appointmentId, review, onSubmit }: ReviewCardProps) {
@@ -102,7 +102,7 @@ export default function ReviewCard({ appointmentId, review, onSubmit }: ReviewCa
         </label>
       )}
       <input id={inputId} type="file" accept="image/jpeg,image/png,image/webp" onChange={pickPhoto} className="sr-only" />
-      {error && <p role="alert" className="text-sm text-danger">{error}</p>}
+      {error && <p role="alert" className="text-sm text-danger-ink">{error}</p>}
       <Button type="button" onClick={send} loading={busy} disabled={rating === 0} className="w-full">
         Send review
       </Button>

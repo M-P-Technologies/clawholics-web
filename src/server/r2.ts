@@ -52,8 +52,14 @@ export function createImageKey(folder: string, fileName: string) {
   return `${folder}/${Date.now()}-${crypto.randomUUID()}-${sanitizeFileName(fileName)}`;
 }
 
+// Every key is new (a time and a uuid), and a replaced image gets a new key, so browsers and
+// Cloudflare may keep an image for good
+const IMMUTABLE = "public, max-age=31536000, immutable";
+
 export async function putObject(key: string, body: Uint8Array, contentType: string) {
-  await getClient().send(new PutObjectCommand({ Bucket: bucket(), Key: key, Body: body, ContentType: contentType }));
+  await getClient().send(
+    new PutObjectCommand({ Bucket: bucket(), Key: key, Body: body, ContentType: contentType, CacheControl: IMMUTABLE }),
+  );
 }
 
 export async function deleteObject(key: string) {

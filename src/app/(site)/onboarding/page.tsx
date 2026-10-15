@@ -27,8 +27,8 @@ export default function Onboarding() {
         />
 
         <Panel>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+            <div className="grid grid-cols-2 gap-3">
               {nameFields.map((field) => (
                 <FormField key={field.id} {...field} />
               ))}
@@ -86,7 +86,7 @@ export default function Onboarding() {
                   onClick={toggleGender}
                   className={`${inputClass} flex items-center justify-between text-left`}
                 >
-                  <span className={genderLabel ? "" : "text-gray-red/50"}>{genderLabel || "Select gender"}</span>
+                  <span className={genderLabel ? "" : "text-gray-red"}>{genderLabel || "Select gender"}</span>
                   <ChevronDown
                     aria-hidden="true"
                     className={`h-5 w-5 text-crimson transition-transform duration-200 ${isGenderOpen ? "rotate-180" : ""}`}
@@ -99,19 +99,20 @@ export default function Onboarding() {
                     className="absolute bottom-full z-30 mb-2 w-full overflow-hidden rounded-sm border border-crimson-light bg-light-orange py-1 shadow-xl shadow-crimson/20"
                   >
                     {genderOptions.map((option) => (
-                      <div
+                      <button
                         key={option.value}
+                        type="button"
                         role="option"
                         aria-selected={formData.gender === option.value}
                         onClick={() => handleGenderSelect(option.value)}
-                        className={`cursor-pointer px-4 py-4 transition-colors ${
+                        className={`block w-full cursor-pointer px-3 py-3 text-left transition-colors ${
                           formData.gender === option.value
-                            ? "bg-crimson font-bold text-light-orange"
+                            ? "bg-crimson font-bold text-on-crimson"
                             : "text-gray-red hover:bg-crimson-light/50"
                         }`}
                       >
                         {option.label}
-                      </div>
+                      </button>
                     ))}
                   </div>
                 )}
@@ -127,14 +128,14 @@ export default function Onboarding() {
             </Button>
 
             {submitError && (
-              <p role="alert" className="text-center text-sm font-bold text-danger">
+              <p role="alert" className="text-center text-sm font-bold text-danger-ink">
                 {submitError}
               </p>
             )}
 
             <Link
               to="/"
-              className="text-center text-sm text-gray-red underline transition-colors hover:text-crimson"
+              className="text-center text-sm text-gray-red underline transition-colors hover:text-crimson-ink"
             >
               Back to home
             </Link>

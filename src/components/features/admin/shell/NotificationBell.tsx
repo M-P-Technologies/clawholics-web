@@ -77,7 +77,7 @@ export default function NotificationBell() {
       >
         <Bell size={17} aria-hidden="true" />
         {bell.unread > 0 && (
-          <span aria-hidden="true" className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-crimson px-1 text-[10px] font-bold text-light-orange">
+          <span aria-hidden="true" className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-crimson px-1 text-[10px] font-bold text-on-crimson">
             {bell.unread > 9 ? "9+" : bell.unread}
           </span>
         )}
@@ -91,11 +91,11 @@ export default function NotificationBell() {
           style={{ top: place.top, right: place.right }}
           className="fixed z-[60] flex w-[min(22rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-crimson-light/40 bg-milk shadow-xl shadow-crimson/20"
         >
-          <p className="border-b border-crimson-light/40 px-4 py-3 font-display text-lg text-gray-red">New bookings</p>
+          <p className="border-b border-crimson-light/40 px-3 py-3 font-display text-lg text-gray-red">New bookings</p>
           {bell.failed ? (
-            <p className="px-4 py-6 text-[13px] text-gray-red/80">We couldn&apos;t load the notifications. They&apos;ll try again in a moment.</p>
+            <p className="px-3 py-6 text-[13px] text-gray-red">We couldn&apos;t load the notifications. They&apos;ll try again in a moment.</p>
           ) : bell.notifications.length === 0 ? (
-            <p className="px-4 py-6 text-[13px] text-gray-red/80">
+            <p className="px-3 py-6 text-[13px] text-gray-red">
               {bell.loading ? "Loading…" : "Nothing yet. Paid bookings and payment proofs to review show here."}
             </p>
           ) : (
@@ -107,18 +107,18 @@ export default function NotificationBell() {
                     <Link
                       to={notificationLink(n)}
                       onClick={close}
-                      className={clsx("flex gap-3 px-4 py-3 text-left transition-colors hover:bg-crimson-light/15", bell.isNew(n.id) && "bg-crimson-light/20")}
+                      className={clsx("flex gap-3 px-3 py-3 text-left transition-colors hover:bg-crimson-light/15", bell.isNew(n.id) && "bg-crimson-light/20")}
                     >
                       <Icon size={18} aria-hidden="true" className="mt-0.5 shrink-0 text-berry" />
                       <span className="min-w-0 flex-1">
                         <span className="flex items-baseline justify-between gap-2">
                           <span className="text-[13px] font-bold text-gray-red">
                             {notificationTitle(n)}
-                            {bell.isNew(n.id) && <span className="ml-2 rounded-full bg-crimson px-1.5 py-0.5 text-[10px] text-light-orange">New</span>}
+                            {bell.isNew(n.id) && <span className="ml-2 rounded-full bg-crimson px-1.5 py-0.5 text-[10px] text-on-crimson">New</span>}
                           </span>
-                          <span className="shrink-0 text-[11px] text-gray-red/60">{notificationAge(n.created_at)}</span>
+                          <span className="shrink-0 text-[11px] text-gray-red">{notificationAge(n.created_at)}</span>
                         </span>
-                        <span className="block text-[12px] text-gray-red/80">{notificationLine(n)}</span>
+                        <span className="block text-[12px] text-gray-red">{notificationLine(n)}</span>
                       </span>
                     </Link>
                   </li>

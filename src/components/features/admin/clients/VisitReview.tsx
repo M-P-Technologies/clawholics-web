@@ -11,13 +11,13 @@ interface ReviewTextProps {
 // The client's review of a visit: its stars and comment, whether the home page shows it, and
 // the button that decides that. A dash when there's no review.
 export function ReviewText({ appointment, busy = false, onApprove }: ReviewTextProps) {
-  if (!appointment.review_rating) return <span className="text-gray-red/50">–</span>;
+  if (!appointment.review_rating) return <span className="text-gray-red">–</span>;
   const { review_id: reviewId } = appointment;
   const approved = appointment.review_approved === 1;
   return (
     <span className="flex min-w-0 flex-col items-start gap-1">
       <Stars rating={appointment.review_rating} size={14} />
-      {appointment.review_comment && <span className="line-clamp-3 whitespace-pre-wrap text-[13px] text-gray-red/90">{appointment.review_comment}</span>}
+      {appointment.review_comment && <span className="line-clamp-3 whitespace-pre-wrap text-[13px] text-gray-red">{appointment.review_comment}</span>}
       {onApprove && reviewId != null && (
         <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
           <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${approved ? "bg-success/20 text-gray-red" : "bg-sand text-gray-red"}`}>
@@ -35,7 +35,7 @@ export function ReviewText({ appointment, busy = false, onApprove }: ReviewTextP
 // The photo the client added to their review, as a thumbnail that opens it big
 export function ReviewPhoto({ appointment, onOpen }: { appointment: ClientAppointment; onOpen: (url: string) => void }) {
   const url = appointment.review_photo_url;
-  if (!url) return <span className="text-gray-red/50">–</span>;
+  if (!url) return <span className="text-gray-red">–</span>;
   return (
     <Button type="button" variant="bare" onClick={() => onOpen(url)} aria-label="View review photo" className="block h-12 w-12 overflow-hidden rounded-md border border-crimson-light/60">
       {/* eslint-disable-next-line @next/next/no-img-element */}

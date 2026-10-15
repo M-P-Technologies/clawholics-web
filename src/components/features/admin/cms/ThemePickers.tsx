@@ -62,7 +62,7 @@ export function FontPicker({ label, fonts, value, onChange, sample, size }: Font
             <span className={size === "large" ? "pr-6 text-2xl leading-tight text-gray-red" : "pr-6 text-[15px] text-gray-red"} style={{ fontFamily: font.css }}>
               {sample}
             </span>
-            <span className="text-[12px] text-gray-red/60">{font.label}</span>
+            <span className="text-[12px] text-gray-red">{font.label}</span>
             {value === font.key && <Chosen />}
           </button>
         ))}

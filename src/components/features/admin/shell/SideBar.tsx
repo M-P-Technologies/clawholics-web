@@ -19,7 +19,7 @@ export default function SideBar() {
   return (
     <>
       <AdminTabBar />
-      <div className="mr-5 hidden h-full shrink-0 lg:block">
+      <div className="mr-6 hidden h-full shrink-0 lg:block">
         <SideBarOrganism
           label="Admin navigation"
           groups={NAV_GROUPS}

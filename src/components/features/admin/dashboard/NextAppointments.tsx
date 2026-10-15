@@ -7,12 +7,12 @@ const formatDay = (ymd: string) => {
 };
 
 export default function NextAppointments({ items }: { items: DashboardResponse["next"] }) {
-  if (items.length === 0) return <p className="text-sm text-gray-red/70">No upcoming confirmed appointments.</p>;
+  if (items.length === 0) return <p className="text-sm text-gray-red">No upcoming confirmed appointments.</p>;
   return (
     <div className="flex flex-col gap-3">
       <ul className="flex flex-col gap-2">
         {items.map((item) => (
-          <li key={item.id} className="flex items-start gap-4 rounded-2xl bg-crimson-light/20 px-4 py-3">
+          <li key={item.id} className="flex items-start gap-3 rounded-2xl bg-crimson-light/20 px-3 py-3">
             <span className="w-28 shrink-0 text-[13px] text-gray-red">
               <span className="block font-display text-base text-berry">{formatDay(item.appointment_date)}</span>
               {item.appointment_time}

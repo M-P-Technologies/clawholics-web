@@ -70,7 +70,7 @@ export default function SideBar({ label, groups, isActive = (path, current) => p
         className,
       )}
     >
-      <div className={clsx("flex shrink-0 gap-2", collapsed ? "flex-col items-center justify-center px-3" : "items-start px-5")}>
+      <div className={clsx("flex shrink-0 gap-2", collapsed ? "flex-col items-center justify-center px-3" : "items-start px-6")}>
         {collapsed ? (
           // The emblem's circle sits in a margin of empty space, so the image is scaled up to show it
           <div className="relative mx-auto h-11 w-11 overflow-hidden">
@@ -97,24 +97,24 @@ export default function SideBar({ label, groups, isActive = (path, current) => p
           aria-label={collapsed ? "Expand the sidebar" : "Collapse the sidebar"}
           aria-expanded={!collapsed}
           title={collapsed ? "Expand" : "Collapse"}
-          className="shrink-0 rounded-full p-1.5 text-gray-red/70 hover:bg-crimson-light/30 hover:text-berry"
+          className="shrink-0 rounded-full p-1.5 text-gray-red hover:bg-crimson-light/30 hover:text-berry"
         >
           {collapsed ? <PanelLeftOpen size={18} aria-hidden="true" /> : <PanelLeftClose size={18} aria-hidden="true" />}
         </Button>
       </div>
 
-      {!collapsed && <Pearls className="mx-5 my-4 shrink-0" />}
+      {!collapsed && <Pearls className="mx-6 my-3 shrink-0" />}
 
       {/* Only the menu scrolls, with its scrollbar on the left (rtl on the scroller, ltr
           inside), so it never sits on the highlighted item at the right edge */}
-      <div className={clsx("sidebar-scroll min-h-0 flex-1 overflow-y-auto [direction:rtl]", collapsed && "mt-4")}>
-        <nav aria-label={label} className={clsx("flex flex-col py-1 [direction:ltr]", collapsed ? "gap-3 px-3" : "gap-4 pl-3 pr-4")}>
+      <div className={clsx("sidebar-scroll min-h-0 flex-1 overflow-y-auto [direction:rtl]", collapsed && "mt-3")}>
+        <nav aria-label={label} className={clsx("flex flex-col py-1 [direction:ltr]", collapsed ? "gap-3 px-3" : "gap-3 pl-3 pr-3")}>
           {groups.map((group, groupIndex) => (
             <div key={group.title ?? groupIndex} className="flex flex-col gap-0.5">
               {collapsed ? (
                 groupIndex > 0 && <span aria-hidden="true" className="mx-auto mb-1 h-px w-8 bg-crimson-light/70" />
               ) : group.title ? (
-                <h3 className="px-3 pb-0.5 font-display text-[15px] text-gray-red/70">{group.title}</h3>
+                <h3 className="px-3 pb-0.5 font-display text-[15px] text-gray-red">{group.title}</h3>
               ) : null}
               <ul className="flex flex-col gap-0.5">
                 {group.items.map((item) => {
@@ -151,7 +151,7 @@ export default function SideBar({ label, groups, isActive = (path, current) => p
         </nav>
       </div>
 
-      <div className={clsx("shrink-0 border-t border-crimson-light/50 pt-4", collapsed ? "mx-3" : "mx-5")}>{footer(collapsed)}</div>
+      <div className={clsx("shrink-0 border-t border-crimson-light/50 pt-3", collapsed ? "mx-3" : "mx-6")}>{footer(collapsed)}</div>
     </aside>
   );
 }

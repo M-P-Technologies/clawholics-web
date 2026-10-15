@@ -18,7 +18,7 @@ export default function Reschedule() {
     <ClientScreen title="Reschedule" back="history">
       <div className="flex flex-col gap-6">
 
-        <div className="grid grid-cols-1 gap-4 md:gap-8 lg:grid-cols-5 lg:gap-16 xl:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 md:gap-9 lg:grid-cols-5 lg:gap-15 xl:grid-cols-2">
           <Card className="flex flex-col gap-6 lg:col-span-3 xl:col-span-1">
             <SectionHeader
               size="section"
@@ -32,8 +32,8 @@ export default function Reschedule() {
             {/* Side by side only when this column itself is wide enough (the two blocks need about 565px);
                 a screen-width breakpoint is wrong here, since beside the summary cards the column is narrower. */}
             <div className="@container">
-            <div className="flex flex-col gap-4 @xl:flex-row">
-              <div className={clsx(surface.tint, "flex items-center justify-center p-4")}>
+            <div className="flex flex-col gap-3 @xl:flex-row">
+              <div className={clsx(surface.tint, "flex items-center justify-center p-3")}>
                 <DayCalendar
                   monthsAhead={1}
                   month={month}
@@ -59,13 +59,13 @@ export default function Reschedule() {
             </div>
           </Card>
 
-          <div className="flex h-fit flex-col gap-4 md:gap-8 lg:col-span-2 xl:col-span-1">
+          <div className="flex h-fit flex-col gap-3 md:gap-9 lg:col-span-2 xl:col-span-1">
             <Card className="flex flex-col gap-3">
               <SectionHeader size="card" title="Current appointment" />
               <p className="font-display text-xl text-gray-red">
                 {appointment.service_name}
               </p>
-              <p className="text-sm text-gray-red/80">
+              <p className="text-sm text-gray-red">
                 {appointment.service_description}
               </p>
               <dl>
@@ -95,7 +95,7 @@ export default function Reschedule() {
           <Button
             onClick={handleConfirmReschedule}
             disabled={!selectedDate || !selectedTime || isSubmitting}
-            className="px-8 sm:px-12"
+            className="px-9 sm:px-12"
           >
             {isSubmitting ? "Processing..." : "Confirm reschedule"}
           </Button>

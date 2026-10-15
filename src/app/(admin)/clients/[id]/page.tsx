@@ -50,7 +50,7 @@ export default function ClientPage() {
     <AdminShell title={page.name} actions={back}>
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-2">
         {/* Two panels, each 80vh tall on a computer: they scroll inside, the tab bar stays put */}
-        <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
           <ProfilePanel
             label="Client profile"
             className="lg:h-[80vh] lg:overflow-y-auto"
@@ -75,7 +75,7 @@ export default function ClientPage() {
               tabs={page.tabs}
             />
 
-            <div role="tabpanel" id={`client-panel-${tab}`} aria-labelledby={`client-tab-${tab}`} className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto p-5">
+            <div role="tabpanel" id={`client-panel-${tab}`} aria-labelledby={`client-tab-${tab}`} className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto p-6">
               {tab === "overview" && (
                 <>
                   <TabSection title="At a glance" description="Their visits, what they've spent and their loyalty card.">
@@ -112,7 +112,7 @@ export default function ClientPage() {
                       </Button>
                     </div>
                     {notes.length === 0 ? (
-                      <p className="text-sm text-gray-red/70">No notes yet.</p>
+                      <p className="text-sm text-gray-red">No notes yet.</p>
                     ) : (
                       <ul className="flex flex-col gap-2">
                         {page.generalNotes.map((n) => (

@@ -3,6 +3,7 @@ import { requireAdmin, requireUserRow, type RequesterUser } from "../auth";
 import { getSql } from "../db";
 import { pgErrorCode, readJson, toId } from "../http";
 import { MAX_PROOF_SIZE, PROOF_EXTENSIONS } from "../payments";
+import { imageBytes, NOT_AN_IMAGE } from "../imageFiles";
 import { publicBaseUrl, putObject } from "../r2";
 import { getPublicReviews } from "../catalog";
 import { ported } from "../worker";
@@ -53,6 +54,8 @@ export const createReview = ported(async (req) => {
   const ext = photo ? PROOF_EXTENSIONS[photo.type] : undefined;
   if (photo && !ext) return errorBody("Only JPG, PNG, and WEBP files are allowed.", 400);
   if (photo && photo.size > MAX_PROOF_SIZE) return errorBody("Image must be 1MB or smaller.", 400);
+  const photoBytes = photo ? await imageBytes(photo) : null;
+  if (photo && !photoBytes) return errorBody(NOT_AN_IMAGE, 400);
 
   const sql = getSql();
   const [appt] = await sql<{ user_id: number; status: string }[]>`select user_id, status from appointments where id = ${appointmentId}`;
@@ -63,10 +66,10 @@ export const createReview = ported(async (req) => {
   if (existing) return errorBody("You've already reviewed this visit.", 409);
 
   let photoUrl: string | null = null;
-  if (photo && ext) {
+  if (photo && ext && photoBytes) {
     // Random key so the public URL can't be guessed; the extension comes from the checked MIME type
     const key = `reviews/${crypto.randomUUID()}.${ext}`;
-    await putObject(key, new Uint8Array(await photo.arrayBuffer()), photo.type);
+    await putObject(key, photoBytes, photo.type);
     photoUrl = `${publicBaseUrl()}/${key}`;
   }
 
