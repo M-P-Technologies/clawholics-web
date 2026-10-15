@@ -70,6 +70,8 @@ describe("Client page", () => {
     const profile = within(await screen.findByRole("complementary", { name: "Client profile" }));
     expect(fetchClient).toHaveBeenCalledWith(7, auth);
     expect(profile.getByRole("heading", { name: "Ana Cruz" })).toBeInTheDocument();
+    expect(profile.getByText("Client")).toBeInTheDocument();
+    expect(profile.getByText("3 stamps")).toBeInTheDocument();
     expect(profile.getByText("ana@x.test")).toBeInTheDocument();
     expect(profile.getByText("09171234567")).toBeInTheDocument();
     expect(profile.getByText("@ana")).toBeInTheDocument();

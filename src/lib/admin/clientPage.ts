@@ -1,7 +1,7 @@
 import { Cake, CalendarClock, CalendarDays, Mail, MessageCircle, Phone, Sparkles } from "lucide-react";
 import type { ComponentType } from "react";
 import { FacebookIcon, InstagramIcon, type BadgeTone } from "@/components/atoms";
-import type { ClientDetails } from "../../services/clientNotesService";
+import type { ClientAppointment, ClientDetails } from "../../services/clientNotesService";
 import { parseServerTime } from "../../services/serverTime";
 
 // The admin client page's labels, styles and the rows of its Client info list
@@ -74,3 +74,19 @@ export const clientName = (client: ClientDetails["client"]) => `${client.first_n
 
 /** Today's date in Manila ("YYYY-MM-DD") */
 export const manilaToday = () => new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
+
+/** The client panel's next-visit box */
+export const nextVisitHighlight = (next?: ClientAppointment) => ({
+  title: "Next visit",
+  icon: CalendarClock,
+  value: next ? dateLabel(next.appointment_date) : undefined,
+  detail: next ? `${next.appointment_time} · ${next.service_name} with ${next.nailist_name}` : undefined,
+  empty: "Nothing booked ahead.",
+});
+
+/** The client panel's rows, with their icons */
+export const clientPanelRows = (details: Pick<ClientDetails, "client" | "summary">) =>
+  clientInfoRows(details).map(({ label, value, Icon }) => ({ label, value, icon: Icon }));
+
+/** "1 stamp", "4 stamps" */
+export const stampsLabel = (stamps: number) => `${stamps} ${stamps === 1 ? "stamp" : "stamps"}`;

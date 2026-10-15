@@ -4,12 +4,12 @@ import { ArrowLeft, CalendarCheck, Stamp, Wallet } from "lucide-react";
 import AdminShell from "@/components/features/admin/shell/AdminShell";
 import BookingTracker from "@/components/features/admin/clients/BookingTracker";
 import ClientAppointments from "@/components/features/admin/clients/ClientAppointments";
-import ClientProfilePanel from "@/components/features/admin/clients/ClientProfilePanel";
 import NoteItem from "@/components/features/admin/clients/NoteItem";
 import { StatCard, TabSection, Tabs, EmptyState } from "@/components/molecules";
-import { Button } from "@/components/atoms";
+import { Badge, Button } from "@/components/atoms";
+import { ProfilePanel } from "@/components/organisms";
 import { useClientPage } from "../../hooks/admin/useClientPage";
-import { CLIENT_TABS, clientName, dateLabel, noteFieldClass } from "../../lib/admin/clientPage";
+import { CLIENT_TABS, clientName, clientPanelRows, dateLabel, nextVisitHighlight, noteFieldClass, stampsLabel } from "../../lib/admin/clientPage";
 import { peso } from "../../lib/dashboardFormat";
 import { Link } from "../../lib/router";
 
@@ -57,7 +57,20 @@ export default function ClientPage() {
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-2">
         {/* Two panels, each 80vh tall on a computer: they scroll inside, the tab bar stays put */}
         <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
-          <ClientProfilePanel name={name} details={details} nextAppointment={page.nextAppointment} />
+          <ProfilePanel
+            label="Client profile"
+            className="lg:h-[80vh] lg:overflow-y-auto"
+            name={name}
+            badges={
+              <>
+                <Badge tone="brand">Client</Badge>
+                <Badge>{stampsLabel(summary.stamps)}</Badge>
+              </>
+            }
+            highlight={nextVisitHighlight(page.nextAppointment)}
+            rowsTitle="Client info"
+            rows={clientPanelRows(details)}
+          />
 
           <section aria-label="Client details" className="flex min-w-0 flex-col overflow-clip rounded-2xl border border-crimson-light/40 bg-milk shadow-petal lg:h-[80vh]">
             <Tabs
