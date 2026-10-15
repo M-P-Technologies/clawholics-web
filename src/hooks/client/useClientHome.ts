@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "@/lib/router";
 import { useToast } from "@/components/molecules";
 import { CLIENT_PATHS } from "../../lib/client/clientNav";
-import { isCompleted } from "../../lib/client/appointments";
+import { completedVisits } from "../../lib/client/appointments";
 import { clientTrackerSteps } from "../../lib/client/tracker";
 import { relativeDay } from "../../utils/profileView";
 import { homeOffers } from "../../lib/client/offers";
@@ -55,7 +55,7 @@ export function useClientHome() {
     popular: services.slice(0, POPULAR_COUNT),
     book: (service: NailService) => startBooking(service),
     /** Completed visits */
-    visits: account.pastViews.filter(isCompleted).length,
+    visits: completedVisits(account.pastViews),
     nextVisitLabel: next ? next.dateLabel : "None booked",
     /** Under the next appointment: the payment countdown while the hold runs, or how far away it is */
     nextWhen: next ? (next.canPay ? `Pay within ${next.payLabel}` : relativeDay(next.appt.appointment_date, next.appt.appointment_time, account.currentTime)) : "",

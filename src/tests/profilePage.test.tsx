@@ -60,22 +60,47 @@ describe("MyAppointments", () => {
 });
 
 describe("MyProfile", () => {
-  it("shows who the client is, their card and details", () => {
+  it("shows the profile panel with the client's details and actions", () => {
     render(<MyProfile />);
     expect(screen.getByRole("banner")).toContainElement(screen.getByRole("heading", { level: 1, name: "My profile" }));
-    expect(screen.getByRole("heading", { name: "Hi, Ana" })).toBeInTheDocument();
-    expect(screen.getByText("Member since October 2026")).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "My details" })).toHaveTextContent("09171234567");
-    fireEvent.click(screen.getByRole("button", { name: "Open your loyalty card" }));
-    expect(hook.openRewards).toHaveBeenCalled();
+    const panel = within(screen.getByRole("complementary", { name: "Your profile" }));
+    expect(panel.getByRole("heading", { name: "Ana Cruz" })).toBeInTheDocument();
+    expect(panel.getByText("Member since October 2026")).toBeInTheDocument();
+    expect(panel.getByText("09171234567")).toBeInTheDocument();
+    expect(panel.getByText("Next visit")).toBeInTheDocument();
+    fireEvent.click(panel.getByRole("button", { name: "Edit details" }));
+    expect(hook.handleEditClick).toHaveBeenCalled();
+    fireEvent.click(panel.getByRole("button", { name: "Log out" }));
+    expect(signOut).toHaveBeenCalledWith({ redirectUrl: "/" });
   });
 
-  it("links back to the site and to the legal pages, and logs out", () => {
+  it("shows the glance cards, the loyalty card and where the booking is", () => {
+    render(<MyProfile />);
+    expect(within(screen.getByRole("group", { name: "Loyalty stamps" })).getByText("4 / 10")).toBeInTheDocument();
+    expect(screen.getByText(/6 more visits to a reward/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Open your loyalty card" }));
+    expect(hook.openRewards).toHaveBeenCalled();
+    expect(screen.getByRole("list", { name: "Booking progress" })).toBeInTheDocument();
+  });
+
+  it("says when a reward is ready", () => {
+    hook = makeHook({ stamps: 10 });
+    render(<MyProfile />);
+    expect(screen.getByText(/reward is ready/i)).toBeInTheDocument();
+  });
+
+  it("has no tracker and nothing booked for an account with no appointments", () => {
+    hook = makeHook({ upcoming: [], pastViews: [], nextAppointment: null });
+    render(<MyProfile />);
+    expect(screen.queryByRole("list", { name: "Booking progress" })).toBeNull();
+    expect(screen.getByText("No bookings to track yet.")).toBeInTheDocument();
+    expect(screen.getByText("Nothing booked ahead.")).toBeInTheDocument();
+  });
+
+  it("links back to the site and to the legal pages", () => {
     render(<MyProfile />);
     expect(screen.getByRole("link", { name: "Back to site" })).toHaveAttribute("href", "/");
     expect(screen.getByRole("link", { name: "Terms" })).toHaveAttribute("href", "/tou");
     expect(screen.getByRole("link", { name: "Privacy" })).toHaveAttribute("href", "/privacy");
-    fireEvent.click(screen.getByRole("button", { name: "Log out" }));
-    expect(signOut).toHaveBeenCalledWith({ redirectUrl: "/" });
   });
 });
