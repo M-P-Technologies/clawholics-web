@@ -43,9 +43,12 @@ export default function SectionHeader({ title, subtitle, children, align = "left
 
   if (size === "section") {
     return (
-      <div className={clsx("flex items-baseline justify-between gap-3", className)}>
-        <Tag className="font-display text-xl font-normal normal-case tracking-normal text-gray-red">{title}</Tag>
-        {action && <span className="text-[13px] font-bold text-crimson">{action}</span>}
+      <div className={clsx("flex flex-col gap-1", className)}>
+        <div className="flex items-baseline justify-between gap-3">
+          <Tag className="font-display text-xl font-normal normal-case tracking-normal text-gray-red">{title}</Tag>
+          {action && <span className="text-[13px] font-bold text-crimson">{action}</span>}
+        </div>
+        {subtitle && <p className="text-sm text-gray-red/80">{subtitle}</p>}
       </div>
     );
   }
