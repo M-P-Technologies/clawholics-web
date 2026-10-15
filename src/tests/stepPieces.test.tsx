@@ -1,8 +1,7 @@
 import { render, screen } from "@testing-library/react";
-import { TimeSlotList } from "@/components/molecules";
+import { DayCalendar, TimeSlotList } from "@/components/molecules";
 import { describe, expect, it, vi } from "vitest";
 import BookingOptions from "@/components/features/client/booking/BookingOptions";
-import DayCalendar from "@/components/features/client/booking/DayCalendar";
 
 const slots = ["09:00-11:00", "11:00-13:00", "13:00-15:00"];
 const fmt = (s: string) => s;
@@ -66,11 +65,32 @@ describe("choice row", () => {
 });
 
 describe("day calendar", () => {
-  it("fills the chosen day's own button, so it shows on the milk days even without focus", () => {
-    const now = new Date();
-    const chosen = new Date(now.getFullYear(), now.getMonth(), 20);
-    render(<DayCalendar month={chosen} onMonthChange={vi.fn()} selected={chosen} onSelect={vi.fn()} isDisabled={() => false} isFullyBooked={() => false} />);
+  const now = new Date();
+  const chosen = new Date(now.getFullYear(), now.getMonth(), 20);
+  const base = { month: chosen, onMonthChange: vi.fn(), selected: chosen, onSelect: vi.fn(), isDisabled: () => false, isFullyBooked: (d: Date) => d.getDate() === 21 };
+  const day = (n: number) => screen.getByRole("button", { name: new RegExp(`\\b${n}(st|nd|rd|th)?,`) });
+
+  it("fills the chosen day's own button, so it shows even without focus", () => {
+    render(<DayCalendar {...base} />);
     const button = screen.getByRole("button", { name: /\b20(st|nd|rd|th)?,.*selected/i });
-    expect(button.parentElement).toHaveClass("[&>button]:!bg-crimson", "[&>button]:!text-milk");
+    expect(button.parentElement).toHaveClass("[&>button]:!bg-berry", "[&>button]:!text-pearl");
+  });
+
+  it("marks a fully booked day", () => {
+    render(<DayCalendar {...base} />);
+    expect(day(21).parentElement).toHaveClass("[&>button]:text-crimson");
+  });
+
+  it("is compact in a dialog and roomier on a page", () => {
+    const { rerender } = render(<DayCalendar {...base} size="sm" />);
+    expect(day(10)).toHaveClass("h-7", "w-7");
+    rerender(<DayCalendar {...base} />);
+    expect(day(10)).toHaveClass("h-9", "w-9");
+  });
+
+  it("can stop at the next month", () => {
+    const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    render(<DayCalendar {...base} month={next} monthsAhead={1} />);
+    expect(screen.getByRole("button", { name: /next month/i })).toHaveAttribute("aria-disabled", "true");
   });
 });

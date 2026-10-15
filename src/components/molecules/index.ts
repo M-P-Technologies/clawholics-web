@@ -17,3 +17,4 @@ export { default as DragHandle } from "./DragHandle";
 export { default as EditActions } from "./EditActions";
 export { default as SummaryRow } from "./SummaryRow";
 export { default as TimeSlotList } from "./TimeSlotList";
+export { default as DayCalendar } from "./DayCalendar";

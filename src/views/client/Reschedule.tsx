@@ -3,9 +3,8 @@
 import clsx from "clsx";
 import { AlertDialog } from "@/components/organisms";
 import { Button, Card, LoadingBar } from "@/components/atoms";
-import { SectionHeader, SummaryRow, TimeSlotList } from "@/components/molecules";
+import { SectionHeader, SummaryRow, TimeSlotList, DayCalendar } from "@/components/molecules";
 import { surface } from "@/components/tokens";
-import DayCalendar from "@/components/features/client/booking/DayCalendar";
 import ClientPage from "@/components/features/client/shell/ClientPage";
 import { useReschedule } from "@/hooks/client/useReschedule";
 import { formatSlot } from "@/utils/reschedule";
@@ -36,6 +35,7 @@ export default function Reschedule() {
             <div className="flex flex-col gap-4 @xl:flex-row">
               <div className={clsx(surface.tint, "flex items-center justify-center p-4")}>
                 <DayCalendar
+                  monthsAhead={1}
                   month={month}
                   onMonthChange={setMonth}
                   selected={selectedDay}

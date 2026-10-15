@@ -4,11 +4,10 @@ import Image from "next/image";
 import clsx from "clsx";
 import { AlertDialog } from "@/components/organisms";
 import { Badge, Button, Card, LoadingBar } from "@/components/atoms";
-import { SectionHeader, EmptyState, SummaryRow, TimeSlotList } from "@/components/molecules";
+import { SectionHeader, EmptyState, SummaryRow, TimeSlotList, DayCalendar } from "@/components/molecules";
 import { surface } from "@/components/tokens";
 import BookingOptions from "@/components/features/client/booking/BookingOptions";
 import ArtistSelect from "@/components/features/client/booking/ArtistSelect";
-import DayCalendar from "@/components/features/client/booking/DayCalendar";
 import ClientPage from "@/components/features/client/shell/ClientPage";
 import { useBooking } from "@/hooks/client/useBooking";
 
@@ -89,6 +88,7 @@ export default function Booking() {
               <div className="flex flex-col gap-4 @xl:flex-row">
                 <div className={clsx(surface.tint, "flex items-center justify-center p-4")}>
                   <DayCalendar
+                    monthsAhead={1}
                     month={month}
                     onMonthChange={setMonth}
                     selected={selectedDay}
