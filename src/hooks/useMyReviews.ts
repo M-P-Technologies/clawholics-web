@@ -1,8 +1,12 @@
 "use client";
 
 import { useAuth, useUser } from "@clerk/nextjs";
-import { useCallback, useEffect, useState } from "react";
-import { fetchMyReviews, submitReview, type Review, type ReviewDraft } from "../services/reviewService";
+import { useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { accountKeys, accountQueries } from "@/lib/accountQueries";
+import { submitReview, type Review, type ReviewDraft } from "../services/reviewService";
+
+const NO_REVIEWS: Record<number, Review> = {};
 
 /**
  * The signed-in client's reviews by appointment id, and a way to add one. A failed load (e.g.
@@ -11,33 +15,17 @@ import { fetchMyReviews, submitReview, type Review, type ReviewDraft } from "../
 export function useMyReviews() {
   const { getToken, isSignedIn } = useAuth();
   const { user } = useUser();
-  const [reviews, setReviews] = useState<Record<number, Review>>({});
-
-  const auth = useCallback(async () => ({ token: await getToken(), clerkId: user?.id }), [getToken, user?.id]);
-
-  useEffect(() => {
-    if (!isSignedIn) return;
-    let live = true;
-    (async () => {
-      try {
-        const list = await fetchMyReviews(await auth());
-        if (live) setReviews(Object.fromEntries(list.map((r) => [r.appointment_id, r])));
-      } catch {
-        // No reviews to show; the client can still leave one
-      }
-    })();
-    return () => {
-      live = false;
-    };
-  }, [isSignedIn, auth]);
+  const queryClient = useQueryClient();
+  const clerkId = user?.id ?? "";
+  const reviews = useQuery({ ...accountQueries.reviews(clerkId, getToken), enabled: !!isSignedIn && !!user }).data ?? NO_REVIEWS;
 
   const submit = useCallback(
     async (appointmentId: number, draft: ReviewDraft) => {
-      const saved = await submitReview(appointmentId, draft, await auth());
-      setReviews((current) => ({ ...current, [appointmentId]: saved }));
+      const saved = await submitReview(appointmentId, draft, { token: await getToken(), clerkId });
+      queryClient.setQueryData<Record<number, Review>>(accountKeys.reviews(clerkId), (current) => ({ ...current, [appointmentId]: saved }));
       return saved;
     },
-    [auth],
+    [getToken, clerkId, queryClient],
   );
 
   return { reviews, submit };

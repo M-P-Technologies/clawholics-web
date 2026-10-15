@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ADMIN } from "@/lib/adminQueries";
+import { bookingQueries } from "@/lib/bookingQueries";
 import { useToast } from "@/components/molecules";
 import {
   createNailist,
@@ -17,6 +20,10 @@ import {
 import { fetchServices, type NailService } from "@/services/serviceService";
 import { uploadImage } from "@/services/uploadService";
 import { splitTimeSlot } from "@/lib/admin/artistEditor";
+import { useFillForm } from "./useFillForm";
+
+// The artist's services, as the editor shows them, cached per artist
+const artistServicesKey = (nailistId: number) => [ADMIN, "nailists", nailistId, "services"] as const;
 
 export type ArtistEditorProps = {
   nailist?: Nailist;
@@ -58,7 +65,10 @@ export function useArtistEditor({
   const [bio, setBio] = useState(nailist?.bio ?? "");
   const [image, setImage] = useState(nailist?.image ?? "");
 
-  const [availableServices, setAvailableServices] = useState<NailService[]>([]);
+  const queryClient = useQueryClient();
+  // Every artist card offers the same services: one cached request for all of them
+  const servicesQuery = useQuery({ queryKey: [ADMIN, "services"], queryFn: (): Promise<NailService[]> => fetchServices() });
+  const availableServices = servicesQuery.data ?? [];
   const [selectedServiceIds, setSelectedServiceIds] = useState<number[]>(nailist?.service_ids ?? []);
   const [originalSelectedServiceIds, setOriginalSelectedServiceIds] = useState<number[]>(nailist?.service_ids ?? []);
 
@@ -95,15 +105,8 @@ export function useArtistEditor({
   };
 
   useEffect(() => {
-    const loadServices = async () => {
-      try {
-        setAvailableServices(await fetchServices());
-      } catch (error) {
-        console.error("Failed to fetch services:", error);
-      }
-    };
-    loadServices();
-  }, []);
+    if (servicesQuery.isError) console.error("Failed to fetch services:", servicesQuery.error);
+  }, [servicesQuery.isError, servicesQuery.error]);
 
   useEffect(() => {
     if (!isCreateMode && nailist) {
@@ -112,19 +115,15 @@ export function useArtistEditor({
     }
   }, [nailist, isCreateMode]);
 
+  const nailistServicesQuery = useQuery({
+    queryKey: artistServicesKey(nailist?.id ?? 0),
+    queryFn: () => fetchNailistServices(nailist?.id ?? 0),
+    enabled: !isCreateMode && !!nailist,
+  });
+  useFillForm(nailistServicesQuery.data, isEditing, showSavedServices);
   useEffect(() => {
-    if (!isCreateMode && nailist) {
-      const loadNailistServices = async () => {
-        try {
-          const serviceIds = await fetchNailistServices(nailist.id);
-          showSavedServices(serviceIds);
-        } catch (error) {
-          console.error("Failed to fetch artist services:", error);
-        }
-      };
-      loadNailistServices();
-    }
-  }, [nailist, isCreateMode]);
+    if (nailistServicesQuery.isError) console.error("Failed to fetch artist services:", nailistServicesQuery.error);
+  }, [nailistServicesQuery.isError, nailistServicesQuery.error]);
 
   const handleDayOffsLoaded = (dayOffs: NailistDayOffs) => {
     setRegularDays(dayOffs.regularDays);
@@ -229,6 +228,10 @@ export function useArtistEditor({
       showSavedServices(updatedServiceIds);
       handleDayOffsLoaded(updatedDayOffs);
       handleTimeSlotsLoaded(updatedTimeSlots);
+      // The cached copies now match what was saved
+      queryClient.setQueryData(artistServicesKey(nailist.id), updatedServiceIds);
+      queryClient.setQueryData(bookingQueries.dayOffs(nailist.id).queryKey, updatedDayOffs);
+      queryClient.setQueryData(bookingQueries.timeSlots(nailist.id).queryKey, updatedTimeSlots);
       setIsEditing(false);
       onNailistUpdated?.({ ...updatedNailist, service_ids: updatedServiceIds });
       toast.show("success", "Artist saved", "Your changes are now live on the website and in booking.");

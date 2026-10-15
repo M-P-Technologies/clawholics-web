@@ -2,9 +2,10 @@ import "server-only";
 import { getSql } from "./db";
 import { addDays, resolvePeriod } from "../lib/dashboardPeriods";
 import type { ArtistUtilization, Utilization } from "../services/dashboardTypes";
+import { holdsSlot } from "./appointments";
 
-// The statuses that hold a slot: the same ones as the appointments' unique-slot index
-const ACTIVE = "lower(trim(a.status)) not in ('cancelled', 'canceled', 'refunded')";
+// The bookings that hold a slot
+const ACTIVE = holdsSlot("a.status");
 
 const rateOf = (booked: number, offered: number) => (offered === 0 ? null : booked / offered);
 

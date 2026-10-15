@@ -6,6 +6,7 @@ import type { NailistDayOffs } from "@/services/nailistService";
 import { SectionHeader } from "@/components/molecules";
 import { WEEK_DAYS, parseDateKey } from "@/lib/admin/artistEditor";
 import { useDayOffs } from "@/hooks/admin/useDayOffs";
+import { SectionSkeleton } from "../skeletons/skeletons";
 
 const DayOffCard = ({
   nailistId,
@@ -39,7 +40,7 @@ const DayOffCard = ({
       <SectionHeader size="label" title="Day Off" />
 
       {isLoading ? (
-        <p className="text-[15px] text-gray-red">Loading day offs...</p>
+        <SectionSkeleton label="Loading days off" lines={2} />
       ) : (
         <>
           <div className="mb-4 flex flex-col gap-1">

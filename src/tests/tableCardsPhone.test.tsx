@@ -1,10 +1,11 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import BookingsTable from "@/components/features/admin/dashboard/BookingsTable";
 import SalesRecord from "@/components/features/admin/dashboard/SalesRecord";
 import ArtistUtilization from "@/components/features/admin/dashboard/ArtistUtilization";
 import DirectoryTable from "@/components/features/admin/directory/DirectoryTable";
 import type { Appointment } from "@/services/appointmentService";
+import { paged } from "./fakeAppointmentPages";
 import type { DashboardResponse, Utilization } from "@/services/dashboardTypes";
 import type { DirectoryUser } from "@/components/features/admin/directory/DirectoryProfileCard";
 
@@ -32,7 +33,7 @@ describe("admin tables on a phone", () => {
       id, user_id: 100 + id, service_name: "Gel", nailist_name: "Maxine", appointment_date: "2026-10-20", appointment_time: `${String(8 + id).padStart(2, "0")}:00-11:00`,
       status: "CONFIRMED", first_name: `Client${id}`, last_name: "Cruz", email: `c${id}@x.test`,
     });
-    render(<BookingsTable load={async () => Array.from({ length: 7 }, (_, i) => appt(i + 1))} />);
+    render(<BookingsTable load={paged(async () => Array.from({ length: 7 }, (_, i) => appt(i + 1)))} />);
     await screen.findByRole("list", { name: "Bookings" });
     expect(screen.queryByRole("table")).toBeNull();
     expect(cards("Bookings")).toHaveLength(5);
@@ -41,7 +42,7 @@ describe("admin tables on a phone", () => {
     expect(first.getByText("Confirmed")).toBeInTheDocument();
     expect(first.getByRole("link", { name: "Open Client1 Cruz" })).toHaveAttribute("href", "/clients/101");
     fireEvent.click(screen.getByRole("button", { name: "Page 2" }));
-    expect(cards("Bookings")).toHaveLength(2);
+    await waitFor(() => expect(cards("Bookings")).toHaveLength(2));
   });
 
   it("shows sales as cards, five to a page", () => {

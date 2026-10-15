@@ -1,14 +1,16 @@
-import React, { useMemo, useState, useEffect, useRef } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { useNavigate, useSearchParams } from "@/lib/router";
-import { fetchProfile, isMissingProfile, isTemporaryFailure, updateProfile, fetchUserAppointments, redeemUserReward, cancelAppointment, type UserProfile } from "../services/userService";
+import { updateProfile, redeemUserReward, cancelAppointment, isTemporaryFailure, type UserProfile } from "../services/userService";
+import { accountKeys, accountQueries } from "@/lib/accountQueries";
 import { type Appointment } from "../utils/profile";
 import type { ChangeEvent } from "react";
 import { isActiveAppointmentStatus } from "../services/proofState";
-import { startPolling } from "./usePolling";
 import { PROFILE_FIELDS } from "../data/profile";
 import { useToast } from "@/components/molecules";
 import { pickNext, sortSoonest } from "../utils/profileView";
+import { useStampTarget } from "./useStampTarget";
 import type { AppointmentView } from "@/types/profile";
 import { CLIENT_PATHS } from "../lib/client/clientNav";
 
@@ -27,14 +29,28 @@ export function useProfile() {
     return Number.isInteger(id) && id > 0 ? id : null;
   }, [searchParams]);
 
-  const [dbUser, setDbUser] = useState<UserProfile | null>(null);
+  const queryClient = useQueryClient();
+  const clerkId = clerkUser?.id ?? "";
+  const isClient = isLoaded && !!isSignedIn && !!clerkUser && clerkUser.publicMetadata?.role !== "admin";
+  // The profile and appointments are the cached queries other screens share (lib/accountQueries),
+  // refreshed every 30 seconds, only while this tab is on screen
+  const profileQuery = useQuery({ ...accountQueries.profile(clerkId, getToken), enabled: isClient, refetchInterval: 30_000 });
+  const appointmentsQuery = useQuery({ ...accountQueries.appointments(clerkId, getToken), enabled: isClient, refetchInterval: 30_000 });
+  const dbUser = profileQuery.data ?? null;
+  const stamps = dbUser?.stamps ?? 0;
+  const stampTarget = useStampTarget();
+  const appointments = useMemo(() => appointmentsQuery.data ?? [], [appointmentsQuery.data]);
+  // Changes the cached list, e.g. once an appointment is cancelled
+  const setAppointments = useCallback(
+    (update: (prev: Appointment[]) => Appointment[]) =>
+      queryClient.setQueryData<Appointment[]>(accountKeys.appointments(clerkId), (prev) => update(prev ?? [])),
+    [queryClient, clerkId],
+  );
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<UserProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [stamps, setStamps] = useState(0);
   const [isGenderOpen, setIsGenderOpen] = useState(false);
   const [showRewardModal, setShowRewardModal] = useState(false);
 
@@ -47,11 +63,6 @@ export function useProfile() {
 
   const [historySortBy, setHistorySortBy] = useState("appointmentDateDesc");
   const [historyFilter, setHistoryFilter] = useState("all");
-  // The last load failed (not a missing profile): the client app shows a retry instead of loading forever
-  const [loadError, setLoadError] = useState(false);
-  // Whether the account has been on screen once, so a later refresh that fails can keep it
-  const hasLoaded = useRef(false);
-  const [loadAttempt, setLoadAttempt] = useState(0);
 
   const processedPastAppointments = useMemo(() => {
     const filtered = appointments.filter((a) => {
@@ -106,55 +117,25 @@ export function useProfile() {
   };
 
   useEffect(() => {
-    if (isLoaded && clerkUser?.publicMetadata?.role === "admin") {
-      navigate("/dashboard", { replace: true });
-      return;
+    if (!isLoaded) return;
+    if (clerkUser?.publicMetadata?.role === "admin") navigate("/dashboard", { replace: true });
+    else if (!isSignedIn) navigate("/login");
+  }, [isLoaded, isSignedIn, clerkUser, navigate]);
+
+  useEffect(() => {
+    if (!profileQuery.isError) return;
+    // A background refresh that hits a brief outage (the server answers 503 when the database is
+    // slow) keeps what is on screen; the next refresh will try again
+    if (profileQuery.data !== undefined && isTemporaryFailure(profileQuery.error)) {
+      console.warn("Couldn't refresh the account; showing what was loaded before:", profileQuery.error);
+    } else {
+      console.error("Error fetching data:", profileQuery.error);
     }
+  }, [profileQuery.isError, profileQuery.error, profileQuery.data]);
 
-    if (isLoaded && clerkUser?.publicMetadata?.role !== "admin") {
-      if (!isSignedIn) {
-        navigate("/login");
-        return;
-      }
-
-      if (!clerkUser?.id) return;
-
-      const loadData = async () => {
-        try {
-          const token = await getToken();
-          const data = await fetchProfile(clerkUser.id, token);
-
-          setDbUser(data);
-          setStamps(data.stamps || 0);
-          setLoadError(false);
-          hasLoaded.current = true;
-
-          const appts = await fetchUserAppointments(clerkUser.id, token);
-          setAppointments(appts || []);
-        } catch (err) {
-          // A background refresh that hits a brief outage (the server answers 503 when the database is
-          // slow) keeps what is on screen; the next refresh will try again
-          if (hasLoaded.current && isTemporaryFailure(err)) {
-            console.warn("Couldn't refresh the account; showing what was loaded before:", err);
-            return;
-          }
-          // A missing profile is expected for a new account, so it isn't logged
-          if (!isMissingProfile(err)) {
-            console.error(
-              "Error fetching data:",
-              err,
-            );
-          }
-          setLoadError(true);
-        }
-      };
-
-      loadData();
-
-      // Refresh every 30 seconds, only while this tab is on screen
-      return startPolling(loadData, { intervalMs: 30000, immediate: false });
-    }
-  }, [isLoaded, isSignedIn, clerkUser, navigate, getToken, loadAttempt]);
+  useEffect(() => {
+    if (appointmentsQuery.isError) console.error("Error fetching data:", appointmentsQuery.error);
+  }, [appointmentsQuery.isError, appointmentsQuery.error]);
 
   const handleEditClick = () => {
     setFormData(dbUser);
@@ -288,7 +269,7 @@ export function useProfile() {
 
         await updateProfile(clerkUser.id, formattedPayload, token);
 
-        setDbUser({
+        queryClient.setQueryData(accountKeys.profile(clerkUser.id), {
           ...dbUser,
           ...formData,
           ...contact,
@@ -313,15 +294,19 @@ export function useProfile() {
   };
 
   const handleClientRedeem = async () => {
-    if (stamps >= 10 && clerkUser?.id) {
+    if (stamps >= stampTarget && clerkUser?.id) {
       try {
         setShowRewardModal(true);
-        setStamps(0);
+        const key = accountKeys.profile(clerkUser.id);
+        queryClient.setQueryData<UserProfile | null>(key, (old) => (old ? { ...old, stamps: 0 } : old));
         const token = await getToken();
         // Use the new authorized client redemption endpoint
         await redeemUserReward(clerkUser.id, token);
+        void queryClient.invalidateQueries({ queryKey: key });
       } catch (error) {
         console.error("Failed to self-redeem reward:", error);
+        // The stamps weren't used: show them again
+        void queryClient.invalidateQueries({ queryKey: accountKeys.profile(clerkUser.id) });
         toast.show(
           "error",
           "We couldn't record your reward",
@@ -342,6 +327,8 @@ export function useProfile() {
       if (!token) throw new Error("No auth token");
 
       await cancelAppointment(selectedAppt.id, token);
+      // The released slot also shows on the booking calendar (fetched fresh there)
+      void queryClient.invalidateQueries({ queryKey: accountKeys.appointments(clerkUser.id) });
 
       setAppointments((prev) =>
         prev.map((appt) =>
@@ -520,8 +507,8 @@ export function useProfile() {
   const upcoming: AppointmentView[] = sortSoonest(currentAppointments);
   const nextAppointment = pickNext(upcoming);
 
-  // The ten stamp boxes of the loyalty card
-  const stampCells = Array.from({ length: 10 }, (_, index) => ({ number: index + 1, isEarned: index + 1 <= stamps }));
+  // The stamp boxes of the loyalty card
+  const stampCells = Array.from({ length: stampTarget }, (_, index) => ({ number: index + 1, isEarned: index + 1 <= stamps }));
 
   // Cancelling a confirmed appointment less than 3 days ahead is not refundable
   const isLateCancellation =
@@ -536,10 +523,10 @@ export function useProfile() {
   const toggleHistory = () => setShowAllHistory(!showAllHistory);
   const closeRewardModal = () => setShowRewardModal(false);
 
-  const retryLoad = () => {
-    setLoadError(false);
-    setLoadAttempt((n) => n + 1);
-  };
+  // The profile couldn't load (not a missing one) and nothing was loaded before: the client app
+  // shows a retry instead of loading forever. A failed background refresh keeps what's on screen.
+  const loadError = profileQuery.isError && !profileQuery.data;
+  const retryLoad = () => void profileQuery.refetch();
 
-  return { loadError, retryLoad, toggleGender, toggleHistory, closeRewardModal, loyaltyCardNumber, isBusy, genderLabel, history, hasMoreHistory, noHistory, stampCells, isLateCancellation, selectedApptDateLabel, profileFields, isLoaded, clerkUser, getToken, navigate, highlightedAppointmentId, upcoming, nextAppointment, pastViews, dbUser, isEditing, formData, error, appointments, setAppointments, stamps, isGenderOpen, setIsGenderOpen, showRewardModal, setShowRewardModal, selectedAppt, setSelectedAppt, isCancelModalOpen, setIsCancelModalOpen, actionError, setActionError, currentTime, showAllHistory, setShowAllHistory, isCancelling, historySortBy, setHistorySortBy, historyFilter, setHistoryFilter, processedPastAppointments, todayFormatted, formatDisplayDate, handleEditClick, genderOptions, handleGenderSelect, handleContactMethodSelect, formatTime, handleChange, handleSave, handleCancel, handleClientRedeem, handleCancelAppointment, isEligibleForChanges, formatSlot, todayIso, currentAppointments, payForAppointment, rescheduleAppointment, startCancel, closeCancelModal, handleProofUploaded, handleHistoryFilterChange, handleHistorySortChange };
+  return { loadError, retryLoad, toggleGender, toggleHistory, closeRewardModal, loyaltyCardNumber, isBusy, genderLabel, history, hasMoreHistory, noHistory, stampCells, stampTarget, isLateCancellation, selectedApptDateLabel, profileFields, isLoaded, clerkUser, getToken, navigate, highlightedAppointmentId, upcoming, nextAppointment, pastViews, dbUser, isEditing, formData, error, appointments, setAppointments, stamps, isGenderOpen, setIsGenderOpen, showRewardModal, setShowRewardModal, selectedAppt, setSelectedAppt, isCancelModalOpen, setIsCancelModalOpen, actionError, setActionError, currentTime, showAllHistory, setShowAllHistory, isCancelling, historySortBy, setHistorySortBy, historyFilter, setHistoryFilter, processedPastAppointments, todayFormatted, formatDisplayDate, handleEditClick, genderOptions, handleGenderSelect, handleContactMethodSelect, formatTime, handleChange, handleSave, handleCancel, handleClientRedeem, handleCancelAppointment, isEligibleForChanges, formatSlot, todayIso, currentAppointments, payForAppointment, rescheduleAppointment, startCancel, closeCancelModal, handleProofUploaded, handleHistoryFilterChange, handleHistorySortChange };
 }

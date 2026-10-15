@@ -2,6 +2,8 @@ import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ClientDirectory from "@/app/(admin)/clients/page";
 import type { Appointment } from "@/services/appointmentService";
+import { pageOf } from "./fakeAppointmentPages";
+import type { AppointmentPageParams } from "@/services/appointmentService";
 
 let params = new URLSearchParams();
 vi.mock("@/lib/router", async (importOriginal) => ({
@@ -32,9 +34,13 @@ vi.mock("@/services/dashboardService", async (importOriginal) => ({
 }));
 vi.mock("@/services/appointmentService", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/services/appointmentService")>()),
-  fetchAppointments: async (): Promise<Appointment[]> => [
-    { id: 11, user_id: 5, first_name: "Ana", last_name: "Cruz", email: "ana@x.test", phone: "09171234567", service_name: "Gel", nailist_name: "Maxine", appointment_date: "2026-11-02", appointment_time: "10:00-11:00", status: "CONFIRMED" },
-  ],
+  fetchAppointmentPage: async (params: AppointmentPageParams) =>
+    pageOf(
+      [
+        { id: 11, user_id: 5, first_name: "Ana", last_name: "Cruz", email: "ana@x.test", phone: "09171234567", service_name: "Gel", nailist_name: "Maxine", appointment_date: "2026-11-02", appointment_time: "10:00-11:00", status: "CONFIRMED" },
+      ] as Appointment[],
+      params,
+    ),
 }));
 
 beforeEach(() => {
@@ -54,6 +60,24 @@ describe("Clients & Bookings", () => {
     // The client list and its profile card are gone
     expect(screen.queryByRole("region", { name: "Clients" })).toBeNull();
     expect(screen.queryByRole("table", { name: "Clients" })).toBeNull();
+  });
+
+  it("shows placeholders in the totals and the list until they load", async () => {
+    params = new URLSearchParams("view=leads");
+    render(<ClientDirectory />);
+    const totals = within(screen.getByRole("region", { name: "Client totals" }));
+    expect(totals.getAllByText("Loading")).toHaveLength(4);
+    // Each card says so, but only the list regions are announced
+    expect(totals.queryAllByRole("status")).toHaveLength(0);
+    expect(screen.getByRole("status", { name: "Loading appointments" })).toBeInTheDocument();
+    // The warm leads' banner already says "Loading warm leads…", so their placeholder rows are quiet
+    expect(screen.getByText("Loading warm leads…")).toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Loading warm leads" })).toBeNull();
+
+    await screen.findByRole("table", { name: "Appointments" });
+    expect(await totals.findByText("2")).toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Loading appointments" })).toBeNull();
+    expect(totals.queryAllByText("Loading")).toHaveLength(0);
   });
 
   it("lists the warm leads when opened from the dashboard, with a way back", async () => {

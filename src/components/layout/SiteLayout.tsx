@@ -7,6 +7,7 @@ import { useSiteTheme } from "../../hooks/useSiteTheme";
 import MobileTabBar from "./MobileTabBar";
 import Navbar from "./NavBar";
 import Footer from "./Footer";
+import BirthdayVoucherPopup from "../birthday/BirthdayVoucherPopup";
 
 // Screens that end without the site footer.
 const NO_FOOTER_PATHS = ["/login", "/signup", "/onboarding"];
@@ -43,6 +44,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
 
       <Navbar />
       <MobileTabBar />
+      <BirthdayVoucherPopup />
 
       <main id="main-content" className="relative flex-1">
         {children}

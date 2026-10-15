@@ -3,6 +3,8 @@
 import type { ReactNode } from "react";
 import { AppShell, TopBar } from "@/components/organisms";
 import { useAdminAccount } from "@/hooks/admin/useAdminAccount";
+import { useAdminWideLayout } from "@/hooks/useMinWidth";
+import NotificationBell from "@/components/features/admin/shell/NotificationBell";
 import SideBar from "@/components/features/admin/shell/SideBar";
 
 interface AdminShellProps {
@@ -21,6 +23,9 @@ interface AdminShellProps {
 // the content editors' preview scrolling to a section used to drag the whole page up with it.
 export default function AdminShell({ title, titleAside, actions, children }: AdminShellProps) {
   const account = useAdminAccount();
+  // The new-bookings bell is drawn once, in the place for the screen's width: two (one hidden by
+  // CSS) would each ask for the notifications and each announce a new one
+  const wide = useAdminWideLayout();
 
   return (
     <AppShell variant="admin" sideBar={<SideBar />}>
@@ -31,6 +36,8 @@ export default function AdminShell({ title, titleAside, actions, children }: Adm
         greeting={`Welcome, ${account.firstName}!`}
         today={account.today}
         account={{ name: account.name, email: account.email || "Admin", imageUrl: account.imageUrl }}
+        bell={<NotificationBell />}
+        wide={wide}
       />
 
       {children}

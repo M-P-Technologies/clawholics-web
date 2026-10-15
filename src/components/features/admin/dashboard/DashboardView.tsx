@@ -3,7 +3,7 @@ import { ArrowRight, CalendarHeart, Receipt, UserPlus, Wallet } from "lucide-rea
 import { describeChange, peso } from "@/lib/dashboardFormat";
 import { formatBucketLabel, granularityWord, type DayValues } from "@/lib/dashboardTrend";
 import { Link } from "@/lib/router";
-import type { Appointment } from "@/services/appointmentService";
+import type { BookingsLoader } from "@/hooks/admin/useReports";
 import type { DashboardResponse } from "@/services/dashboardTypes";
 import ActiveBookings from "@/components/features/admin/dashboard/ActiveBookings";
 import BarChart from "@/components/features/admin/dashboard/BarChart";
@@ -22,7 +22,7 @@ interface DashboardViewProps {
   failed?: boolean;
   /** Loads the admin appointments list for the bookings table and today's bookings; without it
    * the short next-appointments list from `data` is shown */
-  loadBookings?: () => Promise<Appointment[]>;
+  loadBookings?: BookingsLoader;
 }
 
 const MORE = [

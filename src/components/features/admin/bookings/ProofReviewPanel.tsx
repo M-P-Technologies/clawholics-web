@@ -1,4 +1,6 @@
 import { useCallback,useEffect,useRef,useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { adminDataChanged, adminKeys } from "@/lib/adminQueries";
 import type { Auth } from "@/services/catalogService";
 import {
 fetchProofs,
@@ -12,6 +14,7 @@ import { getProofState } from "@/services/proofState";
 import { parseServerTime } from "@/services/serverTime";
 import { ImagePreviewDialog } from "@/components/organisms";
 import { Button } from "@/components/atoms";
+import { SectionSkeleton } from "@/components/features/admin/skeletons/skeletons";
 
 interface Props {
   appointmentId: number;
@@ -38,10 +41,8 @@ export default function ProofReviewPanel({
   clerkId,
   onReviewed,
 }: Props) {
-  const [history, setHistory] = useState<PaymentProof[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [unavailable, setUnavailable] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const [actionError, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<"idle" | "approve" | "reject">("idle");
   const [rejectNote, setRejectNote] = useState("");
   const [busy, setBusy] = useState(false);
@@ -58,25 +59,19 @@ export default function ProofReviewPanel({
     [],
   );
 
-  const load = useCallback(async () => {
-    try {
-      const list = await fetchProofs(appointmentId, await getAuth());
-      const sorted = [...list].sort(
+  // The appointment's proofs, newest first, cached per appointment
+  const proofsQuery = useQuery({
+    queryKey: adminKeys.proofs(appointmentId),
+    queryFn: async () =>
+      [...(await fetchProofs(appointmentId, await getAuth()))].sort(
         (a, b) => parseServerTime(b.created_at) - parseServerTime(a.created_at) || b.id - a.id,
-      );
-      setHistory(sorted);
-      setUnavailable(false);
-    } catch (err) {
-      if (isProofApiUnavailable(err)) setUnavailable(true);
-      else setError(err instanceof Error ? err.message : "Failed to load proofs.");
-    } finally {
-      setLoading(false);
-    }
-  }, [appointmentId, getAuth]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
+      ),
+  });
+  const history = proofsQuery.data ?? [];
+  const loading = proofsQuery.isPending;
+  const loadError = proofsQuery.data ? null : proofsQuery.error;
+  const unavailable = !!loadError && isProofApiUnavailable(loadError);
+  const error = actionError ?? (loadError && !unavailable ? loadError.message || "Failed to load proofs." : null);
 
   const latest: ProofSummary | null = history[0] ?? latestProof ?? null;
   const state = getProofState({ status, proof_due_at: proofDueAt, latest_proof: latest }, Date.now());
@@ -91,7 +86,8 @@ export default function ProofReviewPanel({
       setMode("idle");
       setRejectNote("");
       onReviewed(result);
-      await load();
+      // The proofs, and the appointment's status on every admin screen
+      await adminDataChanged(queryClient);
     } catch (err) {
       setError(
         isProofApiUnavailable(err)
@@ -109,7 +105,7 @@ export default function ProofReviewPanel({
     <section aria-label="Payment proof review" className="rounded-xl bg-crimson-light/15 px-4 py-4 text-gray-red sm:px-5">
       <p className="mb-2 text-[14px] font-bold uppercase">Payment proof</p>
 
-      {loading && <p className="text-[13px]">Loading proof...</p>}
+      {loading && <SectionSkeleton label="Loading the payment proof" lines={2} />}
 
       {!loading && unavailable && <p className="text-[13px]">Proof review isn't available yet.</p>}
 

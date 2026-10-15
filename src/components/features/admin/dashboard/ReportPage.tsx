@@ -2,24 +2,19 @@
 
 import type { ReactNode } from "react";
 import { useDashboardReport, type ReportProps } from "@/hooks/admin/useReports";
-import { Button, LoadingBar } from "@/components/atoms";
+import { Button } from "@/components/atoms";
 import { EmptyState } from "@/components/molecules";
 import AdminShell from "@/components/features/admin/shell/AdminShell";
 import PeriodSwitch from "@/components/features/admin/dashboard/PeriodSwitch";
+import { ReportSkeleton } from "@/components/features/admin/skeletons/skeletons";
 
 // The frame of the Dashboard, Sales and Performance pages: the period switch, the numbers for
-// that period (hooks/admin/useReports), a full-page loader the first time, and a retry when they
+// that period (hooks/admin/useReports), a skeleton of the page the first time, and a retry when they
 // can't be loaded. Each page draws its own cards from the same numbers.
 export default function ReportPage({ title, children }: { title: string; children: (report: ReportProps) => ReactNode }) {
   const { range, setRange, data, loading, failed, retry } = useDashboardReport(title);
 
-  if (!data && loading) {
-    return (
-      <div className="fixed inset-0 z-9999 flex items-center justify-center bg-light-orange">
-        <LoadingBar label={`Loading ${title.toLowerCase()}`} />
-      </div>
-    );
-  }
+  if (!data && loading) return <ReportSkeleton title={title} />;
 
   if (!data) {
     return (

@@ -1,4 +1,5 @@
-import { getContent, isContentSection } from "@/server/catalog";
+import { isContentSection } from "@/server/catalog";
+import { publicReads } from "@/server/publicCache";
 import { updateContent } from "@/server/handlers/catalog";
 import { forwardToWorker, ported } from "@/server/worker";
 
@@ -10,7 +11,7 @@ export const GET = ported<Context>(async (req, { params }) => {
   const { section } = await params;
   // Unknown sections get the Worker's answer (its 404)
   if (!isContentSection(section)) return forwardToWorker(req);
-  return Response.json(await getContent(section));
+  return Response.json(await publicReads.content(section));
 });
 
 export const PUT = updateContent;

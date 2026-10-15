@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ToastProvider } from "@/components/molecules";
+import QueryProvider from "@/components/providers/QueryProvider";
 import ScrollToTop from "@/components/layout/ScrollToTop";
 import { clerkLocalization } from "@/lib/clerkAppearance";
 import { fontVariables } from "@/lib/fonts";
@@ -23,10 +24,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" className={fontVariables}>
       <body suppressHydrationWarning>
         <ClerkProvider localization={clerkLocalization} signInUrl="/login" signUpUrl="/signup" afterSignOutUrl="/">
-          <ToastProvider>
-            <ScrollToTop />
-            {children}
-          </ToastProvider>
+          <QueryProvider>
+            <ToastProvider>
+              <ScrollToTop />
+              {children}
+            </ToastProvider>
+          </QueryProvider>
         </ClerkProvider>
       </body>
     </html>

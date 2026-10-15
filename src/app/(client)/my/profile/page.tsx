@@ -39,7 +39,7 @@ export default function MyProfile() {
           <TabSection title="At a glance" description="Your visits, your loyalty card and how long you've been with us.">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <StatCard size="compact" icon={CalendarCheck} label="Visits" value={p.visits} hint="completed" />
-              <StatCard size="compact" icon={Stamp} label="Loyalty stamps" value={`${a.stamps} / 10`} />
+              <StatCard size="compact" icon={Stamp} label="Loyalty stamps" value={p.stampsValue} />
               <StatCard size="compact" icon={CalendarHeart} label="Member since" value={p.sinceLabel} />
             </div>
           </TabSection>

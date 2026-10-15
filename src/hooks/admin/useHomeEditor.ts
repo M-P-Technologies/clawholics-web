@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { useToast } from "@/components/molecules";
 import { EMPTY_HOME_CONTENT, normalizeHomeContent, trimHomeSections } from "../../lib/admin/homeEditor";
@@ -8,6 +8,7 @@ import { homeSectionsProblem, homeSectionsToContent, readHomeSections, type Home
 import { fetchHomeContent, updateHomeContent, type HomeCMSContent } from "../../services/contentService";
 import { fetchServices, type NailService } from "../../services/serviceService";
 import { PHOTO_UPLOAD_OPTIONS, uploadImage } from "../../services/uploadService";
+import { useEditorSource } from "./useEditorSource";
 
 /** The two pictures kept with the sections rather than as plain content keys */
 type SectionImage = "offerImage" | "footerLogo";
@@ -22,9 +23,6 @@ export function useHomeEditor() {
   const [sections, setSections] = useState<HomeSections>(() => readHomeSections(null));
   const [saved, setSaved] = useState({ content: EMPTY_HOME_CONTENT, sections: readHomeSections(null) });
   const [services, setServices] = useState<NailService[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadFailed, setLoadFailed] = useState(false);
-  const [attempt, setAttempt] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [uploading, setUploading] = useState<Record<string, boolean>>({});
   const [refreshKey, setRefreshKey] = useState(0);
@@ -36,21 +34,21 @@ export function useHomeEditor() {
     setSaved(next);
   };
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const [contentData, serviceData] = await Promise.all([fetchHomeContent(), fetchServices().catch(() => [])]);
-        apply(contentData);
-        setServices(serviceData);
-        setLoadFailed(false);
-      } catch (error) {
-        console.warn("Couldn't load the homepage content:", error);
-        setLoadFailed(true);
-      } finally {
-        setIsLoading(false);
-      }
-    })();
-  }, [attempt]);
+  const dirty = JSON.stringify({ content, sections }) !== JSON.stringify(saved);
+  // The saved content (and the services for the photo strip), cached: coming back to the editor
+  // shows them at once
+  const source = useEditorSource({
+    name: "home",
+    load: async () => {
+      const [contentData, serviceData] = await Promise.all([fetchHomeContent(), fetchServices().catch(() => [])]);
+      return { contentData, serviceData };
+    },
+    dirty,
+    onLoad: ({ contentData, serviceData }) => {
+      apply(contentData);
+      setServices(serviceData);
+    },
+  });
 
   const set = (key: keyof HomeCMSContent) => (value: string) => setContent((prev) => ({ ...prev, [key]: value }));
   const setSectionImage = (key: SectionImage, url: string) => setSections((prev) => ({ ...prev, [key]: url }));
@@ -93,7 +91,9 @@ export function useHomeEditor() {
       setIsSaving(true);
       const token = await getToken();
       await updateHomeContent({ ...trimmedContent, ...homeSectionsToContent(trimmedSections) }, token, currentUser?.id);
-      apply(await fetchHomeContent());
+      const contentData = await fetchHomeContent();
+      apply(contentData);
+      source.saved({ contentData, serviceData: services });
       setRefreshKey((n) => n + 1);
       toast.show("success", "Homepage saved", "Your changes are now live on the website.");
     } catch (error) {
@@ -105,12 +105,9 @@ export function useHomeEditor() {
   };
 
   return {
-    isLoading,
-    loadFailed,
-    retry: () => {
-      setIsLoading(true);
-      setAttempt((n) => n + 1);
-    },
+    isLoading: source.isLoading,
+    loadFailed: source.failed,
+    retry: source.retry,
     content,
     sections,
     services,
@@ -136,7 +133,7 @@ export function useHomeEditor() {
     /** What the preview shows: the form as it stands, as home content */
     draft: { ...content, ...homeSectionsToContent(sections) },
     busy: Object.values(uploading).some(Boolean),
-    dirty: JSON.stringify({ content, sections }) !== JSON.stringify(saved),
+    dirty,
     isSaving,
     refreshKey,
     save,

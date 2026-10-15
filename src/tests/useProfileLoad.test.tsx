@@ -16,7 +16,7 @@ vi.mock("@/components/molecules", async (orig) => ({ ...(await orig<object>()), 
 vi.mock("@/hooks/usePolling", () => ({ startPolling: () => () => {} }));
 const fetchProfile = vi.fn();
 vi.mock("@/services/userService", () => ({
-  fetchProfile: (...args: unknown[]) => fetchProfile(...args),
+  fetchProfileIfExists: (...args: unknown[]) => fetchProfile(...args),
   fetchUserAppointments: async () => [],
   isMissingProfile: () => false,
   isTemporaryFailure: () => false,

@@ -1,11 +1,15 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { Link } from "@/lib/router";
 import { manilaClock, manilaToday } from "@/lib/dashboardPeriods";
-import type { Appointment } from "@/services/appointmentService";
+import { ADMIN_APPOINTMENTS_KEY, type Appointment } from "@/services/appointmentService";
+import type { BookingsLoader } from "@/hooks/admin/useReports";
+import { SectionSkeleton } from "@/components/features/admin/skeletons/skeletons";
 
 const SHOWN = ["CONFIRMED", "COMPLETED"];
 const MAX_SHOWN = 3;
+/** More than a day ever holds */
+const DAY_LIMIT = 50;
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -25,26 +29,19 @@ const range = (time: string) => {
 
 // Today's bookings at a glance: who is in, with whom, and when; the one in the chair now is
 // marked. Confirmed and completed only (not cancelled, nor still waiting for payment).
-export default function ActiveBookings({ load }: { load: () => Promise<Appointment[]> }) {
-  const [rows, setRows] = useState<Appointment[] | null>(null);
-  const [failed, setFailed] = useState(false);
-
-  useEffect(() => {
-    let live = true;
-    load()
-      .then((loaded) => live && setRows(loaded))
-      .catch(() => live && setFailed(true));
-    return () => {
-      live = false;
-    };
-  }, [load]);
-
+export default function ActiveBookings({ load }: { load: BookingsLoader }) {
   const now = new Date();
   const today = manilaToday(now);
   const time = manilaClock(now);
-  const todays = (rows ?? [])
-    .filter((a) => a.appointment_date === today && SHOWN.includes((a.status ?? "").trim().toUpperCase()))
-    .sort((a, b) => range(a.appointment_time).start.localeCompare(range(b.appointment_time).start) || a.id - b.id);
+  // Only today's confirmed and completed bookings, in time order, from the server
+  const params = { page: 1, pageSize: DAY_LIMIT, on: today, statuses: SHOWN, sort: "upcoming" } as const;
+  const day = useQuery({
+    queryKey: [...ADMIN_APPOINTMENTS_KEY, "today", params],
+    queryFn: () => load({ ...params, statuses: [...SHOWN] }),
+  });
+  const rows: Appointment[] | null = day.data?.rows ?? null;
+  const failed = day.isError && !day.data;
+  const todays = rows ?? [];
   const isDone = (a: Appointment) => (a.status ?? "").trim().toUpperCase() === "COMPLETED" || range(a.appointment_time).end <= time;
   // The top three: the one in the chair and the next ones first; finished ones (the latest
   // first) only fill the rest. Shown in time order, the others behind a link to the schedule.
@@ -63,7 +60,7 @@ export default function ActiveBookings({ load }: { load: () => Promise<Appointme
       {failed ? (
         <p className="text-sm text-gray-red/70">We couldn&apos;t load today&apos;s bookings.</p>
       ) : rows === null ? (
-        <p className="text-sm text-gray-red/70">Loading…</p>
+        <SectionSkeleton label="Loading today's bookings" lines={4} />
       ) : todays.length === 0 ? (
         <p className="text-sm text-gray-red/70">No bookings today.</p>
       ) : (

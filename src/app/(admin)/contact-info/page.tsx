@@ -3,7 +3,8 @@
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 import CmsEditor from "@/components/features/admin/cms/CmsEditor";
 import { ElsewhereNote, IconPicker, PanelSection, SaveBar, SubCard, TextField } from "@/components/features/admin/cms/fields";
-import { Button, LoadingBar } from "@/components/atoms";
+import { Button } from "@/components/atoms";
+import { CmsEditorSkeleton } from "@/components/features/admin/skeletons/skeletons";
 import { useContactEditor } from "@/hooks/admin/useContactEditor";
 import { CONTACT_BUSINESS_FIELDS, CONTACT_PREVIEW_PAGES } from "@/lib/admin/contactEditor";
 import { MAX_SOCIAL_LINKS, SOCIAL_PLATFORMS } from "@/lib/socialLinks";
@@ -15,13 +16,7 @@ export default function ContactUs() {
   const editor = useContactEditor();
   const { values, set, links, setLink, moveLink, error } = editor;
 
-  if (editor.isLoading) {
-    return (
-      <div className="fixed inset-0 z-9999 flex items-center justify-center bg-light-orange">
-        <LoadingBar label="Loading contact details" />
-      </div>
-    );
-  }
+  if (editor.isLoading) return <CmsEditorSkeleton title="Contact Us" />;
 
   return (
     <CmsEditor

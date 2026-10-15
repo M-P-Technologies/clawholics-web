@@ -29,6 +29,7 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
   let nailists: typeof import("../../server/handlers/nailists");
   let users: typeof import("../../server/handlers/users");
   let misc: typeof import("../../server/handlers/misc");
+  let settings: typeof import("../../server/handlers/settings");
   let customerId: number;
 
   const call = (handler: Handler, url: string, options: { method?: string; body?: unknown; params?: object } = {}) =>
@@ -47,6 +48,7 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
     nailists = await import("../../server/handlers/nailists");
     users = await import("../../server/handlers/users");
     misc = await import("../../server/handlers/misc");
+    settings = await import("../../server/handlers/settings");
   });
 
   afterAll(async () => {
@@ -221,10 +223,36 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
     expect((await call(users.redeemOwnReward, "/api/users/redeem", { method: "POST" })).body).toEqual({ success: true, newStamps: 0 });
 
     as("user_admin");
-    await call(users.redeemScannedReward, "/api/users/scan/user_cust/redeem", { method: "POST", params: { clerkId: "user_cust" } });
+    // An admin can't redeem a card that isn't full, or stamp one that is
+    expect((await call(users.redeemScannedReward, "/api/users/scan/user_cust/redeem", { method: "POST", params: { clerkId: "user_cust" } })).status).toBe(400);
+    await db`update customer_profiles set stamps = 10 where user_id = ${customerId}`;
+    expect((await call(users.addStamp, "/api/users/scan/user_cust/stamp", { method: "POST", params: { clerkId: "user_cust" } })).status).toBe(400);
+    expect(
+      (await call(users.redeemScannedReward, "/api/users/scan/user_cust/redeem", { method: "POST", params: { clerkId: "user_cust" } })).body,
+    ).toEqual({ success: true, newStamps: 0 });
     const history = await call(users.getScanHistory, "/api/users/scan-history");
     expect(history.body.map((h: { action: string }) => h.action).sort()).toEqual(["redeem", "stamp"]);
     expect(history.body[0]).toEqual({ id: expect.any(String), userId: "user_cust", clientName: "Carla C", action: expect.any(String), time: expect.stringMatching(/^\d{1,2}:\d{2}:\d{2} [AP]M$/) });
+  });
+
+  it("the settings set the stamps a reward needs, and the client redeems at that number", async () => {
+    const body = { downpayment_amount: 500, payment_methods: ["QRPH"], birthday_discount_pct: 20, loyalty_stamps_required: 3 };
+    as("user_cust");
+    expect((await call(settings.updateSettings, "/api/settings", { method: "PUT", body })).status).toBe(403);
+    expect((await call(settings.getLoyaltySettings, "/api/settings/loyalty")).body).toEqual({ stamps_required: 10 });
+
+    as("user_admin");
+    expect((await call(settings.updateSettings, "/api/settings", { method: "PUT", body: { ...body, loyalty_stamps_required: 21 } })).status).toBe(400);
+    expect((await call(settings.updateSettings, "/api/settings", { method: "PUT", body })).body).toEqual(body);
+    expect((await call(settings.getSettings, "/api/settings")).body).toEqual(body);
+    expect((await call(settings.getLoyaltySettings, "/api/settings/loyalty")).body).toEqual({ stamps_required: 3 });
+
+    await db`update customer_profiles set stamps = 2 where user_id = ${customerId}`;
+    as("user_cust");
+    expect((await call(users.redeemOwnReward, "/api/users/redeem", { method: "POST" })).status).toBe(400);
+    await db`update customer_profiles set stamps = 3 where user_id = ${customerId}`;
+    expect((await call(users.redeemOwnReward, "/api/users/redeem", { method: "POST" })).body).toEqual({ success: true, newStamps: 0 });
+    await db`update site_settings set value = '10' where key = 'loyalty_stamps_required'`;
   });
 
   it("TC-USR-03: the directory adds, edits and deletes users", async () => {
@@ -276,6 +304,43 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
     expect(clerkUsers.updateUserMetadata).toHaveBeenCalledWith("user_cust", { publicMetadata: { role: "admin" } });
     const admins = await call(users.listAdmins, "/api/users/admins");
     expect(admins.body.map((a: { email: string }) => a.email)).toContain("cust@x.test");
+  });
+
+  it("TC-USR-04b: the admin list pages with ?page, keeping every admin's Clerk id for the stats", async () => {
+    as("user_admin");
+    for (const n of [1, 2, 3, 4, 5, 6]) {
+      const [row] = await db<{ id: number }[]>`
+        insert into users (clerk_id, email, role) values (${`user_pg${n}`}, ${`pg${n}@x.test`}, 'admin') returning id
+      `;
+      await db`insert into admin_profiles (user_id, first_name, last_name) values (${row.id}, ${`Paged${n}`}, 'Lee')`;
+    }
+    const all = (await call(users.listAdmins, "/api/users/admins")).body as { clerk_id: string; firstName: string }[];
+    const first = await call(users.listAdmins, "/api/users/admins?page=1&pageSize=5");
+    expect(first.status).toBe(200);
+    expect(first.body.total).toBe(all.length);
+    expect(first.body.page).toBe(1);
+    expect(first.body.pageSize).toBe(5);
+    // The same order as the full list
+    expect(first.body.rows.map((a: { clerk_id: string }) => a.clerk_id)).toEqual(all.slice(0, 5).map((a) => a.clerk_id));
+    expect([...first.body.clerkIds].sort()).toEqual(all.map((a) => a.clerk_id).sort());
+
+    const second = await call(users.listAdmins, "/api/users/admins?page=2&pageSize=5");
+    expect(second.body.rows.map((a: { clerk_id: string }) => a.clerk_id)).toEqual(all.slice(5, 10).map((a) => a.clerk_id));
+    // Past the end: no rows, the same total
+    const past = await call(users.listAdmins, "/api/users/admins?page=99&pageSize=5");
+    expect(past.body.rows).toEqual([]);
+    expect(past.body.total).toBe(all.length);
+    // The default page size is 5
+    expect((await call(users.listAdmins, "/api/users/admins?page=1")).body.pageSize).toBe(5);
+
+    for (const bad of ["page=0", "page=x", "page=1&pageSize=0", "page=1&pageSize=51", "page=1.5"]) {
+      expect((await call(users.listAdmins, `/api/users/admins?${bad}`)).status).toBe(400);
+    }
+    // (user_cust was made an admin above)
+    await db`insert into users (clerk_id, email, role) values ('user_pgclient', 'pgclient@x.test', 'customer')`;
+    as("user_pgclient");
+    expect((await call(users.listAdmins, "/api/users/admins?page=1")).status).toBe(403);
+    as("user_admin");
   });
 
   it("TC-USR-05: promotion follows the Clerk id, not a row that holds the same email", async () => {

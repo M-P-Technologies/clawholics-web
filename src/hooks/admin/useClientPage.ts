@@ -1,20 +1,14 @@
 "use client";
 
 import { useAuth, useUser } from "@clerk/nextjs";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/molecules";
+import { adminKeys, adminQueries } from "../../lib/adminQueries";
 import { CLIENT_TABS, clientName, clientPanelRows, manilaToday, nextVisitHighlight, stampsLabel, visitNoteLabel, type ClientTab } from "../../lib/admin/clientPage";
 import { useParams } from "../../lib/router";
-import {
-  addNote,
-  deleteNote,
-  fetchClient,
-  fetchNextSteps,
-  fetchNotes,
-  saveNextSteps,
-  type ClientDetails,
-  type ClientNote,
-} from "../../services/clientNotesService";
+import { useStampTarget } from "../useStampTarget";
+import { addNote, deleteNote, saveNextSteps, type ClientDetails, type ClientNote } from "../../services/clientNotesService";
 import { setReviewApproval } from "../../services/reviewService";
 
 /** The note being written about one appointment */
@@ -29,13 +23,29 @@ export function useClientPage() {
   const { id } = useParams<{ id: string }>();
   const clientId = Number(id);
   const toast = useToast();
-  const { getToken } = useAuth();
+  const { getToken, isLoaded } = useAuth();
   const { user } = useUser();
-  const [details, setDetails] = useState<ClientDetails | null>(null);
-  const [notFound, setNotFound] = useState(false);
-  const [failed, setFailed] = useState(false);
-  const [notes, setNotes] = useState<ClientNote[]>([]);
-  const [steps, setSteps] = useState("");
+  const queryClient = useQueryClient();
+  const stampTarget = useStampTarget();
+  const session = { getToken, clerkId: user?.id };
+  // The client, their notes and next steps, cached per client: coming back to the page shows them
+  // at once. Without the notes or next steps the page still works.
+  const clientQuery = useQuery({
+    ...adminQueries.client(clientId, session),
+    enabled: isLoaded,
+    // A client who isn't there won't be there on a second try either
+    retry: (failures, error) => (error as { status?: number }).status !== 404 && failures < 1,
+  });
+  const notesQuery = useQuery({ ...adminQueries.clientNotes(clientId, session), enabled: isLoaded });
+  const stepsQuery = useQuery({ ...adminQueries.clientNextSteps(clientId, session), enabled: isLoaded });
+  const details: ClientDetails | null = clientQuery.data ?? null;
+  const notFound = !details && (clientQuery.error as { status?: number } | null)?.status === 404;
+  // A failed refresh keeps the page already loaded
+  const failed = !details && clientQuery.isError && !notFound;
+  const notes: ClientNote[] = notesQuery.data ?? [];
+  // The next steps as typed; until then, as saved
+  const [typedSteps, setSteps] = useState<string | null>(null);
+  const steps = typedSteps ?? stepsQuery.data?.text ?? "";
   const [draft, setDraft] = useState("");
   const [visitDraft, setVisitDraft] = useState<VisitDraft | null>(null);
   const [busy, setBusy] = useState(false);
@@ -45,38 +55,7 @@ export function useClientPage() {
 
   const auth = useCallback(async () => ({ token: await getToken(), clerkId: user?.id }), [getToken, user?.id]);
 
-  const loadNotes = useCallback(async () => {
-    try {
-      setNotes(await fetchNotes(clientId, await auth()));
-    } catch {
-      setNotes([]);
-    }
-  }, [clientId, auth]);
-
-  useEffect(() => {
-    let live = true;
-    (async () => {
-      try {
-        const a = await auth();
-        const [loaded, loadedNotes, loadedSteps] = await Promise.all([
-          fetchClient(clientId, a),
-          fetchNotes(clientId, a).catch(() => []),
-          fetchNextSteps(clientId, a).catch(() => null),
-        ]);
-        if (!live) return;
-        setDetails(loaded);
-        setNotes(loadedNotes);
-        setSteps(loadedSteps?.text ?? "");
-      } catch (error) {
-        if (!live) return;
-        if ((error as { status?: number }).status === 404) setNotFound(true);
-        else setFailed(true);
-      }
-    })();
-    return () => {
-      live = false;
-    };
-  }, [clientId, auth]);
+  const loadNotes = () => queryClient.invalidateQueries({ queryKey: adminKeys.clientNotes(clientId) });
 
   const run = async (work: () => Promise<unknown>, done: string) => {
     try {
@@ -112,11 +91,15 @@ export function useClientPage() {
   const approveReview = async (reviewId: number, approved: boolean) => {
     const done = await run(async () => setReviewApproval(reviewId, approved, await auth()), approved ? "Review approved for the home page" : "Review taken off the home page");
     if (!done) return;
-    setDetails((current) =>
+    queryClient.setQueryData<ClientDetails>(adminKeys.client(clientId), (current) =>
       current && { ...current, appointments: current.appointments.map((a) => (a.review_id === reviewId ? { ...a, review_approved: approved ? 1 : 0 } : a)) },
     );
   };
-  const saveSteps = () => run(async () => saveNextSteps(clientId, steps, await auth()), "Next steps saved");
+  const saveSteps = () =>
+    run(async () => {
+      await saveNextSteps(clientId, steps, await auth());
+      queryClient.setQueryData(adminKeys.clientNextSteps(clientId), (current: object | undefined) => ({ ...current, text: steps }));
+    }, "Next steps saved");
 
   const appointments = details?.appointments ?? [];
   const nextAppointment = details?.summary.nextVisit
@@ -124,6 +107,10 @@ export function useClientPage() {
     : undefined;
   return {
     details,
+    /** The stamps a loyalty card needs for a reward */
+    stampTarget,
+    /** "4 / 10": the stamps on the card, capped at the target */
+    stampsValue: `${Math.min(details?.summary.stamps ?? 0, stampTarget)} / ${stampTarget}`,
     notFound,
     failed,
     today,

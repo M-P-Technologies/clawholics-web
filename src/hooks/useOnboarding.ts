@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { useNavigate } from "@/lib/router";
 import { CLIENT_PATHS } from "../lib/client/clientNav";
-import { updateProfile, fetchProfile, isEmailTaken, isMissingProfile } from "../services/userService";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { updateProfile, isEmailTaken, type UserProfile } from "../services/userService";
+import { accountKeys, accountQueries, isAdminProfile } from "@/lib/accountQueries";
 import type { ChangeEvent } from "react";
 import { ONBOARDING_CONTACT_FIELDS, ONBOARDING_NAME_FIELDS } from "../data/onboarding";
 import { useToast } from "@/components/molecules";
@@ -12,10 +14,10 @@ export function useOnboarding() {
   const { getToken } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [phoneError, setPhoneError] = useState("");
   const [submitError, setSubmitError] = useState("");
-  const [isChecking, setIsChecking] = useState(true);
   const [isGenderOpen, setIsGenderOpen] = useState(false);
   // Set once the form is on screen, and once it is saved; leaving in between earns a reminder
   const formShown = useRef(false);
@@ -30,6 +32,20 @@ export function useOnboarding() {
     gender: "",
   });
 
+  // HARD ADMIN CHECK: Clerk metadata says admin, so the directory isn't asked
+  const clerkAdmin = String(user?.publicMetadata?.role || "").toLowerCase() === "admin";
+  // The cached profile the onboarding gate also reads (null for a new account)
+  const profileQuery = useQuery({
+    ...accountQueries.profile(user?.id ?? "", getToken),
+    enabled: isLoaded && !!user && !clerkAdmin,
+  });
+  const existingProfile = profileQuery.data;
+  // BACKEND ADMIN CHECK: in case Clerk metadata is not synced yet
+  const isAdmin = clerkAdmin || isAdminProfile(existingProfile);
+  // On error, the form shows (only once we are sure they aren't an admin)
+  const isChecking =
+    !isLoaded || !user || isAdmin || !!existingProfile?.onboarded || (existingProfile === undefined && !profileQuery.isError);
+
   useEffect(() => {
     if (isLoaded && user) {
       setFormData((prev) => ({
@@ -38,44 +54,18 @@ export function useOnboarding() {
         lastName: user.lastName || prev.lastName,
       }));
     }
+  }, [isLoaded, user]);
 
-    const verifyNewUser = async () => {
-      if (!isLoaded || !user) return;
+  useEffect(() => {
+    if (!isLoaded || !user) return;
+    if (isAdmin) navigate("/dashboard", { replace: true });
+    // Already onboarded (but not just now: the save goes to the profile itself)
+    else if (existingProfile?.onboarded && !saved.current) navigate(CLIENT_PATHS.home, { replace: true });
+  }, [isLoaded, user, isAdmin, existingProfile, navigate]);
 
-      // 1. HARD ADMIN CHECK: Immediate redirect if Clerk metadata says admin
-      const clerkRole = String(user.publicMetadata?.role || "").toLowerCase();
-      if (clerkRole === "admin") {
-        navigate("/dashboard", { replace: true });
-        return;
-      }
-
-      try {
-        const token = await getToken();
-        const existingProfile = await fetchProfile(user.id, token);
-
-        // 2. BACKEND ADMIN CHECK: In case Clerk metadata is not synced yet
-        if (existingProfile && String(existingProfile.role || "").toLowerCase() === "admin") {
-          navigate("/dashboard", { replace: true });
-          return;
-        }
-
-        if (existingProfile && existingProfile.onboarded) {
-          navigate(CLIENT_PATHS.home, { replace: true });
-        } else {
-          setIsChecking(false);
-        }
-      } catch (error) {
-        // A missing profile is expected for a new account, so it isn't logged
-        if (!isMissingProfile(error)) console.error("Onboarding verification failed:", error);
-        // On error, only show form if we are sure they aren't an admin
-        if (clerkRole !== "admin") {
-          setIsChecking(false);
-        }
-      }
-    };
-
-    verifyNewUser();
-  }, [isLoaded, user, navigate, getToken]);
+  useEffect(() => {
+    if (profileQuery.isError) console.error("Onboarding verification failed:", profileQuery.error);
+  }, [profileQuery.isError, profileQuery.error]);
 
   useEffect(() => {
     toastRef.current = toast;
@@ -191,6 +181,11 @@ export function useOnboarding() {
       const token = await getToken();
       await updateProfile(user.id, completeUserData, token);
       saved.current = true;
+      // The gate on the next page reads the cached profile: mark it finished at once, then
+      // fetch the saved one behind it
+      const key = accountKeys.profile(user.id);
+      queryClient.setQueryData(key, (old: UserProfile | null | undefined) => ({ ...old, ...completeUserData, onboarded: true }) as UserProfile);
+      void queryClient.invalidateQueries({ queryKey: key });
       toast.show("success", "Profile saved", "Thank you! You can now book appointments. You can change these details any time from your profile.");
       navigate(CLIENT_PATHS.home);
     } catch (error) {

@@ -4,6 +4,7 @@ import { CalendarCheck, CalendarClock, Stamp } from "lucide-react";
 import { Badge, Button, Card } from "@/components/atoms";
 import { SearchBar, SectionHeader, StatCard, StepTracker, SummaryRow } from "@/components/molecules";
 import { Link } from "@/lib/router";
+import BirthdayVoucherCard from "@/components/birthday/BirthdayVoucherCard";
 import OffersCarousel from "@/components/features/client/home/OffersCarousel";
 import ServicesTable from "@/components/features/client/explore/ServicesTable";
 import ClientScreen from "@/components/features/client/shell/ClientScreen";
@@ -18,9 +19,11 @@ export default function ClientHome() {
     <ClientScreen title={h.greeting}>
       <SearchBar value={h.query} onChange={h.setQuery} onSubmit={h.search} />
 
+      {h.birthdayVoucher && <BirthdayVoucherCard voucher={h.birthdayVoucher} onClaim={h.claimVoucher} isClaiming={h.claimingVoucher} error={h.voucherError} />}
+
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <StatCard size="compact" icon={CalendarClock} label="Next visit" value={h.nextVisitLabel} />
-        <StatCard size="compact" icon={Stamp} label="Loyalty stamps" value={`${h.account.stamps} / 10`} />
+        <StatCard size="compact" icon={Stamp} label="Loyalty stamps" value={h.stampsValue} />
         <StatCard size="compact" icon={CalendarCheck} label="Visits" value={String(h.visits)} hint="completed" />
       </div>
 

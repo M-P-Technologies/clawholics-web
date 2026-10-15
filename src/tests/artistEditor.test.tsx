@@ -38,7 +38,7 @@ vi.mock("@/services/serviceService", () => ({
     { id: 2, name: "Nail Art" },
   ]),
 }));
-vi.mock("@/services/appointmentService", () => ({ fetchAppointments: vi.fn().mockResolvedValue([]) }));
+vi.mock("@/services/appointmentService", () => ({ ADMIN_APPOINTMENTS_KEY: ["admin", "appointments"], fetchAppointments: vi.fn().mockResolvedValue([]) }));
 vi.mock("@/services/uploadService", () => ({
   PHOTO_UPLOAD_OPTIONS: { maxWidthOrHeight: 1600, maxSizeKB: 400 },
   uploadImage: (...a: unknown[]) => uploadImage(...a),

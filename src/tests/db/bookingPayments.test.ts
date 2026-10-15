@@ -162,6 +162,149 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       expect((await callRoute(booking.getBookedSlots, "/api/booking/slots-detailed?nailist_id=abc&date=x")).body).toEqual([]);
     });
 
+    it("TC-BK-08c: the admin list answers one page, filtered, searched and sorted, with the total", async () => {
+      // Two days, three appointments: A at 9 and 2, B at 11 on the next day (confirmed between
+      // bookings: a client holds one unpaid booking at a time)
+      const day1 = nextDate();
+      const day2 = nextDate();
+      const { body: a1 } = await book("user_a", day1, "14:00-15:00");
+      await db`update appointments set status = 'CONFIRMED' where id = ${a1.appointment_id}`;
+      const { body: a2 } = await book("user_a", day1, "09:00-10:00");
+      await db`update appointments set status = 'COMPLETED' where id = ${a2.appointment_id}`;
+      const { body: b1 } = await book("user_b", day2, "11:00-12:00");
+      await db`update appointments set status = 'AWAITING_PROOF' where id = ${b1.appointment_id}`;
+      await db`insert into payment_proofs (appointment_id, user_id, image_url, status) values (${b1.appointment_id}, ${clientB}, 'https://img/p.jpg', 'PENDING')`;
+
+      const list = (query: string) => callRoute(booking.listAllAppointments, `/api/booking/appointments?${query}`);
+      const ids = (body: { rows: { id: number }[] }) => body.rows.map((r) => r.id);
+
+      as("user_admin");
+      // The two days, soonest first, two to a page
+      const first = await list(`page=1&pageSize=2&from=${day1}&sort=upcoming`);
+      expect(first.status).toBe(200);
+      expect(first.body).toMatchObject({ total: 3, page: 1, pageSize: 2 });
+      expect(ids(first.body)).toEqual([a2.appointment_id, a1.appointment_id]);
+      expect(ids((await list(`page=2&pageSize=2&from=${day1}&sort=upcoming`)).body)).toEqual([b1.appointment_id]);
+      expect(ids((await list(`page=1&pageSize=5&from=${day1}&sort=latest`)).body)).toEqual([b1.appointment_id, a1.appointment_id, a2.appointment_id]);
+
+      // Filters: statuses, one day, the proof to review, the search
+      expect(ids((await list(`page=1&from=${day1}&status=CONFIRMED,COMPLETED`)).body).sort()).toEqual([a1.appointment_id, a2.appointment_id].sort());
+      expect((await list(`page=1&on=${day2}`)).body.total).toBe(1);
+      const proofs = await list(`page=1&from=${day1}&proof=review`);
+      expect(ids(proofs.body)).toEqual([b1.appointment_id]);
+      expect(proofs.body.rows[0].latest_proof).toMatchObject({ status: "PENDING", image_url: "https://img/p.jpg" });
+      expect((await list(`page=1&from=${day1}&q=bea`)).body.total).toBe(1);
+      expect(ids((await list(`page=1&q=%23${a1.appointment_id}`)).body)).toContain(a1.appointment_id);
+      // A search for a LIKE wildcard matches only that character, not everything
+      expect((await list(`page=1&from=${day1}&q=%25`)).body.total).toBe(0);
+
+      // Each row carries its client's completed visits
+      const ana = (await list(`page=1&on=${day1}`)).body.rows[0];
+      expect(ana.client_visits).toBeGreaterThanOrEqual(1);
+
+      // Times are ordered by their padded start: "9:00-10:00" comes before "13:00-14:00"
+      const day3 = nextDate();
+      await db`update appointments set appointment_date = ${day3}, appointment_time = '13:00-14:00' where id = ${a1.appointment_id}`;
+      await db`update appointments set appointment_date = ${day3}, appointment_time = '9:00-10:00' where id = ${a2.appointment_id}`;
+      expect(ids((await list(`page=1&on=${day3}&sort=upcoming`)).body)).toEqual([a2.appointment_id, a1.appointment_id]);
+      expect(ids((await list(`page=1&on=${day3}&sort=latest`)).body)).toEqual([a1.appointment_id, a2.appointment_id]);
+
+      // Without page, the full list as before; an empty status list means no status filter
+      expect(Array.isArray((await list("status=CONFIRMED")).body)).toBe(true);
+      const blank = await list("status=%2C");
+      expect(blank.status).toBe(200);
+      expect(Array.isArray(blank.body)).toBe(true);
+
+      // Bad paging or sort is refused, and only admins may list
+      for (const bad of ["page=0", "page=1&pageSize=51", "page=1&sort=price", "page=1&on=tomorrow"]) {
+        expect((await list(bad)).status).toBe(400);
+      }
+      as("user_a");
+      expect((await list("page=1")).status).toBe(403);
+    });
+
+    it("TC-BK-08b: a range of days' booked slots come in one answer, active bookings only", async () => {
+      const first = nextDate();
+      const second = nextDate();
+      const outside = nextDate();
+      // A client holds one unpaid booking at a time, so each is confirmed before the next
+      await book("user_a", first, "3:00 PM");
+      await db`update appointments set status = 'CONFIRMED' where user_id = ${clientA} and appointment_date = ${first}`;
+      await book("user_b", second, "9:00 AM");
+      await db`update appointments set status = 'CONFIRMED' where user_id = ${clientB} and appointment_date = ${second}`;
+      await book("user_b", outside, "9:00 AM");
+      const { body: cancelled } = await book("user_a", second, "1:00 PM");
+      expect(cancelled.appointment_id).toBeDefined();
+      await db`update appointments set status = 'CANCELLED' where id = ${cancelled.appointment_id}`;
+
+      as(null);
+      const url = (query: string) => `/api/booking/slots-range?${query}`;
+      const res = await callRoute(booking.getBookedSlotsRange, url(`nailist_id=${nailistId}&from=${first}&to=${second}`));
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual([
+        { appointment_date: first, appointment_time: "3:00 PM" },
+        { appointment_date: second, appointment_time: "9:00 AM" },
+      ]);
+
+      for (const bad of [
+        `nailist_id=abc&from=${first}&to=${second}`,
+        `nailist_id=${nailistId}&from=${second}&to=${first}`,
+        `nailist_id=${nailistId}&from=2099-01-01&to=2099-06-01`,
+        `nailist_id=${nailistId}&from=x&to=${second}`,
+      ]) {
+        expect((await callRoute(booking.getBookedSlotsRange, url(bad))).status).toBe(400);
+      }
+    });
+
+    it("TC-BK-08d: a booking awaiting proof (or completed) holds its slot, as booking it again is refused", async () => {
+      const date = nextDate();
+      const { body: proof } = await book("user_a", date, "1:00 PM");
+      await db`update appointments set status = 'AWAITING_PROOF' where id = ${proof.appointment_id}`;
+      const { body: done } = await book("user_b", date, "4:00 PM");
+      await db`update appointments set status = 'COMPLETED' where id = ${done.appointment_id}`;
+      const { body: refunded } = await book("user_a", date, "6:00 PM");
+      await db`update appointments set status = 'REFUNDED' where id = ${refunded.appointment_id}`;
+
+      as(null);
+      const day = await callRoute(booking.getBookedSlots, `/api/booking/slots-detailed?nailist_id=${nailistId}&date=${date}`);
+      expect(day.body.map((s: { appointment_time: string }) => s.appointment_time).sort()).toEqual(["1:00 PM", "4:00 PM"]);
+      const range = await callRoute(booking.getBookedSlotsRange, `/api/booking/slots-range?nailist_id=${nailistId}&from=${date}&to=${date}`);
+      expect(range.body.map((s: { appointment_time: string }) => s.appointment_time).sort()).toEqual(["1:00 PM", "4:00 PM"]);
+
+      // What the slots show is what booking allows: the held slot is refused, the refunded one isn't
+      const refused = await book("user_b", date, "1:00 PM");
+      expect(refused.status).toBe(409);
+      // The taken slot's refusal, not another 409 (such as an unpaid booking already open)
+      expect(refused.body).toEqual({ error: true, message: "Time slot already booked" });
+      const freed = await book("user_b", date, "6:00 PM");
+      expect(freed.status).toBe(200);
+      expect(freed.body.appointment_id).toBeDefined();
+      await db`update appointments set status = 'CANCELLED' where id = ${freed.body.appointment_id}`;
+
+      // The admin's Schedule shows the booking awaiting proof
+      as("user_admin");
+      const schedule = await callRoute(booking.getSchedule, `/api/booking/schedule?month=${date.slice(0, 7)}`);
+      const ids = schedule.body.appointments.map((a: { id: number }) => a.id);
+      expect(ids).toContain(proof.appointment_id);
+      expect(ids).toContain(done.appointment_id);
+      expect(ids).not.toContain(refunded.appointment_id);
+
+      // Leave no active booking behind for the tests after this one
+      await db`update appointments set status = 'CANCELLED' where id in ${db([proof.appointment_id, done.appointment_id])}`;
+    });
+
+    it("TC-BK-08e: an unpaid hold past its 5 minutes is released before the slots are listed", async () => {
+      const date = nextDate();
+      const { body } = await book("user_a", date, "2:00 PM");
+      await db`update appointments set expires_at = '2000-01-01T00:00:00.000Z' where id = ${body.appointment_id}`;
+      as(null);
+      const day = await callRoute(booking.getBookedSlots, `/api/booking/slots-detailed?nailist_id=${nailistId}&date=${date}`);
+      expect(day.body).toEqual([]);
+      expect(await statusOf(body.appointment_id)).toBe("CANCELLED");
+      const range = await callRoute(booking.getBookedSlotsRange, `/api/booking/slots-range?nailist_id=${nailistId}&from=${date}&to=${date}`);
+      expect(range.body).toEqual([]);
+    });
+
     it("TC-BK-09: reschedule is owner-only and refuses a taken slot", async () => {
       const takenDate = nextDate();
       await book("user_b", takenDate, "11:00 AM");
@@ -417,6 +560,67 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       expect((await callRoute(payments.updatePaymentSettings, "/api/settings/payment", { method: "PUT", body: { downpayment_amount: 0, payment_methods: ["GCASH"] } })).status).toBe(400);
       const ok = await callRoute(payments.updatePaymentSettings, "/api/settings/payment", { method: "PUT", body: { downpayment_amount: 300, payment_methods: ["GCASH", "MANUAL"] } });
       expect(ok.body).toEqual({ downpayment_amount: 300, payment_methods: ["GCASH", "MANUAL"] });
+    });
+
+    it("TC-PAY-10: a paid booking and an uploaded proof notify the admins once each; each admin marks them read", async () => {
+      const notifications = await import("../../server/handlers/notifications");
+      await db`delete from admin_notifications`;
+      await db`insert into users (clerk_id, email, role) values ('user_admin2', 'admin2@x.test', 'admin')`;
+      await db`update site_settings set value = '["GCASH","MANUAL"]' where key = 'payment_methods'`;
+      try {
+        // Paid online: the webhook may come twice, the admins hear once
+        const paidBooking = await book("user_a", nextDate(), "9:00 AM");
+        expect(paidBooking.status).toBe(200);
+        as("user_a");
+        const invoice = await callRoute(payments.createPayment, "/api/payment/create", {
+          method: "POST",
+          body: { appointment_id: paidBooking.body.appointment_id, payment_method: "GCASH" },
+        });
+        await webhook("cb-token", { external_id: invoice.body.external_id, status: "PAID" });
+        await webhook("cb-token", { external_id: invoice.body.external_id, status: "PAID" });
+
+        // A proof uploaded for review
+        const proofBooking = await book("user_b", nextDate(), "9:00 AM");
+        expect(proofBooking.status).toBe(200);
+        as("user_b");
+        const uploaded = await callRoute(payments.uploadPaymentProof, "/api/payment/proofs", {
+          method: "POST",
+          body: proofForm(proofBooking.body.appointment_id),
+        });
+        expect(uploaded.status).toBe(201);
+        await Promise.all(background);
+
+        // Clients can't see them
+        as("user_a");
+        expect((await callRoute(notifications.getAdminNotifications, "/api/notifications")).status).toBe(403);
+
+        as("user_admin");
+        const list = await callRoute(notifications.getAdminNotifications, "/api/notifications");
+        expect(list.status).toBe(200);
+        expect(list.body.unread).toBe(2);
+        type Row = { id: number; kind: string; appointment_id: number; unread: boolean };
+        expect(list.body.notifications.map((n: Row) => [n.kind, n.appointment_id, n.unread])).toEqual([
+          ["proof_uploaded", proofBooking.body.appointment_id, true],
+          ["booking_paid", paidBooking.body.appointment_id, true],
+        ]);
+        expect(list.body.notifications[1]).toMatchObject({ client_user_id: clientA, service_name: serviceName, nailist_name: nailistName });
+
+        // Opening the bell marks them read, for this admin only
+        const read = (upTo: unknown) => callRoute(notifications.markNotificationsRead, "/api/notifications/read", { method: "POST", body: { upTo } });
+        expect((await read("x")).status).toBe(400);
+        expect((await read(list.body.notifications[0].id)).status).toBe(200);
+        const after = await callRoute(notifications.getAdminNotifications, "/api/notifications");
+        expect(after.body.unread).toBe(0);
+        expect(after.body.notifications.every((n: Row) => !n.unread)).toBe(true);
+        // An older id doesn't mark them unread again
+        expect((await read(list.body.notifications[1].id)).status).toBe(200);
+        expect((await callRoute(notifications.getAdminNotifications, "/api/notifications")).body.unread).toBe(0);
+
+        as("user_admin2");
+        expect((await callRoute(notifications.getAdminNotifications, "/api/notifications")).body.unread).toBe(2);
+      } finally {
+        await db`update site_settings set value = '["GCASH"]' where key = 'payment_methods'`;
+      }
     });
   });
 });

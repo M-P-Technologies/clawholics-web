@@ -59,43 +59,62 @@ export async function syncAllUsersFromClerk() {
   }
 }
 
+// Clerk users whose email another directory row already has: logged once per server, not on
+// every pass
+const skippedUsers = new Set<string>();
+
+// Each user is written with one statement: the users row and, through a data-modifying CTE, its
+// profile. A single statement is atomic on its own, so the sync needs no transaction. It used to
+// open one per user, and on Supabase's transaction pooler those (some failing on a taken email)
+// left the shared connections stuck, stalling other requests (seen on the Schedule).
 async function syncAllUsers() {
   const sql = getSql();
   for (const user of await listClerkUsers()) {
     const isAdmin = clerkRole(user) === "admin";
+    const email = emailOf(user);
+    const firstName = user.firstName ?? "";
+    const lastName = user.lastName ?? "";
     try {
-      await sql.begin(async (tx) => {
-        const [row] = isAdmin
-          ? await tx<{ id: number; role: string | null }[]>`
-              insert into users (clerk_id, email, role) values (${user.id}, ${emailOf(user)}, 'admin')
+      const [row] = isAdmin
+        ? await sql<{ synced: boolean }[]>`
+            with synced as (
+              insert into users (clerk_id, email, role)
+              select ${user.id}, ${email}, 'admin'
+              -- An email another row already has would break users_email_key: skip the user
+              where not exists (select 1 from users where email = ${email} and clerk_id is distinct from ${user.id})
               on conflict (clerk_id) do update set email = excluded.email, role = 'admin'
-              returning id, role
-            `
-          : await tx<{ id: number; role: string | null }[]>`
-              insert into users (clerk_id, email, role) values (${user.id}, ${emailOf(user)}, 'customer')
+              returning id
+            ), profile as (
+              insert into admin_profiles (user_id, first_name, last_name)
+              select id, ${firstName}, ${lastName} from synced
+              on conflict (user_id) do update set
+                first_name = case when coalesce(admin_profiles.first_name, '') = '' then excluded.first_name else admin_profiles.first_name end,
+                last_name = case when coalesce(admin_profiles.last_name, '') = '' then excluded.last_name else admin_profiles.last_name end
+            )
+            select exists (select 1 from synced) as synced
+          `
+        : await sql<{ synced: boolean }[]>`
+            with synced as (
+              insert into users (clerk_id, email, role)
+              select ${user.id}, ${email}, 'customer'
+              where not exists (select 1 from users where email = ${email} and clerk_id is distinct from ${user.id})
               on conflict (clerk_id) do update set email = excluded.email, role = coalesce(users.role, 'customer')
               returning id, role
-            `;
-        if (isAdmin) {
-          await tx`
-            insert into admin_profiles (user_id, first_name, last_name)
-            values (${row.id}, ${user.firstName ?? ""}, ${user.lastName ?? ""})
-            on conflict (user_id) do update set
-              first_name = case when coalesce(admin_profiles.first_name, '') = '' then excluded.first_name else admin_profiles.first_name end,
-              last_name = case when coalesce(admin_profiles.last_name, '') = '' then excluded.last_name else admin_profiles.last_name end
+            ), profile as (
+              -- A row kept as admin (by the directory) gets no customer profile
+              insert into customer_profiles (user_id, first_name, last_name)
+              select id, ${firstName}, ${lastName} from synced where role is distinct from 'admin'
+              on conflict (user_id) do update set
+                first_name = case when coalesce(customer_profiles.first_name, '') = '' then excluded.first_name else customer_profiles.first_name end,
+                last_name = case when coalesce(customer_profiles.last_name, '') = '' then excluded.last_name else customer_profiles.last_name end
+            )
+            select exists (select 1 from synced) as synced
           `;
-        } else if (row.role !== "admin") {
-          await tx`
-            insert into customer_profiles (user_id, first_name, last_name)
-            values (${row.id}, ${user.firstName ?? ""}, ${user.lastName ?? ""})
-            on conflict (user_id) do update set
-              first_name = case when coalesce(customer_profiles.first_name, '') = '' then excluded.first_name else customer_profiles.first_name end,
-              last_name = case when coalesce(customer_profiles.last_name, '') = '' then excluded.last_name else customer_profiles.last_name end
-          `;
-        }
-      });
+      if (!row?.synced && !skippedUsers.has(user.id)) {
+        skippedUsers.add(user.id);
+        console.warn(`[clerk] skipped user ${user.id}: their email already belongs to another directory row`);
+      }
     } catch (error) {
-      // e.g. the email already belongs to another row
       console.error(`[clerk] could not sync user ${user.id}:`, error);
     }
   }

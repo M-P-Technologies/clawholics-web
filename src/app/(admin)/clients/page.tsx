@@ -5,6 +5,7 @@ import AdminShell from "@/components/features/admin/shell/AdminShell";
 import AppointmentsTable from "@/components/features/admin/bookings/AppointmentsTable";
 import DirectoryStats from "@/components/features/admin/directory/DirectoryStats";
 import DirectoryTable from "@/components/features/admin/directory/DirectoryTable";
+import { ListSkeleton } from "@/components/features/admin/skeletons/ListSkeleton";
 import { useClientDirectory } from "@/hooks/admin/useClientDirectory";
 import { Link } from "@/lib/router";
 
@@ -29,6 +30,7 @@ function ClientDirectory() {
                 Back to the appointments
               </Link>
             </div>
+            {directory.leadsLoading && <ListSkeleton label="Loading warm leads" quiet />}
             {leads.length > 0 && (
               <DirectoryTable
                 label="Warm leads"

@@ -1,5 +1,7 @@
 import { Upload as UploadIcon, X as XIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ADMIN } from "@/lib/adminQueries";
 import {
   addNailistGalleryImage,
   deleteNailistGalleryImage,
@@ -27,26 +29,21 @@ interface NailArtistGalleryProps {
 // photos are saved the moment they are uploaded or removed (Save and Cancel don't apply to them).
 export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, clerkId, onPreview, onChanged }: NailArtistGalleryProps) {
   const toast = useToast();
-  const [images, setImages] = useState<NailistGalleryImage[]>([]);
-  const [loadFailed, setLoadFailed] = useState(false);
+  const queryClient = useQueryClient();
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    if (nailistId === null) return;
-    let cancelled = false;
-
-    fetchNailistGallery(nailistId)
-      .then((data) => {
-        if (cancelled) return;
-        setImages([...data].sort((a, b) => a.position - b.position));
-        setLoadFailed(false);
-      })
-      .catch(() => !cancelled && setLoadFailed(true));
-
-    return () => {
-      cancelled = true;
-    };
-  }, [nailistId]);
+  // The photos in order, cached per artist
+  const galleryKey = [ADMIN, "nailists", nailistId, "gallery"];
+  const galleryQuery = useQuery({
+    queryKey: galleryKey,
+    queryFn: async () => [...(await fetchNailistGallery(nailistId ?? 0))].sort((a, b) => a.position - b.position),
+    enabled: nailistId !== null,
+  });
+  const images = galleryQuery.data ?? [];
+  const loadFailed = galleryQuery.isError && !galleryQuery.data;
+  // Photos save at once, so the cached list changes with them
+  const setImages = (update: (prev: NailistGalleryImage[]) => NailistGalleryImage[]) =>
+    queryClient.setQueryData<NailistGalleryImage[]>(galleryKey, (prev) => update(prev ?? []));
 
   const upload = async (files: FileList | null) => {
     if (!files || nailistId === null) return;

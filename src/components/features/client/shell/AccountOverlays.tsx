@@ -44,6 +44,7 @@ export default function AccountOverlays({ account: a, openId, setOpenId, rewards
         open={rewardsOpen}
         onClose={() => setRewardsOpen(false)}
         stamps={a.stamps}
+        target={a.stampTarget}
         cardNumber={a.loyaltyCardNumber}
         clerkId={a.clerkUser?.id}
         onRedeem={() => {

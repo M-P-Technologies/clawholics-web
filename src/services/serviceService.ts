@@ -1,5 +1,4 @@
 import { previewed } from "../lib/cmsPreview";
-import { remember } from "../utils/lastSeen";
 import { API_BASE_URL } from "../apiConfig";
 
 export type ServiceGalleryImage = {
@@ -66,7 +65,7 @@ const loadServices = async (): Promise<NailService[]> => {
     throw new Error("Failed to fetch services");
   }
 
-  return remember("services", await res.json());
+  return await res.json();
 };
 
 const loadServiceById = async (id: number): Promise<NailService> => {

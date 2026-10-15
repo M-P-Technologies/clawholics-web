@@ -3,6 +3,8 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import AppointmentsTable, { parseStatusParam } from "@/components/features/admin/bookings/AppointmentsTable";
 import type { Appointment } from "@/services/appointmentService";
+import { pageOf } from "./fakeAppointmentPages";
+import type { AppointmentPageParams } from "@/services/appointmentService";
 
 let params = new URLSearchParams();
 vi.mock("@/lib/router", async (importOriginal) => ({
@@ -31,10 +33,13 @@ vi.mock("@/components/features/admin/bookings/AppointmentDetailsModal", async ()
 vi.mock("@/components/features/admin/bookings/CreateAppointmentDialog", () => ({ default: () => <div role="dialog" aria-label="New appointment" /> }));
 
 const fetchAppointments = vi.fn();
+// The paged list, answered from fetchAppointments' appointments the way the server would
+const fetchAppointmentPage = vi.fn(async (params: AppointmentPageParams) => pageOf(await fetchAppointments(), params));
 const updateAppointmentStatus = vi.fn();
 vi.mock("@/services/appointmentService", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/services/appointmentService")>()),
   fetchAppointments: (...a: unknown[]) => fetchAppointments(...a),
+  fetchAppointmentPage: (params: AppointmentPageParams) => fetchAppointmentPage(params),
   updateAppointmentStatus: (...a: unknown[]) => updateAppointmentStatus(...a),
 }));
 
@@ -73,6 +78,31 @@ describe("Appointments table", () => {
     expect(table.getByText("Proof to review")).toBeInTheDocument();
   });
 
+  it("asks the server for one page at a time, with the filters, instead of every appointment", async () => {
+    params = new URLSearchParams("status=PROOF_PENDING");
+    render(<AppointmentsTable />);
+    await waitFor(() => expect(fetchAppointmentPage).toHaveBeenCalled());
+    expect(fetchAppointmentPage.mock.calls.at(-1)?.[0]).toMatchObject({
+      page: 1,
+      pageSize: 5,
+      proofToReview: true,
+      sort: "upcoming",
+      statuses: ["PENDING", "AWAITING_PROOF", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUNDED"],
+    });
+  });
+
+  it("shows the error, not the previous filter's rows, when a new filter can't load", async () => {
+    render(<AppointmentsTable />);
+    await screen.findByRole("table", { name: "Appointments" });
+    expect(rows()).toHaveLength(4);
+    fetchAppointmentPage.mockRejectedValueOnce(new Error("down"));
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Status" }));
+    await user.click(screen.getByRole("option", { name: "Cancelled" }));
+    expect(await screen.findByText(/couldn't load the appointments/i)).toBeInTheDocument();
+    expect(screen.queryByRole("table", { name: "Appointments" })).toBeNull();
+  });
+
   it("opens on the status in the link, and filters with the status dropdown", async () => {
     params = new URLSearchParams("status=PENDING");
     render(<AppointmentsTable />);
@@ -94,13 +124,14 @@ describe("Appointments table", () => {
   it("searches by client, service, artist or ID", async () => {
     render(<AppointmentsTable />);
     await screen.findByRole("table", { name: "Appointments" });
+    // The search asks the server once typing pauses
     fireEvent.change(screen.getByRole("searchbox", { name: "Search appointments" }), { target: { value: "bea" } });
-    expect(rows()).toHaveLength(1);
+    await waitFor(() => expect(rows()).toHaveLength(1));
     fireEvent.change(screen.getByRole("searchbox", { name: "Search appointments" }), { target: { value: "#3" } });
+    await waitFor(() => expect(within(rows()[0]).getByText("#3")).toBeInTheDocument());
     expect(rows()).toHaveLength(1);
-    expect(within(rows()[0]).getByText("#3")).toBeInTheDocument();
     fireEvent.change(screen.getByRole("searchbox", { name: "Search appointments" }), { target: { value: "nobody" } });
-    expect(screen.getByText("No appointments match your search.")).toBeInTheDocument();
+    expect(await screen.findByText("No appointments match your search.")).toBeInTheDocument();
   });
 
   it("changes a status right in the row", async () => {
@@ -152,7 +183,7 @@ describe("Appointments table", () => {
     expect(rows()).toHaveLength(5);
     expect(screen.getByText("Showing 1–5 of 13")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Page 3" }));
-    expect(rows()).toHaveLength(3);
+    await waitFor(() => expect(rows()).toHaveLength(3));
   });
 });
 
@@ -202,7 +233,7 @@ describe("Appointments on a phone", () => {
       fireEvent.click(drawer.getByRole("button", { name: "Pending" }));
       expect(screen.queryByRole("listbox", { name: "Status" })).toBeNull();
       expect(screen.getByRole("button", { name: "Status: Pending" })).toBeInTheDocument();
-      expect(screen.getByRole("list", { name: "Appointments" }).children).toHaveLength(1);
+      await waitFor(() => expect(screen.getByRole("list", { name: "Appointments" }).children).toHaveLength(1));
     } finally {
       delete (window as { matchMedia?: unknown }).matchMedia;
     }

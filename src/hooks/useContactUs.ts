@@ -1,20 +1,28 @@
-import { usePreviewVersion } from "@/lib/cmsPreview";
-import { lastSeen } from "../utils/lastSeen";
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { publicQueries } from "@/lib/publicQueries";
 import { CONTACT_FEEDBACK, type ContactFeedback } from "@/lib/contactFeedback";
 import { platformOf, readSocialLinks, socialHref } from "@/lib/socialLinks";
 import { DEFAULT_HERO_IMAGE } from "@/data/home";
-import { fetchHomeContent } from "../services/contentService";
-import { fetchAboutContent } from "../services/aboutService";
 import { withSalonLocation } from "../lib/homeSections";
 import { API_BASE_URL } from "../apiConfig";
 import type { ChangeEvent } from "react";
 import { CONTACT_FIELDS } from "../data/contactUs";
 
 export function useContactUs() {
-  const [pageData, setPageData] = useState<Record<string, string> | null>(() => lastSeen("home") ?? null);
-  const [isPageLoading, setIsPageLoading] = useState(() => !lastSeen("home"));
-  const [pageError, setPageError] = useState("");
+  const homeQuery = useQuery(publicQueries.home());
+  const aboutQuery = useQuery(publicQueries.about());
+  const home = homeQuery.data;
+  const about = aboutQuery.data;
+  // The address and map link are edited in About Us; the page waits for them, but works without
+  const aboutSettled = !aboutQuery.isPending;
+  const pageData = useMemo(
+    () => (home && aboutSettled ? withSalonLocation(home, about ?? null) : null),
+    [home, about, aboutSettled],
+  );
+  // A failed refresh keeps showing the copy already loaded
+  const pageError = homeQuery.isError && !home ? "Failed to load contact information." : "";
+  const isPageLoading = !pageData && !pageError;
   const [emailError, setEmailError] = useState("");
 
   const [formData, setFormData] = useState({
@@ -30,27 +38,6 @@ export function useContactUs() {
   }>({ isOpen: false, type: "success" });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // In the admin editor's preview, fetch again when the unsaved changes do
-  const previewVersion = usePreviewVersion();
-
-  useEffect(() => {
-    const loadPageContent = async () => {
-      try {
-        if (!lastSeen("home")) setIsPageLoading(true);
-        setPageError("");
-        const [data, about] = await Promise.all([fetchHomeContent(), fetchAboutContent().catch(() => null)]);
-        // The address and map link are edited in About Us
-        setPageData(withSalonLocation(data, about));
-      } catch (err) {
-        console.error("Failed to load page content", err);
-        setPageError("Failed to load contact information.");
-      } finally {
-        setIsPageLoading(false);
-      }
-    };
-
-    loadPageContent();
-  }, [previewVersion]);
 
   const closeModal = () => setModalState({ ...modalState, isOpen: false });
 

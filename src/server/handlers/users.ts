@@ -14,6 +14,7 @@ import {
 import { getSql } from "../db";
 import { sendLoyaltyRewardEmails } from "../email";
 import { inBackground, orNull, pgErrorCode, readJson, routeNotFound, toId } from "../http";
+import { getLoyaltyStampsRequired } from "../loyalty";
 import { ported } from "../worker";
 
 // Directory, profile and loyalty routes, ported from worker-api/src/index.ts
@@ -289,16 +290,52 @@ export const promoteAdmin = ported(async (req) => {
   return Response.json({ message: "User successfully promoted to admin", status: "promoted", email });
 });
 
-export const listAdmins = ported(async () => {
+export const MAX_ADMIN_PAGE_SIZE = 50;
+
+// GET /users/admins: every admin, by name. With ?page=N (and pageSize 1-50, default 5) it answers
+// one page as { rows, total, page, pageSize, clerkIds }: clerkIds are every admin's Clerk id (null
+// for one without), for
+// the directory's stat cards (active, inactive, new), which count all admins by their Clerk dates.
+export const listAdmins = ported(async (req) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
-  const rows = await getSql()`
-    select u.id, u.clerk_id, coalesce(ap.first_name, '') as "firstName", coalesce(ap.last_name, '') as "lastName", u.email, u.role
-    from users u join admin_profiles ap on u.id = ap.user_id
-    where u.role = 'admin'
-    order by coalesce(ap.first_name, '') collate "C" asc, coalesce(ap.last_name, '') collate "C" asc, u.id asc
-  `;
-  return Response.json(rows);
+  const sql = getSql();
+  const params = new URL(req.url).searchParams;
+  const order = sql`order by coalesce(ap.first_name, '') collate "C" asc, coalesce(ap.last_name, '') collate "C" asc, u.id asc`;
+  if (!params.has("page")) {
+    const rows = await sql`
+      select u.id, u.clerk_id, coalesce(ap.first_name, '') as "firstName", coalesce(ap.last_name, '') as "lastName", u.email, u.role
+      from users u join admin_profiles ap on u.id = ap.user_id
+      where u.role = 'admin'
+      ${order}
+    `;
+    return Response.json(rows);
+  }
+
+  const page = Number(params.get("page"));
+  const pageSize = params.has("pageSize") ? Number(params.get("pageSize")) : 5;
+  if (!Number.isInteger(page) || page < 1 || !Number.isInteger(pageSize) || pageSize < 1 || pageSize > MAX_ADMIN_PAGE_SIZE) {
+    return Response.json({ error: `page must be 1 or more, and pageSize 1 to ${MAX_ADMIN_PAGE_SIZE}` }, { status: 400 });
+  }
+  const [rows, all] = await Promise.all([
+    sql`
+      select u.id, u.clerk_id, coalesce(ap.first_name, '') as "firstName", coalesce(ap.last_name, '') as "lastName", u.email, u.role
+      from users u join admin_profiles ap on u.id = ap.user_id
+      where u.role = 'admin'
+      ${order}
+      limit ${pageSize} offset ${(page - 1) * pageSize}
+    `,
+    sql<{ clerk_id: string | null }[]>`
+      select u.clerk_id from users u join admin_profiles ap on u.id = ap.user_id where u.role = 'admin'
+    `,
+  ]);
+  return Response.json({
+    rows,
+    total: all.length,
+    page,
+    pageSize,
+    clerkIds: all.map((row) => row.clerk_id),
+  });
 });
 
 // --- PROFILES (the signed-in user, or an admin) ----------------------------------------------
@@ -411,15 +448,14 @@ export const getUserAppointments = ported(async (req) => {
 
 // --- LOYALTY STAMPS --------------------------------------------------------------------------
 
-const REWARD_STAMPS = 10;
-
-function emailLoyaltyReward(clerkId: string) {
+function emailLoyaltyReward(clerkId: string, stampsRequired?: number) {
   inBackground("loyalty email", async () => {
+    const stamps = stampsRequired ?? (await getLoyaltyStampsRequired());
     const [client] = await getSql()<{ first_name: string; last_name: string; email: string; id: number }[]>`
       select cp.first_name, cp.last_name, u.email, u.id
       from users u join customer_profiles cp on u.id = cp.user_id where u.clerk_id = ${clerkId}
     `;
-    if (client?.email) await sendLoyaltyRewardEmails(client.email, `${client.first_name} ${client.last_name}`.trim(), client.id);
+    if (client?.email) await sendLoyaltyRewardEmails(client.email, `${client.first_name} ${client.last_name}`.trim(), client.id, stamps);
   });
 }
 
@@ -447,14 +483,21 @@ export const scanClient = ported<ClerkIdContext>(async (_req, { params }) => {
   return client ? Response.json({ id: clerkId, name: `${client.first_name} ${client.last_name}`, stamps: client.stamps }) : routeNotFound();
 });
 
-// POST /users/scan/:clerkId/stamp (admin): one more stamp, logged under the scanning admin.
+const cardFull = (stampsRequired: number) =>
+  Response.json({ message: `The card is full (${stampsRequired} stamps). Please redeem the reward first.` }, { status: 400 });
+
+// POST /users/scan/:clerkId/stamp (admin): one more stamp, logged under the scanning admin. A full
+// card (loyalty_stamps_required) takes no more until it's redeemed.
 export const addStamp = ported<ClerkIdContext>(async (_req, { params }) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const { clerkId } = await params;
+  const stampsRequired = await getLoyaltyStampsRequired();
   const newStamps = await getSql().begin(async (tx) => {
     const [user] = await tx<{ id: number }[]>`select id from users where clerk_id = ${clerkId}`;
     if (!user) return undefined;
+    const [current] = await tx<{ stamps: number | null }[]>`select stamps from customer_profiles where user_id = ${user.id} for update`;
+    if (current && (current.stamps ?? 0) >= stampsRequired) return "full" as const;
     const [profile] = await tx<{ stamps: number }[]>`
       update customer_profiles set stamps = stamps + 1 where user_id = ${user.id} returning stamps
     `;
@@ -462,23 +505,30 @@ export const addStamp = ported<ClerkIdContext>(async (_req, { params }) => {
     return profile?.stamps ?? null;
   });
   if (newStamps === undefined) return routeNotFound();
+  if (newStamps === "full") return cardFull(stampsRequired);
   return Response.json({ success: true, newStamps: newStamps ?? undefined });
 });
 
-// POST /users/scan/:clerkId/redeem (admin): the card is reset and the reward emails go out.
+// POST /users/scan/:clerkId/redeem (admin): a full card is reset and the reward emails go out.
 export const redeemScannedReward = ported<ClerkIdContext>(async (_req, { params }) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const { clerkId } = await params;
-  const found = await getSql().begin(async (tx) => {
+  const stampsRequired = await getLoyaltyStampsRequired();
+  const result = await getSql().begin(async (tx) => {
     const [user] = await tx<{ id: number }[]>`select id from users where clerk_id = ${clerkId}`;
-    if (!user) return false;
-    await tx`update customer_profiles set stamps = 0 where user_id = ${user.id}`;
+    if (!user) return "missing" as const;
+    // One statement, so two quick taps can't redeem the same card twice
+    const redeemed = await tx`
+      update customer_profiles set stamps = 0 where user_id = ${user.id} and stamps >= ${stampsRequired} returning user_id
+    `;
+    if (redeemed.length === 0) return "short" as const;
     await tx`insert into scan_history (admin_clerk_id, client_clerk_id, action) values (${admin.clerkId}, ${clerkId}, 'redeem')`;
-    return true;
+    return "redeemed" as const;
   });
-  if (!found) return routeNotFound();
-  emailLoyaltyReward(clerkId);
+  if (result === "missing") return routeNotFound();
+  if (result === "short") return Response.json({ message: "Not enough stamps to redeem." }, { status: 400 });
+  emailLoyaltyReward(clerkId, stampsRequired);
   return Response.json({ success: true, newStamps: 0 });
 });
 
@@ -491,11 +541,12 @@ export const redeemOwnReward = ported(async () => {
   if (!user) return Response.json({ message: "User not found" }, { status: 404 });
 
   // One statement, so two quick taps can't redeem the same card twice
+  const stampsRequired = await getLoyaltyStampsRequired();
   const redeemed = await sql`
-    update customer_profiles set stamps = 0 where user_id = ${user.id} and stamps >= ${REWARD_STAMPS} returning user_id
+    update customer_profiles set stamps = 0 where user_id = ${user.id} and stamps >= ${stampsRequired} returning user_id
   `;
   if (redeemed.length === 0) return Response.json({ message: "Not enough stamps to redeem." }, { status: 400 });
-  emailLoyaltyReward(requester.clerkId);
+  emailLoyaltyReward(requester.clerkId, stampsRequired);
   return Response.json({ success: true, newStamps: 0 });
 });
 

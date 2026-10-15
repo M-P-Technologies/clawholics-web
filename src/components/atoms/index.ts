@@ -29,3 +29,4 @@ export {
 export { default as Pearls } from "./Pearls";
 export { default as SharpenFilter, SHARPEN_FILTER } from "./SharpenFilter";
 export { BOW_PATH } from "./bowPath";
+export { default as Skeleton } from "./Skeleton";

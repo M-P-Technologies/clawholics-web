@@ -5,7 +5,7 @@ import { ElsewhereNote, IconPicker, ImageField, LinkField, PanelSection, SaveBar
 import OffersEditor from "@/components/features/admin/cms/OffersEditor";
 import StripEditor from "@/components/features/admin/cms/StripEditor";
 import { FontPicker, PalettePicker } from "@/components/features/admin/cms/ThemePickers";
-import { LoadingBar } from "@/components/atoms";
+import { CmsEditorSkeleton } from "@/components/features/admin/skeletons/skeletons";
 import emblem from "@/assets/logo/emblem-pink.png";
 import footerLogo from "@/assets/logo/logo-pink-transparent.png";
 import { useHomeEditor } from "@/hooks/admin/useHomeEditor";
@@ -23,13 +23,7 @@ export default function Homepage() {
   const { content, sections, services, set, setText, setFeature, setStrip, setOffers, upload, uploadTo, uploading } = editor;
   const t = sections.text;
 
-  if (editor.isLoading) {
-    return (
-      <div className="fixed inset-0 z-9999 flex items-center justify-center bg-light-orange">
-        <LoadingBar label="Loading the homepage" />
-      </div>
-    );
-  }
+  if (editor.isLoading) return <CmsEditorSkeleton title="Homepage" />;
 
   if (editor.loadFailed) return <CmsLoadError title="Homepage" what="the homepage" onRetry={editor.retry} />;
 

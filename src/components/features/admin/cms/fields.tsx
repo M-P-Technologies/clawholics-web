@@ -49,10 +49,12 @@ interface TextFieldProps {
   hint?: ReactNode;
   placeholder?: string;
   type?: "text" | "email" | "url" | "tel";
+  /** The phone keyboard to show, e.g. "numeric" for whole numbers */
+  inputMode?: "numeric";
   disabled?: boolean;
 }
 
-export function TextField({ label, value, onChange, rows, hint, placeholder, type = "text", disabled }: TextFieldProps) {
+export function TextField({ label, value, onChange, rows, hint, placeholder, type = "text", inputMode, disabled }: TextFieldProps) {
   const id = useId();
   return (
     <div className="flex flex-col gap-1.5">
@@ -62,7 +64,7 @@ export function TextField({ label, value, onChange, rows, hint, placeholder, typ
       {rows ? (
         <Textarea id={id} rows={rows} value={value} placeholder={placeholder} disabled={disabled} onChange={(e) => onChange(e.target.value)} className="min-h-0! resize-y leading-relaxed" />
       ) : (
-        <Input id={id} type={type} value={value} placeholder={placeholder} disabled={disabled} onChange={(e) => onChange(e.target.value)} />
+        <Input id={id} type={type} inputMode={inputMode} value={value} placeholder={placeholder} disabled={disabled} onChange={(e) => onChange(e.target.value)} />
       )}
       {hint && <p className="text-[12px] leading-snug text-gray-red/60">{hint}</p>}
     </div>

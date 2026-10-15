@@ -1,9 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/components/molecules";
-import { fetchNailistTimeSlots, type NailistTimeSlots } from "@/services/nailistService";
+import { bookingQueries } from "@/lib/bookingQueries";
+import type { NailistTimeSlots } from "@/services/nailistService";
 import { splitTimeSlot } from "@/lib/admin/artistEditor";
+import { useFillForm } from "./useFillForm";
 
 type Options = {
   nailistId?: number;
@@ -17,27 +20,16 @@ type Options = {
 // themselves are the editor's (saved and put back with the rest); the card owns the new slot.
 export function useTimeSlots({ nailistId, disabled, timeSlots, setTimeSlots, onTimeSlotsLoaded }: Options) {
   const toast = useToast();
-  const [isLoading, setIsLoading] = useState(false);
   const [newStartTime, setNewStartTime] = useState("");
   const [newEndTime, setNewEndTime] = useState("");
 
+  // The hours, the same cached query the booking pages read
+  const timeSlotsQuery = useQuery({ ...bookingQueries.timeSlots(nailistId ?? 0), enabled: !!nailistId });
+  const isLoading = !!nailistId && timeSlotsQuery.isPending;
+  useFillForm(timeSlotsQuery.data, !disabled, onTimeSlotsLoaded);
   useEffect(() => {
-    if (!nailistId) return;
-
-    const loadTimeSlots = async () => {
-      try {
-        setIsLoading(true);
-        const data = await fetchNailistTimeSlots(nailistId);
-        onTimeSlotsLoaded(data);
-      } catch (error) {
-        console.error("Failed to fetch time slots:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadTimeSlots();
-  }, [nailistId]);
+    if (timeSlotsQuery.isError) console.error("Failed to fetch time slots:", timeSlotsQuery.error);
+  }, [timeSlotsQuery.isError, timeSlotsQuery.error]);
 
   const updateTimeSlot = (
     index: number,

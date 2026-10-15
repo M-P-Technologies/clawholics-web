@@ -4,7 +4,8 @@ import { RotateCcw } from "lucide-react";
 import CmsEditor, { CmsLoadError } from "@/components/features/admin/cms/CmsEditor";
 import { PanelSection, SaveBar } from "@/components/features/admin/cms/fields";
 import RichTextField from "@/components/features/admin/cms/RichTextField";
-import { Button, LoadingBar } from "@/components/atoms";
+import { Button } from "@/components/atoms";
+import { CmsEditorSkeleton } from "@/components/features/admin/skeletons/skeletons";
 import { usePrivacyEditor } from "@/hooks/admin/usePrivacyEditor";
 import { PRIVACY_KEY, PRIVACY_PREVIEW_PAGES } from "@/lib/admin/cmsPages";
 
@@ -14,13 +15,7 @@ import { PRIVACY_KEY, PRIVACY_PREVIEW_PAGES } from "@/lib/admin/cmsPages";
 export default function PrivacyPolicy() {
   const editor = usePrivacyEditor();
 
-  if (editor.isLoading) {
-    return (
-      <div className="fixed inset-0 z-9999 flex items-center justify-center bg-light-orange">
-        <LoadingBar label="Loading the privacy policy" />
-      </div>
-    );
-  }
+  if (editor.isLoading) return <CmsEditorSkeleton title="Privacy Policy" />;
 
   if (editor.loadFailed) return <CmsLoadError title="Privacy Policy" what="the privacy policy" onRetry={editor.retry} />;
 

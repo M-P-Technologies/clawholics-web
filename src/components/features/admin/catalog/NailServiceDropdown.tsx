@@ -1,5 +1,8 @@
 import { ChevronDown as DropdownIcon, Plus as PlusIcon, Star as StarIcon, Upload as UploadIcon, X as XIcon } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ADMIN } from "@/lib/adminQueries";
+import { useFillForm } from "@/hooks/admin/useFillForm";
 import { pickMainPhoto } from "@/utils/mainPhoto";
 
 import {
@@ -129,24 +132,24 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
     []
   );
 
+  // The service's photos in order, cached per service. They're a draft until Save, so a refresh
+  // from the server only replaces them while they aren't being edited.
+  const queryClient = useQueryClient();
+  const galleryQuery = {
+    queryKey: [ADMIN, "services", service?.id ?? 0, "gallery"],
+    queryFn: async () => [...(await fetchServiceGallery(service?.id ?? 0))].sort((a, b) => a.position - b.position),
+  };
+  const loadedGallery = useQuery({ ...galleryQuery, enabled: !isCreateMode && !!service });
+  const galleryShown = useFillForm(loadedGallery.data, isEditing, (data) => {
+    setGallery(data);
+    setOriginalGallery(data);
+  });
   useEffect(() => {
-    const loadGallery = async () => {
-      if (isCreateMode || !service) return;
-
-      try {
-        const data = await fetchServiceGallery(service.id);
-        const sortedData = data.sort((a, b) => a.position - b.position);
-
-        setGallery(sortedData);
-        setOriginalGallery(sortedData);
-      } catch (error) {
-        console.error("Failed to fetch service gallery:", error);
-        toast.show("error", "Couldn't load the gallery", "We couldn't load this service's photos. Please close and reopen the service to try again.");
-      }
-    };
-
-    loadGallery();
-  }, [service, isCreateMode]);
+    if (!loadedGallery.isError) return;
+    console.error("Failed to fetch service gallery:", loadedGallery.error);
+    toast.show("error", "Couldn't load the gallery", "We couldn't load this service's photos. Please close and reopen the service to try again.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadedGallery.isError, loadedGallery.error]);
 
   useEffect(() => {
     if (!isCreateMode && service) {
@@ -340,10 +343,9 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
         )
       );
 
-      const refreshedGallery = await fetchServiceGallery(service.id);
-      const sortedGallery = refreshedGallery.sort(
-        (a, b) => a.position - b.position
-      );
+      // Asked fresh, and kept as the cached copy
+      const sortedGallery = await queryClient.fetchQuery({ ...galleryQuery, staleTime: 0 });
+      galleryShown(sortedGallery);
 
       setName(updatedService.name);
       setDescription(updatedService.description);

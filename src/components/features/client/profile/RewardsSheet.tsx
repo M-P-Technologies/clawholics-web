@@ -3,21 +3,23 @@ import { QRCodeSVG } from "qrcode.react";
 import { themeColor } from "@/services/themeColor";
 import { Button } from "@/components/atoms";
 import { Dialog } from "@/components/organisms";
-import { STAMP_TARGET, stampsToGo } from "@/utils/profileView";
+import { DEFAULT_STAMP_TARGET, stampsToGo } from "@/utils/profileView";
 
 interface RewardsSheetProps {
   open: boolean;
   onClose: () => void;
   stamps: number;
+  /** The stamps the card needs for a reward */
+  target?: number;
   cardNumber: string;
   clerkId?: string | null;
   onRedeem: () => void;
 }
 
 // The full loyalty card and the QR code the salon scans to add stamps.
-export default function RewardsSheet({ open, onClose, stamps, cardNumber, clerkId, onRedeem }: RewardsSheetProps) {
-  const stampCells = Array.from({ length: STAMP_TARGET }, (_, i) => ({ number: i + 1, isEarned: i + 1 <= stamps }));
-  const left = stampsToGo(stamps);
+export default function RewardsSheet({ open, onClose, stamps, target = DEFAULT_STAMP_TARGET, cardNumber, clerkId, onRedeem }: RewardsSheetProps) {
+  const stampCells = Array.from({ length: target }, (_, i) => ({ number: i + 1, isEarned: i + 1 <= stamps }));
+  const left = stampsToGo(stamps, target);
   const full = left === 0;
 
   return (
@@ -33,7 +35,7 @@ export default function RewardsSheet({ open, onClose, stamps, cardNumber, clerkI
             <p className="break-all text-[12px] text-pearl/80">{cardNumber}</p>
           </div>
           <div className="flex flex-col gap-4 p-4">
-            <p className="text-[13px] font-medium text-gray-red/80">Stamp Card — {stamps}/{STAMP_TARGET}</p>
+            <p className="text-[13px] font-medium text-gray-red/80">Stamp Card — {Math.min(stamps, target)}/{target}</p>
             <div className="grid w-full grid-cols-5 gap-2">
               {stampCells.map(({ number, isEarned }) => (
                 <div

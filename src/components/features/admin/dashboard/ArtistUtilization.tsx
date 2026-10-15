@@ -1,5 +1,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { adminKeys } from "@/lib/adminQueries";
 import clsx from "clsx";
 import { useTableLayout } from "@/hooks/useMinWidth";
 import { percent } from "@/lib/dashboardFormat";
@@ -8,6 +10,7 @@ import type { Utilization, UtilizationDay } from "@/services/dashboardTypes";
 import { Avatar, Button } from "@/components/atoms";
 import { CARDS_PER_PAGE, RowCard, RowCards } from "@/components/organisms";
 import { Pagination, paginate } from "@/components/molecules";
+import { ListSkeleton } from "@/components/features/admin/skeletons/ListSkeleton";
 
 const DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -44,31 +47,20 @@ function describe(day: UtilizationDay, dayName: string) {
 export default function ArtistUtilization({ load }: { load: (date: string) => Promise<Utilization> }) {
   const today = manilaToday(new Date());
   const [anchor, setAnchor] = useState(today);
-  const [data, setData] = useState<Utilization | null>(null);
-  const [failed, setFailed] = useState(false);
-  const [attempt, setAttempt] = useState(0);
   const [page, setPage] = useState(1);
   const asTable = useTableLayout();
   const from = mondayOf(anchor);
   const thisWeek = mondayOf(today);
 
-  useEffect(() => {
-    let live = true;
-    (async () => {
-      try {
-        const next = await load(anchor);
-        if (live) {
-          setData(next);
-          setFailed(false);
-        }
-      } catch {
-        if (live) setFailed(true);
-      }
-    })();
-    return () => {
-      live = false;
-    };
-  }, [load, anchor, attempt]);
+  // One cached query per week: a week already seen shows at once
+  const query = useQuery({
+    queryKey: adminKeys.utilization(from),
+    queryFn: () => load(anchor),
+    placeholderData: keepPreviousData,
+  });
+  const data = query.data ?? null;
+  // A failed refresh keeps the week already shown
+  const failed = query.isError && !query.isPlaceholderData && !query.data;
 
   const shown = data && data.week.from === from ? data : null;
   const cards = paginate(shown?.artists ?? [], page, CARDS_PER_PAGE);
@@ -101,12 +93,12 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
       {failed ? (
         <div className="flex flex-wrap items-center gap-3 text-sm text-gray-red">
           We couldn&apos;t load artist utilization.
-          <Button type="button" variant="secondary" onClick={() => setAttempt((n) => n + 1)}>
+          <Button type="button" variant="secondary" onClick={() => void query.refetch()}>
             Try again
           </Button>
         </div>
       ) : !shown ? (
-        <p className="text-sm text-gray-red/70">Loading…</p>
+        <ListSkeleton label="Loading artist utilization" columns={7} />
       ) : shown.artists.length === 0 ? (
         <p className="text-sm text-gray-red/70">No artists yet. Add them in Nail Artists, with their time slots.</p>
       ) : (

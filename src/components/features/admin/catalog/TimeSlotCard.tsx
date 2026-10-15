@@ -5,6 +5,7 @@ import { SectionHeader } from "@/components/molecules";
 import { Button } from "@/components/atoms";
 import { formatTimeDisplay, openTimePicker, splitTimeSlot } from "@/lib/admin/artistEditor";
 import { useTimeSlots } from "@/hooks/admin/useTimeSlots";
+import { SectionSkeleton } from "../skeletons/skeletons";
 
 const TimeSlotCard = ({
   nailistId,
@@ -63,7 +64,7 @@ const TimeSlotCard = ({
       <SectionHeader size="label" title="Time Slots" />
 
       {isLoading ? (
-        <p className="text-[15px] text-gray-red">Loading time slots...</p>
+        <SectionSkeleton label="Loading time slots" lines={3} />
       ) : (
         <div className="flex flex-col gap-4">
           <div

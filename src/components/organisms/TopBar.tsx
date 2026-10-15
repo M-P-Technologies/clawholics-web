@@ -13,11 +13,16 @@ interface TopBarProps {
   account: { name: string; email: string; imageUrl: string };
   /** E.g. "Wednesday, Oct 14"; empty until the page is in the browser */
   today?: string;
+  /** E.g. a notifications bell, beside the account */
+  bell?: ReactNode;
+  /** Whether the computer layout is showing, so the bell is drawn in one place only */
+  wide?: boolean;
 }
 
 // The bar across the top of every admin screen and client app tab: the greeting, title and the
-// screen's controls on the left; the date, a link to the public site and who is signed in on the right.
-export default function TopBar({ title, greeting, titleAside, actions, account, today }: TopBarProps) {
+// screen's controls on the left; the date, a link to the public site, an optional bell (e.g. new
+// bookings) and who is signed in on the right.
+export default function TopBar({ title, greeting, titleAside, actions, account, today, bell, wide = true }: TopBarProps) {
   return (
     <header className="flex w-full flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk/80 px-4 py-3 shadow-petal backdrop-blur-sm sm:px-5 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
       <div className="flex min-w-0 items-center justify-between gap-3 lg:shrink-0">
@@ -28,8 +33,11 @@ export default function TopBar({ title, greeting, titleAside, actions, account, 
             {titleAside}
           </div>
         </div>
-        {/* On a phone the account sits beside the title */}
-        <Avatar name={account.name} imageUrl={account.imageUrl} className="lg:hidden" />
+        {/* On a phone the bell and the account sit beside the title */}
+        <div className="flex shrink-0 items-center gap-2 lg:hidden">
+          {bell && !wide && bell}
+          <Avatar name={account.name} imageUrl={account.imageUrl} />
+        </div>
       </div>
 
       {/* One row on a computer: the screen's controls give way (and scroll sideways) before anything wraps */}
@@ -50,6 +58,10 @@ export default function TopBar({ title, greeting, titleAside, actions, account, 
           View site
           <ExternalLink size={14} aria-hidden="true" />
         </a>
+
+        {/* The bell is drawn once, in the place for the screen's width */}
+        {bell && wide && <div className="hidden lg:block">{bell}</div>}
+
         <div className="hidden shrink-0 items-center gap-2.5 border-l border-crimson-light/60 pl-3 lg:flex">
           <Avatar name={account.name} imageUrl={account.imageUrl} />
           <div className="hidden min-w-0 flex-col leading-tight 2xl:flex">

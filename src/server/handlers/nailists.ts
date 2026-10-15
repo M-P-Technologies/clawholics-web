@@ -1,8 +1,9 @@
 import "server-only";
 import { requireAdmin } from "../auth";
-import { getNailist, getNailistGallery, getNailistRow } from "../catalog";
+import { getNailistRow } from "../catalog";
 import { getSql } from "../db";
 import { orNull, pgErrorCode, readJson, routeNotFound, toId } from "../http";
+import { changesCatalog, publicReads } from "../publicCache";
 import { ported } from "../worker";
 
 // Nailist (artist) routes, ported from worker-api/src/index.ts (~lines 1286-1384). The GETs
@@ -22,7 +23,7 @@ async function categoryIdFor(position: unknown) {
   return category?.id ?? 2;
 }
 
-export const createNailist = ported(async (req) => {
+export const createNailist = changesCatalog(ported(async (req) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const body = await readJson<Body>(req);
@@ -33,15 +34,15 @@ export const createNailist = ported(async (req) => {
     returning id
   `;
   return Response.json(await getNailistRow(id), { status: 201 });
-});
+}));
 
 export const getNailistById = ported<IdContext>(async (_req, { params }) => {
   const id = toId((await params).id);
-  const nailist = id === null ? null : await getNailist(id);
+  const nailist = id === null ? null : await publicReads.nailist(id);
   return nailist ? Response.json(nailist) : routeNotFound();
 });
 
-export const updateNailist = ported<IdContext>(async (req, { params }) => {
+export const updateNailist = changesCatalog(ported<IdContext>(async (req, { params }) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const id = toId((await params).id);
@@ -55,11 +56,11 @@ export const updateNailist = ported<IdContext>(async (req, { params }) => {
   `;
   const updated = await getNailistRow(id);
   return updated ? Response.json(updated) : routeNotFound();
-});
+}));
 
 // Past appointments keep their nailist_id and nailist_name. Time slots have no foreign key,
 // so they're removed here too (the Worker left them behind).
-export const deleteNailist = ported<IdContext>(async (_req, { params }) => {
+export const deleteNailist = changesCatalog(ported<IdContext>(async (_req, { params }) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const id = toId((await params).id);
@@ -70,7 +71,7 @@ export const deleteNailist = ported<IdContext>(async (_req, { params }) => {
     });
   }
   return Response.json({ message: "Nailist deleted" });
-});
+}));
 
 // --- SERVICES THE NAILIST OFFERS -------------------------------------------------------------
 
@@ -84,7 +85,7 @@ export const getNailistServices = ported<IdContext>(async (_req, { params }) => 
 });
 
 // PUT { serviceIds: number[] } replaces the list; responds with the list sent.
-export const setNailistServices = ported<IdContext>(async (req, { params }) => {
+export const setNailistServices = changesCatalog(ported<IdContext>(async (req, { params }) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const id = toId((await params).id);
@@ -106,7 +107,7 @@ export const setNailistServices = ported<IdContext>(async (req, { params }) => {
     throw error;
   }
   return Response.json(serviceIds);
-});
+}));
 
 // --- TIME SLOTS ------------------------------------------------------------------------------
 
@@ -203,10 +204,10 @@ const MAX_GALLERY_PHOTOS = 10;
 
 export const getGallery = ported<IdContext>(async (_req, { params }) => {
   const id = toId((await params).id);
-  return Response.json(id === null ? [] : await getNailistGallery(id));
+  return Response.json(id === null ? [] : await publicReads.nailistGallery(id));
 });
 
-export const addGalleryImage = ported<IdContext>(async (req, { params }) => {
+export const addGalleryImage = changesCatalog(ported<IdContext>(async (req, { params }) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const nailistId = toId((await params).id);
@@ -231,12 +232,12 @@ export const addGalleryImage = ported<IdContext>(async (req, { params }) => {
     if (pgErrorCode(error) === "23505") return Response.json({ message: "This photo is already in the gallery." }, { status: 409 });
     throw error;
   }
-});
+}));
 
-export const deleteGalleryImage = ported<IdContext>(async (_req, { params }) => {
+export const deleteGalleryImage = changesCatalog(ported<IdContext>(async (_req, { params }) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const id = toId((await params).id);
   if (id !== null) await getSql()`delete from nailist_gallery where id = ${id}`;
   return Response.json({ message: "Image deleted" });
-});
+}));

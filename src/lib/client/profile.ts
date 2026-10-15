@@ -3,6 +3,7 @@ import { FacebookIcon, InstagramIcon } from "@/components/atoms";
 import { contactMethodLabel } from "@/data/profile";
 import type { UserProfile } from "@/services/userService";
 import type { AppointmentView } from "@/types/profile";
+import { DEFAULT_STAMP_TARGET, stampsToGo } from "@/utils/profileView";
 
 /** "October 2026", or "" when unknown */
 export const memberSince = (u: UserProfile) => [u.member_since_month, u.member_since_year].filter(Boolean).join(" ");
@@ -29,8 +30,8 @@ export const nextVisitHighlight = (next: AppointmentView | null | undefined) => 
 });
 
 /** How far the loyalty card is from a reward */
-export const rewardsLine = (stamps: number) => {
-  const left = Math.max(0, 10 - stamps);
+export const rewardsLine = (stamps: number, target = DEFAULT_STAMP_TARGET) => {
+  const left = stampsToGo(stamps, target);
   return left === 0 ? "Your reward is ready. Tap to redeem it." : `${left} more visit${left === 1 ? "" : "s"} to a reward`;
 };
 

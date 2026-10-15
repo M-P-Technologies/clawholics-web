@@ -27,7 +27,9 @@ export function useMyProfile() {
     visits: String(completedVisits(account.appointments)),
     /** The next booking's progress; null when there's nothing booked */
     trackerSteps: next ? clientTrackerSteps(next.appt) : null,
-    rewardsLine: rewardsLine(account.stamps),
+    rewardsLine: rewardsLine(account.stamps, account.stampTarget),
+    /** "4 / 10": the stamps on the card, capped at the salon's target */
+    stampsValue: `${Math.min(account.stamps, account.stampTarget)} / ${account.stampTarget}`,
     manageAccount: () => openUserProfile(),
     logOut: () => signOut({ redirectUrl: "/" }),
   };

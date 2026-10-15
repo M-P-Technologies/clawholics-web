@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useToast } from "@/components/molecules";
+import { useEditorSource } from "./useEditorSource";
 
 interface PageWordsOptions<K extends string> {
   /** Loads the saved words (with their defaults filled in) */
@@ -25,24 +26,22 @@ export function usePageWords<K extends string>({ load, save, problem, what, onSa
   const [saved, setSaved] = useState<Record<K, string> | null>(null);
   const [saving, setSaving] = useState(false);
 
+  const dirty = !!words && JSON.stringify(words) !== JSON.stringify(saved);
+  // The saved words, cached: coming back to the editor shows them at once
+  const source = useEditorSource({
+    name: `${what} words`,
+    load,
+    dirty,
+    onLoad: (loaded) => {
+      setWords(loaded);
+      setSaved(loaded);
+    },
+  });
   useEffect(() => {
-    let live = true;
-    load().then(
-      (loaded) => {
-        if (!live) return;
-        setWords(loaded);
-        setSaved(loaded);
-      },
-      (error) => console.warn(`Couldn't load the ${what} words:`, error),
-    );
-    return () => {
-      live = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- loads once
-  }, []);
+    if (source.error) console.warn(`Couldn't load the ${what} words:`, source.error);
+  }, [source.error, what]);
 
   const setWord = (key: K) => (value: string) => setWords((prev) => (prev ? { ...prev, [key]: value } : prev));
-  const dirty = !!words && JSON.stringify(words) !== JSON.stringify(saved);
 
   const saveWords = async () => {
     if (!words) return;
@@ -57,6 +56,7 @@ export function usePageWords<K extends string>({ load, save, problem, what, onSa
       await save(trimmed);
       setWords(trimmed);
       setSaved(trimmed);
+      source.saved(trimmed);
       onSaved?.();
       toast.show("success", `${what[0].toUpperCase()}${what.slice(1)} saved`, `Your changes are now live on the ${what}.`);
     } catch (error) {

@@ -31,6 +31,7 @@ const makeHook = (over: Record<string, unknown> = {}) => ({
   pastViews: [view(3, "completed")],
   appointments: [view(1).appt, view(2).appt, view(3, "completed").appt],
   stamps: 4,
+  stampTarget: 10,
   loyaltyCardNumber: "CLAWHOLICS-2026-0007",
   currentTime: Date.parse("2026-10-17T09:00:00+08:00"),
   highlightedAppointmentId: null,

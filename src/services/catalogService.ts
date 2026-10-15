@@ -1,5 +1,4 @@
 import { previewed } from "../lib/cmsPreview";
-import { remember } from "../utils/lastSeen";
 import { API_BASE_URL } from "../apiConfig";
 
 export type ServiceAddon = {
@@ -82,10 +81,7 @@ const normalizeCategory = (raw: RawCategory): ServiceCategory => ({
 });
 
 const loadCategories = async () =>
-  remember(
-    "categories",
-    (await call<RawCategory[]>(`${CATEGORIES}?t=${Date.now()}`, { method: "GET" })).map(normalizeCategory),
-  );
+  (await call<RawCategory[]>(`${CATEGORIES}?t=${Date.now()}`, { method: "GET" })).map(normalizeCategory);
 
 export const createCategory = async (name: string, auth: Auth) =>
   normalizeCategory(await call<RawCategory>(CATEGORIES, { method: "POST", body: JSON.stringify({ name }) }, auth));

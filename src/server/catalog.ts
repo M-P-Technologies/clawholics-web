@@ -125,6 +125,22 @@ export async function getNailist(id: number) {
   return nailist ?? null;
 }
 
+/** The most reviews the home page is given */
+const PUBLIC_REVIEWS_LIMIT = 12;
+
+// The reviews an admin approved for the home page, newest first. Only what the page shows: the
+// stars, words and photo, the service, and the client's first name with the initial of their last.
+export const getPublicReviews = () => getSql()`
+  select r.id, r.rating, r.comment, r.photo_url, r.created_at, a.service_name,
+    nullif(trim(coalesce(cp.first_name, '') || ' ' || coalesce(left(trim(cp.last_name), 1) || '.', '')), '') as client_name
+  from reviews r
+  join appointments a on a.id = r.appointment_id
+  left join customer_profiles cp on cp.user_id = r.user_id
+  where r.approved = 1
+  order by r.approved_at desc nulls last, r.id desc
+  limit ${PUBLIC_REVIEWS_LIMIT}
+`;
+
 /** A nailist row without the service lists (what the Worker returns after a write). */
 export async function getNailistRow(id: number) {
   const [nailist] = await getSql()`

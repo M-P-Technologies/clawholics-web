@@ -70,6 +70,20 @@ export const fetchBookedSlotsDetailed = async (
   );
   return res.json();
 };
+/** An artist's taken times on every day from `from` to `to` (YYYY-MM-DD), in one request */
+export const fetchBookedSlotsRange = async (
+  nailist_id: number,
+  from: string,
+  to: string,
+): Promise<{ appointment_date: string; appointment_time: string }[]> => {
+  const res = await fetch(
+    `${API_BASE_URL}/booking/slots-range?nailist_id=${nailist_id}&from=${from}&to=${to}`,
+    { headers: getHeaders() },
+  );
+  if (!res.ok) throw new Error("Failed to fetch the booked times");
+  return res.json();
+};
+
 export const createBooking = async (
   data: BookingPayload,
   token?: string | null,

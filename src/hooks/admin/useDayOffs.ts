@@ -1,22 +1,19 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { fetchAppointments } from "@/services/appointmentService";
-import { fetchNailistDayOffs, type NailistDayOffs } from "@/services/nailistService";
+import React, { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { bookingQueries } from "@/lib/bookingQueries";
+import { ADMIN_APPOINTMENTS_KEY, fetchAppointments } from "@/services/appointmentService";
+import type { NailistDayOffs } from "@/services/nailistService";
 import { formatDateKey } from "@/lib/admin/artistEditor";
+import { useFillForm } from "./useFillForm";
 
 // Every artist's calendar marks booked days from the same appointment list, so the cards opened
-// together share one request instead of each asking for all the appointments
-let sharedAppointments: { at: number; list: ReturnType<typeof fetchAppointments> } | null = null;
-const appointmentsForCalendars = () => {
-  if (!sharedAppointments || Date.now() - sharedAppointments.at > 30_000) {
-    const list = fetchAppointments();
-    sharedAppointments = { at: Date.now(), list };
-    list.catch(() => {
-      if (sharedAppointments?.list === list) sharedAppointments = null;
-    });
-  }
-  return sharedAppointments.list;
+// together share one cached query instead of each asking for all the appointments
+const allAppointmentsQuery = {
+  queryKey: [...ADMIN_APPOINTMENTS_KEY, "all"],
+  queryFn: () => fetchAppointments(),
+  staleTime: 30_000,
 };
 
 type Options = {
@@ -45,55 +42,33 @@ export function useDayOffs({
   const [month, setMonth] = useState(
     new Date(today.getFullYear(), today.getMonth(), 1)
   );
-  const [bookedDates, setBookedDates] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
+  // The days off, the same cached query the booking pages read
+  const dayOffsQuery = useQuery({ ...bookingQueries.dayOffs(nailistId ?? 0), enabled: !!nailistId });
+  const isLoading = !!nailistId && dayOffsQuery.isPending;
+  useFillForm(dayOffsQuery.data, !disabled, onDayOffsLoaded);
   useEffect(() => {
-    if (!nailistId) return;
+    if (dayOffsQuery.isError) console.error("Failed to fetch day offs:", dayOffsQuery.error);
+  }, [dayOffsQuery.isError, dayOffsQuery.error]);
 
-    const loadDayOffs = async () => {
-      try {
-        setIsLoading(true);
-        const data = await fetchNailistDayOffs(nailistId);
-        onDayOffsLoaded(data);
-      } catch (error) {
-        console.error("Failed to fetch day offs:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadDayOffs();
-  }, [nailistId]);
-
+  const appointmentsQuery = useQuery({ ...allAppointmentsQuery, enabled: !!nailistId });
   useEffect(() => {
-    if (!nailistId) return;
+    if (appointmentsQuery.isError) console.error("Failed to fetch booked dates:", appointmentsQuery.error);
+  }, [appointmentsQuery.isError, appointmentsQuery.error]);
+  const bookedDates = useMemo(() => {
+    const dates = (appointmentsQuery.data ?? [])
+      .filter((appointment) => {
+        const status = appointment.status.toLowerCase();
 
-    const loadBookedDates = async () => {
-      try {
-        const appointments = await appointmentsForCalendars();
-
-        const dates = appointments
-          .filter((appointment) => {
-            const status = appointment.status.toLowerCase();
-
-            return (
-              appointment.nailist_id === nailistId &&
-              status !== "cancelled" &&
-              status !== "canceled" &&
-              status !== "rejected"
-            );
-          })
-          .map((appointment) => appointment.appointment_date);
-
-        setBookedDates(Array.from(new Set(dates)));
-      } catch (error) {
-        console.error("Failed to fetch booked dates:", error);
-      }
-    };
-
-    loadBookedDates();
-  }, [nailistId]);
+        return (
+          appointment.nailist_id === nailistId &&
+          status !== "cancelled" &&
+          status !== "canceled" &&
+          status !== "rejected"
+        );
+      })
+      .map((appointment) => appointment.appointment_date);
+    return Array.from(new Set(dates));
+  }, [appointmentsQuery.data, nailistId]);
 
   const isDayOff = (date: Date) => {
     const dateKey = formatDateKey(date);

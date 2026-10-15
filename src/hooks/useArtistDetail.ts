@@ -1,31 +1,18 @@
-import { usePreviewVersion } from "@/lib/cmsPreview";
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { publicQueries } from "@/lib/publicQueries";
 import { useNavigate, useParams } from "@/lib/router";
-import {
-  fetchNailists,
-  fetchNailistById,
-  fetchNailistGallery,
-  type Nailist,
-  type NailistGalleryImage,
-} from "../services/nailistService";
-import { fetchServices, type NailService } from "../services/serviceService";
+import type { NailistGalleryImage } from "../services/nailistService";
+import type { NailService } from "../services/serviceService";
 import { artistPath, findBySlugOrId } from "../utils/slug";
 import { useStartBooking } from "./useStartBooking";
+
+const NO_GALLERY: NailistGalleryImage[] = [];
 
 // One artist's page: their details, a gallery of their work, and the way into booking them.
 export function useArtistDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-
-  const [nailist, setNailist] = useState<Nailist | null>(null);
-  const [gallery, setGallery] = useState<NailistGalleryImage[]>([]);
-  const [services, setServices] = useState<NailService[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
-  const [error, setError] = useState(false);
-  const [attempt, setAttempt] = useState(0);
-  // In the admin editor's preview, fetch again when the unsaved changes do
-  const previewVersion = usePreviewVersion();
 
   const [pickerOpen, setPickerOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -44,67 +31,35 @@ export function useArtistDetail() {
 
   const startBooking = useStartBooking(showModal);
 
+  // The address names the artist (/artists/miss-max); older ones carry the id
+  const idInAddress = id && /^\d+$/.test(id) ? Number(id) : null;
+  const listQuery = useQuery(publicQueries.nailists());
+  const match = id && listQuery.data ? findBySlugOrId(listQuery.data, id) : null;
+  // Without the list, only an id in the address can still be followed
+  const artistId = match ? match.id : idInAddress;
+  const listLoaded = !!listQuery.data;
+
+  const enabled = artistId !== null;
+  const artistQuery = useQuery({ ...publicQueries.nailist(artistId ?? 0), enabled });
+  // The gallery and the service list are extras: if either fails, the page still shows the artist
+  const galleryQuery = useQuery({ ...publicQueries.nailistGallery(artistId ?? 0), enabled });
+  const servicesQuery = useQuery(publicQueries.services());
+
+  const nailist = artistQuery.data ?? null;
+  const gallery = galleryQuery.data ?? NO_GALLERY;
+  const services = useMemo(() => (Array.isArray(servicesQuery.data) ? servicesQuery.data : []), [servicesQuery.data]);
+
+  const notFound = !id || (listLoaded && artistId === null) || artistQuery.data === null;
+  // A failed refresh keeps showing the copy already loaded
+  const error = !notFound && (artistId === null ? listQuery.isError : artistQuery.isError && !nailist);
+  // The page waits for the extras too, so it doesn't shift as they arrive
+  const loading =
+    !notFound && !error && (artistId === null || artistQuery.isPending || galleryQuery.isPending || servicesQuery.isPending);
+
+  // An id in the address is swapped for the artist's name
   useEffect(() => {
-    if (!id) {
-      setNotFound(true);
-      setLoading(false);
-      return;
-    }
-
-    let cancelled = false;
-    setLoading(true);
-    setNotFound(false);
-    setError(false);
-
-    (async () => {
-      // The address names the artist (/artists/miss-max); older ones carry the id
-      let artistId = /^\d+$/.test(id) ? Number(id) : null;
-      try {
-        const list = await fetchNailists();
-        const match = Array.isArray(list) ? findBySlugOrId(list, id) : null;
-        if (match) artistId = match.id;
-      } catch {
-        // Without the list, only an id in the address can still be followed
-        if (artistId === null) {
-          if (!cancelled) {
-            setError(true);
-            setLoading(false);
-          }
-          return;
-        }
-      }
-      if (cancelled) return;
-      if (artistId === null) {
-        setNotFound(true);
-        setLoading(false);
-        return;
-      }
-
-      // The gallery and the service list are extras: if either fails, the page still shows the artist
-      const [artistRes, galleryRes, servicesRes] = await Promise.allSettled([
-        fetchNailistById(artistId),
-        fetchNailistGallery(artistId),
-        fetchServices(),
-      ]);
-      if (cancelled) return;
-
-      if (artistRes.status === "rejected") setError(true);
-      else if (artistRes.value === null) setNotFound(true);
-      else {
-        setNailist(artistRes.value);
-        // An id in the address is swapped for the artist's name
-        if (/^\d+$/.test(id)) navigate(artistPath(artistRes.value), { replace: true });
-      }
-
-      setGallery(galleryRes.status === "fulfilled" ? galleryRes.value : []);
-      setServices(servicesRes.status === "fulfilled" && Array.isArray(servicesRes.value) ? servicesRes.value : []);
-      setLoading(false);
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [id, attempt, previewVersion]);
+    if (nailist && idInAddress !== null) navigate(artistPath(nailist), { replace: true });
+  }, [nailist, idInAddress, navigate]);
 
   // The services this artist offers, as full services (the booking page needs their prices)
   const offeredServices = useMemo(
@@ -118,7 +73,14 @@ export function useArtistDetail() {
     startBooking(service, nailist.id);
   };
 
-  const reload = () => setAttempt((n) => n + 1);
+  const reload = () => {
+    void listQuery.refetch();
+    if (enabled) {
+      void artistQuery.refetch();
+      void galleryQuery.refetch();
+    }
+    void servicesQuery.refetch();
+  };
   const closeModal = () => setModalOpen(false);
 
   return {

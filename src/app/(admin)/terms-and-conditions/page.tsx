@@ -4,7 +4,7 @@ import CmsEditor from "@/components/features/admin/cms/CmsEditor";
 import { ItemsNote, PanelSection } from "@/components/features/admin/cms/fields";
 import { SortableList } from "@/components/molecules";
 import TACDropdown from "@/components/features/admin/cms/TACDropdown";
-import { LoadingBar } from "@/components/atoms";
+import { CmsEditorSkeleton } from "@/components/features/admin/skeletons/skeletons";
 import { useTermsEditor } from "@/hooks/admin/useTermsEditor";
 import { TERMS_PREVIEW_PAGES } from "@/lib/admin/cmsPages";
 
@@ -14,13 +14,7 @@ export default function TermsAndConditions() {
   const { list, getToken, clerkId, newTac } = useTermsEditor();
   const tacs = list.items;
 
-  if (list.loading) {
-    return (
-      <div className="fixed inset-0 z-9999 flex items-center justify-center bg-light-orange">
-        <LoadingBar label="Loading terms and conditions" />
-      </div>
-    );
-  }
+  if (list.loading) return <CmsEditorSkeleton title="Terms & Conditions" />;
 
   return (
     <CmsEditor

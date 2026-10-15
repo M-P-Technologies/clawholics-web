@@ -8,8 +8,9 @@ import ScheduleDayDetails from "@/components/features/admin/schedule/ScheduleDay
 import ScheduleMonthGrid from "@/components/features/admin/schedule/ScheduleMonthGrid";
 import ScheduleAgenda from "@/components/features/admin/schedule/ScheduleAgenda";
 import ScheduleWeekGrid from "@/components/features/admin/schedule/ScheduleWeekGrid";
-import { Button, LoadingBar, Select } from "@/components/atoms";
+import { Button, Select } from "@/components/atoms";
 import { Dialog } from "@/components/organisms";
+import { ScheduleSkeleton } from "@/components/features/admin/skeletons/skeletons";
 import { useSchedule } from "@/hooks/admin/useSchedule";
 import { PHONE_VIEWS } from "@/lib/admin/schedule";
 
@@ -18,13 +19,7 @@ import { PHONE_VIEWS } from "@/lib/admin/schedule";
 export default function Schedule() {
   const s = useSchedule();
 
-  if (s.isLoading) {
-    return (
-      <div className="fixed inset-0 z-9999 flex items-center justify-center bg-light-orange">
-        <LoadingBar label="Loading the schedule" />
-      </div>
-    );
-  }
+  if (s.isLoading) return <ScheduleSkeleton />;
 
   const artistOptions = s.artistNames.map((artist) => (
     <option key={artist.id} value={artist.name}>

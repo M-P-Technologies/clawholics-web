@@ -1,20 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { publicQueries, SERVICE_NOT_FOUND } from "@/lib/publicQueries";
 import { useNavigate, useParams } from "@/lib/router";
-import { fetchServiceById, fetchServiceGallery, fetchServices, type ServiceGalleryImage, type NailService } from "../services/serviceService";
-import { fetchTacs, type Tac } from "../services/tacService";
+import type { ServiceGalleryImage } from "../services/serviceService";
 import { startingPrice } from "../services/pricing";
 import { findBySlugOrId, servicePath } from "../utils/slug";
 import { useStartBooking } from "./useStartBooking";
 
+const NO_GALLERY: ServiceGalleryImage[] = [];
+
 export function useAppointment() {
   const { id } = useParams();
   const navigate = useNavigate();
-
-  const [loading, setLoading] = useState(true);
-  const [service, setService] = useState<NailService | null>(null);
-  const [gallery, setGallery] = useState<ServiceGalleryImage[]>([]);
-  const [terms, setTerms] = useState<Tac[]>([]);
-  const [notFound, setNotFound] = useState(false);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
@@ -35,68 +32,38 @@ export function useAppointment() {
     setModalOpen(true);
   };
 
+  // The address names the service (/services/hard-gel); older ones carry its id
+  const idInAddress = id && /^\d+$/.test(id) ? Number(id) : null;
+  const listQuery = useQuery(publicQueries.services());
+  const match = id && listQuery.data ? findBySlugOrId(listQuery.data, id) : null;
+  // Without the list, only an id in the address can still be followed
+  const serviceId = match ? match.id : idInAddress;
+
+  const enabled = serviceId !== null;
+  const serviceQuery = useQuery({ ...publicQueries.service(serviceId ?? 0), enabled });
+  // The gallery and the terms are extras: the page shows the service without them
+  const galleryQuery = useQuery({ ...publicQueries.serviceGallery(serviceId ?? 0), enabled });
+  const tacsQuery = useQuery(publicQueries.tacs());
+
+  const service = serviceQuery.data ?? null;
+  const gallery = galleryQuery.data ?? NO_GALLERY;
+  const terms = useMemo(
+    () => [...(Array.isArray(tacsQuery.data) ? tacsQuery.data : [])].sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0)),
+    [tacsQuery.data],
+  );
+
+  const notFound =
+    !id || (!!listQuery.data && serviceId === null) || serviceQuery.error?.message === SERVICE_NOT_FOUND;
+  // Waits for the extras too, so the page doesn't shift as they arrive. If neither the list nor
+  // the service can load, the page stops loading and shows no service.
+  const loading =
+    !notFound &&
+    (serviceId === null ? listQuery.isPending : serviceQuery.isPending || galleryQuery.isPending || tacsQuery.isPending);
+
+  // An id in the address is swapped for the service's name
   useEffect(() => {
-    if (!id) return;
-
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        setNotFound(false);
-
-        // The address names the service (/services/hard-gel); older ones carry its id
-        let serviceId = /^\d+$/.test(id) ? Number(id) : null;
-        try {
-          const match = findBySlugOrId(await fetchServices(), id);
-          if (match) serviceId = match.id;
-        } catch (err) {
-          // Without the list, only an id in the address can still be followed
-          if (serviceId === null) throw err;
-        }
-        if (serviceId === null) {
-          setNotFound(true);
-          return;
-        }
-
-        const [serviceRes, galleryRes, tacsRes] = await Promise.allSettled([
-          fetchServiceById(serviceId),
-          fetchServiceGallery(serviceId),
-          fetchTacs(),
-        ]);
-
-        // SERVICE
-        if (serviceRes.status === "fulfilled") {
-          setService(serviceRes.value as any);
-          // An id in the address is swapped for the service's name
-          if (/^\d+$/.test(id)) navigate(servicePath(serviceRes.value), { replace: true });
-        } else {
-          if (serviceRes.reason?.message === "Service not found") {
-            setNotFound(true);
-          } else {
-            console.error(serviceRes.reason);
-          }
-        }
-
-        // GALLERY
-        if (galleryRes.status === "fulfilled") {
-          setGallery(Array.isArray(galleryRes.value) ? galleryRes.value : []);
-        }
-
-        // TERMS
-        if (tacsRes.status === "fulfilled") {
-          const sorted = (
-            Array.isArray(tacsRes.value) ? tacsRes.value : []
-          ).sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
-          setTerms(sorted);
-        }
-      } catch (err) {
-        console.error("Unexpected error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, [id]);
+    if (service && idInAddress !== null) navigate(servicePath(service), { replace: true });
+  }, [service, idInAddress, navigate]);
 
   const startBooking = useStartBooking(showModal);
 

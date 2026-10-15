@@ -1,4 +1,4 @@
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useProfile } from "@/hooks/useProfile";
 import { ProfileError } from "@/services/userService";
@@ -13,18 +13,10 @@ const navigate = vi.fn();
 const params = [new URLSearchParams()];
 vi.mock("@/lib/router", () => ({ useNavigate: () => navigate, useSearchParams: () => params }));
 vi.mock("@/components/molecules", async (orig) => ({ ...(await orig<object>()), useToast: () => ({ show: vi.fn() }) }));
-// Keep the refresh the hook schedules, to run it by hand
-let refresh: () => Promise<unknown> = async () => {};
-vi.mock("@/hooks/usePolling", () => ({
-  startPolling: (task: () => Promise<unknown>) => {
-    refresh = task;
-    return () => {};
-  },
-}));
 const fetchProfile = vi.fn();
 vi.mock("@/services/userService", async (orig) => ({
   ...(await orig<object>()),
-  fetchProfile: (...args: unknown[]) => fetchProfile(...args),
+  fetchProfileIfExists: (...args: unknown[]) => fetchProfile(...args),
   fetchUserAppointments: async () => [],
 }));
 
@@ -44,14 +36,20 @@ const loaded = async () => {
   fetchProfile.mockResolvedValueOnce({ id: 7, first_name: "Ana", stamps: 2 });
   const hook = renderHook(() => useProfile());
   await waitFor(() => expect(hook.result.current.dbUser?.first_name).toBe("Ana"));
-  return hook;
+  // A refresh of the loaded account (the same refetch the 30-second refresh runs)
+  const refresh = async () => {
+    hook.result.current.retryLoad();
+    await waitFor(() => expect(fetchProfile).toHaveBeenCalledTimes(2));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  };
+  return { ...hook, refresh };
 };
 
 describe("useProfile's background refresh", () => {
   it("keeps the account on screen and only warns when the server is briefly unavailable", async () => {
-    const { result } = await loaded();
+    const { result, refresh } = await loaded();
     fetchProfile.mockRejectedValueOnce(new ProfileError(503));
-    await act(() => refresh());
+    await refresh();
     expect(result.current.dbUser?.first_name).toBe("Ana");
     expect(result.current.loadError).toBe(false);
     expect(error).not.toHaveBeenCalled();
@@ -59,17 +57,17 @@ describe("useProfile's background refresh", () => {
   });
 
   it("treats a dropped connection the same way", async () => {
-    const { result } = await loaded();
+    const { result, refresh } = await loaded();
     fetchProfile.mockRejectedValueOnce(new TypeError("Failed to fetch"));
-    await act(() => refresh());
+    await refresh();
     expect(result.current.loadError).toBe(false);
     expect(error).not.toHaveBeenCalled();
   });
 
   it("still reports an unexpected refresh failure as an error", async () => {
-    await loaded();
+    const { refresh } = await loaded();
     fetchProfile.mockRejectedValueOnce(new ProfileError(401));
-    await act(() => refresh());
+    await refresh();
     expect(error).toHaveBeenCalled();
   });
 

@@ -1,26 +1,15 @@
-import { usePreviewVersion } from "@/lib/cmsPreview";
-import { useEffect, useState } from "react";
-import { fetchTacs, type Tac } from "../services/tacService";
+import { useQuery } from "@tanstack/react-query";
+import { publicQueries } from "@/lib/publicQueries";
 
 export function useTermsAndConditions() {
-  const [tacs, setTacs] = useState<Tac[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [attempt, setAttempt] = useState(0);
-  // In the admin editor's preview, fetch again when the unsaved changes do
-  const previewVersion = usePreviewVersion();
-
-  useEffect(() => {
-    setError(false);
-    fetchTacs()
-      .then((data) => setTacs(data))
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
-  }, [attempt, previewVersion]);
+  const tacsQuery = useQuery(publicQueries.tacs());
+  const tacs = tacsQuery.data ?? [];
+  // A failed refresh keeps showing the copy already loaded
+  const error = tacsQuery.isError && !tacsQuery.data;
+  const loading = tacsQuery.isPending && !error;
 
   const reload = () => {
-    setLoading(true);
-    setAttempt((n) => n + 1);
+    void tacsQuery.refetch();
   };
 
   return { tacs, loading, error, reload };

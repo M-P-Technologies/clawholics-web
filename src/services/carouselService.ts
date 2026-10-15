@@ -1,5 +1,4 @@
 import { previewed } from "../lib/cmsPreview";
-import { remember } from "../utils/lastSeen";
 import { API_BASE_URL } from "../apiConfig";
 
 const getAuthHeaders = (token?: string | null, clerkId?: string | null) => {
@@ -34,7 +33,7 @@ const loadCarousel = async (): Promise<CarouselItem[]> => {
     throw new Error("Failed to fetch carousel");
   }
 
-  return remember("carousel", await res.json());
+  return await res.json();
 };
 
 export const updateCarousel = async (images: CarouselItem[], token?: string | null, clerkId?: string | null) => {

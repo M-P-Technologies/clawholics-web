@@ -8,6 +8,7 @@ import NoteItem from "@/components/features/admin/clients/NoteItem";
 import { StatCard, TabSection, Tabs, EmptyState } from "@/components/molecules";
 import { Badge, Button } from "@/components/atoms";
 import { ProfilePanel } from "@/components/organisms";
+import { ClientPageSkeleton } from "@/components/features/admin/skeletons/skeletons";
 import { useClientPage } from "@/hooks/admin/useClientPage";
 import { noteFieldClass } from "@/lib/admin/clientPage";
 import { peso } from "@/lib/dashboardFormat";
@@ -41,13 +42,7 @@ export default function ClientPage() {
     );
   }
 
-  if (!details) {
-    return (
-      <AdminShell title="Client">
-        <p className="text-sm text-gray-red/70">Loading…</p>
-      </AdminShell>
-    );
-  }
+  if (!details) return <ClientPageSkeleton />;
 
   const { summary, appointments } = details;
 
@@ -87,7 +82,7 @@ export default function ClientPage() {
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                       <StatCard size="compact" icon={CalendarCheck} label="Visits" value={String(summary.visits)} hint="completed" />
                       <StatCard size="compact" icon={Wallet} label="Total spent" value={peso(summary.totalSpent)} hint="list price of visits" />
-                      <StatCard size="compact" icon={Stamp} label="Loyalty stamps" value={`${summary.stamps} / 10`} />
+                      <StatCard size="compact" icon={Stamp} label="Loyalty stamps" value={page.stampsValue} />
                     </div>
                   </TabSection>
                   <TabSection title="Booking tracker" description="Where a booking is, from booking to the finished visit. It follows their current booking; pick another to see it.">

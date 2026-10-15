@@ -25,6 +25,7 @@ vi.mock("@/services/nailistService", () => ({
 }));
 vi.mock("@/services/serviceService", () => ({ fetchServices: vi.fn().mockResolvedValue([{ id: 1, name: "Gel Polish" }]) }));
 vi.mock("@/services/appointmentService", () => ({
+  ADMIN_APPOINTMENTS_KEY: ["admin", "appointments"],
   fetchAppointments: vi.fn().mockImplementation(async () => [
     { nailist_id: 7, status: "CONFIRMED", appointment_date: dayKey(14) },
     { nailist_id: 7, status: "Cancelled", appointment_date: dayKey(15) },

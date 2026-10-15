@@ -1,39 +1,22 @@
-import { usePreviewVersion } from "@/lib/cmsPreview";
-import { lastSeen } from "../utils/lastSeen";
-import { useEffect, useRef, useState } from "react";
-import type { Nailist } from "../services/nailistService";
-import { fetchTeamContent } from "../services/contentService";
-import type { TeamContent } from "../types";
-import { fetchNailists } from "../services/nailistService";
+import { useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { publicQueries } from "@/lib/publicQueries";
 import { readTeamPage } from "../lib/homeSections";
 import { usePagination } from "./usePagination";
 import { usePhotoStrip } from "./usePhotoStrip";
 
 export function useTeam() {
-  const [nailists, setNailists] = useState<Nailist[]>(() => lastSeen("nailists") ?? []);
-  const [teamContent, setTeamContent] = useState<TeamContent | null>(() => lastSeen("team") ?? null);
-  const [error, setError] = useState(false);
-  const [attempt, setAttempt] = useState(0);
-  // In the admin editor's preview, fetch again when the unsaved changes do
-  const previewVersion = usePreviewVersion();
-  const [loading, setLoading] = useState(() => !(lastSeen("nailists") && lastSeen("team")));
-
-  useEffect(() => {
-    setError(false);
-
-    Promise.all([fetchNailists(), fetchTeamContent()])
-      .then(([nailistsData, teamData]) => {
-        if (!Array.isArray(nailistsData)) throw new Error("Unexpected artist list");
-        setNailists(nailistsData);
-        setTeamContent(teamData);
-      })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
-  }, [attempt, previewVersion]);
+  const nailistsQuery = useQuery(publicQueries.nailists());
+  const teamQuery = useQuery(publicQueries.team());
+  const nailists = nailistsQuery.data ?? [];
+  const teamContent = teamQuery.data ?? null;
+  // The page needs both; a failed refresh keeps showing the copy already loaded
+  const error = (nailistsQuery.isError && !nailistsQuery.data) || (teamQuery.isError && !teamQuery.data);
+  const loading = !error && (nailistsQuery.isPending || teamQuery.isPending);
 
   const reload = () => {
-    setLoading(true);
-    setAttempt((n) => n + 1);
+    void nailistsQuery.refetch();
+    void teamQuery.refetch();
   };
 
   // "Their art": the work each artist uploaded to their gallery

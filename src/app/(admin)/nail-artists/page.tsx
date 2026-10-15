@@ -3,7 +3,7 @@
 import CmsEditor from "@/components/features/admin/cms/CmsEditor";
 import { ItemsNote, PanelSection, SaveBar, TextField } from "@/components/features/admin/cms/fields";
 import ArtistEditor from "@/components/features/admin/catalog/ArtistEditor";
-import { LoadingBar } from "@/components/atoms";
+import { CmsEditorSkeleton } from "@/components/features/admin/skeletons/skeletons";
 import { useArtistsEditor } from "@/hooks/admin/useArtistsEditor";
 import { ARTISTS_PREVIEW_PAGES } from "@/lib/admin/cmsPages";
 
@@ -13,13 +13,7 @@ export default function NailArtists() {
   const editor = useArtistsEditor();
   const { words, setWord, nailists } = editor;
 
-  if (editor.isLoading) {
-    return (
-      <div className="fixed inset-0 z-9999 flex items-center justify-center bg-light-orange">
-        <LoadingBar label="Loading artists" />
-      </div>
-    );
-  }
+  if (editor.isLoading) return <CmsEditorSkeleton title="Artists" />;
 
   return (
     <CmsEditor

@@ -1,53 +1,37 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useAuth, useUser } from "@clerk/nextjs";
+import { useQuery } from "@tanstack/react-query";
 import { Activity, Flame, UserPlus, Users } from "lucide-react";
 import type { DirectoryProfile, DirectoryUser } from "@/components/features/admin/directory/DirectoryProfileCard";
+import { adminQueries } from "../../lib/adminQueries";
 import { countWithin, isClientRole } from "../../lib/directoryStats";
 import { useNavigate, useSearchParams } from "../../lib/router";
-import { fetchWarmLeads } from "../../services/dashboardService";
-import { fetchDirectoryProfiles, fetchDirectoryUsers } from "../../services/directoryService";
+import { useAdminSession } from "./useAdminSession";
 
-// Clients & Bookings: the clients, their Clerk details, the warm leads and the stat cards
+const NO_PROFILES: Record<string, DirectoryProfile> = {};
+
+// Clients & Bookings: the clients, their Clerk details, the warm leads and the stat cards. The
+// directory and its Clerk details are the cached queries the Admin Directory shares.
 export function useClientDirectory() {
-  const { getToken, isLoaded: isAuthLoaded } = useAuth();
-  const { user: currentUser } = useUser();
+  const { session, ready } = useAdminSession();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const [users, setUsers] = useState<DirectoryUser[] | null>(null);
-  const [usersFailed, setUsersFailed] = useState(false);
+  const usersQuery = useQuery({ ...adminQueries.directoryUsers(session), enabled: ready });
   // The clients' photos and dates from Clerk, by Clerk id; without them the rows show initials
-  const [profiles, setProfiles] = useState<Record<string, DirectoryProfile>>({});
-  const [profilesLoaded, setProfilesLoaded] = useState(false);
-  const [leadIds, setLeadIds] = useState<Set<string> | null>(null);
-  const [leadsError, setLeadsError] = useState(false);
+  const profilesQuery = useQuery({ ...adminQueries.directoryProfiles(session), enabled: ready });
+  const leadsQuery = useQuery({ ...adminQueries.leads(session), enabled: ready });
 
-  useEffect(() => {
-    if (!isAuthLoaded) return;
-    let live = true;
-    (async () => {
-      const token = await getToken();
-      const [usersResult, profilesResult, leadsResult] = await Promise.allSettled([
-        fetchDirectoryUsers(token, currentUser?.id),
-        fetchDirectoryProfiles(token, currentUser?.id),
-        fetchWarmLeads(token, currentUser?.id),
-      ]);
-      if (!live) return;
-      if (usersResult.status === "fulfilled") setUsers(usersResult.value.filter((user) => isClientRole(user.role)));
-      else setUsersFailed(true);
-      if (profilesResult.status === "fulfilled") {
-        setProfiles(profilesResult.value.profiles);
-        setProfilesLoaded(true);
-      }
-      if (leadsResult.status === "fulfilled") setLeadIds(new Set(leadsResult.value.clerkIds));
-      else setLeadsError(true);
-    })();
-    return () => {
-      live = false;
-    };
-  }, [isAuthLoaded, getToken, currentUser?.id]);
+  const allUsers = usersQuery.data as DirectoryUser[] | undefined;
+  const users = allUsers ? allUsers.filter((user) => isClientRole(user.role)) : null;
+  // A failed refresh keeps the copy already loaded
+  const usersFailed = usersQuery.isError && !allUsers;
+  const profiles = profilesQuery.data ?? NO_PROFILES;
+  const profilesLoaded = profilesQuery.data !== undefined;
+  const leadIds = leadsQuery.data ? new Set(leadsQuery.data) : null;
+  const leadsError = leadsQuery.isError && !leadsQuery.data;
+  // All three requests answered (or failed): until then the cards and lists show placeholders
+  const settled = !usersQuery.isPending && !profilesQuery.isPending && !leadsQuery.isPending;
 
   const clients = users ?? [];
   const leads = leadIds ? clients.filter((u) => leadIds.has(u.id)) : [];
@@ -72,17 +56,20 @@ export function useClientDirectory() {
     openLead: (user: DirectoryUser) => user.user_id && navigate(`/clients/${user.user_id}`),
     leadsLoaded,
     leadsFailed,
+    /** The warm leads are still on their way: the list shows placeholder rows */
+    leadsLoading: !settled,
     /** The line above the warm leads */
     leadsMessage: leadsFailed
       ? "We couldn't load the warm leads."
       : !leadsLoaded
         ? "Loading warm leads…"
         : `${leads.length} warm ${leads.length === 1 ? "lead: made an account or started a booking in the last 60 days, but hasn't" : "leads: made an account or started a booking in the last 60 days, but haven't"} booked a visit yet.`,
+    // A card that can't be worked out once everything answered shows a dash
     stats: [
-      { label: "Total clients", value: users ? clients.length : null, hint: "in the directory", icon: Users },
-      { label: "New clients", value: users && profilesLoaded ? countWithin(clients, profiles, "joinedAt", 30) : null, hint: "joined in the last 30 days", icon: UserPlus },
-      { label: "Active clients", value: users && profilesLoaded ? countWithin(clients, profiles, "lastSignInAt", 30) : null, hint: "signed in in the last 30 days", icon: Activity },
-      { label: "Warm leads", value: users && leadIds && !leadsError ? leads.length : null, hint: "active, but haven't booked yet", icon: Flame },
+      { label: "Total clients", value: users ? clients.length : null, hint: "in the directory", icon: Users, loading: !settled },
+      { label: "New clients", value: users && profilesLoaded ? countWithin(clients, profiles, "joinedAt", 30) : null, hint: "joined in the last 30 days", icon: UserPlus, loading: !settled },
+      { label: "Active clients", value: users && profilesLoaded ? countWithin(clients, profiles, "lastSignInAt", 30) : null, hint: "signed in in the last 30 days", icon: Activity, loading: !settled },
+      { label: "Warm leads", value: users && leadIds && !leadsError ? leads.length : null, hint: "active, but haven't booked yet", icon: Flame, loading: !settled },
     ],
   };
 }

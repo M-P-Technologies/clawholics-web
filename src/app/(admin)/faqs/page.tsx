@@ -4,7 +4,7 @@ import CmsEditor from "@/components/features/admin/cms/CmsEditor";
 import { ItemsNote, LinkField, PanelSection, SaveBar, SubCard, TextField } from "@/components/features/admin/cms/fields";
 import Dropdown from "@/components/features/admin/cms/FAQDropdown";
 import { SortableList } from "@/components/molecules";
-import { LoadingBar } from "@/components/atoms";
+import { CmsEditorSkeleton } from "@/components/features/admin/skeletons/skeletons";
 import { useFaqsEditor } from "@/hooks/admin/useFaqsEditor";
 import { FAQ_PREVIEW_PAGES } from "@/lib/admin/cmsPages";
 import { SITE_LINK_OPTIONS } from "@/lib/homeSections";
@@ -16,13 +16,7 @@ export default function FAQs() {
   const { words } = page;
   const faqs = list.items;
 
-  if (list.loading) {
-    return (
-      <div className="fixed inset-0 z-9999 flex items-center justify-center bg-light-orange">
-        <LoadingBar label="Loading FAQs" />
-      </div>
-    );
-  }
+  if (list.loading) return <CmsEditorSkeleton title="FAQs" />;
 
   return (
     <CmsEditor

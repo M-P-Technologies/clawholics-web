@@ -1,15 +1,15 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { publicQueries } from "@/lib/publicQueries";
 import { useLocation, useNavigate } from "@/lib/router";
 import { useUser, useAuth } from "@clerk/nextjs";
-import { fetchNailists, fetchBookedSlotsDetailed, createBooking } from "@/services/bookingService";
-import { fetchNailistDayOffs, fetchNailistTimeSlots } from "@/services/nailistService";
-import { fetchHomeContent } from "@/services/contentService";
-import { fetchAboutContent } from "@/services/aboutService";
+import { createBooking } from "@/services/bookingService";
+import { bookingQueries } from "@/lib/bookingQueries";
+import { useArtistAvailability } from "../useArtistAvailability";
 import { withSalonLocation } from "@/lib/homeSections";
-import { fetchProfileIfExists } from "@/services/userService";
-import { fetchCategories, type ServiceCategory } from "@/services/catalogService";
+import { accountKeys, accountQueries } from "@/lib/accountQueries";
 import { estimateTotal } from "@/services/pricing";
 import { type Nailist, type BookingState, parseTimeRange } from "@/utils/booking";
 import { CLIENT_PATHS } from "@/lib/client/clientNav";
@@ -19,25 +19,33 @@ export function useBooking() {
   const location = useLocation();
   const { user, isSignedIn } = useUser();
   const { getToken } = useAuth();
+  const queryClient = useQueryClient();
   const state = location.state as BookingState | null;
 
-  const [pageData, setPageData] = useState<Record<string, string> | null>(null);
-  const [isPageLoading, setIsPageLoading] = useState(true);
+  const homeQuery = useQuery(publicQueries.home());
+  const aboutQuery = useQuery(publicQueries.about());
+  const home = homeQuery.data;
+  const about = aboutQuery.data;
+  // The address and map link are edited in About Us; the page waits for them, but works without
+  const aboutSettled = !aboutQuery.isPending;
+  const pageData = useMemo(
+    () => (home && aboutSettled ? withSalonLocation(home, about ?? null) : null),
+    [home, about, aboutSettled],
+  );
+  // A failed refresh keeps showing the copy already loaded
+  const pageError = homeQuery.isError && !home ? "Failed to load location." : "";
+  const isPageLoading = !pageData && !pageError;
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [pageError, setPageError] = useState("");
 
-  const [nailists, setNailists] = useState<Nailist[]>([]);
   const [selectedNailist, setSelectedNailist] = useState<Nailist | null>(null);
 
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
 
-  const [timeSlots, setTimeSlots] = useState<string[]>([]);
-
-  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
-  const [dayOffs, setDayOffs] = useState<number[]>([]);
-  const [customOffs, setCustomOffs] = useState<string[]>([]);
-  const [fullyBookedDates, setFullyBookedDates] = useState<string[]>([]);
+  // The artist's hours, days off, fully booked days and the chosen day's taken times, shared
+  // with the other booking screens (lib/bookingQueries)
+  const { timeSlots, dayOffs, customOffs, fullyBookedDates, bookedSlots, isDayFullyBooked, fetchTakenTimes } =
+    useArtistAvailability(selectedNailist?.id, selectedDate);
 
   const [month, setMonth] = useState(new Date());
 
@@ -59,13 +67,10 @@ export function useBooking() {
   const variants: { id: number; name: string; price: number }[] = state?.variants ?? [];
   const service_category_id: number | null = state?.service_category_id ?? null;
 
-  const [categories, setCategories] = useState<ServiceCategory[]>([]);
+  // The category's add-ons; without the categories, there are none to offer
+  const categories = useQuery(publicQueries.categories()).data ?? [];
   const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null);
   const [selectedAddonIds, setSelectedAddonIds] = useState<number[]>([]);
-
-  useEffect(() => {
-    fetchCategories().then(setCategories).catch(() => setCategories([]));
-  }, []);
 
   const addons = categories.find((c) => c.id === service_category_id)?.addons ?? [];
 
@@ -93,119 +98,28 @@ export function useBooking() {
   const locationText = pageData?.contact_location || "";
 
   useEffect(() => {
-    const loadPageContent = async () => {
-      try {
-        setIsPageLoading(true);
-        setPageError("");
-
-        const [data, about] = await Promise.all([fetchHomeContent(), fetchAboutContent().catch(() => null)]);
-        // The address and map link are edited in About Us
-        setPageData(withSalonLocation(data, about));
-      } catch (err) {
-        console.error("Failed to load booking page content", err);
-        setPageError("Failed to load location.");
-      } finally {
-        setIsPageLoading(false);
-      }
-    };
-
-    loadPageContent();
-  }, []);
-
-  useEffect(() => {
-    if (!selectedNailist) return;
-
-    fetchNailistTimeSlots(selectedNailist.id).then((slots) => {
-      setTimeSlots(slots);
-    });
-  }, [selectedNailist]);
-
-  useEffect(() => {
-    if (!selectedNailist || timeSlots.length === 0) return;
-
-    const loadMonthAvailability = async () => {
-      const start = new Date();
-      const end = new Date();
-      end.setMonth(end.getMonth() + 1);
-
-      const promises = [];
-
-      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, "0");
-        const day = String(d.getDate()).padStart(2, "0");
-        const formatted = `${y}-${m}-${day}`;
-
-        promises.push(
-          fetchBookedSlotsDetailed(selectedNailist.id, formatted).then(
-            (slots) => ({
-              date: formatted,
-              times: slots.map((s: any) => s.appointment_time),
-            }),
-          ),
-        );
-      }
-
-      const results = await Promise.all(promises);
-
-      const dates = results
-        .filter((r) => isDayFullyBooked(r.times))
-        .map((r) => r.date);
-
-      setFullyBookedDates(dates);
-    };
-
-    loadMonthAvailability();
-  }, [selectedNailist, timeSlots]);
-
-  useEffect(() => {
     if (!state) navigate(CLIENT_PATHS.explore);
   }, [state, navigate]);
 
-  useEffect(() => {
-    if (!service_id) return;
-
-    fetchNailists(service_id).then((data) => {
-      setNailists(data);
-      // Coming from an artist's page: that artist is already chosen, if they offer this service
-      setSelectedNailist(data.find((n: Nailist) => n.id === state?.nailist_id) ?? null);
-      setSelectedDate("");
-      setSelectedTime("");
-      setBookedSlots([]);
-      setTimeSlots([]);
-      setFullyBookedDates([]);
-    });
-  }, [service_id]);
+  // The artists who offer the service
+  const artistsQuery = useQuery({ ...bookingQueries.artists(service_id), enabled: !!service_id });
+  const nailists = useMemo(() => (Array.isArray(artistsQuery.data) ? artistsQuery.data : []), [artistsQuery.data]);
+  // Picked once per service, so a refresh of the list doesn't undo the client's choice
+  const preselectedFor = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!selectedNailist) return;
-
-    fetchNailistDayOffs(selectedNailist.id).then((data) => {
-      setDayOffs(data.regularDays || []);
-      setCustomOffs(data.customDates || []);
-    });
-  }, [selectedNailist]);
-
-  useEffect(() => {
-    if (!selectedNailist || !selectedDate) return;
-
-    fetchBookedSlotsDetailed(selectedNailist.id, selectedDate).then((slots) => {
-      setBookedSlots(slots.map((s: any) => s.appointment_time));
-    });
-  }, [selectedNailist, selectedDate]);
+    if (!artistsQuery.data || preselectedFor.current === service_id) return;
+    preselectedFor.current = service_id;
+    // Coming from an artist's page: that artist is already chosen, if they offer this service
+    setSelectedNailist(nailists.find((n: Nailist) => n.id === state?.nailist_id) ?? null);
+    setSelectedDate("");
+    setSelectedTime("");
+  }, [artistsQuery.data, nailists, service_id]);
 
   const isOverlapping = (a: string, b: string) => {
     const r1 = parseTimeRange(a);
     const r2 = parseTimeRange(b);
     return r1.start < r2.end && r2.start < r1.end;
-  };
-
-  const isDayFullyBooked = (bookedSlots: string[]) => {
-    if (timeSlots.length === 0) return false;
-
-    return timeSlots.every((slot) =>
-      bookedSlots.some((b) => isOverlapping(b, slot)),
-    );
   };
 
   const isDisabledDate = (date: Date) => {
@@ -328,14 +242,9 @@ export function useBooking() {
       return;
     }
 
-    const latest = await fetchBookedSlotsDetailed(
-      selectedNailist.id,
-      selectedDate,
-    );
+    const latest = await fetchTakenTimes(selectedDate);
 
-    const conflict = latest.some((s: any) =>
-      isOverlapping(selectedTime, s.appointment_time),
-    );
+    const conflict = latest.some((taken) => isOverlapping(selectedTime, taken));
 
     if (conflict) {
       showModal(
@@ -346,8 +255,8 @@ export function useBooking() {
       return;
     }
 
-    const token = await getToken();
-    const profile = await fetchProfileIfExists(user.id, token);
+    // The cached profile, asked for again only when it's no longer fresh
+    const profile = await queryClient.fetchQuery(accountQueries.profile(user.id, getToken));
 
     // Safety check in case they bypassed the service page
     if (!profile || !profile.onboarded) {
@@ -381,7 +290,9 @@ export function useBooking() {
         appointment_time: selectedTime,
         variant_id: selectedVariantId,
         addon_ids: selectedAddonIds,
-      }, token);
+      }, await getToken());
+      // The new booking shows on the client's profile
+      void queryClient.invalidateQueries({ queryKey: accountKeys.appointments(user.id) });
     } catch (err: any) {
       if (err?.status !== 409) {
         showModal(
@@ -448,9 +359,6 @@ export function useBooking() {
     setSelectedNailist(found || null);
     setSelectedDate("");
     setSelectedTime("");
-    setBookedSlots([]);
-    setTimeSlots([]);
-    setFullyBookedDates([]);
   };
 
   const handleDateSelect = async (date: Date | undefined) => {
@@ -458,9 +366,7 @@ export function useBooking() {
 
     const formatted = toLocalDateString(date);
 
-    const slots = await fetchBookedSlotsDetailed(selectedNailist.id, formatted);
-
-    const times = slots.map((s: any) => s.appointment_time);
+    const times = await fetchTakenTimes(formatted);
 
     if (timeSlots.length === 0) return;
     const fullyBooked = isDayFullyBooked(times);
@@ -470,8 +376,8 @@ export function useBooking() {
       return;
     }
 
+    // The day's taken times are now cached for its time list
     setSelectedDate(formatted);
-    setBookedSlots(times);
     setSelectedTime("");
   };
 
@@ -481,5 +387,5 @@ export function useBooking() {
   const closeModal = () => setModalOpen(false);
   const reloadPage = () => window.location.reload();
 
-  return { priceLabel, pageData, isPageLoading, pageError, nailists, selectedNailist, setSelectedNailist, selectedDate, setSelectedDate, selectedTime, setSelectedTime, timeSlots, setTimeSlots, setBookedSlots, fullyBookedDates, setFullyBookedDates, month, setMonth, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, pricing_type, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, selectedPrice, locationUrl, locationText, isDayFullyBooked, isDisabledDate, toLocalDate, toLocalDateString, isTimeBlocked, isPastTimeToday, formatSlot, showModal, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage };
+  return { priceLabel, pageData, isPageLoading, pageError, nailists, selectedNailist, setSelectedNailist, selectedDate, setSelectedDate, selectedTime, setSelectedTime, timeSlots, fullyBookedDates, month, setMonth, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, pricing_type, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, selectedPrice, locationUrl, locationText, isDayFullyBooked, isDisabledDate, toLocalDate, toLocalDateString, isTimeBlocked, isPastTimeToday, formatSlot, showModal, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage };
 }

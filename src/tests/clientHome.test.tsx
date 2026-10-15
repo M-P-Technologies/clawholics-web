@@ -16,6 +16,8 @@ vi.mock("@/services/serviceService", () => ({ fetchServices: () => Promise.resol
 vi.mock("@/services/contentService", () => ({ fetchHomeContent: () => Promise.resolve(home) }));
 let account: Record<string, unknown>;
 vi.mock("@/hooks/client/useMyAccount", () => ({ useMyAccount: () => account }));
+let birthday: Record<string, unknown>;
+vi.mock("@/hooks/useBirthdayVoucher", () => ({ useBirthdayVoucher: () => birthday }));
 
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ["Date"] });
@@ -24,11 +26,14 @@ beforeEach(() => {
   navigate.mockReset();
   account = {
     dbUser: { first_name: "Ana", dob: "1998-03-02" }, clerkUser: { firstName: "Ana" },
-    nextAppointment: null, pastViews: [], appointments: [], currentTime: Date.now(), stamps: 3,
+    nextAppointment: null, pastViews: [], appointments: [], currentTime: Date.now(), stamps: 3, stampTarget: 10,
     payForAppointment: vi.fn(), rescheduleAppointment: vi.fn(), startCancel: vi.fn(), openRewards: vi.fn(), openAppointment: vi.fn(),
   };
 });
 afterEach(() => vi.useRealTimers());
+beforeEach(() => {
+  birthday = { voucher: null, claim: vi.fn(async () => ({})), isClaiming: false, claimError: null };
+});
 
 const view = (over: Record<string, unknown> = {}, apptOver: Record<string, unknown> = {}) => ({
   appt: { id: 5, service_name: "Hard Gel", nailist_id: 1, nailist_name: "Miss Max", appointment_date: "2026-10-17", appointment_time: "09:00-11:00", status: "confirmed", created_at: "2026-10-10 05:00:00", ...apptOver },
@@ -141,5 +146,27 @@ describe("ClientHome", () => {
     account = { ...account, appointments: [...appts, { ...appts[0], id: 99, status: "cancelled" }], pastViews: [view({}, { id: 99, status: "cancelled" })] };
     render(<ClientHome />);
     expect(within(screen.getByRole("group", { name: "Visits" })).getByText("8")).toBeInTheDocument();
+  });
+});
+
+describe("ClientHome birthday voucher", () => {
+  it("shows the birthday voucher: claim it, then its code", () => {
+    const voucher = { id: 1, code: "BDAY-1A2B3C4D", discount_pct: 20, valid_from: "2026-10-01", valid_until: "2026-10-31", status: "ISSUED", claimed_at: null };
+    birthday = { ...birthday, voucher };
+    const { rerender } = render(<ClientHome />);
+    const card = within(screen.getByRole("region", { name: "Your birthday voucher" }));
+    expect(card.getByText(/Claim it before October 31/)).toBeInTheDocument();
+    fireEvent.click(card.getByRole("button", { name: "Claim 20% off" }));
+    expect(birthday.claim).toHaveBeenCalled();
+
+    birthday = { ...birthday, voucher: { ...voucher, status: "CLAIMED" } };
+    rerender(<ClientHome />);
+    expect(screen.getByRole("region", { name: "Your birthday voucher" })).toHaveTextContent("BDAY-1A2B3C4D");
+    expect(screen.queryByRole("button", { name: "Claim 20% off" })).toBeNull();
+  });
+
+  it("has no birthday voucher card without one", () => {
+    render(<ClientHome />);
+    expect(screen.queryByRole("region", { name: "Your birthday voucher" })).toBeNull();
   });
 });

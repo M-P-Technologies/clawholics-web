@@ -9,8 +9,10 @@ import CreateAppointmentDialog from "@/components/features/admin/bookings/Create
 const booking = {
   createAdminAppointment: vi.fn(),
   fetchBookedSlotsDetailed: vi.fn(),
+  fetchBookedSlotsRange: vi.fn(),
   fetchNailists: vi.fn(),
 };
+const fetchServices = vi.fn();
 const nailistApi = {
   fetchNailistDayOffs: vi.fn(),
   fetchNailistTimeSlots: vi.fn(),
@@ -19,8 +21,10 @@ const nailistApi = {
 vi.mock("@/services/bookingService", () => ({
   createAdminAppointment: (...a: unknown[]) => booking.createAdminAppointment(...a),
   fetchBookedSlotsDetailed: (...a: unknown[]) => booking.fetchBookedSlotsDetailed(...a),
+  fetchBookedSlotsRange: (...a: unknown[]) => booking.fetchBookedSlotsRange(...a),
   fetchNailists: (...a: unknown[]) => booking.fetchNailists(...a),
 }));
+vi.mock("@/services/serviceService", () => ({ fetchServices: (...a: unknown[]) => fetchServices(...a) }));
 vi.mock("@/services/nailistService", () => ({
   fetchNailistDayOffs: (...a: unknown[]) => nailistApi.fetchNailistDayOffs(...a),
   fetchNailistTimeSlots: (...a: unknown[]) => nailistApi.fetchNailistTimeSlots(...a),
@@ -38,11 +42,11 @@ const services = [
 ];
 
 // "Today" is Wednesday 2026-10-14. Mara: Sundays off, 2026-10-16 off, 10-15 has 9-10 taken,
-// 10-20 is fully booked. Jun works two slots, the first given as an object, has her own days off
+// 10-20 is fully booked. Jun works two slots, has her own days off
 // (Wednesdays and 10-19) and has 3-4 PM taken on 10-15.
 const slotsFor: Record<number, unknown[]> = {
   1: ["09:00-10:00", "10:00-11:00", "13:00-14:00"],
-  2: [{ start_time: "15:00", end_time: "16:00" }, "17:00-18:00"],
+  2: ["15:00-16:00", "17:00-18:00"],
 };
 let bookedBy: Record<number, Record<string, string[]>> = {};
 const dayOffsFor: Record<number, unknown> = {
@@ -67,6 +71,13 @@ beforeEach(() => {
   booking.fetchBookedSlotsDetailed.mockReset().mockImplementation(async (id: number, date: string) =>
     (bookedBy[id]?.[date] ?? []).map((appointment_time) => ({ appointment_time })),
   );
+  // The month's taken times, in one request
+  booking.fetchBookedSlotsRange.mockReset().mockImplementation(async (id: number, from: string, to: string) =>
+    Object.entries(bookedBy[id] ?? {})
+      .filter(([date]) => date >= from && date <= to)
+      .flatMap(([appointment_date, times]) => times.map((appointment_time) => ({ appointment_date, appointment_time }))),
+  );
+  fetchServices.mockReset().mockResolvedValue(services);
   booking.createAdminAppointment.mockReset().mockResolvedValue({ success: true });
   nailistApi.fetchNailistTimeSlots.mockReset().mockImplementation(async (id: number) => slotsFor[id]);
   nailistApi.fetchNailistDayOffs.mockReset().mockImplementation(async (id: number) => dayOffsFor[id]);
@@ -155,12 +166,10 @@ describe("CreateAppointmentDialog: opening and closing", () => {
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
-  it("loads the services with the frontend origin header and the artists from the booking service", async () => {
+  it("loads the services and every artist (the queries the booking pages share)", async () => {
     await renderModal();
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock.mock.calls[0][0]).toMatch(/\/services$/);
-    expect(fetchMock.mock.calls[0][1]).toEqual({ headers: { "x-clawholics-origin": "frontend" } });
-    expect(booking.fetchNailists).toHaveBeenCalledWith();
+    expect(fetchServices).toHaveBeenCalledTimes(1);
+    expect(booking.fetchNailists).toHaveBeenCalledWith(0);
     expect(optionsOf(artistSelect())).toEqual(["Select nail artist", "Mara", "Jun"]);
     expect(optionsOf(serviceSelect())).toEqual(["Select service", "Gel Polish", "Nail Art", "Pedicure", "Unassigned"]);
   });
@@ -234,7 +243,7 @@ describe("CreateAppointmentDialog: loading and loading failures", () => {
   });
 
   it("shows a message when the services can't be loaded", async () => {
-    fetchMock.mockResolvedValue({ ok: false, json: async () => ({}) });
+    fetchServices.mockRejectedValue(new Error("down"));
     render(<CreateAppointmentDialog onClose={vi.fn()} onCreated={vi.fn()} />);
     expect(await screen.findByRole("alert")).toHaveTextContent("Failed to load services.");
     expect(serviceSelect()).toHaveTextContent("Select service");
@@ -264,10 +273,8 @@ describe("CreateAppointmentDialog: loading and loading failures", () => {
   it("shows a message when the booked slots of a chosen date can't be loaded", async () => {
     await renderModal();
     await chooseArtist("Mara");
-    // the click's own lookup answers; the lookup that follows the date change fails
-    let calls = 0;
     booking.fetchBookedSlotsDetailed.mockImplementation(async (_id: number, date: string) => {
-      if (date === "2026-10-15" && ++calls === 2) throw new Error("x");
+      if (date === "2026-10-15") throw new Error("x");
       return [];
     });
     fireEvent.click(dayButtons(/October 15th, 2026/)[0]);
@@ -369,12 +376,11 @@ describe("CreateAppointmentDialog: date and time", () => {
     expect(dayButtons(/October 19th, 2026/)[0]).toBeEnabled();
   });
 
-  it("checks the month for booked slots of the chosen artist, day by day", async () => {
+  it("checks the month for booked slots of the chosen artist, in one request", async () => {
     await renderModal();
     await chooseArtist("Mara");
-    await waitFor(() => expect(booking.fetchBookedSlotsDetailed).toHaveBeenCalledWith(1, "2026-10-20"));
-    expect(booking.fetchBookedSlotsDetailed).toHaveBeenCalledWith(1, "2026-10-14");
-    expect(booking.fetchBookedSlotsDetailed).toHaveBeenCalledWith(1, "2026-11-14");
+    await waitFor(() => expect(booking.fetchBookedSlotsRange).toHaveBeenCalledWith(1, "2026-10-14", "2026-11-14"));
+    expect(booking.fetchBookedSlotsRange).toHaveBeenCalledTimes(1);
   });
 
   it("offers each of the artist's slots formatted, and blocks the one that is taken", async () => {
@@ -405,14 +411,6 @@ describe("CreateAppointmentDialog: date and time", () => {
     expect(timeButtons(/1:00 PM - 2:00 PM/)[0]).toHaveAttribute("aria-pressed", "true");
     expect(timeButtons(/10:00 AM - 11:00 AM/)[0]).toHaveAttribute("aria-pressed", "false");
     expect(summaryValue("Time")).toBe("1:00 PM - 2:00 PM");
-  });
-
-  it("reads an artist's slots given as start and end times", async () => {
-    await renderModal();
-    await chooseArtist("Jun");
-    await pickDate(/October 15th, 2026/);
-    expect(timeButtons(/3:00 PM - 4:00 PM/)[0]).toBeDisabled(); // taken, so the object slot was read
-    expect(timeButtons(/5:00 PM - 6:00 PM/)[0]).toBeEnabled();
   });
 
   it("drops the chosen date and time when the artist changes", async () => {
@@ -468,7 +466,8 @@ describe("CreateAppointmentDialog: the two date-and-time blocks, per-artist slot
     booking.fetchBookedSlotsDetailed.mockClear();
     await pickDate(/October 15th, 2026/);
     await waitFor(() => expect(timeButtons(/9:00 AM - 10:00 AM/)[0]).toBeDisabled());
-    expect(booking.fetchBookedSlotsDetailed.mock.calls).toEqual([[1, "2026-10-15"], [1, "2026-10-15"]]);
+    // Asked once, fresh, and the day's time list uses that answer
+    expect(booking.fetchBookedSlotsDetailed.mock.calls).toEqual([[1, "2026-10-15"]]);
     expect(timeButtons(/10:00 AM - 11:00 AM/)[0]).toBeEnabled();
 
     await chooseArtist("Jun");
@@ -476,7 +475,7 @@ describe("CreateAppointmentDialog: the two date-and-time blocks, per-artist slot
     booking.fetchBookedSlotsDetailed.mockClear();
     await pickDate(/October 15th, 2026/);
     await waitFor(() => expect(timeButtons(/3:00 PM - 4:00 PM/)[0]).toBeDisabled());
-    expect(booking.fetchBookedSlotsDetailed.mock.calls).toEqual([[2, "2026-10-15"], [2, "2026-10-15"]]);
+    expect(booking.fetchBookedSlotsDetailed.mock.calls).toEqual([[2, "2026-10-15"]]);
     expect(timeButtons(/5:00 PM - 6:00 PM/)[0]).toBeEnabled();
     expect(screen.queryByRole("button", { name: /9:00 AM - 10:00 AM/ })).not.toBeInTheDocument();
   });

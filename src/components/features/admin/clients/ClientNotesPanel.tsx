@@ -1,10 +1,10 @@
 import { useCallback,useEffect,useRef,useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { adminKeys, adminQueries } from "@/lib/adminQueries";
 import type { Auth } from "@/services/catalogService";
 import {
 addNote,
 deleteNote,
-fetchNextSteps,
-fetchNotes,
 isNotesApiUnavailable,
 saveNextSteps,
 updateNote,
@@ -12,6 +12,7 @@ type ClientNote,
 } from "@/services/clientNotesService";
 import { parseServerTime } from "@/services/serverTime";
 import { Button } from "@/components/atoms";
+import { SectionSkeleton } from "@/components/features/admin/skeletons/skeletons";
 
 interface Props {
   clientUserId: number;
@@ -30,19 +31,15 @@ const fieldClass =
   "w-full rounded-md border border-crimson-light bg-milk px-4 py-2 text-[13px] text-gray-red outline-none focus:ring-2 focus:ring-crimson";
 
 export default function ClientNotesPanel({ clientUserId, tokenFetcher, clerkId }: Props) {
-  const [notes, setNotes] = useState<ClientNote[]>([]);
-  const [nextSteps, setNextSteps] = useState("");
-  const [savedNextSteps, setSavedNextSteps] = useState("");
+  const queryClient = useQueryClient();
   const [newNote, setNewNote] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
   const [deletingId, setDeletingId] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [unavailable, setUnavailable] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [actionError, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // Keep the latest auth inputs in refs so the load effect only reruns for a different client.
+  // Keep the latest auth inputs in refs, so the queries' session doesn't change with them
   const tokenRef = useRef(tokenFetcher);
   const clerkRef = useRef(clerkId);
   useEffect(() => {
@@ -54,32 +51,21 @@ export default function ClientNotesPanel({ clientUserId, tokenFetcher, clerkId }
     [],
   );
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const auth = await getAuth();
-        const [loadedNotes, steps] = await Promise.all([
-          fetchNotes(clientUserId, auth),
-          fetchNextSteps(clientUserId, auth),
-        ]);
-        if (cancelled) return;
-        setNotes(loadedNotes);
-        setNextSteps(steps.text ?? "");
-        setSavedNextSteps(steps.text ?? "");
-        setUnavailable(false);
-      } catch (err) {
-        if (cancelled) return;
-        if (isNotesApiUnavailable(err)) setUnavailable(true);
-        else setError(err instanceof Error ? err.message : "Failed to load notes.");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [clientUserId, getAuth]);
+  // The client's notes and next steps: the same cached queries as the client's page
+  const session = { getToken: tokenFetcher, clerkId: clerkId ?? undefined };
+  const notesQuery = useQuery(adminQueries.clientNotes(clientUserId, session));
+  const stepsQuery = useQuery(adminQueries.clientNextSteps(clientUserId, session));
+  const notes = notesQuery.data ?? [];
+  const savedNextSteps = stepsQuery.data?.text ?? "";
+  // The next steps as typed; until then, as saved
+  const [typedNextSteps, setNextSteps] = useState<string | null>(null);
+  const nextSteps = typedNextSteps ?? savedNextSteps;
+  const setNotes = (update: (prev: ClientNote[]) => ClientNote[]) =>
+    queryClient.setQueryData<ClientNote[]>(adminKeys.clientNotes(clientUserId), (prev) => update(prev ?? []));
+  const loading = notesQuery.isPending || stepsQuery.isPending;
+  const loadError = (notesQuery.data ? null : notesQuery.error) ?? (stepsQuery.data ? null : stepsQuery.error);
+  const unavailable = !!loadError && isNotesApiUnavailable(loadError);
+  const error = actionError ?? (loadError && !unavailable ? loadError.message || "Failed to load notes." : null);
 
   const run = async (action: (auth: Auth) => Promise<void>) => {
     if (busy) return;
@@ -104,8 +90,8 @@ export default function ClientNotesPanel({ clientUserId, tokenFetcher, clerkId }
     run(async (auth) => {
       const saved = await saveNextSteps(clientUserId, nextSteps.trim(), auth);
       const text = saved?.text ?? nextSteps.trim();
-      setNextSteps(text);
-      setSavedNextSteps(text);
+      setNextSteps(null);
+      queryClient.setQueryData(adminKeys.clientNextSteps(clientUserId), (current: object | undefined) => ({ ...current, text }));
     });
 
   const handleAdd = () => {
@@ -141,7 +127,7 @@ export default function ClientNotesPanel({ clientUserId, tokenFetcher, clerkId }
         Private notes <span className="text-[11px] font-semibold normal-case">(admin only)</span>
       </p>
 
-      {loading && <p className="text-[13px]">Loading notes...</p>}
+      {loading && <SectionSkeleton label="Loading notes" />}
 
       {!loading && unavailable && <p className="text-[13px]">Notes aren't available yet.</p>}
 

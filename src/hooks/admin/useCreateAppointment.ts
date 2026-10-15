@@ -1,19 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { API_BASE_URL } from "@/apiConfig";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   isOverlapping,
   toLocalDateString,
   type NailArtist,
   type Service,
 } from "@/lib/admin/createAppointment";
-import {
-  createAdminAppointment,
-  fetchBookedSlotsDetailed,
-  fetchNailists,
-  type AdminAppointmentPayload,
-} from "@/services/bookingService";
+import { adminDataChanged } from "@/lib/adminQueries";
+import { bookingQueries } from "@/lib/bookingQueries";
+import { publicQueries } from "@/lib/publicQueries";
+import { createAdminAppointment, type AdminAppointmentPayload } from "@/services/bookingService";
 import { useArtistAvailability } from "./useArtistAvailability";
 
 // The create-appointment form's state: the client's details, the artist, service, date and time
@@ -24,8 +22,16 @@ export function useCreateAppointment({ onCreated }: { onCreated: () => void }) {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
 
-  const [services, setServices] = useState<Service[]>([]);
-  const [nailists, setNailists] = useState<NailArtist[]>([]);
+  const queryClient = useQueryClient();
+  // The services and artists, shared with the booking pages (cached). Fetched again each time the
+  // form opens (the cached copy shows meanwhile): an artist or service added in the editors a
+  // moment ago must be offered
+  const servicesQuery = useQuery({ ...publicQueries.services(), refetchOnMount: "always" });
+  const nailistsQuery = useQuery({ ...bookingQueries.artists(0), refetchOnMount: "always" });
+  const services = useMemo(() => (servicesQuery.data ?? []) as unknown as Service[], [servicesQuery.data]);
+  const nailists = useMemo(() => (Array.isArray(nailistsQuery.data) ? nailistsQuery.data : []) as unknown as NailArtist[], [nailistsQuery.data]);
+  const loadingServices = servicesQuery.isPending;
+  const loadingNailists = nailistsQuery.isPending;
 
   const [serviceId, setServiceId] = useState("");
   const [nailistId, setNailistId] = useState("");
@@ -33,8 +39,6 @@ export function useCreateAppointment({ onCreated }: { onCreated: () => void }) {
   const [appointmentTime, setAppointmentTime] = useState("");
   const [month, setMonth] = useState(new Date());
 
-  const [loadingServices, setLoadingServices] = useState(false);
-  const [loadingNailists, setLoadingNailists] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const [message, setMessage] = useState("");
@@ -72,51 +76,22 @@ export function useCreateAppointment({ onCreated }: { onCreated: () => void }) {
   }, [selectedService, selectedNailist]);
 
   useEffect(() => {
-    const loadServices = async () => {
-      try {
-        setLoadingServices(true);
+    if (servicesQuery.isError) {
+      console.error(servicesQuery.error);
+      setMessage("Failed to load services.");
+    }
+  }, [servicesQuery.isError, servicesQuery.error]);
 
-        const res = await fetch(`${API_BASE_URL}/services`, {
-          headers: { "x-clawholics-origin": "frontend" }
-        });
-
-        if (!res.ok) {
-          throw new Error("Failed to fetch services");
-        }
-
-        const data = await res.json();
-
-        setServices(data);
-      } catch (err) {
-        console.error(err);
-        setMessage("Failed to load services.");
-      } finally {
-        setLoadingServices(false);
-      }
-    };
-
-    const loadNailists = async () => {
-      try {
-        setLoadingNailists(true);
-
-        const data = await fetchNailists();
-
-        setNailists(data);
-      } catch (err) {
-        console.error(err);
-        setMessage("Failed to load nail artists.");
-      } finally {
-        setLoadingNailists(false);
-      }
-    };
-
-    loadServices();
-    loadNailists();
-  }, []);
+  useEffect(() => {
+    if (nailistsQuery.isError) {
+      console.error(nailistsQuery.error);
+      setMessage("Failed to load nail artists.");
+    }
+  }, [nailistsQuery.isError, nailistsQuery.error]);
 
   const {
-    timeSlots, setBookedSlots, fullyBookedDates, loadingSlots,
-    isDayFullyBooked, isDisabledDate, isTimeBlocked,
+    timeSlots, fullyBookedDates, loadingSlots,
+    isDayFullyBooked, fetchTakenTimes, isDisabledDate, isTimeBlocked,
   } = useArtistAvailability({ selectedNailist, appointmentDate, setAppointmentDate, setAppointmentTime, setMessage });
 
   const resetMessage = () => {
@@ -132,22 +107,21 @@ export function useCreateAppointment({ onCreated }: { onCreated: () => void }) {
     setAppointmentTime("");
     resetMessage();
   
-    if (!selectedNailist || timeSlots.length === 0) {
-      setBookedSlots([]);
+    if (!selectedNailist || timeSlots.length === 0) return;
+
+    // Asked fresh, and kept for the day's time list
+    let times: string[];
+    try {
+      times = await fetchTakenTimes(formatted);
+    } catch (err) {
+      console.error(err);
+      setMessage("Failed to load booked slots.");
       return;
     }
-  
-    const slots = await fetchBookedSlotsDetailed(selectedNailist.id, formatted);
-    const times = slots.map(
-      (slot: { appointment_time: string }) => slot.appointment_time,
-    );
-  
+
     if (isDayFullyBooked(times)) {
       setMessage("This day is already fully booked.");
-      return;
     }
-  
-    setBookedSlots(times);
   };
 
   const handleSubmit = async () => {
@@ -170,14 +144,9 @@ export function useCreateAppointment({ onCreated }: { onCreated: () => void }) {
         return;
       }
 
-      const latest = await fetchBookedSlotsDetailed(
-        selectedNailist.id,
-        appointmentDate,
-      );
+      const latest = await fetchTakenTimes(appointmentDate);
 
-      const conflict = latest.some((slot: { appointment_time: string }) =>
-        isOverlapping(appointmentTime, slot.appointment_time),
-      );
+      const conflict = latest.some((taken) => isOverlapping(appointmentTime, taken));
 
       if (conflict) {
         setMessage("This time slot was just booked. Please select another.");
@@ -199,6 +168,8 @@ export function useCreateAppointment({ onCreated }: { onCreated: () => void }) {
       };
 
       await createAdminAppointment(payload);
+      // The new booking shows on every admin screen
+      void adminDataChanged(queryClient);
 
       onCreated();
     } catch (err: any) {

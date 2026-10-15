@@ -15,7 +15,7 @@ vi.mock("@/services/nailistService", () => ({
   updateNailistDayOffs: vi.fn(), updateNailistServices: vi.fn(), updateNailistTimeSlots: vi.fn(),
 }));
 vi.mock("@/services/serviceService", () => ({ fetchServices: vi.fn().mockResolvedValue([{ id: 1, name: "Gel" }, { id: 2, name: "Art" }]) }));
-vi.mock("@/services/appointmentService", () => ({ fetchAppointments: vi.fn().mockResolvedValue([]) }));
+vi.mock("@/services/appointmentService", () => ({ ADMIN_APPOINTMENTS_KEY: ["admin", "appointments"], fetchAppointments: vi.fn().mockResolvedValue([]) }));
 vi.mock("@/services/uploadService", () => ({ uploadImage: vi.fn() }));
 
 beforeEach(() => show.mockClear());

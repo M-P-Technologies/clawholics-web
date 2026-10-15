@@ -1,47 +1,33 @@
-import { usePreviewVersion } from "@/lib/cmsPreview";
-import { lastSeen } from "../utils/lastSeen";
-import { useEffect, useRef, useState } from "react";
-import { fetchServices } from "../services/serviceService";
-import { fetchHomeContent } from "../services/contentService";
-import type { HomeContent } from "../types";
+import { useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { publicQueries } from "@/lib/publicQueries";
 import type { NailService } from "../services/serviceService";
-import { fetchCategories, type ServiceCategory } from "../services/catalogService";
 import type { ChangeEvent } from "react";
 import { startingPrice } from "../services/pricing";
 import { ctaLink, readServicesPage } from "../lib/homeSections";
 import { usePagination } from "./usePagination";
 
 export function useServices() {
-  const [services, setServices] = useState<NailService[]>(() => lastSeen("services") ?? []);
-  const [filtered, setFiltered] = useState<NailService[]>(() => lastSeen("services") ?? []);
-  const [categories, setCategories] = useState<ServiceCategory[]>(() => lastSeen("categories") ?? []);
-  const [content, setContent] = useState<HomeContent | null>(() => lastSeen("home") ?? null);
+  const servicesQuery = useQuery(publicQueries.services());
+  const contentQuery = useQuery(publicQueries.home());
+  // Categories only group the filter chips, so the page still works without them
+  const categoriesQuery = useQuery(publicQueries.categories());
+  const services = useMemo(() => servicesQuery.data ?? [], [servicesQuery.data]);
+  const categories = categoriesQuery.data ?? [];
+  const content = contentQuery.data ?? null;
 
   const [category, setCategory] = useState<string>("All");
   const [search, setSearch] = useState<string>("");
-  const [error, setError] = useState(false);
-  const [attempt, setAttempt] = useState(0);
-  // In the admin editor's preview, fetch again when the unsaved changes do
-  const previewVersion = usePreviewVersion();
+  // A failed refresh keeps showing the copy already loaded
+  const error = (servicesQuery.isError && !servicesQuery.data) || (contentQuery.isError && !contentQuery.data);
 
-  useEffect(() => {
-    setError(false);
+  const reload = () => {
+    void servicesQuery.refetch();
+    void contentQuery.refetch();
+    void categoriesQuery.refetch();
+  };
 
-    fetchServices()
-      .then((data) => {
-        setServices(data);
-        setFiltered(data);
-      })
-      .catch(() => setError(true));
-
-    fetchHomeContent().then(setContent).catch(() => setError(true));
-    // Categories only group the filter chips, so the page still works without them
-    fetchCategories().then(setCategories).catch(() => setCategories([]));
-  }, [attempt, previewVersion]);
-
-  const reload = () => setAttempt((n) => n + 1);
-
-  useEffect(() => {
+  const filtered = useMemo(() => {
     let result: NailService[] = services;
 
     if (category !== "All") {
@@ -56,7 +42,7 @@ export function useServices() {
       );
     }
 
-    setFiltered(result);
+    return result;
   }, [category, search, services]);
 
   const categoryNames = [

@@ -3,7 +3,7 @@
 import CarouselEditor, { MAX_CAROUSEL_IMAGES } from "@/components/features/admin/cms/CarouselEditor";
 import CmsEditor, { CmsLoadError } from "@/components/features/admin/cms/CmsEditor";
 import { ImageField, PanelSection, SaveBar, TextField } from "@/components/features/admin/cms/fields";
-import { LoadingBar } from "@/components/atoms";
+import { CmsEditorSkeleton } from "@/components/features/admin/skeletons/skeletons";
 import { useAboutEditor } from "@/hooks/admin/useAboutEditor";
 import { ABOUT_DAYS, ABOUT_PREVIEW_PAGES } from "@/lib/admin/aboutEditor";
 
@@ -13,13 +13,7 @@ export default function AboutUs() {
   const editor = useAboutEditor();
   const { content, set, gallery } = editor;
 
-  if (editor.isLoading) {
-    return (
-      <div className="fixed inset-0 z-9999 flex items-center justify-center bg-light-orange">
-        <LoadingBar label="Loading About us" />
-      </div>
-    );
-  }
+  if (editor.isLoading) return <CmsEditorSkeleton title="About Us" />;
 
   if (editor.loadFailed) return <CmsLoadError title="About Us" what="About us" onRetry={editor.retry} />;
 
