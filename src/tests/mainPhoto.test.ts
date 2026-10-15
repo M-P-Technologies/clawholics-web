@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pickMainPhoto } from "../utils/mainPhoto";
+import { pickMainPhoto } from "../features/catalog/lib/mainPhoto";
 
 const photos = ["https://img/a.webp", "https://img/b.webp", "https://img/c.webp"];
 

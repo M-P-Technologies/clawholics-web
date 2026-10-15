@@ -1,5 +1,5 @@
-import { ClientOnly } from "@/components/guards/ClientOnly";
-import Booking from "@/views/booking/Booking";
+import { ClientOnly } from "@/components/shared/ClientOnly";
+import Booking from "@/features/booking/screens/Booking";
 
 export default function Page() {
   return (

@@ -1,11 +1,11 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Faq from "@/views/site/Faq";
+import Faq from "@/features/content/screens/Faq";
 
 const fetchFaqs = vi.fn();
-vi.mock("@/services/faqService", () => ({ fetchFaqs: () => fetchFaqs() }));
+vi.mock("@/features/content/api/faqService", () => ({ fetchFaqs: () => fetchFaqs() }));
 const fetchHomeContent = vi.fn();
-vi.mock("@/services/contentService", () => ({ fetchHomeContent: () => fetchHomeContent() }));
+vi.mock("@/features/content/api/contentService", () => ({ fetchHomeContent: () => fetchHomeContent() }));
 
 beforeEach(() => {
   fetchFaqs.mockReset();

@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import BookingsTable from "@/components/admin/dashboard/BookingsTable";
-import type { Appointment } from "@/services/appointmentService";
+import BookingsTable from "@/features/dashboard/components/BookingsTable";
+import type { Appointment } from "@/features/appointments/api/appointmentService";
 import { paged } from "./fakeAppointmentPages";
 
 vi.mock("@/lib/router", () => ({

@@ -1,8 +1,8 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import ScheduleWeekGrid from "@/components/admin/ScheduleWeekGrid";
-import { weekDays } from "@/services/scheduleAgenda";
-import type { MonthlySchedule, ScheduleAppointment } from "@/services/scheduleService";
+import ScheduleWeekGrid from "@/features/schedule/components/ScheduleWeekGrid";
+import { weekDays } from "@/features/schedule/lib/scheduleAgenda";
+import type { MonthlySchedule, ScheduleAppointment } from "@/features/schedule/api/scheduleService";
 
 const appt = (id: number, over: Partial<ScheduleAppointment>): ScheduleAppointment => ({
   id, nailist_id: 1, nailist_name: "Miss Max", appointment_date: "2026-10-13", appointment_time: "10:00-11:30",

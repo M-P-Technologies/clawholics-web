@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BODY_FONTS, DISPLAY_FONTS, PALETTES, SCRIPT_FONTS, googleFontsHref, readSiteTheme, themeFonts, themeVariables } from "@/lib/siteTheme";
+import { BODY_FONTS, DISPLAY_FONTS, PALETTES, SCRIPT_FONTS, googleFontsHref, readSiteTheme, themeFonts, themeVariables } from "@/features/content/lib/siteTheme";
 
 describe("site theme", () => {
   it("offers six colour sets and five fonts for each of display, script and body", () => {

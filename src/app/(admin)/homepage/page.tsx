@@ -1,4 +1,4 @@
-import Homepage from "@/admin/content-management/Homepage";
+import Homepage from "@/features/cms/screens/Homepage";
 
 export default function Page() {
   return <Homepage />;

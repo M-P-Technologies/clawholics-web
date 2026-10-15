@@ -1,6 +1,6 @@
 import { act, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
-import FloatingFacebookButton from "@/components/home/FloatingFacebookButton";
+import FloatingFacebookButton from "@/features/content/components/FloatingFacebookButton";
 
 const scrollTo = (y: number) =>
   act(() => {

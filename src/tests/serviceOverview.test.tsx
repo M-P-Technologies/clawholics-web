@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import ServiceOverview from "@/components/booking/ServiceOverview";
+import ServiceOverview from "@/features/booking/components/ServiceOverview";
 
 const service = {
   name: "Softgel Extensions", category: "Manicure", description: "Lightweight, flexible nail extensions.",

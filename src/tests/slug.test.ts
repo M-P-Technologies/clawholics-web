@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { artistPath, findBySlugOrId, servicePath, slugify } from "../utils/slug";
+import { artistPath, findBySlugOrId, servicePath, slugify } from "../lib/slug";
 
 const services = [
   { id: 1, name: "Softgel Extensions" },

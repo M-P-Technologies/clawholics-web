@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import Schedule from "@/admin/front-desk/Schedule";
-import type { MonthlySchedule, ScheduleAppointment } from "@/services/scheduleService";
+import Schedule from "@/features/schedule/screens/Schedule";
+import type { MonthlySchedule, ScheduleAppointment } from "@/features/schedule/api/scheduleService";
 
 const appt = (id: number, date: string, client: string): ScheduleAppointment => ({
   id, nailist_id: 1, nailist_name: "Ana", appointment_date: date, appointment_time: "10:00-11:00",
@@ -13,11 +13,11 @@ const fetchMonthlySchedule = vi.fn(async (month: string): Promise<MonthlySchedul
   nailists: [{ id: 1, name: "Ana" }], timeSlots: [], dayOffs: [], appointments: byMonth[month] ?? [],
 }));
 
-vi.mock("@/services/scheduleService", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/services/scheduleService")>()),
+vi.mock("@/features/schedule/api/scheduleService", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/features/schedule/api/scheduleService")>()),
   fetchMonthlySchedule: (month: string) => fetchMonthlySchedule(month),
 }));
-vi.mock("@/components/admin/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
+vi.mock("@/components/layout/admin/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
 vi.mock("@/components/ui/ToastProvider", () => ({ useToast: () => ({ show: vi.fn() }) }));
 
 beforeEach(() => {

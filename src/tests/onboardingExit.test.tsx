@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useOnboarding } from "@/hooks/useOnboarding";
+import { useOnboarding } from "@/features/auth/hooks/useOnboarding";
 
 const show = vi.fn();
 const navigate = vi.fn();
@@ -18,10 +18,10 @@ vi.mock("@clerk/nextjs", () => {
 });
 vi.mock("@/lib/router", () => ({ useNavigate: () => navigate }));
 vi.mock("@/components/ui/ToastProvider", () => ({ useToast: () => ({ show }) }));
-const { ProfileError } = await vi.importActual<typeof import("@/services/userService")>("@/services/userService");
-vi.mock("@/services/userService", async () => ({
-  ...(await vi.importActual<typeof import("@/services/userService")>("@/services/userService")),
-  // The profile query (lib/accountQueries) asks through fetchProfileIfExists: a 404 is no profile
+const { ProfileError } = await vi.importActual<typeof import("@/features/profile/api/userService")>("@/features/profile/api/userService");
+vi.mock("@/features/profile/api/userService", async () => ({
+  ...(await vi.importActual<typeof import("@/features/profile/api/userService")>("@/features/profile/api/userService")),
+  // The profile query (lib/tanstack-query/accountQueries) asks through fetchProfileIfExists: a 404 is no profile
   fetchProfileIfExists: async (...args: unknown[]) => {
     try {
       return await fetchProfile(...args);
@@ -33,7 +33,7 @@ vi.mock("@/services/userService", async () => ({
   updateProfile: (...args: unknown[]) => updateProfile(...args),
 }));
 
-const { ProfileSaveError } = await import("@/services/userService");
+const { ProfileSaveError } = await import("@/features/profile/api/userService");
 
 // The warning is sent on a timer, once the browser has moved off /onboarding
 const settle = () => act(() => new Promise((resolve) => setTimeout(resolve, 10)));

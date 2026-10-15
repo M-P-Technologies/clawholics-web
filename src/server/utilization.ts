@@ -1,7 +1,7 @@
 import "server-only";
 import { getSql } from "./db";
-import { addDays, resolvePeriod } from "../lib/dashboardPeriods";
-import type { ArtistUtilization, Utilization } from "../services/dashboardTypes";
+import { addDays, resolvePeriod } from "../features/dashboard/lib/dashboardPeriods";
+import type { ArtistUtilization, Utilization } from "../features/dashboard/types";
 import { holdsSlot } from "./appointments";
 
 // The bookings that hold a slot

@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import ContactUs from "../views/site/ContactUs";
-import { fetchHomeContent } from "../services/contentService";
+import ContactUs from "../features/content/screens/ContactUs";
+import { fetchHomeContent } from "../features/content/api/contentService";
 
-vi.mock("../services/contentService", () => ({
+vi.mock("../features/content/api/contentService", () => ({
   fetchHomeContent: vi.fn(),
 }));
 // The page takes the address from About Us; that load isn't what these tests are about
-vi.mock("../services/aboutService", () => ({
+vi.mock("../features/content/api/aboutService", () => ({
   fetchAboutContent: vi.fn(async () => ({ about_location: "7th 3rd St", about_location_url: "https://maps.test/salon" })),
 }));
 

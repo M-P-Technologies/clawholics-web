@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import BookingOptions from "../components/booking/BookingOptions";
+import BookingOptions from "../features/booking/components/BookingOptions";
 
 const variants = [
   { id: 1, name: "Cat Eye - Volume", price: 550 },

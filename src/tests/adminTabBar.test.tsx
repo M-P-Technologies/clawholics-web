@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import AdminTabBar from "@/components/admin/AdminTabBar";
+import AdminTabBar from "@/components/layout/admin/AdminTabBar";
 
 let pathname = "/clients";
 const openUserProfile = vi.fn();

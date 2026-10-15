@@ -1,8 +1,8 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Home from "@/views/site/Home";
+import Home from "@/features/content/screens/Home";
 
-vi.mock("@/hooks/useHome", () => ({
+vi.mock("@/features/content/hooks/useHome", () => ({
   useHome: () => ({
     retryProfile: () => {}, contentError: false, reloadContent: () => {}, isBusy: false,
     content: { home_title: "Clawholics.", home_services_subtitle: "", home_about_subtitle: "", home_about_image: "", home_hero_image: "" },

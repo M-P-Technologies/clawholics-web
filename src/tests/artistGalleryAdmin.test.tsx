@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import NailArtistGallery from "@/components/admin/NailArtistGallery";
+import NailArtistGallery from "@/features/cms/components/NailArtistGallery";
 
 const show = vi.fn();
 const fetchNailistGallery = vi.fn();
@@ -9,12 +9,12 @@ const deleteNailistGalleryImage = vi.fn();
 const uploadImage = vi.fn();
 
 vi.mock("@/components/ui/ToastProvider", () => ({ useToast: () => ({ show }) }));
-vi.mock("@/services/nailistService", () => ({
+vi.mock("@/features/catalog/api/nailistService", () => ({
   fetchNailistGallery: (...a: unknown[]) => fetchNailistGallery(...a),
   addNailistGalleryImage: (...a: unknown[]) => addNailistGalleryImage(...a),
   deleteNailistGalleryImage: (...a: unknown[]) => deleteNailistGalleryImage(...a),
 }));
-vi.mock("@/services/uploadService", () => ({
+vi.mock("@/lib/uploadService", () => ({
   PHOTO_UPLOAD_OPTIONS: { maxWidthOrHeight: 1600, maxSizeKB: 400 },
   uploadImage: (...a: unknown[]) => uploadImage(...a),
 }));

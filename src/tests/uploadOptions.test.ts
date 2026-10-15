@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("browser-image-compression", () => ({ default: vi.fn() }));
 
 import imageCompression from "browser-image-compression";
-import { uploadImage } from "../services/uploadService";
+import { uploadImage } from "../lib/uploadService";
 
 const png = () => new File([new Uint8Array(10)], "shot.png", { type: "image/png" });
 const blobOfKB = (kb: number) =>
@@ -54,7 +54,7 @@ describe("uploadImage compression options", () => {
 
 describe("PHOTO_UPLOAD_OPTIONS", () => {
   it("keeps 1600px and up to 400KB for photos shown large, within the server's 500KB limit", async () => {
-    const { PHOTO_UPLOAD_OPTIONS } = await import("../services/uploadService");
+    const { PHOTO_UPLOAD_OPTIONS } = await import("../lib/uploadService");
     expect(PHOTO_UPLOAD_OPTIONS).toEqual({ maxWidthOrHeight: 1600, maxSizeKB: 400 });
 
     vi.mocked(imageCompression).mockResolvedValue(blobOfKB(300));

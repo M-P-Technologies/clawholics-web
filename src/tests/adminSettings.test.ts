@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fromForm, sameForm, settingsProblem, toForm } from "@/lib/admin/settings";
+import { fromForm, sameForm, settingsProblem, toForm } from "@/features/settings/lib/settings";
 
 describe("admin settings form", () => {
   const form = toForm({ downpayment_amount: 500, payment_methods: ["GCASH", "MANUAL", "QRPH"], birthday_discount_pct: 20, loyalty_stamps_required: 8 });

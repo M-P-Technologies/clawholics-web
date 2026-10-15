@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import ClientPage from "@/admin/front-desk/ClientPage";
+import ClientPage from "@/features/clients/screens/ClientPage";
 
 const fetchClient = vi.fn();
 const fetchNotes = vi.fn();
@@ -8,8 +8,8 @@ const addNote = vi.fn();
 const deleteNote = vi.fn();
 const fetchNextSteps = vi.fn();
 const saveNextSteps = vi.fn();
-vi.mock("@/services/clientNotesService", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/services/clientNotesService")>()),
+vi.mock("@/features/clients/api/clientNotesService", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/features/clients/api/clientNotesService")>()),
   fetchClient: (...a: unknown[]) => fetchClient(...a),
   fetchNotes: (...a: unknown[]) => fetchNotes(...a),
   addNote: (...a: unknown[]) => addNote(...a),
@@ -18,12 +18,12 @@ vi.mock("@/services/clientNotesService", async (importOriginal) => ({
   saveNextSteps: (...a: unknown[]) => saveNextSteps(...a),
 }));
 const setReviewApproval = vi.fn();
-vi.mock("@/services/reviewService", () => ({ setReviewApproval: (...a: unknown[]) => setReviewApproval(...a) }));
+vi.mock("@/features/reviews/api/reviewService", () => ({ setReviewApproval: (...a: unknown[]) => setReviewApproval(...a) }));
 vi.mock("@/lib/router", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/router")>()),
   useParams: () => ({ id: "7" }),
 }));
-vi.mock("@/components/admin/SideBar", () => ({ default: () => <div /> }));
+vi.mock("@/components/layout/admin/SideBar", () => ({ default: () => <div /> }));
 vi.mock("@/components/ui/ToastProvider", () => ({ useToast: () => ({ show: vi.fn() }) }));
 vi.mock("@clerk/nextjs", () => {
   const auth = { getToken: async () => "tok" };

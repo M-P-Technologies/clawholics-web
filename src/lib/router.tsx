@@ -10,7 +10,7 @@
 //   starts with no state, as react-router did.
 // - Back/Forward to an earlier visit of the same path sees the newest state for that path.
 // - During server rendering and hydration the state is null. Screens that need it on their
-//   first render are mounted client-only (see components/guards/ClientOnly).
+//   first render are mounted client-only (see components/shared/ClientOnly).
 //
 // Temporary: pages should move to query params or their own data fetches, then this goes.
 

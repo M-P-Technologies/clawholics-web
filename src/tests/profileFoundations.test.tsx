@@ -1,13 +1,13 @@
 import { fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import Sheet from "@/components/ui/Sheet";
-import StatusPill from "@/components/profile/StatusPill";
-import { pickNext, relativeDay, sortSoonest, stampsToGo, startOf } from "@/utils/profileView";
-import type { AppointmentView } from "@/components/profile/types";
-import { useServicePhotos } from "@/hooks/useServicePhotos";
+import StatusPill from "@/features/profile/components/StatusPill";
+import { pickNext, relativeDay, sortSoonest, stampsToGo, startOf } from "@/features/profile/lib/profileView";
+import type { AppointmentView } from "@/features/profile/types";
+import { useServicePhotos } from "@/features/profile/hooks/useServicePhotos";
 
 const fetchServices = vi.fn();
-vi.mock("@/services/serviceService", () => ({ fetchServices: () => fetchServices() }));
+vi.mock("@/features/catalog/api/serviceService", () => ({ fetchServices: () => fetchServices() }));
 
 const view = (over: Partial<AppointmentView> & { date?: string } = {}): AppointmentView => ({
   appt: { id: 1, service_name: "Hard Gel", nailist_id: 1, nailist_name: "Max", appointment_date: over.date ?? "2026-10-20", appointment_time: "09:00-11:00", status: "confirmed" },

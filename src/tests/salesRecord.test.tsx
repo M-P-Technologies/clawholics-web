@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import SalesRecord from "@/components/admin/dashboard/SalesRecord";
-import type { DashboardResponse } from "@/services/dashboardTypes";
+import SalesRecord from "@/features/dashboard/components/SalesRecord";
+import type { DashboardResponse } from "@/features/dashboard/types";
 
 vi.mock("@/lib/router", () => ({
   Link: ({ to, children, ...rest }: { to: string; children: React.ReactNode }) => <a href={to} {...rest}>{children}</a>,

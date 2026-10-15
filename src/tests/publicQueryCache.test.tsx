@@ -1,26 +1,26 @@
-// The public site's browser cache (lib/publicQueries) with the app's own query client: screens
+// The public site's browser cache (lib/tanstack-query/publicQueries) with the app's own query client: screens
 // that show the same content share one request, coming back within STALE_MS asks nothing, and
 // after that the cached copy shows at once while it's fetched again.
 import { QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useServices } from "../hooks/useServices";
-import { makeQueryClient, STALE_MS } from "../lib/publicQueries";
-import { fetchServices } from "../services/serviceService";
-import { fetchHomeContent } from "../services/contentService";
-import { fetchCategories } from "../services/catalogService";
+import { useServices } from "../features/catalog/hooks/useServices";
+import { makeQueryClient, STALE_MS } from "../lib/tanstack-query/publicQueries";
+import { fetchServices } from "../features/catalog/api/serviceService";
+import { fetchHomeContent } from "../features/content/api/contentService";
+import { fetchCategories } from "../features/catalog/api/catalogService";
 
-vi.mock("../services/serviceService", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("../services/serviceService")>()),
+vi.mock("../features/catalog/api/serviceService", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../features/catalog/api/serviceService")>()),
   fetchServices: vi.fn(),
 }));
-vi.mock("../services/contentService", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("../services/contentService")>()),
+vi.mock("../features/content/api/contentService", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../features/content/api/contentService")>()),
   fetchHomeContent: vi.fn(),
 }));
-vi.mock("../services/catalogService", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("../services/catalogService")>()),
+vi.mock("../features/catalog/api/catalogService", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../features/catalog/api/catalogService")>()),
   fetchCategories: vi.fn(),
 }));
 

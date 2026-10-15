@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { addDays, mergeSchedules, scheduleClientName, sortByStartTime, startMinutes, toDateKey, weekDays, weekMonthKeys } from "@/services/scheduleAgenda";
-import type { MonthlySchedule } from "@/services/scheduleService";
+import { addDays, mergeSchedules, scheduleClientName, sortByStartTime, startMinutes, toDateKey, weekDays, weekMonthKeys } from "@/features/schedule/lib/scheduleAgenda";
+import type { MonthlySchedule } from "@/features/schedule/api/scheduleService";
 
 describe("scheduleAgenda", () => {
   it("formats a local date key", () => {

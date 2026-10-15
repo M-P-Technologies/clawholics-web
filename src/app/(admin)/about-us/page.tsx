@@ -1,4 +1,4 @@
-import AboutUs from "@/admin/content-management/AboutUs";
+import AboutUs from "@/features/cms/screens/AboutUs";
 
 export default function Page() {
   return <AboutUs />;

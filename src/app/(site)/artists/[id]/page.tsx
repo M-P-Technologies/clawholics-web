@@ -1,4 +1,4 @@
-import ArtistDetail from "@/views/site/ArtistDetail";
+import ArtistDetail from "@/features/catalog/screens/ArtistDetail";
 
 export default function Page() {
   return <ArtistDetail />;

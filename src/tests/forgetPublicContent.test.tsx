@@ -1,8 +1,8 @@
 import { render } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, expect, it } from "vitest";
-import ForgetPublicContent from "@/components/providers/ForgetPublicContent";
-import { publicQueries } from "@/lib/publicQueries";
+import ForgetPublicContent from "@/lib/tanstack-query/ForgetPublicContent";
+import { publicQueries } from "@/lib/tanstack-query/publicQueries";
 
 describe("ForgetPublicContent", () => {
   it("drops the public content cached in the tab, and nothing else", () => {

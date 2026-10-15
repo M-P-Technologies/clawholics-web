@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 // The bridge reads the frame's name and parent when it loads, so each test imports a fresh copy
-const fresh = () => import("@/lib/cmsPreview");
+const fresh = () => import("@/features/cms/lib/cmsPreview");
 
 const realParent = window.parent;
 afterEach(() => {

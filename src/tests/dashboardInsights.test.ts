@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { buildInsights, insightTitle } from "@/lib/dashboardInsights";
-import type { DashboardResponse } from "@/services/dashboardTypes";
+import { buildInsights, insightTitle } from "@/features/dashboard/lib/dashboardInsights";
+import type { DashboardResponse } from "@/features/dashboard/types";
 
 // A busy, steady period with nothing remarkable: no wins, no watch-outs, no tips
 const steady = (): DashboardResponse => ({

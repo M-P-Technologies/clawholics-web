@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import Testimonials from "@/components/home/Testimonials";
+import Testimonials from "@/features/reviews/components/Testimonials";
 
 const review = (over: object = {}) => ({
   id: 1, rating: 5, comment: "Best set yet", photo_url: "https://images.test/reviews/a.webp", created_at: "2026-10-21 02:00:00",

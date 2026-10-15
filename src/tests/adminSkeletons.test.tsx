@@ -8,11 +8,11 @@ import {
   ReportSkeleton,
   ScannerSkeleton,
   ScheduleSkeleton,
-} from "@/components/admin/skeletons";
-import ReportPage from "@/components/admin/dashboard/ReportPage";
+} from "@/components/shared/skeletons";
+import ReportPage from "@/features/dashboard/components/ReportPage";
 
-vi.mock("@/components/admin/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
-vi.mock("@/hooks/admin/useReports", () => ({
+vi.mock("@/components/layout/admin/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
+vi.mock("@/features/dashboard/hooks/useReports", () => ({
   useDashboardReport: () => ({ range: "month", setRange: vi.fn(), data: null, loading: true, failed: false, retry: vi.fn() }),
 }));
 

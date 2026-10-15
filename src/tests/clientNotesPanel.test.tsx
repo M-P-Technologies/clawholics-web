@@ -1,13 +1,13 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import ClientNotesPanel from "../components/admin/ClientNotesPanel";
-import { ApiError } from "../services/catalogService";
-import * as notes from "../services/clientNotesService";
+import ClientNotesPanel from "../features/clients/components/ClientNotesPanel";
+import { ApiError } from "../features/catalog/api/catalogService";
+import * as notes from "../features/clients/api/clientNotesService";
 
-vi.mock("../services/clientNotesService", async () => {
-  const actual = await vi.importActual<typeof import("../services/clientNotesService")>(
-    "../services/clientNotesService",
+vi.mock("../features/clients/api/clientNotesService", async () => {
+  const actual = await vi.importActual<typeof import("../features/clients/api/clientNotesService")>(
+    "../features/clients/api/clientNotesService",
   );
   return {
     ...actual,

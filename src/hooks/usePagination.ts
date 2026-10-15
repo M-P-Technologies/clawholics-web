@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PAGE_SIZE } from "../utils/pagination";
+import { PAGE_SIZE } from "../lib/pagination";
 
 /**
  * Splits a list into pages. `resetKey` is whatever decides which items are in the list (a filter,

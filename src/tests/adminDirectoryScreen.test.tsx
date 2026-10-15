@@ -1,9 +1,9 @@
 // The Admin Directory screen with more admins than fit on a page: the table pages through them.
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import AdminDirectory from "@/admin/front-desk/AdminDirectory";
+import AdminDirectory from "@/features/admins/screens/AdminDirectory";
 
-vi.mock("@/components/admin/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
+vi.mock("@/components/layout/admin/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
 vi.mock("@clerk/nextjs", () => {
   const auth = { getToken: async () => "tok", isLoaded: true };
   const user = { user: { id: "admin_1" } };

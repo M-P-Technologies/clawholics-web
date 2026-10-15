@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useEffectEvent } from "react";
-import { inCmsPreview } from "@/lib/cmsPreview";
+import { inCmsPreview } from "@/features/cms/lib/cmsPreview";
 import { useLocation } from "@/lib/router";
 
 export default function ScrollToTop() {

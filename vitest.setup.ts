@@ -11,23 +11,6 @@ vi.mock("@/assets/logo/logo-primary.svg", () => ({
   default: () => React.createElement("div", { "data-testid": "logo-icon" }),
 }));
 
-vi.mock("@/assets/cherry.svg", () => ({
-  default: () => React.createElement("div", { "data-testid": "cherry-icon" }),
-}));
-
-// Also handle relative imports if needed, though @ alias is preferred
-vi.mock("../assets/bow.svg", () => ({
-  default: () => React.createElement("div", { "data-testid": "bow-icon" }),
-}));
-
-vi.mock("../assets/logo/logo-primary.svg", () => ({
-  default: () => React.createElement("div", { "data-testid": "logo-icon" }),
-}));
-
-vi.mock("../assets/cherry.svg", () => ({
-  default: () => React.createElement("div", { "data-testid": "cherry-icon" }),
-}));
-
 // The app's hooks fetch through TanStack Query (QueryProvider in the root layout). Each render
 // gets a fresh client, so no cached content carries over between tests, and no retries, so a
 // failed request shows its error at once.

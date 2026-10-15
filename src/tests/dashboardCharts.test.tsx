@@ -1,8 +1,8 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import BarChart from "@/components/admin/dashboard/BarChart";
-import DonutChart from "@/components/admin/dashboard/DonutChart";
-import RankedBars from "@/components/admin/dashboard/RankedBars";
+import BarChart from "@/features/dashboard/components/BarChart";
+import DonutChart from "@/features/dashboard/components/DonutChart";
+import RankedBars from "@/features/dashboard/components/RankedBars";
 
 describe("BarChart", () => {
   const data = [

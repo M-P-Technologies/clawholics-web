@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import ActiveBookings from "@/components/admin/dashboard/ActiveBookings";
-import type { Appointment } from "@/services/appointmentService";
+import ActiveBookings from "@/features/dashboard/components/ActiveBookings";
+import type { Appointment } from "@/features/appointments/api/appointmentService";
 import { paged } from "./fakeAppointmentPages";
 
 vi.mock("@/lib/router", () => ({

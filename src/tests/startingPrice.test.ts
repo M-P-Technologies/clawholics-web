@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { estimateTotal, startingPrice, type Priceable } from "../services/pricing";
+import { estimateTotal, startingPrice, type Priceable } from "../features/booking/lib/pricing";
 
 describe("startingPrice", () => {
   it("uses the lowest offered tier price for a tiered service", () => {

@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { NAV_GROUPS } from "@/components/admin/adminNav";
+import { NAV_GROUPS } from "@/components/layout/admin/adminNav";
 
 // The public site may be crawled; the admin screens may not (they also say noindex themselves).
 // A rule matches every path that starts with it, so "/admin" also covers /admin-directory.

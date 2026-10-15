@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import SalonNotes from "@/components/admin/dashboard/SalonNotes";
-import type { DashboardResponse } from "@/services/dashboardTypes";
+import SalonNotes from "@/features/dashboard/components/SalonNotes";
+import type { DashboardResponse } from "@/features/dashboard/types";
 
 vi.mock("@/lib/router", () => ({
   Link: ({ to, children, ...rest }: { to: string; children: React.ReactNode }) => <a href={to} {...rest}>{children}</a>,

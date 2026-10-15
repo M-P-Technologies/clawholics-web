@@ -1,10 +1,10 @@
 import userEvent from "@testing-library/user-event";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import AppointmentsTable, { parseStatusParam } from "@/components/admin/AppointmentsTable";
-import type { Appointment } from "@/services/appointmentService";
+import AppointmentsTable, { parseStatusParam } from "@/features/appointments/components/AppointmentsTable";
+import type { Appointment } from "@/features/appointments/api/appointmentService";
 import { pageOf } from "./fakeAppointmentPages";
-import type { AppointmentPageParams } from "@/services/appointmentService";
+import type { AppointmentPageParams } from "@/features/appointments/api/appointmentService";
 
 let params = new URLSearchParams();
 vi.mock("@/lib/router", async (importOriginal) => ({
@@ -19,17 +19,17 @@ vi.mock("@clerk/nextjs", () => {
 const show = vi.fn();
 vi.mock("@/components/ui/ToastProvider", () => ({ useToast: () => ({ show }) }));
 vi.mock("@/hooks/usePolling", () => ({ usePolling: () => {} }));
-vi.mock("@/components/admin/AppointmentDetailsModal", () => ({
+vi.mock("@/features/appointments/components/AppointmentDetailsModal", () => ({
   default: ({ appointment }: { appointment: Appointment }) => <div role="dialog" aria-label="Appointment details">Details of #{appointment.id}</div>,
 }));
-vi.mock("@/components/admin/CreateAppointmentModal", () => ({ default: () => <div role="dialog" aria-label="New appointment" /> }));
+vi.mock("@/features/appointments/components/CreateAppointmentModal", () => ({ default: () => <div role="dialog" aria-label="New appointment" /> }));
 
 const fetchAppointments = vi.fn();
 // The paged list, answered from fetchAppointments' appointments the way the server would
 const fetchAppointmentPage = vi.fn(async (params: AppointmentPageParams) => pageOf(await fetchAppointments(), params));
 const updateAppointmentStatus = vi.fn();
-vi.mock("@/services/appointmentService", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/services/appointmentService")>()),
+vi.mock("@/features/appointments/api/appointmentService", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/features/appointments/api/appointmentService")>()),
   fetchAppointments: (...a: unknown[]) => fetchAppointments(...a),
   fetchAppointmentPage: (params: AppointmentPageParams) => fetchAppointmentPage(params),
   updateAppointmentStatus: (...a: unknown[]) => updateAppointmentStatus(...a),

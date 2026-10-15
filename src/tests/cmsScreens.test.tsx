@@ -1,17 +1,17 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Homepage from "@/admin/content-management/Homepage";
-import ContactUs from "@/admin/content-management/ContactUs";
-import AboutUs from "@/admin/content-management/AboutUs";
-import NailServices from "@/admin/content-management/NailServices";
-import NailArtists from "@/admin/content-management/NailArtists";
-import FAQs from "@/admin/content-management/FAQs";
+import Homepage from "@/features/cms/screens/Homepage";
+import ContactUs from "@/features/cms/screens/ContactUs";
+import AboutUs from "@/features/cms/screens/AboutUs";
+import NailServices from "@/features/cms/screens/NailServices";
+import NailArtists from "@/features/cms/screens/NailArtists";
+import FAQs from "@/features/cms/screens/FAQs";
 
 // The Homepage editor draws about sixty fields; under a full parallel run its first render can
 // pass the default 5s
 vi.setConfig({ testTimeout: 15_000 });
 
-vi.mock("@/components/admin/SideBar", () => ({ default: () => <div /> }));
+vi.mock("@/components/layout/admin/SideBar", () => ({ default: () => <div /> }));
 const show = vi.fn();
 vi.mock("@/components/ui/ToastProvider", () => ({ useToast: () => ({ show }) }));
 vi.mock("@clerk/nextjs", () => {
@@ -41,24 +41,24 @@ const home = {
 const fetchHomeContent = vi.fn();
 const updateHomeContent = vi.fn();
 const updateTeamContent = vi.fn();
-vi.mock("@/services/contentService", () => ({
+vi.mock("@/features/content/api/contentService", () => ({
   fetchHomeContent: () => fetchHomeContent(),
   updateHomeContent: (...a: unknown[]) => updateHomeContent(...a),
   fetchTeamContent: async () => ({ team_description: "Our reliable artists" }),
   updateTeamContent: (...a: unknown[]) => updateTeamContent(...a),
 }));
-vi.mock("@/services/nailistService", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/services/nailistService")>()),
+vi.mock("@/features/catalog/api/nailistService", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/features/catalog/api/nailistService")>()),
   fetchNailists: async () => [],
 }));
-vi.mock("@/services/catalogService", () => ({ fetchCategories: async () => [] }));
-vi.mock("@/services/faqService", () => ({
+vi.mock("@/features/catalog/api/catalogService", () => ({ fetchCategories: async () => [] }));
+vi.mock("@/features/content/api/faqService", () => ({
   fetchFaqs: async () => [{ id: 1, question: "Do you take walk-ins?", answer: "Yes", display_order: 1 }],
   updateFaq: vi.fn(),
   createFaq: vi.fn(),
   deleteFaq: vi.fn(),
 }));
-vi.mock("@/services/serviceService", () => ({
+vi.mock("@/features/catalog/api/serviceService", () => ({
   fetchServices: async () => [
     { id: 1, name: "Gel manicure", image: "https://img.test/gel.jpg", duration: "1 hr", pricing_type: "flat", price: 500 },
     { id: 2, name: "Lash lift", image: "", duration: "1 hr", pricing_type: "flat", price: 700 },
@@ -78,14 +78,14 @@ const about = {
   about_business_hours_Sunday: "Sunday 9 AM - 8 PM",
 };
 const updateAboutContent = vi.fn();
-vi.mock("@/services/aboutService", () => ({
+vi.mock("@/features/content/api/aboutService", () => ({
   fetchAboutContent: async () => ({ ...about }),
   updateAboutContent: (...a: unknown[]) => updateAboutContent(...a),
   uploadAboutImage: vi.fn(),
 }));
 const updateCarousel = vi.fn();
 const fetchCarousel = vi.fn();
-vi.mock("@/services/carouselService", () => ({
+vi.mock("@/features/content/api/carouselService", () => ({
   fetchCarousel: () => fetchCarousel(),
   updateCarousel: (...a: unknown[]) => updateCarousel(...a),
 }));

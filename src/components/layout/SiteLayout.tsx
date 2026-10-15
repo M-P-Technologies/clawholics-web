@@ -3,11 +3,11 @@
 import type { ReactNode } from "react";
 import clsx from "clsx";
 import { useLocation } from "@/lib/router";
-import { useSiteTheme } from "../../hooks/useSiteTheme";
+import { useSiteTheme } from "../../features/content/hooks/useSiteTheme";
 import MobileTabBar from "./MobileTabBar";
 import Navbar from "./NavBar";
 import Footer from "./Footer";
-import BirthdayVoucherPopup from "../birthday/BirthdayVoucherPopup";
+import BirthdayVoucherPopup from "../../features/vouchers/components/BirthdayVoucherPopup";
 
 // Screens that end without the site footer.
 const NO_FOOTER_PATHS = ["/login", "/signup", "/onboarding", "/profile"];

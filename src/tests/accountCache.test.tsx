@@ -1,14 +1,14 @@
-// The signed-in user's cached data (lib/accountQueries, QueryProvider): the onboarding gate on
+// The signed-in user's cached data (lib/tanstack-query/accountQueries, QueryProvider): the onboarding gate on
 // every page reads one cached profile, and signing out or into another account drops it.
 import { QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { OnboardingGate } from "@/components/guards/OnboardingGate";
-import QueryProvider from "@/components/providers/QueryProvider";
-import { accountKeys } from "@/lib/accountQueries";
-import { adminKeys } from "@/lib/adminQueries";
-import { makeQueryClient } from "@/lib/publicQueries";
+import { OnboardingGate } from "@/features/auth/components/OnboardingGate";
+import QueryProvider from "@/app/providers";
+import { accountKeys } from "@/lib/tanstack-query/accountQueries";
+import { adminKeys } from "@/lib/tanstack-query/adminQueries";
+import { makeQueryClient } from "@/lib/tanstack-query/publicQueries";
 
 const clerk = vi.hoisted(() => ({ userId: "user_1" as string | null }));
 const fetchProfileIfExists = vi.hoisted(() => vi.fn());
@@ -26,8 +26,8 @@ vi.mock("@clerk/nextjs", () => {
   };
 });
 vi.mock("@/lib/router", () => ({ useNavigate: () => navigate }));
-vi.mock("@/services/userService", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/services/userService")>()),
+vi.mock("@/features/profile/api/userService", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/features/profile/api/userService")>()),
   fetchProfileIfExists,
 }));
 

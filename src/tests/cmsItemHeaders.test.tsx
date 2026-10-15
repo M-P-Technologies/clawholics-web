@@ -1,8 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import FAQDropdown from "@/components/admin/FAQDropdown";
-import TACDropdown from "@/components/admin/TACDropdown";
-import type { SortableHandleProps } from "@/components/admin/SortableList";
+import FAQDropdown from "@/features/cms/components/FAQDropdown";
+import TACDropdown from "@/features/cms/components/TACDropdown";
+import type { SortableHandleProps } from "@/features/cms/components/SortableList";
 
 vi.mock("@/components/ui/ToastProvider", () => ({ useToast: () => ({ show: vi.fn() }) }));
 

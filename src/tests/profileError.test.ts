@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { fetchProfile, isEmailTaken, isMissingProfile, ProfileError, ProfileSaveError, updateProfile } from "../services/userService";
+import { fetchProfile, isEmailTaken, isMissingProfile, ProfileError, ProfileSaveError, updateProfile } from "../features/profile/api/userService";
 
 describe("fetchProfile errors", () => {
   afterEach(() => vi.unstubAllGlobals());

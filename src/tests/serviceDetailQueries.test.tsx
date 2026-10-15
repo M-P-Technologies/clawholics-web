@@ -1,22 +1,22 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useAppointment } from "@/hooks/useAppointment";
+import { useAppointment } from "@/features/booking/hooks/useAppointment";
 
 const fetchServices = vi.fn();
 const fetchServiceById = vi.fn();
 const fetchServiceGallery = vi.fn();
-vi.mock("@/services/serviceService", () => ({
+vi.mock("@/features/catalog/api/serviceService", () => ({
   fetchServices: () => fetchServices(),
   fetchServiceById: (id: number) => fetchServiceById(id),
   fetchServiceGallery: (id: number) => fetchServiceGallery(id),
 }));
 const fetchTacs = vi.fn();
-vi.mock("@/services/tacService", () => ({ fetchTacs: () => fetchTacs() }));
+vi.mock("@/features/content/api/tacService", () => ({ fetchTacs: () => fetchTacs() }));
 
 const navigate = vi.fn();
 let params: Record<string, string | undefined> = {};
 vi.mock("@/lib/router", () => ({ useParams: () => params, useNavigate: () => navigate }));
-vi.mock("@/hooks/useStartBooking", () => ({ useStartBooking: () => vi.fn() }));
+vi.mock("@/features/booking/hooks/useStartBooking", () => ({ useStartBooking: () => vi.fn() }));
 
 const gel = { id: 4, name: "Hard Gel", pricing_type: "flat", price: 500, master_price: 0, junior_price: 0, variants: [] };
 

@@ -1,4 +1,4 @@
-import TermsAndConditions from "@/views/legal/TermsAndConditions";
+import TermsAndConditions from "@/features/content/screens/TermsAndConditions";
 
 export default function Page() {
   return (

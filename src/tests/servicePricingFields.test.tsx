@@ -6,7 +6,7 @@ import ServicePricingFields, {
   payloadFromDraft,
   validateDraft,
   type PricingDraft,
-} from "../components/admin/ServicePricingFields";
+} from "../features/cms/components/ServicePricingFields";
 
 const categories = [
   { id: 1, name: "Manicure", display_order: 1, addons: [] },

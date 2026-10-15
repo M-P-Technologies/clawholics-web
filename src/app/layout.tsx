@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { Gloock, Luxurious_Script, Noto_Sans } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ToastProvider } from "@/components/ui/ToastProvider";
-import QueryProvider from "@/components/providers/QueryProvider";
+import QueryProvider from "@/app/providers";
 import ScrollToTop from "@/components/layout/ScrollToTop";
 import "./globals.css";
 

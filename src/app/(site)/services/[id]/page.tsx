@@ -1,5 +1,5 @@
-import { OnboardingGate } from "@/components/guards/OnboardingGate";
-import Appointment from "@/views/booking/Appointment";
+import { OnboardingGate } from "@/features/auth/components/OnboardingGate";
+import Appointment from "@/features/booking/screens/Appointment";
 
 export default function Page() {
   return (

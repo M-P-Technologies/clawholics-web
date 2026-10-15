@@ -1,4 +1,4 @@
-import Schedule from "@/admin/front-desk/Schedule";
+import Schedule from "@/features/schedule/screens/Schedule";
 
 export default function Page() {
   return <Schedule />;

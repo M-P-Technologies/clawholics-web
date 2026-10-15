@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import Sparkline from "@/components/admin/dashboard/Sparkline";
+import Sparkline from "@/features/dashboard/components/Sparkline";
 
 const labels = (values: number[]) => values.map((v, i) => `Day ${i + 1}: ${v}`);
 
