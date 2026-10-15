@@ -1,11 +1,9 @@
 "use client";
 
 import { CircleCheckBig as CheckIcon } from "lucide-react";
-import { Button, LoadingBar } from "@/components/atoms";
+import { Button, Card, LoadingBar } from "@/components/atoms";
 import { SectionHeader, EmptyState } from "@/components/molecules";
 import ClientPage from "@/components/features/client/shell/ClientPage";
-import Panel from "@/components/layout/Panel";
-import Section from "@/components/layout/Section";
 import SummaryRow from "@/components/features/client/booking/SummaryRow";
 import { usePaymentConfirmation } from "@/hooks/client/usePaymentConfirmation";
 import { CLIENT_PATHS } from "@/lib/client/clientNav";
@@ -16,9 +14,9 @@ export default function PaymentConfirmation() {
   if (!appointment_id) {
     return (
       <ClientPage title="Payment" back={CLIENT_PATHS.appointments}>
-        <Section bleed innerClassName="flex min-h-[70vh] items-center justify-center text-center">
+        <div className="flex min-h-[60vh] items-center justify-center text-center">
           <p className="text-lg text-gray-red">Invalid access. No appointment ID.</p>
-        </Section>
+        </div>
       </ClientPage>
     );
   }
@@ -30,13 +28,13 @@ export default function PaymentConfirmation() {
   if (isFailed) {
     return (
       <ClientPage title="Payment" back={CLIENT_PATHS.appointments}>
-        <Section bleed innerClassName="min-h-[70vh] items-center justify-center gap-4 text-center md:gap-8">
-          <SectionHeader align="center" title="Payment failed" />
-          <p className="mx-auto max-w-2xl copy-lead">
+        <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
+          <SectionHeader size="section" title="Payment failed" className="items-center" />
+          <p className="mx-auto max-w-xl text-gray-red/90">
             Your payment session was <b>not completed</b> or may have <b>expired during payment</b>.
             No booking was confirmed and your selected timeslot has been released for other customers.
           </p>
-          <p className="mx-auto max-w-2xl copy-lead">
+          <p className="mx-auto max-w-xl text-gray-red/90">
             If your account was charged or if you have any other concerns, please don't hesitate to
             contact us. We're here to help!
           </p>
@@ -48,7 +46,7 @@ export default function PaymentConfirmation() {
               Contact us
             </Button>
           </div>
-        </Section>
+        </div>
       </ClientPage>
     );
   }
@@ -58,7 +56,7 @@ export default function PaymentConfirmation() {
     if (timedOut) {
       return (
         <ClientPage title="Payment" back={CLIENT_PATHS.appointments}>
-          <Section bleed innerClassName="min-h-[70vh] items-center justify-center">
+          <div className="flex min-h-[60vh] items-center justify-center">
             <EmptyState
               kind="info"
               title="Still confirming your payment"
@@ -74,13 +72,13 @@ export default function PaymentConfirmation() {
                 Contact us
               </Button>
             </EmptyState>
-          </Section>
+          </div>
         </ClientPage>
       );
     }
 
-    // Not inside a Section: its entrance animation uses `translate`, which makes a fixed child
-    // position itself inside the section instead of covering the screen.
+    // Not inside a card or an animated wrapper: one that animates with `translate` makes a fixed
+    // child position itself inside it instead of covering the screen.
     return (
       <LoadingBar
         label="Confirming your payment"
@@ -91,12 +89,12 @@ export default function PaymentConfirmation() {
 
   return (
     <ClientPage title="Payment" back={CLIENT_PATHS.appointments}>
-      <Section bleed innerClassName="min-h-[70vh] max-w-3xl items-center gap-4 text-center md:gap-8">
+      <div className="mx-auto flex min-h-[60vh] w-full max-w-3xl flex-col items-center gap-4 text-center md:gap-6">
         <CheckIcon size={56} className="text-crimson" strokeWidth={1.5} aria-hidden="true" />
 
-        <SectionHeader align="center" title="Payment successful" />
+        <SectionHeader size="section" title="Payment successful" className="items-center" />
 
-        <p className="mx-auto max-w-xl copy-lead">
+        <p className="mx-auto max-w-xl text-gray-red/90">
           Thank you, {payment?.first_name}! Your downpayment of{" "}
           <b>₱500 via {payment?.payment_method ?? "N/A"}</b> has been received. Please check your
           email <b>({payment?.email ?? "your email"})</b> to view your complete appointment details
@@ -104,14 +102,14 @@ export default function PaymentConfirmation() {
         </p>
 
         {data ? (
-          <Panel className="w-full max-w-xl text-left">
+          <Card className="w-full max-w-xl text-left">
             <dl>
               <SummaryRow label="Service" value={data.service_name} />
               <SummaryRow label="Date" value={data.appointment_date} />
               <SummaryRow label="Time" value={data.appointment_time} />
               <SummaryRow label="Amount paid" value="₱500" />
             </dl>
-          </Panel>
+          </Card>
         ) : (
           <p className="text-gray-red">Failed to load appointment details.</p>
         )}
@@ -119,7 +117,7 @@ export default function PaymentConfirmation() {
         <Button to={CLIENT_PATHS.home}>
           Back to home
         </Button>
-      </Section>
+      </div>
     </ClientPage>
   );
 }

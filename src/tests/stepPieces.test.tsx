@@ -41,3 +41,17 @@ describe("booking options", () => {
     expect(screen.queryByText("CHOOSE AN OPTION")).toBeNull();
   });
 });
+
+describe("choice row", () => {
+  it("is a rounded milk row in the app look, the selected one tinted", async () => {
+    const { ChoiceRow } = await import("@/components/molecules");
+    render(<><ChoiceRow selected onClick={vi.fn()}>A</ChoiceRow><ChoiceRow selected={false} onClick={vi.fn()}>B</ChoiceRow></>);
+    const [on, off] = screen.getAllByRole("radio");
+    for (const r of [on, off]) {
+      expect(r).toHaveClass("rounded-xl");
+      expect(r).not.toHaveClass("bg-light-orange", "rounded-sm");
+    }
+    expect(on).toHaveClass("border-crimson", "bg-crimson-light/15");
+    expect(off).toHaveClass("bg-milk");
+  });
+});

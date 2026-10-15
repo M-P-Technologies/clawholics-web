@@ -26,9 +26,9 @@ export default function ChoiceRow({ selected, onClick, children, className, kind
       aria-checked={selected}
       onClick={onClick}
       className={clsx(
-        "flex w-full cursor-pointer justify-start gap-4 whitespace-normal rounded-sm border bg-light-orange px-4 py-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson",
+        "flex w-full cursor-pointer justify-start gap-4 whitespace-normal rounded-xl border px-4 py-3.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson",
         align === "center" ? "items-center" : "items-start",
-        selected ? "border-crimson ring-2 ring-crimson/20" : "border-crimson-light hover:border-crimson",
+        selected ? "border-crimson bg-crimson-light/15" : "border-crimson-light bg-milk hover:border-crimson",
         className,
       )}
     >
@@ -36,12 +36,12 @@ export default function ChoiceRow({ selected, onClick, children, className, kind
         aria-hidden="true"
         className={clsx(
           "flex h-5 w-5 shrink-0 items-center justify-center border-2",
-          kind === "radio" ? "rounded-full" : "rounded-sm",
+          kind === "radio" ? "rounded-full" : "rounded-md",
           kind === "checkbox" && selected ? "border-crimson bg-crimson" : selected ? "border-crimson" : "border-crimson-light",
         )}
       >
         {selected && kind === "radio" && <span className="h-2.5 w-2.5 rounded-full bg-crimson" />}
-        {selected && kind === "checkbox" && <Check size={14} strokeWidth={3} className="text-light-orange" />}
+        {selected && kind === "checkbox" && <Check size={14} strokeWidth={3} className="text-milk" />}
       </span>
       <span className="min-w-0 flex-1 text-gray-red">{children}</span>
       {trailing && <span className="shrink-0 text-gray-red">{trailing}</span>}

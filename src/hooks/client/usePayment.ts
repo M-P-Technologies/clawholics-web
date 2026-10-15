@@ -214,7 +214,6 @@ export function usePayment() {
     }
   };
 
-  const sectionLabel = "label-caps";
 
   // Closing the dialog also runs its follow-up action, so it cannot be dismissed without it.
   const handleModalClose = () => {
@@ -226,5 +225,5 @@ export function usePayment() {
 
   const methods = enabledMethods.map((code) => ({ code, label: PAYMENT_METHOD_LABELS[code], hint: PAYMENT_METHOD_HINTS[code] }));
 
-  return { methods, toggleAgree, navigate, method, setMethod, agree, setAgree, loading, isInvalid, timeLeft, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, modalDismissible, appointment, handlePay, sectionLabel, handleModalClose };
+  return { methods, toggleAgree, navigate, method, setMethod, agree, setAgree, loading, isInvalid, timeLeft, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, modalDismissible, appointment, handlePay, handleModalClose };
 }

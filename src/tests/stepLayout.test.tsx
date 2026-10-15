@@ -2,11 +2,17 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import Booking from "@/views/client/Booking";
 import Reschedule from "@/views/client/Reschedule";
+import Payment from "@/views/client/Payment";
+import PaymentConfirmation from "@/views/client/PaymentConfirmation";
 
 const booking = vi.fn();
 const reschedule = vi.fn();
+const payment = vi.fn();
+const confirmation = vi.fn();
 vi.mock("@/hooks/client/useBooking", () => ({ useBooking: () => booking() }));
 vi.mock("@/hooks/client/useReschedule", () => ({ useReschedule: () => reschedule() }));
+vi.mock("@/hooks/client/usePayment", () => ({ usePayment: () => payment() }));
+vi.mock("@/hooks/client/usePaymentConfirmation", () => ({ usePaymentConfirmation: () => confirmation() }));
 vi.mock("@/lib/router", () => ({
   useNavigate: () => vi.fn(),
   Link: ({ to, children }: { to: string; children: React.ReactNode }) => <a href={to}>{children}</a>,
@@ -50,5 +56,35 @@ describe("step layout", () => {
       expect(screen.getByRole("heading", { name: t }).closest(".rounded-2xl")).not.toBeNull();
     }
     expect(container.querySelector(".\\@container .\\@xl\\:flex-row")).not.toBeNull();
+  });
+});
+
+describe("payment layout", () => {
+  it("payment: cards, the countdown in a tinted box", () => {
+    payment.mockReturnValue({
+      methods: [{ code: "QRPH", label: "QR Ph", hint: "" }], toggleAgree: vi.fn(), method: "QRPH", setMethod: vi.fn(), agree: false, loading: false,
+      isInvalid: false, timeLeft: "09:41", modalOpen: false, modalTitle: "", modalMessage: "", modalAction: undefined, modalButtonText: "OK",
+      modalDismissible: true, handlePay: vi.fn(), handleModalClose: vi.fn(),
+      appointment: { service_name: "Hard Gel", nailist_name: "Max", nailist_category_id: 2, service_price: 650, appointment_date: "2026-10-20", appointment_time: "9:00 AM" },
+    });
+    const { container } = render(<Payment />);
+    expect(container.querySelector(".bg-light-orange")).toBeNull();
+    expect(container.querySelector(".label-caps")).toBeNull();
+    expect(screen.getByRole("heading", { name: "Payment summary" }).closest(".rounded-2xl")).not.toBeNull();
+    expect(screen.getByText("09:41").closest(".rounded-xl")).not.toBeNull(); // surface.tint
+  });
+
+  it("confirmation: the booking in a card, the loader still on its own", () => {
+    confirmation.mockReturnValue({
+      isFailed: false, isConfirmed: true, appointment_id: "9", loading: false, timedOut: false, checkAgain: vi.fn(),
+      payment: { first_name: "Ana" }, data: { service_name: "Hard Gel", appointment_date: "2026-10-20", appointment_time: "9:00 AM" },
+    });
+    const { container, unmount } = render(<PaymentConfirmation />);
+    expect(container.querySelector(".bg-light-orange")).toBeNull();
+    expect(screen.getByText("Amount paid").closest(".rounded-2xl")).not.toBeNull();
+    unmount();
+    confirmation.mockReturnValue({ isFailed: false, isConfirmed: false, appointment_id: "9", loading: false, timedOut: false, checkAgain: vi.fn(), payment: null, data: null });
+    render(<PaymentConfirmation />);
+    expect(screen.getByRole("status").closest(".rounded-2xl")).toBeNull();
   });
 });
