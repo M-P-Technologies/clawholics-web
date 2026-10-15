@@ -1,21 +1,21 @@
 "use client";
 
 import Image from "next/image";
+import clsx from "clsx";
 import { AlertDialog } from "@/components/organisms";
+import { Badge, Button, Card, LoadingBar } from "@/components/atoms";
+import { SectionHeader, EmptyState } from "@/components/molecules";
+import { surface } from "@/components/tokens";
 import BookingOptions from "@/components/features/client/booking/BookingOptions";
-import { Button, LoadingBar } from "@/components/atoms";
 import ArtistSelect from "@/components/features/client/booking/ArtistSelect";
 import DayCalendar from "@/components/features/client/booking/DayCalendar";
-import { SectionHeader, EmptyState } from "@/components/molecules";
-import ClientPage from "@/components/features/client/shell/ClientPage";
-import Panel from "@/components/layout/Panel";
-import Section from "@/components/layout/Section";
 import SummaryRow from "@/components/features/client/booking/SummaryRow";
 import TimeSlotList from "@/components/features/client/booking/TimeSlotList";
+import ClientPage from "@/components/features/client/shell/ClientPage";
 import { useBooking } from "@/hooks/client/useBooking";
 
 export default function Booking() {
-  const { priceLabel, pageData, isPageLoading, pageError, nailists, selectedNailist, selectedDate, selectedTime, setSelectedTime, timeSlots, month, setMonth, modalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, locationUrl, locationText, isDisabledDate, formatSlot, handleContinue, isSubmitting, sectionLabel, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage } = useBooking();
+  const { priceLabel, pageData, isPageLoading, pageError, nailists, selectedNailist, selectedDate, selectedTime, setSelectedTime, timeSlots, month, setMonth, modalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, locationUrl, locationText, isDisabledDate, formatSlot, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage } = useBooking();
 
   if (isPageLoading) {
     return <LoadingBar label="Loading booking details" />;
@@ -24,7 +24,7 @@ export default function Booking() {
   if (pageError || !pageData) {
     return (
       <ClientPage title="Book">
-        <Section bleed innerClassName="min-h-[70vh] items-center justify-center">
+        <div className="flex min-h-[60vh] items-center justify-center">
           <EmptyState
             kind="error"
             title="We couldn't load the booking page"
@@ -37,18 +37,19 @@ export default function Booking() {
               Try again
             </Button>
           </EmptyState>
-        </Section>
+        </div>
       </ClientPage>
     );
   }
 
   return (
     <ClientPage title="Book">
-      <Section bleed>
+      <div className="flex flex-col gap-6">
         <div className="grid grid-cols-1 items-start gap-4 md:gap-8 lg:grid-cols-2">
           {/* BOOKING FORM */}
-          <div className="flex flex-col gap-4 md:gap-8">
+          <Card className="flex flex-col gap-6">
             <SectionHeader
+              size="section"
               title="Book your visit"
               subtitle="Select your preferred artist, and a time that works for you."
             />
@@ -64,13 +65,13 @@ export default function Booking() {
 
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between gap-4">
-                <p className={sectionLabel}>Preferred artist</p>
+                <SectionHeader size="label" title="Preferred artist" />
                 <Button variant="bare" to="/artists" className="text-sm font-bold text-crimson underline underline-offset-4 hover:text-gray-red">
                   Meet our artists
                 </Button>
               </div>
               {nailists.length === 0 ? (
-                <p className="rounded-md border border-crimson-light bg-light-orange px-4 py-4 text-gray-red">
+                <p className={clsx(surface.tint, "px-4 py-4 text-sm text-gray-red")}>
                   No available artists for this service.
                 </p>
               ) : (
@@ -82,13 +83,13 @@ export default function Booking() {
               )}
             </div>
 
-            <div className="flex flex-col gap-4">
-              <p className={sectionLabel}>Pick date &amp; time</p>
+            <div className="flex flex-col gap-3">
+              <SectionHeader size="label" title="Pick date & time" />
               {/* Side by side only when this column itself is wide enough (the two blocks need about 565px);
-                  a screen-width breakpoint is wrong here, since beside the summary panel the column is narrower. */}
+                  a screen-width breakpoint is wrong here, since beside the summary card the column is narrower. */}
               <div className="@container">
               <div className="flex flex-col gap-4 @xl:flex-row">
-                <div className="flex items-center justify-center rounded-sm border border-crimson-light/80 bg-light-orange px-4 py-4">
+                <div className={clsx(surface.tint, "flex items-center justify-center p-4")}>
                   <DayCalendar
                     month={month}
                     onMonthChange={setMonth}
@@ -110,26 +111,25 @@ export default function Booking() {
               </div>
               </div>
             </div>
-          </div>
+          </Card>
 
           {/* SUMMARY */}
-          <Panel title="Booking summary">
+          <Card as="aside" className="flex flex-col gap-4">
+            <SectionHeader size="card" title="Booking summary" />
             {service_image && (
-              <div className="relative aspect-4/3 w-full overflow-hidden rounded-sm bg-sand/50">
+              <div className="relative aspect-4/3 w-full overflow-hidden rounded-xl bg-crimson-light/15">
                 <Image src={service_image} alt={service_name} fill sizes="(max-width: 1024px) 100vw, 560px" className="object-cover" />
               </div>
             )}
-            <div className="flex flex-col gap-4">
-              <p className="w-fit rounded-md border border-crimson-light px-4 py-1 label-caps text-crimson">
-                {service_category}
-              </p>
-              <p className="font-display text-2xl uppercase tracking-widest text-gray-red">
+            <div className="flex flex-col items-start gap-2">
+              <Badge tone="brand">{service_category}</Badge>
+              <p className="font-display text-2xl text-gray-red">
                 {service_name}
               </p>
-              <p className="copy-body">{service_description}</p>
+              <p className="text-sm text-gray-red/80">{service_description}</p>
             </div>
 
-            <dl className="border-t border-crimson-light/80 pt-4 md:pt-8">
+            <dl className="border-t border-crimson-light/40 pt-2">
               <SummaryRow label="Preferred artist" value={selectedNailist ? selectedNailist.name : "-"} />
               <SummaryRow label="Date" value={selectedDate || "-"} />
               <SummaryRow label="Time" value={selectedTime ? formatSlot(selectedTime) : "-"} />
@@ -145,7 +145,7 @@ export default function Booking() {
                 }
               />
             </dl>
-          </Panel>
+          </Card>
         </div>
 
         <div className="flex justify-center">
@@ -158,7 +158,7 @@ export default function Booking() {
             {isSubmitting ? "Reserving your slot..." : "Continue to payment"}
           </Button>
         </div>
-      </Section>
+      </div>
 
       <AlertDialog
         open={modalOpen}

@@ -1,14 +1,14 @@
 "use client";
 
+import clsx from "clsx";
 import { AlertDialog } from "@/components/organisms";
-import { Button, LoadingBar } from "@/components/atoms";
-import DayCalendar from "@/components/features/client/booking/DayCalendar";
+import { Button, Card, LoadingBar } from "@/components/atoms";
 import { SectionHeader } from "@/components/molecules";
-import ClientPage from "@/components/features/client/shell/ClientPage";
-import Panel from "@/components/layout/Panel";
-import Section from "@/components/layout/Section";
+import { surface } from "@/components/tokens";
+import DayCalendar from "@/components/features/client/booking/DayCalendar";
 import SummaryRow from "@/components/features/client/booking/SummaryRow";
 import TimeSlotList from "@/components/features/client/booking/TimeSlotList";
+import ClientPage from "@/components/features/client/shell/ClientPage";
 import { useReschedule } from "@/hooks/client/useReschedule";
 import { formatSlot } from "@/utils/reschedule";
 
@@ -19,25 +19,24 @@ export default function Reschedule() {
 
   return (
     <ClientPage title="Reschedule">
-      <Section bleed>
+      <div className="flex flex-col gap-6">
 
         <div className="grid grid-cols-1 gap-4 md:gap-8 lg:grid-cols-5 lg:gap-16 xl:grid-cols-2">
-          <div className="flex flex-col gap-4 md:gap-8 lg:col-span-3 xl:col-span-1">
+          <Card className="flex flex-col gap-6 lg:col-span-3 xl:col-span-1">
             <SectionHeader
+              size="section"
               title="Reschedule your visit"
               subtitle={`Select a new date and time for your ${appointment.service_name} with ${appointment.nailist_name}.`}
             />
 
-            <div className="flex flex-col gap-4">
-            <p className="label-caps">
-              Pick date &amp; time
-            </p>
+            <div className="flex flex-col gap-3">
+            <SectionHeader size="label" title="Pick date & time" />
 
             {/* Side by side only when this column itself is wide enough (the two blocks need about 565px);
-                a screen-width breakpoint is wrong here, since beside the summary panel the column is narrower. */}
+                a screen-width breakpoint is wrong here, since beside the summary cards the column is narrower. */}
             <div className="@container">
             <div className="flex flex-col gap-4 @xl:flex-row">
-              <div className="flex items-center justify-center rounded-sm border border-crimson-light/80 bg-light-orange px-4 py-4">
+              <div className={clsx(surface.tint, "flex items-center justify-center p-4")}>
                 <DayCalendar
                   month={month}
                   onMonthChange={setMonth}
@@ -59,14 +58,15 @@ export default function Reschedule() {
             </div>
             </div>
             </div>
-          </div>
+          </Card>
 
           <div className="flex h-fit flex-col gap-4 md:gap-8 lg:col-span-2 xl:col-span-1">
-            <Panel title="Current appointment">
-              <p className="font-display text-2xl uppercase tracking-widest text-gray-red">
+            <Card className="flex flex-col gap-3">
+              <SectionHeader size="card" title="Current appointment" />
+              <p className="font-display text-xl text-gray-red">
                 {appointment.service_name}
               </p>
-              <p className="copy-note">
+              <p className="text-sm text-gray-red/80">
                 {appointment.service_description}
               </p>
               <dl>
@@ -74,9 +74,10 @@ export default function Reschedule() {
                 <SummaryRow label="Old date" value={formatDisplayDate(appointment.appointment_date)} />
                 <SummaryRow label="Old time" value={formatSlot(appointment.appointment_time)} />
               </dl>
-            </Panel>
+            </Card>
 
-            <Panel title="New selection">
+            <Card className="flex flex-col gap-3">
+              <SectionHeader size="card" title="New selection" />
               <dl>
                 <SummaryRow
                   label="New date"
@@ -87,7 +88,7 @@ export default function Reschedule() {
                   value={<b>{selectedTime ? formatSlot(selectedTime) : "-"}</b>}
                 />
               </dl>
-            </Panel>
+            </Card>
           </div>
         </div>
 
@@ -100,7 +101,7 @@ export default function Reschedule() {
             {isSubmitting ? "Processing..." : "Confirm reschedule"}
           </Button>
         </div>
-      </Section>
+      </div>
 
       <AlertDialog
         open={modalOpen}

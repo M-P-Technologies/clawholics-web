@@ -424,7 +424,6 @@ export function useBooking() {
     });
   };
 
-  const sectionLabel = "label-caps";
 
   // Holding the slot takes a moment, so the button shows progress and ignores a second click
   const handleContinue = async () => {
@@ -482,5 +481,5 @@ export function useBooking() {
   const closeModal = () => setModalOpen(false);
   const reloadPage = () => window.location.reload();
 
-  return { priceLabel, pageData, isPageLoading, pageError, nailists, selectedNailist, setSelectedNailist, selectedDate, setSelectedDate, selectedTime, setSelectedTime, timeSlots, setTimeSlots, setBookedSlots, fullyBookedDates, setFullyBookedDates, month, setMonth, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, pricing_type, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, selectedPrice, locationUrl, locationText, isDayFullyBooked, isDisabledDate, toLocalDate, toLocalDateString, isTimeBlocked, isPastTimeToday, formatSlot, showModal, handleContinue, isSubmitting, sectionLabel, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage };
+  return { priceLabel, pageData, isPageLoading, pageError, nailists, selectedNailist, setSelectedNailist, selectedDate, setSelectedDate, selectedTime, setSelectedTime, timeSlots, setTimeSlots, setBookedSlots, fullyBookedDates, setFullyBookedDates, month, setMonth, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, pricing_type, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, selectedPrice, locationUrl, locationText, isDayFullyBooked, isDisabledDate, toLocalDate, toLocalDateString, isTimeBlocked, isPastTimeToday, formatSlot, showModal, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage };
 }
