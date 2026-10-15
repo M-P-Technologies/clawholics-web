@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import ArtistOverview from "@/components/booking/ArtistOverview";
+import ArtistOverview from "@/features/booking/components/ArtistOverview";
 
 const nailist = {
   name: "Miss Max", position: "Master Technician", bio: "A highly skilled artist.",

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   DASHBOARD_RANGES, addDays, isDashboardRange, manilaClock, manilaToday, monthKeys, resolvePeriod,
-} from "@/lib/dashboardPeriods";
+} from "@/features/dashboard/lib/dashboardPeriods";
 
 describe("dashboard periods", () => {
   it("knows the five ranges", () => {

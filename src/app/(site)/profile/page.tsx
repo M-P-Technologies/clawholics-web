@@ -1,7 +1,7 @@
 import { Suspense } from "react";
-import { ClientOnly } from "@/components/guards/ClientOnly";
-import { OnboardingGate } from "@/components/guards/OnboardingGate";
-import Profile from "@/views/account/Profile";
+import { ClientOnly } from "@/components/shared/ClientOnly";
+import { OnboardingGate } from "@/features/auth/components/OnboardingGate";
+import Profile from "@/features/profile/screens/Profile";
 
 export default function Page() {
   return (

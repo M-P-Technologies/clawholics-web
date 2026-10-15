@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import PhotoCarousel from "@/components/booking/PhotoCarousel";
+import PhotoCarousel from "@/features/booking/components/PhotoCarousel";
 
 const photos = [1, 2, 3].map((id) => ({ id, image_url: `https://images.clawholicsbymax.com/service-gallery/${id}.webp` }));
 

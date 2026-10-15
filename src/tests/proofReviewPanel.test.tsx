@@ -1,18 +1,18 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import ProofReviewPanel from "../components/admin/ProofReviewPanel";
-import { ApiError } from "../services/catalogService";
-import * as proofs from "../services/proofService";
+import ProofReviewPanel from "../features/appointments/components/ProofReviewPanel";
+import { ApiError } from "../features/catalog/api/catalogService";
+import * as proofs from "../features/payments/api/proofService";
 
 // The real preview modal imports an svg component that the test setup does not mock.
-vi.mock("../components/admin/ImagePreviewModal", () => ({
+vi.mock("../components/shared/ImagePreviewModal", () => ({
   default: ({ imageUrl }: { imageUrl: string | null }) =>
     imageUrl ? <div data-testid="zoom">{imageUrl}</div> : null,
 }));
 
-vi.mock("../services/proofService", async () => {
-  const actual = await vi.importActual<typeof import("../services/proofService")>("../services/proofService");
+vi.mock("../features/payments/api/proofService", async () => {
+  const actual = await vi.importActual<typeof import("../features/payments/api/proofService")>("../features/payments/api/proofService");
   return { ...actual, fetchProofs: vi.fn(), reviewProof: vi.fn() };
 });
 

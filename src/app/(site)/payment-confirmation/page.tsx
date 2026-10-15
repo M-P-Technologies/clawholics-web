@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import { OnboardingGate } from "@/components/guards/OnboardingGate";
-import PaymentConfirmation from "@/views/booking/PaymentConfirmation";
+import { OnboardingGate } from "@/features/auth/components/OnboardingGate";
+import PaymentConfirmation from "@/features/payments/screens/PaymentConfirmation";
 
 export default function Page() {
   return (

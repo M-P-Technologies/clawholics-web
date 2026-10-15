@@ -1,4 +1,4 @@
-import AdminScanner from "@/admin/front-desk/AdminScanner";
+import AdminScanner from "@/features/loyalty/screens/AdminScanner";
 
 export default function Page() {
   return <AdminScanner />;

@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import GlanceCards from "@/components/admin/dashboard/GlanceCards";
+import GlanceCards from "@/features/dashboard/components/GlanceCards";
 
 vi.mock("@/lib/router", () => ({
   Link: ({ to, children, ...rest }: { to: string; children: React.ReactNode }) => <a href={to} {...rest}>{children}</a>,

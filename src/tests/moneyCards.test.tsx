@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import MoneyCards from "@/components/admin/dashboard/MoneyCards";
-import type { Money } from "@/services/dashboardTypes";
+import MoneyCards from "@/features/dashboard/components/MoneyCards";
+import type { Money } from "@/features/dashboard/types";
 
 const money: Money = {
   balanceAtSalon: { value: 1300, previous: 700 },

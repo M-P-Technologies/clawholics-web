@@ -1,4 +1,4 @@
-import Login from "@/views/account/Login";
+import Login from "@/features/auth/screens/Login";
 
 export default function Page() {
   return (

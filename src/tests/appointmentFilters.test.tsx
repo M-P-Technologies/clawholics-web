@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { Appointment } from "../services/appointmentService";
-import { matchesAppointmentFilter } from "../services/appointmentFilters";
+import type { Appointment } from "../features/appointments/api/appointmentService";
+import { matchesAppointmentFilter } from "../features/appointments/lib/appointmentFilters";
 
 const NOW = Date.parse("2026-10-09T12:00:00Z");
 const HOUR = 3_600_000;

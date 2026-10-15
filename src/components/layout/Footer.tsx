@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { publicQueries } from "@/lib/publicQueries";
+import { publicQueries } from "@/lib/tanstack-query/publicQueries";
 import { Link } from "@/lib/router";
 import logo from "../../assets/logo/logo-pink-transparent.png";
-import { readHomeSections } from "../../lib/homeSections";
+import { readHomeSections } from "../../features/content/lib/homeSections";
 import Button from "../ui/Button";
 import Blush from "../ui/Blush";
 import { FacebookIcon } from "../ui/SocialIcons";
-import { platformOf, readSocialLinks, socialHref } from "../../lib/socialLinks";
+import { platformOf, readSocialLinks, socialHref } from "../../features/content/lib/socialLinks";
 
 // Opens a chat with the studio on Facebook.
 

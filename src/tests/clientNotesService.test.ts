@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ApiError } from "../services/catalogService";
+import { ApiError } from "../features/catalog/api/catalogService";
 import {
   addNote,
   deleteNote,
@@ -8,7 +8,7 @@ import {
   isNotesApiUnavailable,
   saveNextSteps,
   updateNote,
-} from "../services/clientNotesService";
+} from "../features/clients/api/clientNotesService";
 
 const auth = { token: "tok", clerkId: "admin_1" };
 

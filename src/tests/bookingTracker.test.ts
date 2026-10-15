@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { appointmentToTrack, manilaTime, trackerSteps } from "@/lib/bookingTracker";
-import type { ClientAppointment } from "@/services/clientNotesService";
+import { appointmentToTrack, manilaTime, trackerSteps } from "@/features/appointments/lib/bookingTracker";
+import type { ClientAppointment } from "@/features/clients/api/clientNotesService";
 
 const appt = (over: Partial<ClientAppointment> = {}): ClientAppointment => ({
   id: 1, appointment_date: "2026-10-20", appointment_time: "10:00-11:00", service_name: "Gel", nailist_name: "Maxine",

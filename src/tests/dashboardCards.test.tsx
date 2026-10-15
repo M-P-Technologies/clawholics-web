@@ -1,9 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { Wallet } from "lucide-react";
 import { describe, expect, it, vi } from "vitest";
-import KpiCard from "@/components/admin/dashboard/KpiCard";
-import NextAppointments from "@/components/admin/dashboard/NextAppointments";
-import PeriodSwitch from "@/components/admin/dashboard/PeriodSwitch";
+import KpiCard from "@/features/dashboard/components/KpiCard";
+import NextAppointments from "@/features/dashboard/components/NextAppointments";
+import PeriodSwitch from "@/features/dashboard/components/PeriodSwitch";
 
 vi.mock("@/lib/router", () => ({
   Link: ({ to, children, ...rest }: { to: string; children: React.ReactNode }) => <a href={to} {...rest}>{children}</a>,

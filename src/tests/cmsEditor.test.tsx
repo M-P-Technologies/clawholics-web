@@ -1,9 +1,9 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import CmsEditor from "@/components/admin/cms/CmsEditor";
-import { PanelSection, SaveBar, TextField } from "@/components/admin/cms/fields";
+import CmsEditor from "@/features/cms/components/CmsEditor";
+import { PanelSection, SaveBar, TextField } from "@/features/cms/components/fields";
 
-vi.mock("@/components/admin/SideBar", () => ({ default: () => <div /> }));
+vi.mock("@/components/layout/admin/SideBar", () => ({ default: () => <div /> }));
 
 const PAGES = [
   { label: "Home", path: "/" },

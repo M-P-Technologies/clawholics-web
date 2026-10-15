@@ -1,6 +1,6 @@
-import { ClientOnly } from "@/components/guards/ClientOnly";
-import { OnboardingGate } from "@/components/guards/OnboardingGate";
-import Reschedule from "@/views/booking/Reschedule";
+import { ClientOnly } from "@/components/shared/ClientOnly";
+import { OnboardingGate } from "@/features/auth/components/OnboardingGate";
+import Reschedule from "@/features/booking/screens/Reschedule";
 
 export default function Page() {
   return (

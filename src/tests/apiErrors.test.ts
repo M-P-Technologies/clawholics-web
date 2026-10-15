@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createCategory } from "../services/catalogService";
-import { BookingError, createBooking } from "../services/bookingService";
+import { createCategory } from "../features/catalog/api/catalogService";
+import { BookingError, createBooking } from "../features/booking/api/bookingService";
 
 const mockFetch = (status: number, body: unknown) =>
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: status < 400, status, json: async () => body }));

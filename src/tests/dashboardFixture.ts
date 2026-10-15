@@ -1,5 +1,5 @@
 // A sample dashboard document for the view tests (not a test file itself)
-import type { DashboardResponse } from "@/services/dashboardTypes";
+import type { DashboardResponse } from "@/features/dashboard/types";
 
 export const dashboardData: DashboardResponse = {
   range: "month",

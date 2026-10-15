@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import ScheduleAgenda, { type AgendaArtist } from "@/components/admin/ScheduleAgenda";
-import type { ScheduleAppointment } from "@/services/scheduleService";
+import ScheduleAgenda, { type AgendaArtist } from "@/features/schedule/components/ScheduleAgenda";
+import type { ScheduleAppointment } from "@/features/schedule/api/scheduleService";
 
 const appt = (over: Partial<ScheduleAppointment>): ScheduleAppointment => ({
   id: 1, nailist_id: 1, nailist_name: "Ana", appointment_date: "2026-10-14", appointment_time: "10:00-11:00",

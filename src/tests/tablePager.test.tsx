@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import TablePager, { paginate } from "@/components/admin/dashboard/TablePager";
+import TablePager, { paginate } from "@/components/shared/TablePager";
 
 const items = Array.from({ length: 965 }, (_, i) => i); // 193 pages of 5
 const pageNumbers = () => screen.getAllByRole("button", { name: /^Page \d+$/ }).map((b) => Number(b.textContent));

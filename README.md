@@ -25,8 +25,9 @@ npm run dev                  # http://localhost:5174
 
 ## Layout
 
-- `src/app/` – routes: `(site)/` public pages, `(admin)/` admin screens (kebab-case URLs such as `/client-directory`), `api/` route handlers
-- `src/views/`, `src/components/`, `src/hooks/`, `src/services/` – screens, components, hooks and API clients
+- `src/app/` – routes: `(site)/` public pages, `(admin)/` admin screens (kebab-case URLs such as `/clients`), `api/` route handlers
+- `src/features/<feature>/` – each feature's `screens/`, `components/`, `hooks/`, `api/` (browser calls to `/api`) and `lib/`
+- `src/components/` (`ui/`, `layout/`, `shared/`), `src/hooks/`, `src/lib/` – what is shared across features, including `lib/tanstack-query/`
 - `src/server/` – server-only code: database, auth, R2, email and the API handlers
 - `supabase/` – Postgres migrations, dev seed and the D1 copy scripts
 - `wrangler.toml` – the legacy Cloudflare Worker's bindings, kept for the D1 export

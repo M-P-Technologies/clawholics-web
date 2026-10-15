@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import DetailsCard from "@/components/profile/DetailsCard";
-import EditDetailsSheet from "@/components/profile/EditDetailsSheet";
+import DetailsCard from "@/features/profile/components/DetailsCard";
+import EditDetailsSheet from "@/features/profile/components/EditDetailsSheet";
 
 describe("DetailsCard", () => {
   it("lists the details read-only, shows a dash for empty ones, and offers Edit", () => {

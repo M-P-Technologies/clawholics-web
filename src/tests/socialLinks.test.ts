@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { readSocialLinks, socialHref, socialLinksProblem, socialLinksToContent } from "@/lib/socialLinks";
-import { withSalonLocation } from "@/lib/homeSections";
+import { readSocialLinks, socialHref, socialLinksProblem, socialLinksToContent } from "@/features/content/lib/socialLinks";
+import { withSalonLocation } from "@/features/content/lib/homeSections";
 
 describe("social links", () => {
   it("shows the three links the site started with until a list is saved", () => {

@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import DirectoryProfileCard, { type DirectoryUser } from "@/components/admin/DirectoryProfileCard";
+import DirectoryProfileCard, { type DirectoryUser } from "@/features/admins/components/DirectoryProfileCard";
 
 vi.mock("@/lib/router", () => ({
   Link: ({ to, children, ...rest }: { to: string; children: React.ReactNode }) => <a href={to} {...rest}>{children}</a>,

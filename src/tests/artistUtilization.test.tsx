@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import ArtistUtilization from "@/components/admin/dashboard/ArtistUtilization";
-import type { Utilization } from "@/services/dashboardTypes";
+import ArtistUtilization from "@/features/dashboard/components/ArtistUtilization";
+import type { Utilization } from "@/features/dashboard/types";
 
 const day = (date: string, offered: number, booked: number, off = false) => ({ date, offered, booked, off });
 const week = (from: string, overall: number | null = 15 / 36): Utilization => ({

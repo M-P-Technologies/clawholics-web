@@ -1,4 +1,4 @@
-import AdminDirectory from "@/admin/front-desk/AdminDirectory";
+import AdminDirectory from "@/features/admins/screens/AdminDirectory";
 
 export default function Page() {
   return <AdminDirectory />;

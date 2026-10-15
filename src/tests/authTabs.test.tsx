@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import AuthTabs from "@/components/ui/AuthTabs";
+import AuthTabs from "@/features/auth/components/AuthTabs";
 
 vi.mock("@/lib/router", () => ({
   Link: ({ to, children, ...rest }: { to: string; children: React.ReactNode }) => <a href={to} {...rest}>{children}</a>,

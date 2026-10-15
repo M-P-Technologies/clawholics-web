@@ -1,28 +1,28 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useArtistDetail } from "@/hooks/useArtistDetail";
-import { useFaqs } from "@/hooks/useFaqs";
-import { usePhotoStrip } from "@/hooks/usePhotoStrip";
+import { useArtistDetail } from "@/features/catalog/hooks/useArtistDetail";
+import { useFaqs } from "@/features/content/hooks/useFaqs";
+import { usePhotoStrip } from "@/features/catalog/hooks/usePhotoStrip";
 
 const fetchNailists = vi.fn();
 const fetchNailistById = vi.fn();
 const fetchNailistGallery = vi.fn();
-vi.mock("@/services/nailistService", () => ({
+vi.mock("@/features/catalog/api/nailistService", () => ({
   fetchNailists: () => fetchNailists(),
   fetchNailistById: (id: number) => fetchNailistById(id),
   fetchNailistGallery: (id: number) => fetchNailistGallery(id),
 }));
 const fetchServices = vi.fn();
-vi.mock("@/services/serviceService", () => ({ fetchServices: () => fetchServices() }));
+vi.mock("@/features/catalog/api/serviceService", () => ({ fetchServices: () => fetchServices() }));
 const fetchFaqs = vi.fn();
-vi.mock("@/services/faqService", () => ({ fetchFaqs: () => fetchFaqs() }));
+vi.mock("@/features/content/api/faqService", () => ({ fetchFaqs: () => fetchFaqs() }));
 const fetchHomeContent = vi.fn();
-vi.mock("@/services/contentService", () => ({ fetchHomeContent: () => fetchHomeContent() }));
+vi.mock("@/features/content/api/contentService", () => ({ fetchHomeContent: () => fetchHomeContent() }));
 
 const navigate = vi.fn();
 let params: Record<string, string | undefined> = {};
 vi.mock("@/lib/router", () => ({ useParams: () => params, useNavigate: () => navigate }));
-vi.mock("@/hooks/useStartBooking", () => ({ useStartBooking: () => vi.fn() }));
+vi.mock("@/features/booking/hooks/useStartBooking", () => ({ useStartBooking: () => vi.fn() }));
 
 const max = { id: 3, name: "Miss Max", position: "", specialty: "", bio: "", image: "", service_ids: [7] };
 

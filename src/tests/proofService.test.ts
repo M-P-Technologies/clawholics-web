@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("../services/uploadService", () => ({ compressImageToWebp: vi.fn() }));
+vi.mock("../lib/uploadService", () => ({ compressImageToWebp: vi.fn() }));
 
-import { compressImageToWebp } from "../services/uploadService";
-import { ApiError } from "../services/catalogService";
+import { compressImageToWebp } from "../lib/uploadService";
+import { ApiError } from "../features/catalog/api/catalogService";
 import {
   PROOF_UPLOAD_OPTIONS,
   fetchProofs,
@@ -11,7 +11,7 @@ import {
   reviewProof,
   uploadProof,
   validateProofFile,
-} from "../services/proofService";
+} from "../features/payments/api/proofService";
 
 const auth = { token: "tok", clerkId: "user_1" };
 

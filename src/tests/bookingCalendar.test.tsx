@@ -1,7 +1,7 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useBooking } from "@/hooks/useBooking";
-import { bookingStateFor } from "@/utils/booking";
+import { useBooking } from "@/features/booking/hooks/useBooking";
+import { bookingStateFor } from "@/features/booking/lib/booking";
 
 const location: { state: unknown } = { state: null };
 const fetchBookedSlotsRange = vi.fn();
@@ -13,20 +13,20 @@ vi.mock("@clerk/nextjs", () => {
   const getToken = async () => "tok";
   return { useUser: () => ({ user, isSignedIn: true }), useAuth: () => ({ getToken }) };
 });
-vi.mock("@/services/bookingService", () => ({
+vi.mock("@/features/booking/api/bookingService", () => ({
   fetchNailists: async () => [{ id: 3, name: "Bea", category_id: 1 }],
   fetchBookedSlotsDetailed: (...args: unknown[]) => fetchBookedSlotsDetailed(...args),
   fetchBookedSlotsRange: (...args: unknown[]) => fetchBookedSlotsRange(...args),
   createBooking: vi.fn(),
 }));
-vi.mock("@/services/nailistService", () => ({
+vi.mock("@/features/catalog/api/nailistService", () => ({
   fetchNailistDayOffs: async () => ({ regularDays: [], customDates: [] }),
   fetchNailistTimeSlots: async () => ["10:00-11:00", "11:00-12:00"],
 }));
-vi.mock("@/services/contentService", () => ({ fetchHomeContent: async () => ({}) }));
-vi.mock("@/services/aboutService", () => ({ fetchAboutContent: async () => ({}) }));
-vi.mock("@/services/userService", () => ({ fetchProfileIfExists: async () => null }));
-vi.mock("@/services/catalogService", () => ({ fetchCategories: async () => [] }));
+vi.mock("@/features/content/api/contentService", () => ({ fetchHomeContent: async () => ({}) }));
+vi.mock("@/features/content/api/aboutService", () => ({ fetchAboutContent: async () => ({}) }));
+vi.mock("@/features/profile/api/userService", () => ({ fetchProfileIfExists: async () => null }));
+vi.mock("@/features/catalog/api/catalogService", () => ({ fetchCategories: async () => [] }));
 
 const service = {
   id: 4,

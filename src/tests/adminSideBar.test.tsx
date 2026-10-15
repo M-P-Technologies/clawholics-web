@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import SideBar from "@/components/admin/SideBar";
+import SideBar from "@/components/layout/admin/SideBar";
 
 vi.mock("@/lib/router", () => ({
   useLocation: () => ({ pathname: "/dashboard" }),

@@ -1,4 +1,4 @@
-import Team from "@/views/site/Team";
+import Team from "@/features/catalog/screens/Team";
 
 export default function Page() {
   return (

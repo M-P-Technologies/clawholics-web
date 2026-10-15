@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { bucketTrend, formatBucketLabel, granularityWord, trendBuckets, trendGranularity } from "@/lib/dashboardTrend";
-import { resolvePeriod } from "@/lib/dashboardPeriods";
+import { bucketTrend, formatBucketLabel, granularityWord, trendBuckets, trendGranularity } from "@/features/dashboard/lib/dashboardTrend";
+import { resolvePeriod } from "@/features/dashboard/lib/dashboardPeriods";
 
 const TODAY = "2026-10-14"; // a Wednesday
 

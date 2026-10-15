@@ -1,13 +1,13 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import BirthdayVoucherPopup from "@/components/birthday/BirthdayVoucherPopup";
+import BirthdayVoucherPopup from "@/features/vouchers/components/BirthdayVoucherPopup";
 
 let pathname = "/";
 vi.mock("@/lib/router", () => ({ useLocation: () => ({ pathname }) }));
 
 const ISSUED = { id: 7, code: "BDAY-1A2B3C4D", discount_pct: 20, valid_from: "2026-10-01", valid_until: "2026-10-31", status: "ISSUED", claimed_at: null };
 let birthday: Record<string, unknown>;
-vi.mock("@/hooks/useBirthdayVoucher", () => ({ useBirthdayVoucher: () => birthday }));
+vi.mock("@/features/vouchers/hooks/useBirthdayVoucher", () => ({ useBirthdayVoucher: () => birthday }));
 
 beforeEach(() => {
   sessionStorage.clear();

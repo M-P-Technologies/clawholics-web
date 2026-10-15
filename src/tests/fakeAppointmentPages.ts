@@ -1,4 +1,4 @@
-import type { Appointment, AppointmentPage, AppointmentPageParams } from "@/services/appointmentService";
+import type { Appointment, AppointmentPage, AppointmentPageParams } from "@/features/appointments/api/appointmentService";
 
 // A stand-in for the paged admin list (GET /booking/appointments?page=…) in component tests: it
 // filters, searches, sorts and pages a list of appointments the way the server does, so the

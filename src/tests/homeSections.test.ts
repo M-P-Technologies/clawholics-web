@@ -11,8 +11,8 @@ import {
   linkProblem,
   readServicesPage,
   SERVICES_PAGE_DEFAULTS,
-} from "@/lib/homeSections";
-import { GOOD_TO_KNOW } from "@/data/home";
+} from "@/features/content/lib/homeSections";
+import { GOOD_TO_KNOW } from "@/features/content/lib/home";
 
 const service = (id: number, over: object = {}) => ({
   id, name: `Service ${id}`, image: `https://img.test/${id}.jpg`, duration: "1 hr",

@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { parseServerTime } from "../services/serverTime";
+import { parseServerTime } from "../lib/serverTime";
 import {
   formatDuration,
   getProofState,
   isActiveAppointmentStatus,
   isProofOverdue,
   type ProofAppointment,
-} from "../services/proofState";
+} from "../features/payments/lib/proofState";
 
 const NOW = Date.parse("2026-10-09T12:00:00Z");
 const HOUR = 3_600_000;

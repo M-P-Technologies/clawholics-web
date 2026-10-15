@@ -1,10 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import Payment from "@/views/booking/Payment";
-import { OFFERED_PAYMENT_METHODS, PAYMENT_METHOD_HINTS, PAYMENT_METHOD_LABELS } from "@/data/payment";
+import Payment from "@/features/payments/screens/Payment";
+import { OFFERED_PAYMENT_METHODS, PAYMENT_METHOD_HINTS, PAYMENT_METHOD_LABELS } from "@/features/payments/lib/paymentText";
 
 const hook = vi.fn();
-vi.mock("@/hooks/usePayment", () => ({ usePayment: () => hook() }));
+vi.mock("@/features/payments/hooks/usePayment", () => ({ usePayment: () => hook() }));
 vi.mock("@/lib/router", () => ({ Link: ({ to, children }: { to: string; children: React.ReactNode }) => <a href={to}>{children}</a> }));
 vi.mock("@/components/layout/BackButton", () => ({ default: () => null }));
 

@@ -1,9 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import PaymentProofCard from "../components/payment/PaymentProofCard";
+import PaymentProofCard from "../features/payments/components/PaymentProofCard";
 
-vi.mock("../services/proofService", async () => {
-  const actual = await vi.importActual<typeof import("../services/proofService")>("../services/proofService");
+vi.mock("../features/payments/api/proofService", async () => {
+  const actual = await vi.importActual<typeof import("../features/payments/api/proofService")>("../features/payments/api/proofService");
   return { ...actual, uploadProof: vi.fn() };
 });
 

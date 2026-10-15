@@ -1,16 +1,16 @@
 import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import ClientDirectory from "@/admin/front-desk/ClientDirectory";
-import type { Appointment } from "@/services/appointmentService";
+import ClientDirectory from "@/features/clients/screens/ClientDirectory";
+import type { Appointment } from "@/features/appointments/api/appointmentService";
 import { pageOf } from "./fakeAppointmentPages";
-import type { AppointmentPageParams } from "@/services/appointmentService";
+import type { AppointmentPageParams } from "@/features/appointments/api/appointmentService";
 
 let params = new URLSearchParams();
 vi.mock("@/lib/router", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/router")>()),
   useSearchParams: () => [params] as const,
 }));
-vi.mock("@/components/admin/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
+vi.mock("@/components/layout/admin/SideBar", () => ({ default: () => <div data-testid="sidebar" /> }));
 // A stable getToken, as the real Clerk hook has
 vi.mock("@clerk/nextjs", () => {
   const auth = { getToken: async () => "tok", isLoaded: true };
@@ -19,8 +19,8 @@ vi.mock("@clerk/nextjs", () => {
 });
 vi.mock("@/components/ui/ToastProvider", () => ({ useToast: () => ({ show: vi.fn() }) }));
 vi.mock("@/hooks/usePolling", () => ({ usePolling: () => {} }));
-vi.mock("@/services/directoryService", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/services/directoryService")>()),
+vi.mock("@/features/admins/api/directoryService", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/features/admins/api/directoryService")>()),
   fetchDirectoryUsers: async () => [
     { id: "user_ana", clerk_id: "user_ana", user_id: 5, firstName: "Ana", lastName: "Cruz", phoneNumber: "09171234567", role: "customer" },
     { id: "user_bea", clerk_id: "user_bea", user_id: 6, firstName: "Bea", lastName: "Lim", phoneNumber: "09181234567", role: "customer" },
@@ -28,12 +28,12 @@ vi.mock("@/services/directoryService", async (importOriginal) => ({
   ],
   fetchDirectoryProfiles: async () => ({ profiles: { user_ana: { imageUrl: "https://img.clerk.com/ana.png", joinedAt: "2026-06-01T00:00:00.000Z", lastSignInAt: null } } }),
 }));
-vi.mock("@/services/dashboardService", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/services/dashboardService")>()),
+vi.mock("@/features/dashboard/api/dashboardService", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/features/dashboard/api/dashboardService")>()),
   fetchWarmLeads: async () => ({ clerkIds: ["user_bea"] }),
 }));
-vi.mock("@/services/appointmentService", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/services/appointmentService")>()),
+vi.mock("@/features/appointments/api/appointmentService", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/features/appointments/api/appointmentService")>()),
   fetchAppointmentPage: async (params: AppointmentPageParams) =>
     pageOf(
       [

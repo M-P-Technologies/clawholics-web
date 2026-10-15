@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { fetchDirectoryUsers } from "@/services/directoryService";
+import { fetchDirectoryUsers } from "@/features/admins/api/directoryService";
 
 afterEach(() => vi.unstubAllGlobals());
 

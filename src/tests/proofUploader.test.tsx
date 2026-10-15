@@ -1,12 +1,12 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import ProofUploader from "../components/payment/ProofUploader";
-import { ApiError } from "../services/catalogService";
-import * as proofService from "../services/proofService";
+import ProofUploader from "../features/payments/components/ProofUploader";
+import { ApiError } from "../features/catalog/api/catalogService";
+import * as proofService from "../features/payments/api/proofService";
 
-vi.mock("../services/proofService", async () => {
-  const actual = await vi.importActual<typeof import("../services/proofService")>("../services/proofService");
+vi.mock("../features/payments/api/proofService", async () => {
+  const actual = await vi.importActual<typeof import("../features/payments/api/proofService")>("../features/payments/api/proofService");
   return { ...actual, uploadProof: vi.fn() };
 });
 

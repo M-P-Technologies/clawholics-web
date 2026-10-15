@@ -1,4 +1,4 @@
-import Services from "@/views/site/Services";
+import Services from "@/features/catalog/screens/Services";
 
 export default function Page() {
   return (

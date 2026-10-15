@@ -1,4 +1,4 @@
-import Performance from "@/admin/overview/Performance";
+import Performance from "@/features/dashboard/screens/Performance";
 
 export default function Page() {
   return <Performance />;

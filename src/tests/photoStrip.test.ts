@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { interleave } from "@/hooks/usePhotoStrip";
+import { interleave } from "@/features/catalog/hooks/usePhotoStrip";
 
 const photo = (nailist: number, n: number) => ({ id: nailist * 100 + n, nailist_id: nailist, image_url: `https://img.test/${nailist}-${n}.jpg`, position: n });
 

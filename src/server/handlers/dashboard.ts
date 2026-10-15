@@ -2,7 +2,7 @@ import "server-only";
 import { requireAdmin } from "../auth";
 import { buildDashboard, listWarmLeads as warmLeadIds } from "../dashboard";
 import { buildUtilization } from "../utilization";
-import { DEFAULT_RANGE, isDashboardRange, manilaToday } from "../../lib/dashboardPeriods";
+import { DEFAULT_RANGE, isDashboardRange, manilaToday } from "../../features/dashboard/lib/dashboardPeriods";
 import { ported } from "../worker";
 
 // GET /dashboard?range=week|month|last30|last90|year (admin only): every number the dashboard

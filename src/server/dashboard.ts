@@ -4,9 +4,9 @@ import { SERVICE_PRICE_SQL } from "./appointments";
 import {
   LAPSED_DAYS, addDays, manilaClock, manilaToday, monthKeys, resolvePeriod,
   type DashboardRange, type Span,
-} from "../lib/dashboardPeriods";
-import { bucketTrend, trendBuckets, type DayValues, type TrendPoint } from "../lib/dashboardTrend";
-import type { DashboardResponse } from "../services/dashboardTypes";
+} from "../features/dashboard/lib/dashboardPeriods";
+import { bucketTrend, trendBuckets, type DayValues, type TrendPoint } from "../features/dashboard/lib/dashboardTrend";
+import type { DashboardResponse } from "../features/dashboard/types";
 
 // Every number on the dashboard, computed in SQL. Dates: appointment_date is already local text;
 // created_at is UTC, so it is shifted to Manila's day (+8h) before it is compared.

@@ -2,7 +2,7 @@ import { fireEvent, render, renderHook, screen, act } from "@testing-library/rea
 import { describe, expect, it, vi } from "vitest";
 import Pagination from "@/components/ui/Pagination";
 import { usePagination } from "@/hooks/usePagination";
-import { pageNumbers } from "@/utils/pagination";
+import { pageNumbers } from "@/lib/pagination";
 
 const items = (n: number) => Array.from({ length: n }, (_, i) => i + 1);
 

@@ -1,9 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import PaymentConfirmation from "@/views/booking/PaymentConfirmation";
+import PaymentConfirmation from "@/features/payments/screens/PaymentConfirmation";
 
 const hook = vi.fn();
-vi.mock("@/hooks/usePaymentConfirmation", () => ({ usePaymentConfirmation: () => hook() }));
+vi.mock("@/features/payments/hooks/usePaymentConfirmation", () => ({ usePaymentConfirmation: () => hook() }));
 
 const waiting = {
   isFailed: false, isConfirmed: false, appointment_id: "971", data: null, payment: null,

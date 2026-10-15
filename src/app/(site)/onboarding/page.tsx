@@ -1,4 +1,4 @@
-import Onboarding from "@/views/account/Onboarding";
+import Onboarding from "@/features/auth/screens/Onboarding";
 
 export default function Page() {
   return (

@@ -1,17 +1,17 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Privacy from "@/views/legal/Privacy";
-import PrivacyPolicy from "@/admin/content-management/PrivacyPolicy";
+import Privacy from "@/features/content/screens/Privacy";
+import PrivacyPolicy from "@/features/cms/screens/PrivacyPolicy";
 import robots from "@/app/robots";
 
 const fetchLegalContent = vi.fn();
 const updateLegalContent = vi.fn();
-vi.mock("@/services/contentService", () => ({
+vi.mock("@/features/content/api/contentService", () => ({
   fetchLegalContent: () => fetchLegalContent(),
   updateLegalContent: (...a: unknown[]) => updateLegalContent(...a),
 }));
-vi.mock("@/data/privacyPolicyHtml", () => ({ PRIVACY_POLICY_HTML: "<h1>PRIVACY POLICY</h1><p>The original text.</p>" }));
-vi.mock("@/components/admin/SideBar", () => ({ default: () => <div /> }));
+vi.mock("@/features/content/lib/privacyPolicyHtml", () => ({ PRIVACY_POLICY_HTML: "<h1>PRIVACY POLICY</h1><p>The original text.</p>" }));
+vi.mock("@/components/layout/admin/SideBar", () => ({ default: () => <div /> }));
 const show = vi.fn();
 vi.mock("@/components/ui/ToastProvider", () => ({ useToast: () => ({ show }) }));
 vi.mock("@clerk/nextjs", () => {

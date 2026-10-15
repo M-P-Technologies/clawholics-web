@@ -1,16 +1,16 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Profile from "@/views/account/Profile";
+import Profile from "@/features/profile/screens/Profile";
 
 vi.mock("@/lib/router", () => ({
   Link: ({ to, children, ...rest }: { to: string; children: React.ReactNode }) => <a href={to} {...rest}>{children}</a>,
 }));
 vi.mock("@clerk/nextjs", () => ({ useClerk: () => ({ openUserProfile: vi.fn(), signOut: vi.fn() }) }));
-vi.mock("@/hooks/useServicePhotos", () => ({ useServicePhotos: () => () => "" }));
-vi.mock("@/hooks/useMyReviews", () => ({ useMyReviews: () => ({ reviews: {}, submit: vi.fn() }) }));
+vi.mock("@/features/profile/hooks/useServicePhotos", () => ({ useServicePhotos: () => () => "" }));
+vi.mock("@/features/reviews/hooks/useMyReviews", () => ({ useMyReviews: () => ({ reviews: {}, submit: vi.fn() }) }));
 let birthday: Record<string, unknown>;
-vi.mock("@/hooks/useBirthdayVoucher", () => ({ useBirthdayVoucher: () => birthday }));
-vi.mock("@/components/payment/PaymentProofCard", () => ({ default: () => null }));
+vi.mock("@/features/vouchers/hooks/useBirthdayVoucher", () => ({ useBirthdayVoucher: () => birthday }));
+vi.mock("@/features/payments/components/PaymentProofCard", () => ({ default: () => null }));
 vi.mock("@/components/layout/PageShell", () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
 vi.mock("@/components/layout/Section", () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
 
@@ -21,7 +21,7 @@ const view = (id: number, status = "confirmed", over = {}) => ({
 });
 
 let hook: Record<string, unknown>;
-vi.mock("@/hooks/useProfile", () => ({ useProfile: () => hook }));
+vi.mock("@/features/profile/hooks/useProfile", () => ({ useProfile: () => hook }));
 
 const makeHook = (over: Record<string, unknown> = {}) => ({
   isBusy: false,

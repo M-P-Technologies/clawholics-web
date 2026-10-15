@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { describeChange, describePoints, peso, percent } from "@/lib/dashboardFormat";
-import { fetchDashboard } from "@/services/dashboardService";
+import { describeChange, describePoints, peso, percent } from "@/features/dashboard/lib/dashboardFormat";
+import { fetchDashboard } from "@/features/dashboard/api/dashboardService";
 
 afterEach(() => vi.unstubAllGlobals());
 

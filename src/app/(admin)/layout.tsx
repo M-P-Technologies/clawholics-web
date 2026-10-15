@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import { isAdmin } from "@/server/auth";
 import { nextApiEnabled } from "@/server/worker";
-import ForgetPublicContent from "@/components/providers/ForgetPublicContent";
+import ForgetPublicContent from "@/lib/tanstack-query/ForgetPublicContent";
 
 // Search engines must not list the admin screens
 export const metadata: Metadata = { robots: { index: false, follow: false } };
