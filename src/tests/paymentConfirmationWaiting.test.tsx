@@ -43,3 +43,33 @@ describe("payment confirmation inside the client app", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Payment" })).toBeInTheDocument();
   });
 });
+
+describe("payment confirmation when paid", () => {
+  it("thanks the client and lists the booking", () => {
+    hook.mockReturnValue({
+      ...waiting, isConfirmed: true,
+      payment: { first_name: "Ana", payment_method: "QR Ph", email: "ana@example.com" },
+      data: { service_name: "Hard Gel", appointment_date: "2026-10-20", appointment_time: "9:00 AM - 11:00 AM" },
+    });
+    render(<PaymentConfirmation />);
+    expect(screen.getByRole("heading", { name: "Payment successful" })).toBeInTheDocument();
+    expect(screen.getByText(/Thank you, Ana!/)).toBeInTheDocument();
+    expect(screen.getByText(/ana@example.com/)).toBeInTheDocument();
+    for (const v of ["Hard Gel", "2026-10-20", "9:00 AM - 11:00 AM"]) expect(screen.getByText(v)).toBeInTheDocument();
+    expect(screen.getByText("Amount paid", { selector: "dt" })).toBeInTheDocument();
+  });
+
+  it("says so when the booking details didn't load", () => {
+    hook.mockReturnValue({ ...waiting, isConfirmed: true, payment: { first_name: "Ana" }, data: null });
+    render(<PaymentConfirmation />);
+    expect(screen.getByText("Failed to load appointment details.")).toBeInTheDocument();
+  });
+
+  it("explains a failed payment and offers home and contact", () => {
+    hook.mockReturnValue({ ...waiting, isFailed: true });
+    render(<PaymentConfirmation />);
+    expect(screen.getByRole("heading", { name: "Payment failed" })).toBeInTheDocument();
+    expect(screen.getByText(/not completed/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Contact us" })).toHaveAttribute("href", "/contact");
+  });
+});
