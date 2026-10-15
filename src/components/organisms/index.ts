@@ -4,4 +4,5 @@ export { default as TopBar } from "./TopBar";
 export { default as SideBar, type NavGroup, type NavItem } from "./SideBar";
 export { default as TabBar } from "./TabBar";
 export { default as AppShell } from "./AppShell";
+export { default as ImagePreviewDialog } from "./ImagePreviewDialog";
 export { CARDS_PER_PAGE, CardFields, RowCard, RowCards, TableFrame } from "./DataTable";

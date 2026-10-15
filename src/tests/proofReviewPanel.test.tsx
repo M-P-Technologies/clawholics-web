@@ -5,9 +5,10 @@ import ProofReviewPanel from "@/components/features/admin/bookings/ProofReviewPa
 import { ApiError } from "../services/catalogService";
 import * as proofs from "../services/proofService";
 
-// The real preview modal imports an svg component that the test setup does not mock.
-vi.mock("@/components/features/admin/cms/ImagePreviewModal", () => ({
-  default: ({ imageUrl }: { imageUrl: string | null }) =>
+// A stand-in preview, so the test sees which photo was opened
+vi.mock("@/components/organisms", async (orig) => ({
+  ...(await orig<object>()),
+  ImagePreviewDialog: ({ imageUrl }: { imageUrl: string | null }) =>
     imageUrl ? <div data-testid="zoom">{imageUrl}</div> : null,
 }));
 

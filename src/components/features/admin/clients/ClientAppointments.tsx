@@ -6,8 +6,7 @@ import { dateLabel, statusOf } from "@/lib/admin/clientPage";
 import { peso } from "@/lib/dashboardFormat";
 import type { ClientAppointment, ClientNote } from "@/services/clientNotesService";
 import { Badge, Button } from "@/components/atoms";
-import ImagePreviewModal from "@/components/features/admin/cms/ImagePreviewModal";
-import { CARDS_PER_PAGE, CardFields, RowCard, RowCards } from "@/components/organisms";
+import { CARDS_PER_PAGE, CardFields, RowCard, RowCards, ImagePreviewDialog } from "@/components/organisms";
 import VisitNotes from "@/components/features/admin/clients/VisitNotes";
 import { ReviewPhoto, ReviewText } from "@/components/features/admin/clients/VisitReview";
 import { Pagination, paginate } from "@/components/molecules";
@@ -39,7 +38,7 @@ export default function ClientAppointments({ appointments, notesFor, draft, busy
     <VisitNotes appointment={a} notes={notesFor(a.id)} draft={draft} busy={busy} onDraft={onDraft} onSave={onSaveNote} onDelete={onDeleteNote} />
   );
   const fee = (a: ClientAppointment) => (a.price === null ? "–" : peso(a.price));
-  const preview = <ImagePreviewModal imageUrl={photo} title="Review photo" onClose={() => setPhoto(null)} />;
+  const preview = <ImagePreviewDialog imageUrl={photo} title="Review photo" onClose={() => setPhoto(null)} />;
 
   if (!asTable) {
     const cards = paginate(appointments, cardPage, CARDS_PER_PAGE);

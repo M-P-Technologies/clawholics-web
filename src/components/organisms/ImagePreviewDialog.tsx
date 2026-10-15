@@ -1,15 +1,15 @@
 import { X as XIcon } from "lucide-react";
 import React from "react";
 import { Button } from "@/components/atoms";
-import { Dialog } from "@/components/organisms";
+import Dialog from "./Dialog";
 
-type ImagePreviewModalProps = {
+type ImagePreviewDialogProps = {
   imageUrl: string | null;
   title?: string;
   onClose: () => void;
 };
 
-const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
+const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({
   imageUrl,
   title = "Image Preview",
   onClose,
@@ -50,4 +50,4 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
   );
 };
 
-export default ImagePreviewModal;
+export default ImagePreviewDialog;

@@ -10,7 +10,7 @@ type ProofSummary,
 } from "@/services/proofService";
 import { getProofState } from "@/services/proofState";
 import { parseServerTime } from "@/services/serverTime";
-import ImagePreviewModal from "@/components/features/admin/cms/ImagePreviewModal";
+import { ImagePreviewDialog } from "@/components/organisms";
 import { Button } from "@/components/atoms";
 
 interface Props {
@@ -209,7 +209,7 @@ export default function ProofReviewPanel({
         </div>
       )}
 
-      <ImagePreviewModal imageUrl={zoomUrl} title="Payment screenshot" onClose={() => setZoomUrl(null)} />
+      <ImagePreviewDialog imageUrl={zoomUrl} title="Payment screenshot" onClose={() => setZoomUrl(null)} />
     </section>
   );
 }

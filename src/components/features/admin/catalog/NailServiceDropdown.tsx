@@ -1,6 +1,5 @@
 import { ChevronDown as DropdownIcon, Plus as PlusIcon, Star as StarIcon, Upload as UploadIcon, X as XIcon } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
-import ImagePreviewModal from "@/components/features/admin/cms/ImagePreviewModal";
 import { pickMainPhoto } from "@/utils/mainPhoto";
 
 import {
@@ -25,7 +24,7 @@ import ServicePricingFields, {
 import { PHOTO_UPLOAD_OPTIONS, uploadImage } from "@/services/uploadService";
 import { useToast, EditActions, SectionHeader } from "@/components/molecules";
 import { Button } from "@/components/atoms";
-import { ConfirmDialog } from "@/components/organisms";
+import { ConfirmDialog, ImagePreviewDialog } from "@/components/organisms";
 
 type NailServiceDropdownProps = {
   service?: NailService;
@@ -572,7 +571,7 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
         </ConfirmDialog>
       )}
 
-      <ImagePreviewModal
+      <ImagePreviewDialog
         imageUrl={previewImageUrl}
         onClose={() => setPreviewImageUrl(null)}
       />

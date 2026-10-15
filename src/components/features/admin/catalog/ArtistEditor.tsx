@@ -1,7 +1,6 @@
 import { ChevronDown as DropdownIcon, Plus as PlusIcon } from "lucide-react";
 import React from "react";
 
-import ImagePreviewModal from "@/components/features/admin/cms/ImagePreviewModal";
 import NailArtistGallery from "@/components/features/admin/catalog/NailArtistGallery";
 import ArtistDetailsFields from "./ArtistDetailsFields";
 import ArtistPhotoField from "./ArtistPhotoField";
@@ -11,7 +10,7 @@ import TimeSlotCard from "./TimeSlotCard";
 import { useArtistEditor, type ArtistEditorProps } from "@/hooks/admin/useArtistEditor";
 import { EditActions } from "@/components/molecules";
 import { Button } from "@/components/atoms";
-import { ConfirmDialog } from "@/components/organisms";
+import { ConfirmDialog, ImagePreviewDialog } from "@/components/organisms";
 
 // One artist's card in the Nail Artists editor, or the Add Artist card (mode "create"): the
 // title opens it; the fields, day offs, time slots and gallery are edited and saved together.
@@ -144,7 +143,7 @@ const ArtistEditor: React.FC<ArtistEditorProps> = (props) => {
         </ConfirmDialog>
       )}
 
-      <ImagePreviewModal
+      <ImagePreviewDialog
         imageUrl={editor.previewImageUrl}
         onClose={() => editor.setPreviewImageUrl(null)}
       />

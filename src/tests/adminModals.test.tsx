@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import AddAdminModal from "@/components/features/admin/directory/AddAdminModal";
 import EditAdminModal from "@/components/features/admin/directory/EditAdminModal";
-import ImagePreviewModal from "@/components/features/admin/cms/ImagePreviewModal";
+import { ImagePreviewDialog } from "@/components/organisms";
 import { Dialog } from "@/components/organisms";
 
 const form = { firstName: "Ana", lastName: "Cruz", email: "ana@example.com" };
@@ -52,10 +52,10 @@ describe("EditAdminModal", () => {
   });
 });
 
-describe("ImagePreviewModal", () => {
+describe("ImagePreviewDialog", () => {
   it("is a modal dialog named by its title, with the image, and Escape closes it", () => {
     const onClose = vi.fn();
-    render(<ImagePreviewModal imageUrl="https://img/1.webp" title="Review photo" onClose={onClose} />);
+    render(<ImagePreviewDialog imageUrl="https://img/1.webp" title="Review photo" onClose={onClose} />);
     expect(screen.getByRole("dialog", { name: "Review photo" })).toHaveAttribute("aria-modal", "true");
     expect(screen.getByRole("img", { name: "Preview" })).toHaveAttribute("src", "https://img/1.webp");
     expect(screen.getByRole("button", { name: "Close image preview" })).toBeInTheDocument();
@@ -64,7 +64,7 @@ describe("ImagePreviewModal", () => {
   });
 
   it("renders nothing without an image", () => {
-    render(<ImagePreviewModal imageUrl={null} onClose={vi.fn()} />);
+    render(<ImagePreviewDialog imageUrl={null} onClose={vi.fn()} />);
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
@@ -74,7 +74,7 @@ describe("ImagePreviewModal", () => {
     render(
       <>
         <Dialog open onClose={outer} title="Outer"><p>outer body</p></Dialog>
-        <ImagePreviewModal imageUrl="https://img/1.webp" onClose={inner} />
+        <ImagePreviewDialog imageUrl="https://img/1.webp" onClose={inner} />
       </>,
     );
     fireEvent.keyDown(window, { key: "Escape" });
