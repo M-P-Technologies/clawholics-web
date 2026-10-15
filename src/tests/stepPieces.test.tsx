@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import TimeSlotList from "@/components/features/client/booking/TimeSlotList";
 import SummaryRow from "@/components/features/client/booking/SummaryRow";
 import BookingOptions from "@/components/features/client/booking/BookingOptions";
+import DayCalendar from "@/components/features/client/booking/DayCalendar";
 
 const slots = ["09:00-11:00", "11:00-13:00", "13:00-15:00"];
 const fmt = (s: string) => s;
@@ -53,5 +54,15 @@ describe("choice row", () => {
     }
     expect(on).toHaveClass("border-crimson", "bg-crimson-light/15");
     expect(off).toHaveClass("bg-milk");
+  });
+});
+
+describe("day calendar", () => {
+  it("fills the chosen day's own button, so it shows on the milk days even without focus", () => {
+    const now = new Date();
+    const chosen = new Date(now.getFullYear(), now.getMonth(), 20);
+    render(<DayCalendar month={chosen} onMonthChange={vi.fn()} selected={chosen} onSelect={vi.fn()} isDisabled={() => false} isFullyBooked={() => false} />);
+    const button = screen.getByRole("button", { name: /\b20(st|nd|rd|th)?,.*selected/i });
+    expect(button.parentElement).toHaveClass("[&>button]:!bg-crimson", "[&>button]:!text-milk");
   });
 });

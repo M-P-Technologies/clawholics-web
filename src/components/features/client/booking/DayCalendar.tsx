@@ -57,7 +57,8 @@ export default function DayCalendar({
           disabled:opacity-30 disabled:line-through disabled:cursor-not-allowed
           disabled:hover:bg-milk disabled:hover:text-gray-red
         `,
-        selected: "rounded-full !bg-crimson !text-milk hover:!bg-crimson focus:!bg-crimson",
+        // On the cell: fill its button, which is opaque milk and would hide a background on the cell
+        selected: "[&>button]:!bg-crimson [&>button]:!text-milk",
         range_start: "!bg-transparent",
         range_middle: "!bg-transparent",
         range_end: "!bg-transparent",
