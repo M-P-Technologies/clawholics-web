@@ -1,13 +1,13 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from "react";
-import AppointmentSheet from "../profile/AppointmentSheet";
-import EditDetailsSheet from "../profile/EditDetailsSheet";
-import RewardsSheet from "../profile/RewardsSheet";
+import AppointmentSheet from "@/components/features/client/appointments/AppointmentSheet";
+import EditDetailsSheet from "@/components/features/client/profile/EditDetailsSheet";
+import RewardsSheet from "@/components/features/client/profile/RewardsSheet";
 import { Button } from "@/components/atoms";
-import { CONTACT_METHOD_OPTIONS } from "../../data/profile";
-import { useServicePhotos } from "../../hooks/useServicePhotos";
-import type { MyAccount } from "../../hooks/client/useMyAccount";
+import { CONTACT_METHOD_OPTIONS } from "@/data/profile";
+import { useServicePhotos } from "@/hooks/useServicePhotos";
+import type { MyAccount } from "@/hooks/client/useMyAccount";
 
 interface AccountOverlaysProps {
   account: MyAccount;

@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import ClientShell from "@/components/client/ClientShell";
-import ClientPage from "@/components/client/ClientPage";
+import ClientShell from "@/components/features/client/shell/ClientShell";
+import ClientPage from "@/components/features/client/shell/ClientPage";
 
 let pathname = "/my";
 const navigate = vi.fn();

@@ -1,8 +1,8 @@
 "use client";
 
-import AppointmentsSection from "../../components/profile/AppointmentsSection";
+import AppointmentsSection from "@/components/features/client/appointments/AppointmentsSection";
 import { TabSection } from "@/components/molecules";
-import ClientTopBar from "../../components/client/ClientTopBar";
+import ClientTopBar from "@/components/features/client/shell/ClientTopBar";
 import { useMyAccount } from "../../hooks/client/useMyAccount";
 import { useServicePhotos } from "../../hooks/useServicePhotos";
 

@@ -3,11 +3,11 @@
 import { useState, type ReactNode } from "react";
 import { useLocation } from "@/lib/router";
 import { Button, LoadingBar } from "@/components/atoms";
-import { useMyReviews } from "../../hooks/useMyReviews";
-import { useProfile } from "../../hooks/useProfile";
-import { MyAccountContext, type MyAccount } from "../../hooks/client/useMyAccount";
-import AccountOverlays from "./AccountOverlays";
-import { CLIENT_PATHS } from "../../lib/client/clientNav";
+import { useMyReviews } from "@/hooks/useMyReviews";
+import { useProfile } from "@/hooks/useProfile";
+import { MyAccountContext, type MyAccount } from "@/hooks/client/useMyAccount";
+import AccountOverlays from "@/components/features/client/shell/AccountOverlays";
+import { CLIENT_PATHS } from "@/lib/client/clientNav";
 
 // Loads the client's profile, appointments and stamps once for every tab (and refreshes them every
 // 30 seconds, see useProfile), and draws the sheets any tab can open.

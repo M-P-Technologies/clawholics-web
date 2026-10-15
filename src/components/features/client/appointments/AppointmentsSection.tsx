@@ -1,8 +1,8 @@
 import { useState, type ChangeEvent } from "react";
 import { Button, Select } from "@/components/atoms";
 import { SegmentedControl } from "@/components/molecules";
-import AppointmentCard, { isCompleted } from "./AppointmentCard";
-import type { AppointmentView } from "./types";
+import AppointmentCard, { isCompleted } from "@/components/features/client/appointments/AppointmentCard";
+import type { AppointmentView } from "@/types/profile";
 
 interface AppointmentsSectionProps {
   upcoming: AppointmentView[];

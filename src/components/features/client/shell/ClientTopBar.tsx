@@ -2,8 +2,8 @@
 
 import type { ReactNode } from "react";
 import { TopBar } from "@/components/organisms";
-import { useIsClient } from "../../hooks/useIsClient";
-import { useMyAccount } from "../../hooks/client/useMyAccount";
+import { useIsClient } from "@/hooks/useIsClient";
+import { useMyAccount } from "@/hooks/client/useMyAccount";
 
 interface ClientTopBarProps {
   title: string;

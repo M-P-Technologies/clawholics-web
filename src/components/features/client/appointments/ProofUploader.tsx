@@ -4,7 +4,7 @@ import {
   uploadProof,
   validateProofFile,
   type PaymentProof,
-} from "../../services/proofService";
+} from "@/services/proofService";
 import { Button } from "@/components/atoms";
 
 interface ProofUploaderProps {

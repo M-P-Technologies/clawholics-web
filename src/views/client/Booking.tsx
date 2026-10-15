@@ -2,17 +2,17 @@
 
 import Image from "next/image";
 import { AlertDialog } from "@/components/organisms";
-import BookingOptions from "../../components/booking/BookingOptions";
+import BookingOptions from "@/components/features/client/booking/BookingOptions";
 import { Button, LoadingBar } from "@/components/atoms";
-import ArtistSelect from "../../components/booking/ArtistSelect";
-import DayCalendar from "../../components/booking/DayCalendar";
+import ArtistSelect from "@/components/features/client/booking/ArtistSelect";
+import DayCalendar from "@/components/features/client/booking/DayCalendar";
 import { SectionHeader, EmptyState } from "@/components/molecules";
-import ClientPage from "../../components/client/ClientPage";
-import Panel from "../../components/layout/Panel";
-import Section from "../../components/layout/Section";
-import SummaryRow from "../../components/booking/SummaryRow";
-import TimeSlotList from "../../components/booking/TimeSlotList";
-import { useBooking } from "../../hooks/useBooking";
+import ClientPage from "@/components/features/client/shell/ClientPage";
+import Panel from "@/components/layout/Panel";
+import Section from "@/components/layout/Section";
+import SummaryRow from "@/components/features/client/booking/SummaryRow";
+import TimeSlotList from "@/components/features/client/booking/TimeSlotList";
+import { useBooking } from "@/hooks/client/useBooking";
 
 export default function Booking() {
   const { priceLabel, pageData, isPageLoading, pageError, nailists, selectedNailist, selectedDate, selectedTime, setSelectedTime, timeSlots, month, setMonth, modalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, locationUrl, locationText, isDisabledDate, formatSlot, handleContinue, isSubmitting, sectionLabel, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage } = useBooking();

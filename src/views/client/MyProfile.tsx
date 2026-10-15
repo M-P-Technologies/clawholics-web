@@ -2,11 +2,11 @@
 
 import { useClerk } from "@clerk/nextjs";
 import { Link } from "@/lib/router";
-import DetailsCard from "../../components/profile/DetailsCard";
-import ProfileHeader from "../../components/profile/ProfileHeader";
-import RewardsStrip from "../../components/profile/RewardsStrip";
+import DetailsCard from "@/components/features/client/profile/DetailsCard";
+import ProfileHeader from "@/components/features/client/profile/ProfileHeader";
+import RewardsStrip from "@/components/features/client/home/RewardsStrip";
 import { Button } from "@/components/atoms";
-import ClientTopBar from "../../components/client/ClientTopBar";
+import ClientTopBar from "@/components/features/client/shell/ClientTopBar";
 import { contactMethodLabel } from "../../data/profile";
 import { useMyAccount } from "../../hooks/client/useMyAccount";
 

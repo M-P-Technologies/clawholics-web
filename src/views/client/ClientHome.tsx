@@ -2,11 +2,11 @@
 
 import { SearchBar, SectionHeader } from "@/components/molecules";
 import { Link } from "@/lib/router";
-import NextAppointmentCard from "../../components/profile/NextAppointmentCard";
-import RewardsStrip from "../../components/profile/RewardsStrip";
-import OffersCarousel from "../../components/client/OffersCarousel";
-import ServiceCard from "../../components/client/ServiceCard";
-import ClientTopBar from "../../components/client/ClientTopBar";
+import NextAppointmentCard from "@/components/features/client/home/NextAppointmentCard";
+import RewardsStrip from "@/components/features/client/home/RewardsStrip";
+import OffersCarousel from "@/components/features/client/home/OffersCarousel";
+import ServiceCard from "@/components/features/client/home/ServiceCard";
+import ClientTopBar from "@/components/features/client/shell/ClientTopBar";
 import { useClientHome } from "../../hooks/client/useClientHome";
 import { CLIENT_PATHS } from "../../lib/client/clientNav";
 

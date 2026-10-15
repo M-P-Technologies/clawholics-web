@@ -2,16 +2,16 @@
 
 import Image from "next/image";
 import { Link } from "@/lib/router";
-import qrPhLogo from "../../assets/logo/qr_ph.png";
+import qrPhLogo from "@/assets/logo/qr_ph.png";
 import { AlertDialog } from "@/components/organisms";
 import { Button, LoadingBar } from "@/components/atoms";
 import { ChoiceRow, SectionHeader } from "@/components/molecules";
-import ClientPage from "../../components/client/ClientPage";
-import Panel from "../../components/layout/Panel";
-import Section from "../../components/layout/Section";
-import SummaryRow from "../../components/booking/SummaryRow";
-import { usePayment } from "../../hooks/usePayment";
-import { CLIENT_PATHS } from "../../lib/client/clientNav";
+import ClientPage from "@/components/features/client/shell/ClientPage";
+import Panel from "@/components/layout/Panel";
+import Section from "@/components/layout/Section";
+import SummaryRow from "@/components/features/client/booking/SummaryRow";
+import { usePayment } from "@/hooks/client/usePayment";
+import { CLIENT_PATHS } from "@/lib/client/clientNav";
 
 export default function Payment() {
   const { methods, toggleAgree, method, setMethod, agree, loading, isInvalid, timeLeft, modalOpen, modalTitle, modalMessage, modalAction, modalButtonText, modalDismissible, appointment, handlePay, sectionLabel, handleModalClose } = usePayment();

@@ -1,10 +1,10 @@
 import Image from "next/image";
 import { CalendarDays, Clock, Star } from "lucide-react";
 import clsx from "clsx";
-import emblem from "../../assets/logo/emblem-pink.png";
+import emblem from "@/assets/logo/emblem-pink.png";
 import { Badge, Button } from "@/components/atoms";
-import { statusDotTone } from "../../utils/profileView";
-import type { AppointmentView } from "./types";
+import { statusDotTone } from "@/utils/profileView";
+import type { AppointmentView } from "@/types/profile";
 
 interface AppointmentCardProps {
   view: AppointmentView;

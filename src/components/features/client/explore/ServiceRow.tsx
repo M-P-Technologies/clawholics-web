@@ -3,9 +3,9 @@
 import { Sparkles } from "lucide-react";
 import { Link } from "@/lib/router";
 import { Button } from "@/components/atoms";
-import { serviceDetailPath } from "../../lib/client/clientNav";
-import { shortPriceLabel } from "../../lib/client/servicePrice";
-import type { NailService } from "../../services/serviceService";
+import { serviceDetailPath } from "@/lib/client/clientNav";
+import { shortPriceLabel } from "@/lib/client/servicePrice";
+import type { NailService } from "@/services/serviceService";
 
 // One service in Explore: photo, name, a line, price, and a Book button
 export default function ServiceRow({ service, onBook }: { service: NailService; onBook: () => void }) {

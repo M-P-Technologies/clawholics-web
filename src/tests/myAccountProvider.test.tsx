@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import MyAccountProvider from "@/components/client/MyAccountProvider";
+import MyAccountProvider from "@/components/features/client/shell/MyAccountProvider";
 import { useMyAccount } from "@/hooks/client/useMyAccount";
 
 const view = (id: number) => ({ appt: { id, service_name: `Service ${id}` } });
@@ -13,11 +13,11 @@ vi.mock("@/lib/router", () => ({
 vi.mock("@/hooks/useProfile", () => ({ useProfile: () => hook }));
 vi.mock("@/hooks/useMyReviews", () => ({ useMyReviews: () => ({ reviews: {}, submit: vi.fn() }) }));
 vi.mock("@/hooks/useServicePhotos", () => ({ useServicePhotos: () => () => "" }));
-vi.mock("@/components/profile/AppointmentSheet", () => ({
+vi.mock("@/components/features/client/appointments/AppointmentSheet", () => ({
   default: ({ view }: { view: { appt: { id: number } } | null }) => (view ? <div>Sheet for {view.appt.id}</div> : null),
 }));
-vi.mock("@/components/profile/RewardsSheet", () => ({ default: ({ open }: { open: boolean }) => (open ? <div>Rewards open</div> : null) }));
-vi.mock("@/components/profile/EditDetailsSheet", () => ({ default: () => null }));
+vi.mock("@/components/features/client/profile/RewardsSheet", () => ({ default: ({ open }: { open: boolean }) => (open ? <div>Rewards open</div> : null) }));
+vi.mock("@/components/features/client/profile/EditDetailsSheet", () => ({ default: () => null }));
 
 const base = () => ({
   isBusy: false,

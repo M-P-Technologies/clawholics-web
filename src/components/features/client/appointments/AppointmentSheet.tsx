@@ -1,13 +1,13 @@
 import { CalendarDays, Clock } from "lucide-react";
-import PaymentProofCard from "../payment/PaymentProofCard";
+import PaymentProofCard from "@/components/features/client/appointments/PaymentProofCard";
 import { Badge, Button } from "@/components/atoms";
-import { statusDotTone } from "../../utils/profileView";
+import { statusDotTone } from "@/utils/profileView";
 import { Dialog } from "@/components/organisms";
-import { AppointmentThumb, isCompleted } from "./AppointmentCard";
-import ReviewCard from "./ReviewCard";
-import type { AppointmentView } from "./types";
-import type { PaymentProof } from "../../services/proofService";
-import type { Review, ReviewDraft } from "../../services/reviewService";
+import { AppointmentThumb, isCompleted } from "@/components/features/client/appointments/AppointmentCard";
+import ReviewCard from "@/components/features/client/appointments/ReviewCard";
+import type { AppointmentView } from "@/types/profile";
+import type { PaymentProof } from "@/services/proofService";
+import type { Review, ReviewDraft } from "@/services/reviewService";
 
 interface AppointmentSheetProps {
   view: AppointmentView | null;

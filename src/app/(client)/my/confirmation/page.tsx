@@ -1,4 +1,4 @@
-import PaymentConfirmation from "@/views/booking/PaymentConfirmation";
+import PaymentConfirmation from "@/views/client/PaymentConfirmation";
 
 export default function Page() {
   return <PaymentConfirmation />;

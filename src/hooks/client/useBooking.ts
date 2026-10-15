@@ -3,16 +3,16 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "@/lib/router";
 import { useUser, useAuth } from "@clerk/nextjs";
-import { fetchNailists, fetchBookedSlotsDetailed, createBooking } from "../services/bookingService";
-import { fetchNailistDayOffs, fetchNailistTimeSlots } from "../services/nailistService";
-import { fetchHomeContent } from "../services/contentService";
-import { fetchAboutContent } from "../services/aboutService";
-import { withSalonLocation } from "../lib/homeSections";
-import { fetchProfileIfExists } from "../services/userService";
-import { fetchCategories, type ServiceCategory } from "../services/catalogService";
-import { estimateTotal } from "../services/pricing";
-import { type Nailist, type BookingState, parseTimeRange } from "../utils/booking";
-import { CLIENT_PATHS } from "../lib/client/clientNav";
+import { fetchNailists, fetchBookedSlotsDetailed, createBooking } from "@/services/bookingService";
+import { fetchNailistDayOffs, fetchNailistTimeSlots } from "@/services/nailistService";
+import { fetchHomeContent } from "@/services/contentService";
+import { fetchAboutContent } from "@/services/aboutService";
+import { withSalonLocation } from "@/lib/homeSections";
+import { fetchProfileIfExists } from "@/services/userService";
+import { fetchCategories, type ServiceCategory } from "@/services/catalogService";
+import { estimateTotal } from "@/services/pricing";
+import { type Nailist, type BookingState, parseTimeRange } from "@/utils/booking";
+import { CLIENT_PATHS } from "@/lib/client/clientNav";
 
 export function useBooking() {
   const navigate = useNavigate();

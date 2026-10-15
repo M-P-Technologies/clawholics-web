@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "@/lib/router";
 import { useUser, useAuth } from "@clerk/nextjs";
-import { fetchBookedSlotsDetailed } from "../services/bookingService";
-import { fetchNailistDayOffs, fetchNailistTimeSlots } from "../services/nailistService";
-import { rescheduleAppointment } from "../services/bookingService";
-import { isOverlapping, toLocalDate, toLocalDateString } from "../utils/reschedule";
-import { CLIENT_PATHS } from "../lib/client/clientNav";
+import { fetchBookedSlotsDetailed } from "@/services/bookingService";
+import { fetchNailistDayOffs, fetchNailistTimeSlots } from "@/services/nailistService";
+import { rescheduleAppointment } from "@/services/bookingService";
+import { isOverlapping, toLocalDate, toLocalDateString } from "@/utils/reschedule";
+import { CLIENT_PATHS } from "@/lib/client/clientNav";
 
 export function useReschedule() {
   const navigate = useNavigate();

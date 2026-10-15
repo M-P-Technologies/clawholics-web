@@ -1,7 +1,7 @@
 import { ImagePlus, X } from "lucide-react";
 import { useEffect, useState, type ChangeEvent } from "react";
-import { validateProofFile } from "../../services/proofService";
-import type { Review, ReviewDraft } from "../../services/reviewService";
+import { validateProofFile } from "@/services/proofService";
+import type { Review, ReviewDraft } from "@/services/reviewService";
 import { Button, StarPicker, Stars } from "@/components/atoms";
 
 interface ReviewCardProps {

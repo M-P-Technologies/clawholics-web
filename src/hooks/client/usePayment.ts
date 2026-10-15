@@ -1,11 +1,11 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "@/lib/router";
 import { useAuth } from "@clerk/nextjs";
-import { createPayment, fetchPaymentSettings } from "../services/paymentService";
-import { OFFERED_PAYMENT_METHODS, PAYMENT_METHOD_HINTS, PAYMENT_METHOD_LABELS } from "../data/payment";
-import { fetchAppointmentById } from "../services/appointmentService";
-import { type AppointmentState, explainPaymentFailure, explainStatusChange } from "../utils/payment";
-import { CLIENT_PATHS } from "../lib/client/clientNav";
+import { createPayment, fetchPaymentSettings } from "@/services/paymentService";
+import { OFFERED_PAYMENT_METHODS, PAYMENT_METHOD_HINTS, PAYMENT_METHOD_LABELS } from "@/data/payment";
+import { fetchAppointmentById } from "@/services/appointmentService";
+import { type AppointmentState, explainPaymentFailure, explainStatusChange } from "@/utils/payment";
+import { CLIENT_PATHS } from "@/lib/client/clientNav";
 
 export function usePayment() {
   const navigate = useNavigate();

@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import ProofUploader from "../components/payment/ProofUploader";
+import ProofUploader from "@/components/features/client/appointments/ProofUploader";
 import { ApiError } from "../services/catalogService";
 import * as proofService from "../services/proofService";
 

@@ -1,4 +1,4 @@
-import Payment from "@/views/booking/Payment";
+import Payment from "@/views/client/Payment";
 
 export default function Page() {
   return <Payment />;

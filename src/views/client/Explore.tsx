@@ -4,8 +4,8 @@ import { SlidersHorizontal, X } from "lucide-react";
 import clsx from "clsx";
 import { Button } from "@/components/atoms";
 import { SearchBar } from "@/components/molecules";
-import ServiceRow from "../../components/client/ServiceRow";
-import ClientTopBar from "../../components/client/ClientTopBar";
+import ServiceRow from "@/components/features/client/explore/ServiceRow";
+import ClientTopBar from "@/components/features/client/shell/ClientTopBar";
 import { useExplore } from "../../hooks/client/useExplore";
 
 export default function Explore() {

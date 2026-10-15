@@ -3,12 +3,12 @@
 import { CircleCheckBig as CheckIcon } from "lucide-react";
 import { Button, LoadingBar } from "@/components/atoms";
 import { SectionHeader, EmptyState } from "@/components/molecules";
-import ClientPage from "../../components/client/ClientPage";
-import Panel from "../../components/layout/Panel";
-import Section from "../../components/layout/Section";
-import SummaryRow from "../../components/booking/SummaryRow";
-import { usePaymentConfirmation } from "../../hooks/usePaymentConfirmation";
-import { CLIENT_PATHS } from "../../lib/client/clientNav";
+import ClientPage from "@/components/features/client/shell/ClientPage";
+import Panel from "@/components/layout/Panel";
+import Section from "@/components/layout/Section";
+import SummaryRow from "@/components/features/client/booking/SummaryRow";
+import { usePaymentConfirmation } from "@/hooks/client/usePaymentConfirmation";
+import { CLIENT_PATHS } from "@/lib/client/clientNav";
 
 export default function PaymentConfirmation() {
   const { isFailed, isConfirmed, appointment_id, data, payment, loading, timedOut, checkAgain } = usePaymentConfirmation();

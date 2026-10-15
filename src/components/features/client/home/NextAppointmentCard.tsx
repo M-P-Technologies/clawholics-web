@@ -1,8 +1,8 @@
 import { CalendarDays, Clock } from "lucide-react";
-import { relativeDay, statusDotTone } from "../../utils/profileView";
+import { relativeDay, statusDotTone } from "@/utils/profileView";
 import { Badge, Button } from "@/components/atoms";
-import { AppointmentThumb } from "./AppointmentCard";
-import type { AppointmentView } from "./types";
+import { AppointmentThumb } from "@/components/features/client/appointments/AppointmentCard";
+import type { AppointmentView } from "@/types/profile";
 
 interface NextAppointmentCardProps {
   view: AppointmentView | null;

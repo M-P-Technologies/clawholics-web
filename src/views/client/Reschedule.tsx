@@ -2,15 +2,15 @@
 
 import { AlertDialog } from "@/components/organisms";
 import { Button, LoadingBar } from "@/components/atoms";
-import DayCalendar from "../../components/booking/DayCalendar";
+import DayCalendar from "@/components/features/client/booking/DayCalendar";
 import { SectionHeader } from "@/components/molecules";
-import ClientPage from "../../components/client/ClientPage";
-import Panel from "../../components/layout/Panel";
-import Section from "../../components/layout/Section";
-import SummaryRow from "../../components/booking/SummaryRow";
-import TimeSlotList from "../../components/booking/TimeSlotList";
-import { useReschedule } from "../../hooks/useReschedule";
-import { formatSlot } from "../../utils/reschedule";
+import ClientPage from "@/components/features/client/shell/ClientPage";
+import Panel from "@/components/layout/Panel";
+import Section from "@/components/layout/Section";
+import SummaryRow from "@/components/features/client/booking/SummaryRow";
+import TimeSlotList from "@/components/features/client/booking/TimeSlotList";
+import { useReschedule } from "@/hooks/client/useReschedule";
+import { formatSlot } from "@/utils/reschedule";
 
 export default function Reschedule() {
   const { isLoaded, appointment, isSubmitting, month, setMonth, selectedDate, selectedTime, setSelectedTime, modalOpen, modalTitle, modalMessage, isDisabledDate, formatDisplayDate, handleConfirmReschedule, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, uniqueTimeSlots, handleModalClose } = useReschedule();

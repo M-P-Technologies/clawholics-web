@@ -9,7 +9,7 @@ import { startPolling } from "./usePolling";
 import { PROFILE_FIELDS } from "../data/profile";
 import { useToast } from "@/components/molecules";
 import { pickNext, sortSoonest } from "../utils/profileView";
-import type { AppointmentView } from "../components/profile/types";
+import type { AppointmentView } from "@/types/profile";
 import { CLIENT_PATHS } from "../lib/client/clientNav";
 
 export function useProfile() {

@@ -2,8 +2,8 @@
 
 import { Cake } from "lucide-react";
 import { Button } from "@/components/atoms";
-import { ctaLink } from "../../lib/homeSections";
-import type { OfferBanner } from "../../lib/client/offers";
+import { ctaLink } from "@/lib/homeSections";
+import type { OfferBanner } from "@/lib/client/offers";
 
 // Home's Special offers: one banner per view on a phone (swipe for more), two side by side on a computer
 export default function OffersCarousel({ offers }: { offers: OfferBanner[] }) {

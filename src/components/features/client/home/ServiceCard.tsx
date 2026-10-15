@@ -2,9 +2,9 @@
 
 import { Sparkles } from "lucide-react";
 import { Link } from "@/lib/router";
-import { serviceDetailPath } from "../../lib/client/clientNav";
-import { shortPriceLabel } from "../../lib/client/servicePrice";
-import type { NailService } from "../../services/serviceService";
+import { serviceDetailPath } from "@/lib/client/clientNav";
+import { shortPriceLabel } from "@/lib/client/servicePrice";
+import type { NailService } from "@/services/serviceService";
 
 // A popular service on Home: photo (or an icon), name, a line, the price. Opens the service.
 export default function ServiceCard({ service }: { service: NailService }) {

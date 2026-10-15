@@ -1,5 +1,5 @@
 import type { BadgeTone } from "@/components/atoms";
-import type { AppointmentView } from "../components/profile/types";
+import type { AppointmentView } from "@/types/profile";
 
 export const STAMP_TARGET = 10;
 export const stampsToGo = (stamps: number) => Math.max(0, STAMP_TARGET - stamps);

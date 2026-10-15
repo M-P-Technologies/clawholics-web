@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import ClientTopBar from "@/components/client/ClientTopBar";
+import ClientTopBar from "@/components/features/client/shell/ClientTopBar";
 
 let account: Record<string, unknown>;
 vi.mock("@/hooks/client/useMyAccount", () => ({ useMyAccount: () => account }));

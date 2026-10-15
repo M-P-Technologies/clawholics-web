@@ -1,8 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import ProfileHeader from "@/components/profile/ProfileHeader";
-import RewardsStrip from "@/components/profile/RewardsStrip";
-import RewardsSheet from "@/components/profile/RewardsSheet";
+import ProfileHeader from "@/components/features/client/profile/ProfileHeader";
+import RewardsStrip from "@/components/features/client/home/RewardsStrip";
+import RewardsSheet from "@/components/features/client/profile/RewardsSheet";
 
 describe("ProfileHeader", () => {
   it("greets by first name and says since when", () => {

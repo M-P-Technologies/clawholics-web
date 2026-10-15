@@ -1,6 +1,6 @@
-import ProofUploader from "./ProofUploader";
-import { formatDuration, getProofState, type ProofAppointment } from "../../services/proofState";
-import type { PaymentProof } from "../../services/proofService";
+import ProofUploader from "@/components/features/client/appointments/ProofUploader";
+import { formatDuration, getProofState, type ProofAppointment } from "@/services/proofState";
+import type { PaymentProof } from "@/services/proofService";
 
 interface PaymentProofCardProps {
   appointment: ProofAppointment & { id: number };

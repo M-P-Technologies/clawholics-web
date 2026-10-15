@@ -1,9 +1,9 @@
 import { Check } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
-import { themeColor } from "../../services/themeColor";
+import { themeColor } from "@/services/themeColor";
 import { Button } from "@/components/atoms";
 import { Dialog } from "@/components/organisms";
-import { STAMP_TARGET, stampsToGo } from "../../utils/profileView";
+import { STAMP_TARGET, stampsToGo } from "@/utils/profileView";
 
 interface RewardsSheetProps {
   open: boolean;

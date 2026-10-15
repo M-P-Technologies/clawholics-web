@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { Dialog } from "@/components/organisms";
 import { Badge } from "@/components/atoms";
 import { pickNext, relativeDay, sortSoonest, stampsToGo, startOf } from "@/utils/profileView";
-import type { AppointmentView } from "@/components/profile/types";
+import type { AppointmentView } from "@/types/profile";
 import { useServicePhotos } from "@/hooks/useServicePhotos";
 
 const fetchServices = vi.fn();

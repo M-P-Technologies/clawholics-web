@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { Clock } from "lucide-react";
-import SummaryRow from "@/components/booking/SummaryRow";
+import SummaryRow from "@/components/features/client/booking/SummaryRow";
 
 describe("SummaryRow", () => {
   it("shows an icon before the label when it is given, and hides it from screen readers", () => {

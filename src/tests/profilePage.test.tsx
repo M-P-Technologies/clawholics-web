@@ -9,7 +9,7 @@ vi.mock("@/lib/router", () => ({
 const signOut = vi.fn();
 vi.mock("@clerk/nextjs", () => ({ useClerk: () => ({ openUserProfile: vi.fn(), signOut }) }));
 vi.mock("@/hooks/useServicePhotos", () => ({ useServicePhotos: () => () => "" }));
-vi.mock("@/components/payment/PaymentProofCard", () => ({ default: () => null }));
+vi.mock("@/components/features/client/appointments/PaymentProofCard", () => ({ default: () => null }));
 
 const view = (id: number, status = "confirmed", over = {}) => ({
   appt: { id, service_name: `Service ${id}`, nailist_id: 1, nailist_name: "Max", appointment_date: "2026-10-20", appointment_time: "09:00-11:00", status },

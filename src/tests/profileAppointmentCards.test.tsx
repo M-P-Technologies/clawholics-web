@@ -1,8 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import AppointmentCard from "@/components/profile/AppointmentCard";
-import NextAppointmentCard from "@/components/profile/NextAppointmentCard";
-import type { AppointmentView } from "@/components/profile/types";
+import AppointmentCard from "@/components/features/client/appointments/AppointmentCard";
+import NextAppointmentCard from "@/components/features/client/home/NextAppointmentCard";
+import type { AppointmentView } from "@/types/profile";
 
 vi.mock("@/lib/router", () => ({
   Link: ({ to, children, ...rest }: { to: string; children: React.ReactNode }) => <a href={to} {...rest}>{children}</a>,

@@ -1,9 +1,9 @@
 import { useState, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useNavigate, useSearchParams } from "@/lib/router";
-import { API_BASE_URL } from "../apiConfig";
-import { usePolling } from "./usePolling";
-import { type Appointment, type PaymentDetails } from "../utils/paymentConfirmation";
+import { API_BASE_URL } from "@/apiConfig";
+import { usePolling } from "@/hooks/usePolling";
+import { type Appointment, type PaymentDetails } from "@/utils/paymentConfirmation";
 
 export function usePaymentConfirmation() {
   const navigate = useNavigate();

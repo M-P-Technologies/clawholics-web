@@ -1,4 +1,4 @@
-import type { Nailist } from "../../utils/booking";
+import type { Nailist } from "@/utils/booking";
 import { Avatar, Select } from "@/components/atoms";
 
 interface ArtistSelectProps {

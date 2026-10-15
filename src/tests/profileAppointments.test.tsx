@@ -1,13 +1,13 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import AppointmentSheet from "@/components/profile/AppointmentSheet";
-import AppointmentsSection from "@/components/profile/AppointmentsSection";
-import type { AppointmentView } from "@/components/profile/types";
+import AppointmentSheet from "@/components/features/client/appointments/AppointmentSheet";
+import AppointmentsSection from "@/components/features/client/appointments/AppointmentsSection";
+import type { AppointmentView } from "@/types/profile";
 
 vi.mock("@/lib/router", () => ({
   Link: ({ to, children }: { to: string; children: React.ReactNode }) => <a href={to}>{children}</a>,
 }));
-vi.mock("@/components/payment/PaymentProofCard", () => ({
+vi.mock("@/components/features/client/appointments/PaymentProofCard", () => ({
   default: ({ appointment }: { appointment: { id: number; status: string } }) =>
     appointment.status === "awaiting_proof" ? <div id={`proof-${appointment.id}`}>proof card</div> : null,
 }));
