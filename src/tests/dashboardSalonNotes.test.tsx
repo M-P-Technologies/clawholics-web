@@ -116,3 +116,11 @@ describe("visits to complete", () => {
     expect(todo.getByRole("link", { name: /2.*Visits to complete/ })).toHaveAttribute("href", "/clients?status=TO_COMPLETE");
   });
 });
+
+describe("Needs attention keeps to three", () => {
+  it("shows only the first three rows, in their order", () => {
+    render(<SalonNotes data={base({ attention: { today: 5, proofsToReview: 0, toConfirm: 3, toComplete: 4, photosToAdd: 0, unpaid: 0, warmLeads: 146 } })} />);
+    const todo = within(screen.getByRole("region", { name: "Needs attention" }));
+    expect(todo.getAllByRole("link").map((l) => l.textContent?.replace(/^\d+/, ""))).toEqual(["Today's appointments", "Bookings to confirm", "Visits to complete"]);
+  });
+});
