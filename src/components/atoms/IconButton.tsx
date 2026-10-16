@@ -5,7 +5,7 @@ import Button from "./Button";
 const TONE = {
   plain: "text-gray-red hover:bg-crimson-light/30 hover:text-berry",
   milk: "bg-milk text-gray-red shadow-petal hover:text-crimson-ink",
-  brand: "bg-crimson text-on-crimson hover:bg-crimson/85",
+  brand: "bg-crimson text-light-orange hover:bg-crimson/85",
 } as const;
 const SIZE = { sm: "h-8 w-8", md: "h-10 w-10" } as const;
 

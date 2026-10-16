@@ -49,7 +49,7 @@ export default function SearchBar({ value, onChange, onSubmit, label = "Search s
         className="min-w-0 flex-1 bg-transparent py-2 text-sm text-gray-red outline-none placeholder:text-gray-red/50"
       />
       {onSubmit && (
-        <button type="submit" aria-label="Search" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-crimson text-on-crimson">
+        <button type="submit" aria-label="Search" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-crimson text-light-orange">
           <Search size={18} aria-hidden="true" />
         </button>
       )}

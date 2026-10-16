@@ -42,7 +42,7 @@ export const inputClass =
 export const errorTextClass = "mt-1.5 text-sm text-danger-ink";
 
 export const chipClass = (active: boolean) =>
-  `cursor-pointer whitespace-nowrap rounded-md border px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson ${
+  `cursor-pointer whitespace-nowrap rounded-md border px-3 py-2 text-sm md:text-base font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson ${
     active
       ? "border-crimson bg-crimson text-light-orange"
       : "border-crimson-light text-crimson hover:border-crimson"

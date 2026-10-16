@@ -55,7 +55,8 @@ interface TableFrameProps {
 // The admin's table: it scrolls sideways inside its card, with the card's padding kept at the edges
 export function TableFrame({ label, minWidthClass, head, className, children }: TableFrameProps) {
   return (
-    <div className={clsx("-mx-6 overflow-x-auto px-6", className)}>
+    // Scrolls sideways inside the card's padding, not out to its edges
+    <div className={clsx("overflow-x-auto", className)}>
       <table aria-label={label} className={clsx("w-full border-separate border-spacing-0 text-sm text-gray-red", minWidthClass)}>
         <thead>{head}</thead>
         <tbody>{children}</tbody>

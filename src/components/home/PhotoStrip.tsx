@@ -44,7 +44,7 @@ function StripCaption({ item, visible = true }: { item: StripItem; visible?: boo
         to={servicePath(item)}
         aria-label={`Book ${item.name}`}
         tabIndex={visible ? 0 : -1}
-        className={`${visible ? "pointer-events-auto" : "pointer-events-none"} shrink-0 rounded-md bg-crimson px-3 py-2 text-sm font-semibold text-light-orange shadow-md shadow-crimson/30 transition-colors hover:bg-gray-red active:translate-y-px sm:px-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-orange`}
+        className={`${visible ? "pointer-events-auto" : "pointer-events-none"} shrink-0 rounded-md bg-crimson px-3 py-2 text-sm md:text-base font-semibold text-light-orange shadow-md shadow-crimson/30 transition-colors hover:bg-gray-red active:translate-y-px sm:px-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-orange`}
       >
         Book
       </Link>

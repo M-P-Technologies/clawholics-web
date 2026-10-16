@@ -61,16 +61,16 @@ export default function ClientHome() {
               {h.nextWhen && <p className="text-sm font-bold text-berry">{h.nextWhen}</p>}
               <div className="flex flex-wrap gap-3">
                 {next.canPay ? (
-                  <Button type="button" onClick={() => h.account.payForAppointment(next.appt)}>Complete payment</Button>
+                  <Button type="button" onClick={() => h.account.payForAppointment(next.appt)} className="w-full sm:w-auto">Complete payment</Button>
                 ) : (
                   (next.canReschedule || next.isLocked) && (
-                    <Button type="button" onClick={() => h.account.rescheduleAppointment(next.appt)} disabled={!next.canReschedule}>
+                    <Button type="button" onClick={() => h.account.rescheduleAppointment(next.appt)} disabled={!next.canReschedule} className="w-full sm:w-auto">
                       Reschedule
                     </Button>
                   )
                 )}
                 {next.canCancel && (
-                  <Button type="button" variant="secondary" onClick={() => h.account.startCancel(next.appt)}>Cancel</Button>
+                  <Button type="button" variant="secondary" onClick={() => h.account.startCancel(next.appt)} className="w-full sm:w-auto">Cancel</Button>
                 )}
               </div>
               {next.isLocked && <p className="text-[13px] text-gray-red">Changes close 3 days before your appointment.</p>}

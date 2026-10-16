@@ -28,7 +28,7 @@ export default function FloatingFacebookButton({ href }: { href: string }) {
       aria-label="Message Clawholics by Max on Facebook"
       aria-hidden={footerInView}
       tabIndex={footerInView ? -1 : 0}
-      className={`fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-40 inline-flex items-center gap-3 rounded-md bg-crimson px-3 py-3 text-sm font-semibold text-light-orange shadow-xl shadow-crimson/30 transition-all duration-300 hover:bg-gray-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson motion-reduce:transition-none lg:bottom-8 lg:right-8 ${
+      className={`fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-40 inline-flex items-center gap-3 rounded-md bg-crimson px-3 py-3 text-sm md:text-base font-semibold text-light-orange shadow-xl shadow-crimson/30 transition-all duration-300 hover:bg-gray-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson motion-reduce:transition-none lg:bottom-8 lg:right-8 ${
         footerInView ? "pointer-events-none translate-y-4 opacity-0" : "translate-y-0 opacity-100"
       } ${scrolled ? "" : "max-lg:pointer-events-none max-lg:invisible max-lg:translate-y-[calc(100%+6rem)] max-lg:opacity-0"}`}
     >

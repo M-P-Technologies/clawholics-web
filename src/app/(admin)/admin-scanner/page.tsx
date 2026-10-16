@@ -135,7 +135,7 @@ export default function AdminScanner() {
                           key={i}
                           aria-hidden="true"
                           className={`flex aspect-square items-center justify-center rounded-full ${
-                            i < lastScan.client!.stamps ? "bg-crimson text-on-crimson shadow-sm" : "border-2 border-dashed border-crimson-light"
+                            i < lastScan.client!.stamps ? "bg-crimson text-light-orange shadow-sm" : "border-2 border-dashed border-crimson-light"
                           }`}
                         >
                           {i < lastScan.client!.stamps && <Check size={16} strokeWidth={3} />}

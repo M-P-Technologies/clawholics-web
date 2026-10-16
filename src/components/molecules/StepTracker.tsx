@@ -4,8 +4,8 @@ import type { StepState, TrackerStep } from "@/lib/bookingTracker";
 
 /** Each step state's colours */
 const STEP_STYLE: Record<StepState, { dot: string; bar: string; title: string }> = {
-  done: { dot: "bg-crimson text-on-crimson", bar: "bg-crimson", title: "text-gray-red" },
-  current: { dot: "border-2 border-crimson bg-milk text-berry", bar: "bg-crimson-light", title: "text-berry" },
+  done: { dot: "bg-crimson text-light-orange", bar: "bg-crimson", title: "text-gray-red" },
+  current: { dot: "border-2 border-crimson bg-milk text-crimson", bar: "bg-crimson-light", title: "text-berry" },
   upcoming: { dot: "bg-crimson-light/40 text-gray-red", bar: "bg-crimson-light/50", title: "text-gray-red" },
   stopped: { dot: "bg-danger/15 text-danger-ink", bar: "bg-crimson-light/50", title: "text-danger-ink" },
 };

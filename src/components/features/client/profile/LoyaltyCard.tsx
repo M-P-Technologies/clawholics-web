@@ -38,7 +38,7 @@ export default function LoyaltyCard({ stamps, target = DEFAULT_STAMP_TARGET, car
                 <div
                   key={number}
                   className={`flex aspect-square items-center justify-center rounded-full text-sm font-bold ${
-                    isEarned ? "bg-crimson text-on-crimson shadow-sm" : "border-2 border-dashed border-crimson-light text-gray-red"
+                    isEarned ? "bg-crimson text-light-orange shadow-sm" : "border-2 border-dashed border-crimson-light text-gray-red"
                   }`}
                 >
                   {isEarned ? <Check size={18} strokeWidth={3} aria-label={`Stamp ${number}`} /> : number}
