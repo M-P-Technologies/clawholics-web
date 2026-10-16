@@ -69,7 +69,7 @@ export const getClient = ported<IdContext>(async (_req, { params }) => {
           where p.appointment_id = a.id and upper(trim(p.status)) = 'PAID') as paid_downpayment,
          (select json_build_object('balance_amount', vc.balance_amount, 'payment_method', vc.payment_method,
                    'nailist_id', vc.nailist_id, 'nailist_name', vn.name,
-                   'arrived_at', vc.arrived_at, 'late_fee', vc.late_fee, 'photos_added', vc.photos_added)
+                   'arrived_at', vc.arrived_at, 'late_fee', vc.late_fee, 'photos_added', vc.photos_added, 'photo_url', vc.photo_url)
           from visit_completions vc left join nailists vn on vn.id = vc.nailist_id
           where vc.appointment_id = a.id) as completion,
          -- The client's review of the visit, if they left one

@@ -4,4 +4,6 @@
 alter table visit_completions
   add column arrived_at text,
   add column late_fee integer not null default 0 check (late_fee >= 0),
-  add column photos_added integer not null default 0;
+  add column photos_added integer not null default 0,
+  -- The visit's one nail photo (also in the artist's gallery); a new one replaces it
+  add column photo_url text;

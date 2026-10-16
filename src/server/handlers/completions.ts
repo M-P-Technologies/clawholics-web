@@ -108,3 +108,46 @@ export const saveCompletion = changesCatalog(ported<IdContext>(async (req, { par
   if (!completion) return Response.json({ message: "Only a confirmed visit can be completed." }, { status: 409 });
   return Response.json({ completion, photos: urls.length });
 }));
+
+// PUT /appointments/:id/photo (multipart: one `file`): the visit's nail photo, added after it was
+// completed. It goes first in the artist's gallery (kept to 10) and replaces the visit's earlier
+// one there. Photos come shrunk from the browser; 1MB at most here.
+export const saveVisitPhoto = changesCatalog(ported<IdContext>(async (req, { params }) => {
+  const admin = await requireAdmin();
+  if (admin instanceof Response) return admin;
+  const id = toId((await params).id);
+  if (id === null) return Response.json({ message: "Appointment not found" }, { status: 404 });
+
+  const file = (await req.formData()).get("file");
+  if (!file || typeof file === "string") return badRequest("Choose a photo.");
+  const ext = PROOF_EXTENSIONS[file.type];
+  if (!ext) return badRequest("Photos must be JPG, PNG or WEBP.");
+  if (file.size > MAX_PROOF_SIZE) return badRequest("The photo must be 1MB or smaller.");
+  const bytes = await imageBytes(file);
+  if (!bytes) return badRequest(NOT_AN_IMAGE);
+
+  const sql = getSql();
+  const [record] = await sql<{ nailist_id: number; photo_url: string | null }[]>`
+    select vc.nailist_id, vc.photo_url from visit_completions vc
+    join appointments a on a.id = vc.appointment_id
+    where vc.appointment_id = ${id} and upper(trim(a.status)) = 'COMPLETED'`;
+  if (!record) return Response.json({ message: "Complete the visit first, then add its photo." }, { status: 409 });
+
+  const key = createImageKey("nailists", `visit-${id}.${ext}`);
+  await putObject(key, bytes, file.type);
+  const url = `${publicBaseUrl()}/${key}`;
+
+  await sql.begin(async (tx) => {
+    if (record.photo_url) await tx`delete from nailist_gallery where nailist_id = ${record.nailist_id} and image_url = ${record.photo_url}`;
+    await tx`
+      insert into nailist_gallery (nailist_id, image_url, position)
+      values (${record.nailist_id}, ${url}, (select coalesce(min(position), 1) - 1 from nailist_gallery where nailist_id = ${record.nailist_id}))`;
+    await tx`
+      delete from nailist_gallery where nailist_id = ${record.nailist_id} and id not in (
+        select id from nailist_gallery where nailist_id = ${record.nailist_id} order by position asc, id desc limit 10)`;
+    await tx`
+      update visit_completions set photo_url = ${url}, photos_added = greatest(photos_added, 1), updated_at = clawholics_utc_now()
+      where appointment_id = ${id}`;
+  });
+  return Response.json({ photo_url: url });
+}));

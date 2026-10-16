@@ -169,7 +169,7 @@ describe.skipIf(!TEST_DATABASE_URL)("completing a visit (Postgres)", () => {
     });
 
     await complete(id, { balance_amount: "1300", payment_method: "Maya", nailist_id: String(jun) });
-    expect((await clientRow(id)).completion).toEqual({ balance_amount: 1300, payment_method: "Maya", nailist_id: jun, nailist_name: "Jun", arrived_at: null, late_fee: 0, photos_added: 0 });
+    expect((await clientRow(id)).completion).toEqual({ balance_amount: 1300, payment_method: "Maya", nailist_id: jun, nailist_name: "Jun", arrived_at: null, late_fee: 0, photos_added: 0, photo_url: null });
   });
 
   it("records when the client arrived and the late fee the terms set", async () => {
@@ -211,5 +211,40 @@ describe.skipIf(!TEST_DATABASE_URL)("completing a visit (Postgres)", () => {
     as("user_admin");
     const page = await callRoute(clients.getClient, "/x", { params: { id: String(ana) } });
     expect(page.body.summary.noShows).toBeGreaterThanOrEqual(1);
+  });
+
+  it("adds the visit's one photo later, to its record and the artist's gallery; a new one replaces it", async () => {
+    const id = await appt("CONFIRMED");
+    await complete(id, { balance_amount: "0", payment_method: "Cash", nailist_id: String(jun) });
+    const upload = (file: File, who = "user_admin") => {
+      as(who);
+      const body = new FormData();
+      body.set("file", file);
+      return callRoute(completions.saveVisitPhoto, `/api/appointments/${id}/photo`, { method: "PUT", body, params: { id: String(id) } });
+    };
+    const first = await upload(photos(1)[0]);
+    expect(first.status).toBe(200);
+    const [after1] = await db<{ photo_url: string; photos_added: number }[]>`select photo_url, photos_added from visit_completions where appointment_id = ${id}`;
+    expect(after1.photos_added).toBe(1);
+    expect((await galleryOf(jun))[0].image_url).toBe(after1.photo_url);
+
+    expect((await upload(photos(1)[0])).status).toBe(200);
+    const [after2] = await db<{ photo_url: string }[]>`select photo_url from visit_completions where appointment_id = ${id}`;
+    expect(after2.photo_url).not.toBe(after1.photo_url);
+    const urls = (await galleryOf(jun)).map((g) => g.image_url);
+    expect(urls).toContain(after2.photo_url);
+    expect(urls).not.toContain(after1.photo_url);
+
+    expect((await upload(new File([new Uint8Array(50)], "x.webp", { type: "image/webp" }))).status).toBe(400);
+    expect((await upload(new File([WEBP, new Uint8Array(1024 * 1024)], "big.webp", { type: "image/webp" }))).status).toBe(400);
+    expect((await upload(photos(1)[0], "user_ana")).status).toBe(403);
+  });
+
+  it("only takes a photo for a visit completed with its form", async () => {
+    const id = await appt("CONFIRMED");
+    as("user_admin");
+    const body = new FormData();
+    body.set("file", photos(1)[0]);
+    expect((await callRoute(completions.saveVisitPhoto, "/x", { method: "PUT", body, params: { id: String(id) } })).status).toBe(409);
   });
 });
