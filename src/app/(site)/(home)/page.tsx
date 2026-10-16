@@ -87,7 +87,7 @@ export default function Home() {
               <Button
                 to="/services"
                 aria-label="Book appointment: see our nail services"
-                className="relative w-full justify-center rounded-full pl-6 pr-15"
+                className="relative w-full justify-center rounded-full py-3 pl-6 pr-15"
               >
                 Book appointment
                 <span

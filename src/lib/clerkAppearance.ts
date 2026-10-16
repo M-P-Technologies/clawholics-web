@@ -23,7 +23,7 @@ export const clerkAppearance = {
       "w-full! bg-light-orange/70! text-gray-red! rounded-md! px-3 py-3 border! border-crimson-light! focus:border-crimson! focus:ring-2! focus:ring-crimson/30! shadow-none! font-sans text-base",
 
     formButtonPrimary:
-      "w-full! bg-crimson! hover:bg-gray-red! text-light-orange! text-sm! md:text-base! py-2 rounded-md! font-semibold! normal-case! tracking-normal! shadow-md! shadow-crimson/30! transition-colors mt-3",
+      "w-full! bg-crimson! hover:bg-gray-red! text-light-orange! text-base! py-2 rounded-md! font-semibold! normal-case! tracking-normal! shadow-md! shadow-crimson/30! transition-colors mt-3",
 
     footer: "bg-transparent! border-0! shadow-none! p-0!",
     footerAction: "bg-transparent! w-full! flex! justify-center!",
