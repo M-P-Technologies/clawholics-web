@@ -168,7 +168,7 @@ interface ConfirmDialogProps {
 export function ConfirmDialog({ open, title, children, confirmLabel, loadingLabel, cancelLabel = "Cancel", loading = false, onConfirm, onClose }: ConfirmDialogProps) {
   return (
     <Dialog open={open} onClose={onClose} title={title} role="alertdialog" size="md" dismissible={!loading} hideClose>
-      <div className="text-center text-sm leading-relaxed text-gray-red md:text-base">{children}</div>
+      <div className="text-left text-sm leading-relaxed text-gray-red md:text-base">{children}</div>
       <div className="flex flex-wrap justify-center gap-3">
         <Button variant="secondary" onClick={onClose} disabled={loading}>{cancelLabel}</Button>
         <Button onClick={onConfirm} loading={loading} loadingText={loadingLabel}>{confirmLabel}</Button>
