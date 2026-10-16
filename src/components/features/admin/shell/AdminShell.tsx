@@ -5,6 +5,7 @@ import { AppShell, PHONE_STICKY_TOP_BAR, TopBar } from "@/components/organisms";
 import { useAdminAccount } from "@/hooks/admin/useAdminAccount";
 import { useAdminWideLayout } from "@/hooks/useMinWidth";
 import NotificationBell from "@/components/features/admin/shell/NotificationBell";
+import SettingsLink from "@/components/features/admin/shell/SettingsLink";
 import SideBar from "@/components/features/admin/shell/SideBar";
 
 interface AdminShellProps {
@@ -36,7 +37,12 @@ export default function AdminShell({ title, titleAside, actions, children }: Adm
         greeting={`Welcome, ${account.firstName}!`}
         today={account.today}
         account={{ name: account.name, email: account.email || "Admin", imageUrl: account.imageUrl }}
-        bell={<NotificationBell />}
+        bell={
+          <div className="flex items-center gap-3">
+            <SettingsLink />
+            <NotificationBell />
+          </div>
+        }
         wide={wide}
         // On phones it stays at the top as the tab bar stays at the bottom (as in the client app)
         className={PHONE_STICKY_TOP_BAR}

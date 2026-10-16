@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAdminWideLayout } from "@/hooks/useMinWidth";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Activity, Moon, ShieldCheck, UserPlus } from "lucide-react";
@@ -71,6 +72,10 @@ export function useAdminDirectory() {
   const selected = (chosen && (users.find((u) => u.id === chosen.id) ?? chosen)) ?? users[0] ?? null;
   // The profile card on the page, so choosing an admin can bring it into view
   const [profileElement, setProfileElement] = useState<HTMLDivElement | null>(null);
+  // Below lg the card beside the table is hidden and a chosen admin opens in a bottom sheet instead,
+  // as the client app's Appointments and Explore do
+  const wide = useAdminWideLayout();
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [isAddAdminOpen, setIsAddAdminOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -103,6 +108,7 @@ export function useAdminDirectory() {
   };
 
   const openEdit = (user: DirectoryUser) => {
+    setSheetOpen(false);
     setSelectedAdmin(user);
     setEditForm({ firstName: user.firstName || "", lastName: user.lastName || "", email: user.email || "" });
     setIsEditModalOpen(true);
@@ -133,6 +139,7 @@ export function useAdminDirectory() {
   };
 
   const openDelete = (user: DirectoryUser) => {
+    setSheetOpen(false);
     setSelectedAdmin(user);
     setIsDeleteModalOpen(true);
   };
@@ -177,12 +184,18 @@ export function useAdminDirectory() {
     serverPage: { page: shownPage, pageSize: ADMIN_PAGE_SIZE, total, onPage: setPage },
     profiles,
     selected,
+    /** The row marked as chosen: only while the card beside the table shows it */
+    selectedRowId: wide ? (selected?.id ?? null) : null,
     setProfileElement,
-    /** Shows this admin's profile beside the table */
+    /** Shows this admin's profile: beside the table from lg, in a bottom sheet below it */
     select: (user: DirectoryUser) => {
       setChosen(user);
-      profileElement?.scrollIntoView?.({ behavior: "smooth", block: "nearest" });
+      if (wide) profileElement?.scrollIntoView?.({ behavior: "smooth", block: "nearest" });
+      else setSheetOpen(true);
     },
+    /** The admin shown in the phone's bottom sheet, if it's open */
+    sheetUser: !wide && sheetOpen ? selected : null,
+    closeSheet: () => setSheetOpen(false),
     stats: [
       { label: "Total admins", value: adminsQuery.data ? total : null, hint: "with admin access", icon: ShieldCheck },
       { label: "Active this week", value: dated((u) => countWithin(u, profiles, "lastSignInAt", 7)), hint: "signed in in the last 7 days", icon: Activity },

@@ -32,8 +32,8 @@ export default function MyProfile() {
         >
           {/* Side by side while they fit; Log out only on phones (from `sm` it's in the sidebar) */}
           <div className="flex flex-wrap gap-3">
-            <Button type="button" onClick={a.handleEditClick} className="flex-1">Edit details</Button>
-            <Button variant="secondary" type="button" onClick={p.manageAccount} className="flex-1">Manage account</Button>
+            <Button type="button" onClick={a.handleEditClick} className="grow">Edit details</Button>
+            <Button variant="secondary" type="button" onClick={p.manageAccount} className="grow">Manage account</Button>
             <Button variant="secondary" type="button" onClick={p.logOut} className="flex-1 sm:hidden">Log out</Button>
           </div>
         </ProfilePanel>
@@ -44,10 +44,10 @@ export default function MyProfile() {
             {p.tab === "overview" ? (
               <>
                 <TabSection title="At a glance" description="Your visits, your loyalty card and how long you've been with us.">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     <StatCard size="compact" icon={CalendarCheck} label="Visits" value={p.visits} hint="completed" />
                     <StatCard size="compact" icon={Stamp} label="Loyalty stamps" value={p.stampsValue} />
-                    <StatCard size="compact" icon={CalendarHeart} label="Member since" value={p.sinceLabel} />
+                    <StatCard size="compact" icon={CalendarHeart} label="Member since" value={p.sinceLabel} className="col-span-2 sm:col-span-1" />
                   </div>
                 </TabSection>
 

@@ -91,7 +91,7 @@ export default function MobileTabBar() {
         <div
           id="more-menu"
           ref={sheetRef}
-          className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-40 max-h-[70vh] overflow-y-auto border-t border-crimson-light/70 bg-light-orange px-3 py-2 shadow-2xl shadow-crimson/20 drawer-panel"
+          className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-40 max-h-[70vh] overflow-y-auto rounded-t-3xl border-t border-crimson-light/40 bg-light-orange px-3 py-2 shadow-2xl shadow-crimson/20 drawer-panel"
         >
           <Link to="/about" className={sheetLink(pathname === "/about")}>About Us</Link>
           <Link to="/faq" className={sheetLink(pathname === "/faq")}>FAQ</Link>

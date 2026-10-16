@@ -68,14 +68,14 @@ export default function OffersEditor({ offers, services, onChange, upload, uploa
               />
             </label>
             {offer.image && (
-              <Button type="button" variant="bare" onClick={() => update(i, { image: "" })} className="w-fit rounded-md px-3 py-1 text-xs font-bold text-gray-red hover:bg-crimson-light/30">
+              <Button type="button" variant="bare" onClick={() => update(i, { image: "" })} className="w-fit rounded-md px-3 py-1 text-sm 2xl:text-base font-bold text-gray-red hover:bg-crimson-light/30">
                 Remove photo
               </Button>
             )}
           </div>
         );
       })}
-      <Button type="button" variant="secondary" disabled={offers.length >= MAX_OFFERS} onClick={() => onChange([...offers, NEW_OFFER])} className="w-fit px-3! py-1.5! text-[13px]">
+      <Button size="sm" type="button" variant="secondary" disabled={offers.length >= MAX_OFFERS} onClick={() => onChange([...offers, NEW_OFFER])} className="w-fit">
         <Plus size={14} aria-hidden="true" />
         Add an offer
       </Button>

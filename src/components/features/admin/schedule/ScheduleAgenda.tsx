@@ -1,8 +1,9 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Moon, Sparkles } from "lucide-react";
 import clsx from "clsx";
 import type { ScheduleAppointment } from "@/services/scheduleService";
 import { addDays, scheduleClientName, sortByStartTime, weekDays } from "@/services/scheduleAgenda";
 import { Button } from "@/components/atoms";
+import { agendaTimes } from "@/lib/admin/schedule";
 
 export interface AgendaArtist {
   id: number;
@@ -30,7 +31,8 @@ export default function ScheduleAgenda({ selected, onSelect, dayData, onOpenAppo
   const appointments = sortByStartTime(artists.flatMap((artist) => artist.appointments));
   const artistOff = artists.filter((artist) => artist.isDayOff);
 
-  const dayTitle = selected.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+  const weekday = selected.toLocaleDateString("en-US", { weekday: "long" });
+  const monthDay = selected.toLocaleDateString("en-US", { month: "long", day: "numeric" });
 
   return (
     <div className="flex flex-col gap-3">
@@ -78,39 +80,63 @@ export default function ScheduleAgenda({ selected, onSelect, dayData, onOpenAppo
         </Button>
       </div>
 
-      <h4 className="font-display text-lg uppercase tracking-widest text-gray-red">{dayTitle}</h4>
+      {/* The day: its name, the date under it and how many bookings it holds */}
+      <div className="flex items-end justify-between gap-3 border-b border-crimson-light/50 pb-3">
+        <h4 className="min-w-0 font-display text-2xl font-normal leading-tight text-gray-red">
+          {weekday}
+          <span className="block font-sans text-[13px] font-medium text-gray-red">{monthDay}</span>
+        </h4>
+        <span className="shrink-0 rounded-full bg-crimson-light/45 px-3 py-1 text-xs font-bold text-berry">
+          {appointments.length} {appointments.length === 1 ? "booking" : "bookings"}
+        </span>
+      </div>
 
-      {artistOff.map((artist) => (
-        <p key={artist.id} className="text-sm text-gray-red">
-          {artist.name} is off
-        </p>
-      ))}
-
-      {appointments.length === 0 ? (
-        <p className="text-sm text-gray-red">No appointments on this day.</p>
-      ) : (
-        <ul className="flex flex-col gap-3">
-          {appointments.map((appointment) => (
-            <li key={appointment.id}>
-              <Button
-                variant="bare"
-                type="button"
-                onClick={() => onOpenAppointment(appointment)}
-                className="flex w-full items-start gap-3 rounded-2xl border border-crimson-light/40 bg-milk px-3 py-3 shadow-petal text-left"
-              >
-                <span className="w-24 shrink-0 text-sm font-bold text-crimson-ink">{appointment.appointment_time || "No time"}</span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-base font-bold uppercase leading-tight text-gray-red">
-                    {scheduleClientName(appointment)}
-                  </span>
-                  <span className="block truncate text-[13px] text-gray-red">
-                    {appointment.service_name || "No service"} · {appointment.nailist_name}
-                  </span>
-                </span>
-              </Button>
+      {artistOff.length > 0 && (
+        <ul aria-label="Artists off" className="flex flex-wrap gap-2">
+          {artistOff.map((artist) => (
+            <li key={artist.id} className="flex items-center gap-1.5 rounded-full bg-sand px-3 py-1 text-xs font-medium text-gray-red">
+              <Moon size={12} aria-hidden="true" className="shrink-0" />
+              <span>{artist.name} is off</span>
             </li>
           ))}
         </ul>
+      )}
+
+      {appointments.length === 0 ? (
+        <p className="rounded-2xl bg-crimson-light/15 px-3 py-6 text-center text-sm text-gray-red">No appointments on this day.</p>
+      ) : (
+        // A timeline: the start (and end) time on the left, a line with a dot per booking, then its card
+        <ol className="relative flex flex-col gap-3 before:absolute before:bottom-3 before:left-19.5 before:top-3 before:w-px before:bg-crimson-light">
+          {appointments.map((appointment) => {
+            const times = agendaTimes(appointment.appointment_time);
+            return (
+              <li key={appointment.id} className="relative grid grid-cols-[4.5rem_1fr] items-start gap-5">
+                <span className="pt-3 text-right leading-tight">
+                  <span className="block text-sm font-bold text-berry">{times?.start ?? "No time"}</span>
+                  {times?.end && <span className="block text-xs text-gray-red">{times.end}</span>}
+                </span>
+                <span aria-hidden="true" className="absolute left-18.5 top-4 h-2.5 w-2.5 rounded-full border-2 border-milk bg-crimson shadow-petal" />
+                <Button
+                  variant="bare"
+                  type="button"
+                  onClick={() => onOpenAppointment(appointment)}
+                  className="flex min-w-0 flex-col items-stretch gap-1 rounded-2xl border border-l-4 border-crimson-light/40 border-l-crimson bg-milk px-3 py-3 text-left shadow-petal transition-colors hover:bg-crimson-light/15"
+                >
+                  <span className="truncate text-[15px] font-bold leading-tight text-gray-red">{scheduleClientName(appointment)}</span>
+                  <span className="flex min-w-0 items-center gap-1.5 text-[13px] text-gray-red">
+                    <Sparkles size={13} aria-hidden="true" className="shrink-0 text-crimson" />
+                    <span className="truncate">{appointment.service_name || "No service"}</span>
+                  </span>
+                  {appointment.nailist_name && (
+                    <span className="mt-1 w-fit max-w-full truncate rounded-full bg-crimson-light/40 px-2.5 py-0.5 text-xs font-bold text-berry">
+                      {appointment.nailist_name}
+                    </span>
+                  )}
+                </Button>
+              </li>
+            );
+          })}
+        </ol>
       )}
     </div>
   );

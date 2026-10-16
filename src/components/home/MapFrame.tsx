@@ -32,7 +32,7 @@ export default function MapFrame({ src, className }: { src: string; className: s
         <iframe
           title="Map showing Clawholics by Max location"
           src={src}
-          className="h-full w-full rounded-sm"
+          className="h-full w-full rounded-xl"
           loading="lazy"
           referrerPolicy="strict-origin-when-cross-origin"
           sandbox="allow-scripts allow-same-origin allow-popups"

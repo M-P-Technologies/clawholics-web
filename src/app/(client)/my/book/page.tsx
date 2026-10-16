@@ -30,7 +30,7 @@ export default function Booking() {
               "We couldn't get the studio's location and details. This is usually a weak connection or a brief server hiccup. Nothing was booked, and you haven't been charged. Please try again."
             }
           >
-            <Button onClick={reloadPage} >
+            <Button onClick={reloadPage}>
               Try again
             </Button>
           </EmptyState>
@@ -169,7 +169,7 @@ export default function Booking() {
             onClick={handleContinue}
             disabled={isSubmitting}
             aria-busy={isSubmitting}
-            className="w-full px-9 sm:w-auto sm:px-15 disabled:cursor-wait disabled:opacity-60"
+            className="w-full sm:w-auto disabled:cursor-wait disabled:opacity-60"
           >
             {isSubmitting ? "Reserving your slot..." : "Continue to payment"}
           </Button>

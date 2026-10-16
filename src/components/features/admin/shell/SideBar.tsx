@@ -32,7 +32,7 @@ export default function SideBar() {
           storageKey="clawholics-admin-sidebar-collapsed"
           forceCollapsed={!wide}
           footer={(collapsed) => (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               <Button variant="secondary" href="/" aria-label={collapsed ? "Back to site (opens in a new tab)" : undefined} className={clsx("w-full gap-3", collapsed && "px-0!")}>
                 <ArrowLeft size={16} aria-hidden="true" />
                 {!collapsed && "Back to site"}

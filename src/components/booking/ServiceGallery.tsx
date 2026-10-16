@@ -27,7 +27,7 @@ export default function ServiceGallery({ images, label = "Service image gallery"
             key={img.id}
             type="button"
             aria-label={`Open gallery image ${index + 1}`}
-            className="relative cursor-pointer overflow-hidden rounded-sm focus-visible:outline-2 focus-visible:outline-crimson"
+            className="relative cursor-pointer overflow-hidden rounded-xl focus-visible:outline-2 focus-visible:outline-crimson"
             onClick={() => {
               setCurrent(index);
               setOpen(true);

@@ -34,10 +34,12 @@ describe("AdminShell", () => {
     expect(screen.getAllByRole("img", { name: "Admin" }).length).toBeGreaterThan(0);
   });
 
-  it("does not scroll by itself on desktop: only the screen's own content area does", () => {
+  it("never scrolls by itself, at any width: only the window (phones) or the content area (desktop) does", () => {
     // overflow-x-hidden alone makes the frame scrollable vertically too, so with the decorative glows
-    // hanging off its edge it grew a second scrollbar next to the content area's
+    // hanging off its edge it grew a second scrollbar next to the window's or the content area's
     const { container } = render(<AdminShell title="Schedule"><p>x</p></AdminShell>);
-    expect((container.firstChild as HTMLElement).className).toContain("lg:overflow-clip");
+    const frame = (container.firstChild as HTMLElement).className.split(" ");
+    expect(frame).toContain("overflow-clip");
+    expect(frame.some((c) => c.includes("overflow-x-hidden"))).toBe(false);
   });
 });

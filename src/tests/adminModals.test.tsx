@@ -13,8 +13,8 @@ describe("AddAdminModal", () => {
     render(<AddAdminModal open onClose={onClose} onSubmit={vi.fn()} />);
     const dialog = screen.getByRole("dialog", { name: "Add admin" });
     expect(dialog).toHaveAttribute("aria-modal", "true");
-    expect(screen.getByRole("heading", { name: "CLAWHOLICS" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "MAKE ADMIN" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Add admin" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Make admin" })).toBeInTheDocument();
     fireEvent.keyDown(window, { key: "Escape" });
     expect(onClose).toHaveBeenCalledTimes(1);
   });
@@ -35,11 +35,11 @@ describe("EditAdminModal", () => {
     return onClose;
   };
 
-  it("is a modal dialog with its heading and Save Changes button, and Escape closes it", () => {
+  it("is a modal dialog with its heading and Save changes button, and Escape closes it", () => {
     const onClose = setup();
     expect(screen.getByRole("dialog", { name: "Edit admin" })).toHaveAttribute("aria-modal", "true");
-    expect(screen.getByRole("heading", { name: "EDIT ADMIN" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Save Changes" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Edit admin" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save changes" })).toBeInTheDocument();
     fireEvent.keyDown(window, { key: "Escape" });
     expect(onClose).toHaveBeenCalledTimes(1);
   });

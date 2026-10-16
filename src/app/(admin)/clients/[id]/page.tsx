@@ -83,7 +83,7 @@ export default function ClientPage() {
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                       <StatCard size="compact" icon={CalendarCheck} label="Visits" value={String(summary.visits)} hint="completed" />
                       <StatCard size="compact" icon={Wallet} label="Total spent" value={peso(summary.totalSpent)} hint="list price of visits" />
-                      <StatCard size="compact" icon={Stamp} label="Loyalty stamps" value={page.stampsValue} />
+                      <StatCard size="compact" icon={Stamp} label="Loyalty stamps" value={page.stampsValue} className="col-span-2 sm:col-span-1" />
                     </div>
                   </TabSection>
                   <TabSection title="Booking tracker" description="Where a booking is, from booking to the finished visit. It follows their current booking; pick another to see it.">

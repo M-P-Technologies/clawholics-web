@@ -18,18 +18,18 @@ export default function QuickContact({ about }: { about: AboutContent }) {
   const directionsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(about.about_location)}`;
 
   return (
-    <div className="flex flex-col gap-3 md:gap-9">
+    <div className="flex flex-col gap-3 md:gap-6">
       <p className="copy-note">Visit us</p>
       <h2 className="font-display text-4xl font-normal uppercase leading-tight tracking-widest text-gray-red md:text-5xl">
         Quick contact
       </h2>
 
-      <div className="grid grid-cols-1 gap-3 md:gap-9 lg:grid-cols-[2fr_1fr_1fr]">
-        <div className="flex flex-col gap-3 md:gap-9">
+      <div className="grid grid-cols-1 gap-3 md:gap-6 lg:grid-cols-[2fr_1fr_1fr]">
+        <div className="flex flex-col gap-3 md:gap-6">
           {about.about_location_url ? (
-            <MapFrame src={about.about_location_url} className="h-72 w-full overflow-hidden rounded-sm border border-crimson-light/80 lg:h-80" />
+            <MapFrame src={about.about_location_url} className="h-72 w-full overflow-hidden rounded-2xl border border-crimson-light/40 lg:h-80" />
           ) : (
-            <p className="flex h-72 items-center justify-center rounded-sm border border-crimson-light/80 text-gray-red lg:h-80">
+            <p className="flex h-72 items-center justify-center rounded-2xl border border-crimson-light/40 text-gray-red lg:h-80">
               Map not available
             </p>
           )}

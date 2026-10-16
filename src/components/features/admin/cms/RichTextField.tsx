@@ -99,10 +99,10 @@ export default function RichTextField({ label, initialHtml, resetKey, onChange }
               className={clsx(fieldClass, "min-w-0 flex-1 py-1.5!")}
               autoFocus
             />
-            <Button type="button" onClick={applyLink} className="px-3! py-1.5! text-xs">
+            <Button size="sm" type="button" onClick={applyLink}>
               Add link
             </Button>
-            <Button type="button" variant="secondary" onClick={() => setLinkOpen(false)} className="px-3! py-1.5! text-xs">
+            <Button size="sm" type="button" variant="secondary" onClick={() => setLinkOpen(false)} >
               Cancel
             </Button>
             <p className="w-full text-xs text-gray-red">Select the words first, then type a web address (https://…) or an email (mailto:…).</p>

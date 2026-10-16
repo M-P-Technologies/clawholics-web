@@ -300,10 +300,10 @@ export function SaveBar({ dirty, saving, busy = false, onSave, onDiscard }: Save
         {dirty ? "Unsaved changes" : "Live on the site"}
       </p>
       <div className="flex gap-3">
-        <Button type="button" variant="secondary" onClick={onDiscard} disabled={!dirty || saving} className="px-3! py-1.5! text-[13px]">
+        <Button size="sm" type="button" variant="secondary" onClick={onDiscard} disabled={!dirty || saving}>
           Discard
         </Button>
-        <Button type="button" onClick={onSave} loading={saving} loadingText="Saving…" disabled={!dirty || busy} className="px-3! py-1.5! text-[13px]">
+        <Button size="sm" type="button" onClick={onSave} loading={saving} loadingText="Saving…" disabled={!dirty || busy}>
           Save
         </Button>
       </div>

@@ -61,16 +61,16 @@ export default function ClientHome() {
               {h.nextWhen && <p className="text-sm font-bold text-berry">{h.nextWhen}</p>}
               <div className="flex flex-wrap gap-3">
                 {next.canPay ? (
-                  <Button type="button" onClick={() => h.account.payForAppointment(next.appt)} className="w-full sm:w-auto">Complete payment</Button>
+                  <Button type="button" onClick={() => h.account.payForAppointment(next.appt)} className="grow sm:grow-0">Complete payment</Button>
                 ) : (
                   (next.canReschedule || next.isLocked) && (
-                    <Button type="button" onClick={() => h.account.rescheduleAppointment(next.appt)} disabled={!next.canReschedule} className="w-full sm:w-auto">
+                    <Button type="button" onClick={() => h.account.rescheduleAppointment(next.appt)} disabled={!next.canReschedule} className="grow sm:grow-0">
                       Reschedule
                     </Button>
                   )
                 )}
                 {next.canCancel && (
-                  <Button type="button" variant="secondary" onClick={() => h.account.startCancel(next.appt)} className="w-full sm:w-auto">Cancel</Button>
+                  <Button type="button" variant="secondary" onClick={() => h.account.startCancel(next.appt)} className="grow sm:grow-0">Cancel</Button>
                 )}
               </div>
               {next.isLocked && <p className="text-[13px] text-gray-red">Changes close 3 days before your appointment.</p>}
@@ -100,7 +100,7 @@ export default function ClientHome() {
         <Card as="section" aria-label="Special offers" className="flex flex-col gap-3">
           <SectionHeader size="section" title="Special offers" />
           {/* One banner per view on a phone (swipe for more), two side by side on a computer */}
-          <div className="-mx-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-2 scrollbar-none lg:mx-0 lg:grid lg:grid-cols-2 lg:overflow-visible lg:px-0 [&::-webkit-scrollbar]:hidden">
+          <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 scrollbar-none lg:grid lg:grid-cols-2 lg:overflow-visible [&::-webkit-scrollbar]:hidden">
             {h.offers.map((offer) => (
               <article key={offer.key} className="relative flex min-h-40 w-[85%] shrink-0 snap-center overflow-hidden rounded-2xl bg-crimson text-on-crimson shadow-petal lg:w-auto">
                 <div className="relative z-10 flex flex-1 flex-col items-start gap-1.5 p-6">

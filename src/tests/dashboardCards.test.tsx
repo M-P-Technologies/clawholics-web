@@ -65,10 +65,10 @@ describe("PeriodSwitch", () => {
     const onChange = vi.fn();
     render(<PeriodSwitch value="month" onChange={onChange} />);
     for (const name of ["This week", "This month", "Last 30 days", "Last 3 months", "This year"]) {
-      expect(screen.getByRole("button", { name })).toBeInTheDocument();
+      expect(screen.getByRole("tab", { name })).toBeInTheDocument();
     }
-    expect(screen.getByRole("button", { name: "This month" })).toHaveAttribute("aria-pressed", "true");
-    fireEvent.click(screen.getByRole("button", { name: "Last 30 days" }));
+    expect(screen.getByRole("tab", { name: "This month" })).toHaveAttribute("aria-selected", "true");
+    fireEvent.click(screen.getByRole("tab", { name: "Last 30 days" }));
     expect(onChange).toHaveBeenCalledWith("last30");
   });
 });

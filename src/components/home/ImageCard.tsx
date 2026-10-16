@@ -38,14 +38,14 @@ export default function ImageCard({
   titleId,
   subtitle,
   description,
-  mobileLines = 2,
+  mobileLines = 3,
   footer,
   priority = false,
 }: ImageCardProps) {
   return (
-    <article className="group flex h-full flex-row overflow-hidden sm:flex-col rounded-sm border border-crimson-light/80 bg-light-orange shadow-xl shadow-crimson/10 transition-colors duration-300 hover:border-crimson">
+    <article className="group flex h-full flex-row overflow-hidden sm:flex-col rounded-2xl border border-crimson-light/40 bg-light-orange shadow-petal transition-colors duration-300 hover:border-crimson">
       <div className="p-3 max-sm:w-2/5 max-sm:shrink-0">
-        <div className={clsx("relative w-full overflow-hidden rounded-sm bg-crimson-light", aspect, "max-sm:aspect-9/16")}>
+        <div className={clsx("relative w-full overflow-hidden rounded-xl bg-crimson-light", aspect, "max-sm:aspect-9/16")}>
           <Image
             src={image}
             alt={imageAlt}
@@ -66,7 +66,7 @@ export default function ImageCard({
           <div className="text-sm font-bold text-crimson-ink">{subtitle}</div>
         </div>
 
-        <p className={clsx("whitespace-pre-line copy-body", DESCRIPTION_LINES[mobileLines])}>
+        <p className={clsx("whitespace-pre-line copy-body text-sm md:text-base", DESCRIPTION_LINES[mobileLines])}>
           {description}
         </p>
 

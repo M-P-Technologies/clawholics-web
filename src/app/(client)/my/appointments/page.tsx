@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import { Button, Card, Select } from "@/components/atoms";
-import { SectionHeader, TabSection, Tabs } from "@/components/molecules";
+import { SectionHeader, SegmentedControl } from "@/components/molecules";
 import { surface } from "@/components/tokens";
 import AppointmentDetails from "@/components/features/client/appointments/AppointmentDetails";
 import AppointmentsTable from "@/components/features/client/appointments/AppointmentsTable";
@@ -19,16 +19,18 @@ export default function MyAppointments() {
           a visit opens in the drawer */}
       <div className="grid grid-cols-1 gap-3 md:gap-6 lg:grid-cols-3">
       <Card as="section" aria-label="Appointments" padding="none" className="flex min-w-0 flex-col overflow-clip lg:col-span-2">
-        <Tabs label="Your visits" idPrefix="visits" value={tab} onChange={setTab} tabs={tabs} />
-        <div role="tabpanel" id={`visits-panel-${tab}`} aria-labelledby={`visits-tab-${tab}`} className="flex min-w-0 flex-col gap-3 p-6">
-          <TabSection title="Your visits" description="Open one to see its details, pay, reschedule, or leave a review after your visit.">
+        <div className="flex min-w-0 flex-1 flex-col gap-3 p-6">
+          {/* The Upcoming | Past switch and, for past visits, the filters: one row from md, stacked below */}
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <SegmentedControl label="Your visits" value={tab} onChange={setTab} options={tabs} className="w-fit shrink-0" />
             {tab === "past" && (
-              <div className="flex flex-wrap gap-3">
-                <Select aria-label="Filter past appointments" value={a.historyFilter} onChange={a.handleHistoryFilterChange} options={HISTORY_FILTERS} className="w-full sm:w-48" />
-                <Select aria-label="Sort past appointments" value={a.historySortBy} onChange={a.handleHistorySortChange} options={HISTORY_SORTS} className="w-full sm:w-56" />
+              <div className="flex min-w-0 flex-col gap-3 sm:flex-row">
+                <Select aria-label="Filter past appointments" value={a.historyFilter} onChange={a.handleHistoryFilterChange} options={HISTORY_FILTERS} className="w-full min-w-0 sm:w-48" />
+                <Select aria-label="Sort past appointments" value={a.historySortBy} onChange={a.handleHistorySortChange} options={HISTORY_SORTS} className="w-full min-w-0 sm:w-56" />
               </div>
             )}
-            {views.length === 0 ? (
+          </div>
+          {views.length === 0 ? (
               <p className={clsx(surface.tint, "px-3 py-6 text-center text-[13px] text-gray-red")}>{emptyText}</p>
             ) : (
               <AppointmentsTable label={tableLabel} views={views} highlightedId={a.highlightedAppointmentId} reviewedIds={reviewedIds} onOpen={openView} selectedId={selectedRowId} />
@@ -38,7 +40,6 @@ export default function MyAppointments() {
                 {a.showAllHistory ? "View less" : "View more"}
               </Button>
             )}
-          </TabSection>
         </div>
       </Card>
       {selected && (

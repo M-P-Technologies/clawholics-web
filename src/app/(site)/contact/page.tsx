@@ -36,7 +36,7 @@ export default function ContactUs() {
         <SectionHeader title="Contact us" subtitle={pageData.contact_subtitle} />
 
         <Panel className="mx-auto w-full max-w-3xl">
-          <div className="flex flex-col gap-3 md:gap-9">
+          <div className="flex flex-col gap-3 md:gap-6">
             <h2 className="font-display text-xl font-normal uppercase tracking-widest text-gray-red">
               Any concerns? Message us!
             </h2>

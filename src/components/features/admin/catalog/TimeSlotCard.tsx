@@ -149,12 +149,8 @@ const TimeSlotCard = ({
               </div>
 
               <div className="flex justify-center">
-                <Button
-                  type="button"
-                  onClick={handleAddTimeSlot}
-                  className="w-25"
-                >
-                  ADD
+                <Button type="button" onClick={handleAddTimeSlot}>
+                  Add time slot
                 </Button>
               </div>
             </div>

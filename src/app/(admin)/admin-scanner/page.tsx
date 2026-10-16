@@ -60,12 +60,12 @@ export default function AdminScanner() {
 
             <div className="mt-auto">
               {!isScanning ? (
-                <Button onClick={startScanner} className="w-full max-lg:py-3">
+                <Button onClick={startScanner} className="w-full">
                   <Camera size={16} aria-hidden="true" />
                   Start scanner
                 </Button>
               ) : (
-                <Button variant="secondary" onClick={stopScanner} className="w-full max-lg:py-3">
+                <Button variant="secondary" onClick={stopScanner} className="w-full">
                   Stop scanner
                 </Button>
               )}
@@ -89,10 +89,11 @@ export default function AdminScanner() {
                     {lastScan.error}
                   </p>
                   <Button
+                    size="sm"
                     type="button"
                     variant="secondary"
                     onClick={scanAgain}
-                    className="self-start px-3! py-1.5! text-[13px]"
+                    className="self-start"
                   >
                     Scan again
                   </Button>

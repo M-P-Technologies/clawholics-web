@@ -27,15 +27,13 @@ describe("DashboardView layout", () => {
     expect(column.className).toContain("lg:sticky");
   });
 
-  it("makes the notes exactly one stat card wide: the same four columns and gap, the charts taking three", () => {
+  it("gives the notes one column of three from lg, the charts taking two", () => {
     render(<DashboardView data={data} />);
-    const statGrid = screen.getByRole("group", { name: "Collected" }).parentElement as HTMLElement;
     const column = screen.getByRole("region", { name: "Salon notes" }).parentElement as HTMLElement;
     const lower = column.parentElement as HTMLElement;
     const main = (screen.getByRole("region", { name: "Bookings per month" }).parentElement as HTMLElement).parentElement as HTMLElement;
-    expect(statGrid.className).toContain("lg:grid-cols-4");
-    expect(lower.className).toContain("lg:grid-cols-4");
-    expect(main.className).toContain("lg:col-span-3");
+    expect(lower.className).toContain("lg:grid-cols-3");
+    expect(main.className).toContain("lg:col-span-2");
   });
 
   it("spaces every card the same: gap-3, and gap-6 from md up", () => {
@@ -52,11 +50,11 @@ describe("DashboardView layout", () => {
     }
   });
 
-  it("lays the stat cards out two across, and four across on desktop, all the same width", () => {
+  it("lays the stat cards out two across, and four across from xl, all the same width", () => {
     render(<DashboardView data={data} />);
     const grid = screen.getByRole("group", { name: "Collected" }).parentElement as HTMLElement;
     expect(grid.className).toContain("grid-cols-2");
-    expect(grid.className).toContain("lg:grid-cols-4");
+    expect(grid.className).toContain("xl:grid-cols-4");
     for (const name of ["Collected", "Estimated sales", "Bookings", "New clients"]) {
       const card = screen.getByRole("group", { name });
       expect(card.parentElement).toBe(grid);

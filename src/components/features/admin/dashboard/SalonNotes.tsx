@@ -105,12 +105,12 @@ export default function SalonNotes({ data }: { data: DashboardResponse }) {
               <Link
                 key={todo.label}
                 to={todo.to}
-                className="flex items-center gap-3 rounded-2xl bg-milk/70 py-1.5 pl-1.5 pr-3 transition-colors hover:bg-milk"
+                className="flex min-w-0 items-center gap-3 overflow-hidden rounded-2xl bg-milk/70 py-1.5 pl-1.5 pr-3 transition-colors hover:bg-milk"
               >
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-milk font-display text-base leading-none text-berry shadow-petal">
                   {todo.count}
                 </span>
-                <span className="min-w-0 text-sm font-bold leading-snug text-gray-red">{todo.label}</span>
+                <span className="min-w-0 truncate text-sm font-bold leading-snug text-gray-red">{todo.label}</span>
               </Link>
             ))
           )}

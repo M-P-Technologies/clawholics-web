@@ -20,7 +20,7 @@ interface CtaBandProps {
 // on a soft pink glow. Used at the bottom of pages to point people to their next step.
 export default function CtaBand({ title, text, primary, secondary }: CtaBandProps) {
   return (
-    <Section innerClassName="items-center text-center gap-3 md:gap-9">
+    <Section innerClassName="items-center text-center gap-3 md:gap-6">
       <Blush
         tone="crimson"
         className="left-1/2 top-1/2 h-72 w-full max-w-2xl -translate-x-1/2 -translate-y-1/2"

@@ -7,6 +7,7 @@ import MyAccountProvider from "@/components/features/client/shell/MyAccountProvi
 import { ClientOnly } from "@/components/guards/ClientOnly";
 import { OnboardingGate } from "@/components/guards/OnboardingGate";
 import { isApiAdmin } from "@/server/auth";
+import { ButtonTextSizeProvider } from "@/components/atoms/ButtonTextSize";
 
 // The client app is personal: search engines must not list it
 export const metadata: Metadata = { title: "My account", robots: { index: false, follow: false } };
@@ -22,6 +23,8 @@ export default async function ClientLayout({ children }: { children: ReactNode }
   if (user.publicMetadata?.role === "admin" || (await isApiAdmin("client layout"))) redirect("/dashboard");
 
   return (
+    // Buttons read text-sm until 2xl here, as in the admin (the site's grow from md)
+    <ButtonTextSizeProvider size="app">
     <Suspense>
       <ClientOnly>
         <OnboardingGate>
@@ -31,5 +34,6 @@ export default async function ClientLayout({ children }: { children: ReactNode }
         </OnboardingGate>
       </ClientOnly>
     </Suspense>
+    </ButtonTextSizeProvider>
   );
 }

@@ -23,10 +23,11 @@ export default function AppShell({ variant, sideBar, tabBar, children }: AppShel
   if (variant === "admin") {
     return (
       // Laid out like the client app's: the tab bar on phones, the sidebar from `sm` (an icon rail
-      // until `lg`) in the same inset, and the content with the same gaps. From `lg` the frame is
-      // fitted to the screen and each screen scrolls its own content.
-      <div className="relative isolate flex min-h-screen bg-light-orange text-gray-red max-lg:overflow-x-hidden lg:h-screen lg:overflow-clip">
-        <Blush tone="crimson" className="-right-28 -top-28 h-96 w-96" />
+      // until `lg`) in the same inset, and the content with the same gaps. From `sm` the frame is
+      // fitted to the screen and each screen scrolls its own content under the top bar, so it is
+      // cut off at the frame's padding instead of sliding through it to the window's edge.
+      <div className="relative isolate flex min-h-screen bg-light-orange text-gray-red overflow-clip sm:h-screen">
+        <Blush tone="crimson" className="-bottom-28 -left-28 h-96 w-96" />
         <Blush className="-bottom-40 left-1/3 h-112 w-md" />
         {sideBar}
         {tabBar}

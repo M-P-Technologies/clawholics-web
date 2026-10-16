@@ -126,7 +126,7 @@ export default function Payment() {
         </div>
 
         <div className="flex justify-center">
-          <Button id="pay-button" onClick={handlePay} className="px-9 sm:px-15">
+          <Button id="pay-button" onClick={handlePay}>
             Pay downpayment
           </Button>
         </div>

@@ -49,7 +49,7 @@ export default function ScheduleDayDetails({ date, artists, onClose, onOpenAppoi
                     >
                       <div className="min-w-0">
                         <div className="flex items-center gap-3">
-                          <p className="truncate text-base lg:text-base font-bold uppercase leading-tight text-gray-red">{scheduleClientName(appointment)}</p>
+                          <p className="truncate text-base font-bold leading-tight text-gray-red">{scheduleClientName(appointment)}</p>
                           <span className="rounded-md border-[0.8px] px-2 py-0.5 text-xs font-bold text-gray-red">ID #{appointment.id}</span>
                         </div>
                         <p className="text-[13px] lg:text-sm leading-tight text-gray-red">

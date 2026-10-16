@@ -7,7 +7,7 @@ import type { Nailist } from "../../types";
 import { Button } from "@/components/atoms";
 
 const ROUND_BUTTON =
-  "flex h-10 w-10 items-center justify-center rounded-full border border-crimson-light bg-light-orange text-crimson-ink shadow-md shadow-crimson/20 transition-colors hover:bg-crimson hover:text-on-crimson focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson";
+  "flex h-10 w-10 items-center justify-center rounded-full border border-crimson-light/40 bg-light-orange text-crimson-ink shadow-md shadow-crimson/20 transition-colors hover:bg-crimson hover:text-on-crimson focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson";
 
 // One artist at a time: portrait on one side, their details on the other. Arrows, dots
 // and swiping move between artists; the old one fades out and the next fades in.
@@ -62,8 +62,8 @@ export default function ArtistSpotlight({ artists }: { artists: Nailist[] }) {
           focusable="false"
           className="absolute -left-8 -top-4 z-10 h-20 w-20 -rotate-12 text-crimson drop-shadow-md"
         />
-        <div className="aspect-3/4 overflow-hidden rounded-sm border border-crimson-light/80 bg-light-orange p-2 shadow-xl shadow-crimson/10">
-          <div className="relative h-full w-full overflow-hidden rounded-sm">
+        <div className="aspect-3/4 overflow-hidden rounded-2xl border border-crimson-light/40 bg-light-orange p-2 shadow-petal">
+          <div className="relative h-full w-full overflow-hidden rounded-xl">
             <Image
               src={artist.image}
               alt={`${artist.name}, ${artist.position}`}
@@ -76,7 +76,7 @@ export default function ArtistSpotlight({ artists }: { artists: Nailist[] }) {
         </div>
       </div>
 
-        <div className={`order-3 mt-12 flex flex-col gap-3 md:gap-9 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:min-h-72 ${fade}`}>
+        <div className={`order-3 mt-12 flex flex-col gap-3 md:gap-6 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:min-h-72 ${fade}`}>
           <p className="copy-note">The Artist</p>
           <div className="flex flex-col gap-3">
             <h3 className="font-display text-3xl font-normal uppercase tracking-widest text-gray-red md:text-5xl">
@@ -101,7 +101,7 @@ export default function ArtistSpotlight({ artists }: { artists: Nailist[] }) {
               <Button variant="bare" type="button" aria-label="Previous artist" onClick={() => show(index - 1)} className={ROUND_BUTTON}>
                 <ChevronLeft size={20} aria-hidden="true" />
               </Button>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5">
                 {artists.map((a, i) => (
                   <Button
                     variant="bare"

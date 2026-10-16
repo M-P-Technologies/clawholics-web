@@ -1,11 +1,15 @@
+"use client";
+
 import { Children } from "react";
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode, Ref } from "react";
 import { Link } from "@/lib/router";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 import clsx from "clsx";
+import { BUTTON_TEXT, useButtonTextSize } from "./ButtonTextSize";
 
 type ButtonVariant = "primary" | "secondary" | "bare";
+type ButtonSize = "md" | "sm";
 
 interface ButtonOwnProps {
   /**
@@ -15,6 +19,11 @@ interface ButtonOwnProps {
    * through `className`. It still gets the same focus ring, pointer, disabled and loading behavior.
    */
   variant?: ButtonVariant;
+  /**
+   * md: the usual button. sm: the compact one, for buttons inside cards, rows and toolbars
+   * (Edit/Delete, a card's own action). Use these, never padding or text sizes through `className`.
+   */
+  size?: ButtonSize;
   /** Shows a spinner, blocks clicks and tells screen readers it is busy */
   loading?: boolean;
   /** Text shown instead of the children while loading, for example "Saving..." */
@@ -41,10 +50,16 @@ const BASE =
 
 const VARIANTS: Record<ButtonVariant, string> = {
   primary:
-    "rounded-md bg-crimson px-3 sm:px-4 py-2 text-sm md:text-base font-semibold text-light-orange shadow-md shadow-crimson/30 hover:bg-gray-red active:translate-y-px",
+    "rounded-md bg-crimson font-semibold text-light-orange shadow-md shadow-crimson/30 hover:bg-gray-red active:translate-y-px",
   secondary:
-    "rounded-md border border-crimson px-3 sm:px-4 py-2 text-sm md:text-base font-semibold text-crimson hover:bg-crimson hover:text-on-crimson active:translate-y-px",
+    "rounded-md border border-crimson font-semibold text-crimson hover:bg-crimson hover:text-on-crimson active:translate-y-px",
   bare: "",
+};
+
+// Padding by size. The words are the same size for both: the site's or the app's (ButtonTextSize)
+const SIZE_PADDING: Record<ButtonSize, string> = {
+  md: "px-3 sm:px-4 py-2",
+  sm: "px-3 py-1.5",
 };
 
 // States that every variant shares
@@ -54,6 +69,7 @@ const LOADING = "cursor-wait opacity-70 pointer-events-none";
 // The one button of the site. Renders a <button>, a router <Link> (`to`) or an <a> (`href`).
 export default function Button({
   variant = "primary",
+  size = "md",
   loading = false,
   loadingText,
   fullWidth = false,
@@ -68,10 +84,13 @@ export default function Button({
   ref,
   ...rest
 }: ButtonProps) {
+  const textSize = useButtonTextSize();
   const classes = twMerge(
     clsx(
       BASE,
       VARIANTS[variant],
+      variant !== "bare" && SIZE_PADDING[size],
+      variant !== "bare" && BUTTON_TEXT[textSize],
       STATES,
       arrow && "group",
       fullWidth && "w-full",

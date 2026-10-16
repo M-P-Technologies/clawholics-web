@@ -38,7 +38,7 @@ describe("the Sales page", () => {
   it("asks again when the period changes", async () => {
     render(<Sales />);
     await screen.findByRole("region", { name: "Money" });
-    fireEvent.click(screen.getAllByRole("button", { name: "This week" })[0]);
+    fireEvent.click(screen.getAllByRole("tab", { name: "This week" })[0]);
     await waitFor(() => expect(fetchDashboard).toHaveBeenLastCalledWith("week", "tok", "admin_1"));
   });
 

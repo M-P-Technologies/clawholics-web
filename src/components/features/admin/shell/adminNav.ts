@@ -11,7 +11,6 @@ import {
   Mail,
   Palette,
   QrCode,
-  Settings,
   ShieldCheck,
   TrendingUp,
   Wallet,
@@ -50,11 +49,9 @@ export const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
       { path: "/privacy-policy", label: "Privacy Policy", icon: Lock },
     ],
   },
-  {
-    title: "Salon",
-    items: [{ path: "/settings", label: "Settings", icon: Settings }],
-  },
 ];
+
+// Settings isn't in the menus: it's the gear beside the bell in the top bar (SettingsLink)
 
 // The phone's bottom tab bar: the screens used every day
 export const TAB_ITEMS: NavItem[] = [
@@ -76,7 +73,6 @@ export const MORE_GROUPS: { title: string; items: NavItem[] }[] = [
     ],
   },
   { title: "Content Management", items: NAV_GROUPS[2].items },
-  { title: "Salon", items: NAV_GROUPS[3].items },
 ];
 
 export const MORE_ITEMS: NavItem[] = MORE_GROUPS.flatMap((group) => group.items);

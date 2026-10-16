@@ -47,11 +47,11 @@ describe("Schedule on a phone", () => {
     render(<Schedule />);
     expect(await screen.findByText("Oct Client")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Month" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Month" }));
     fireEvent.click(await screen.findByRole("button", { name: "Next month" }));
     await waitFor(() => expect(fetchMonthlySchedule).toHaveBeenCalledWith("2026-11"));
 
-    fireEvent.click(screen.getByRole("button", { name: "Day" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Day" }));
     expect(await screen.findByText("Oct Client")).toBeInTheDocument();
   });
 
@@ -99,7 +99,7 @@ describe("Schedule on a phone", () => {
 
     let release: (value: MonthlySchedule) => void = () => {};
     fetchMonthlySchedule.mockImplementationOnce(() => new Promise<MonthlySchedule>((resolve) => { release = resolve; }));
-    fireEvent.click(screen.getByRole("button", { name: "Month" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Month" }));
     fireEvent.click(await screen.findByRole("button", { name: "Next month" }));
     await waitFor(() => expect(fetchMonthlySchedule).toHaveBeenCalledWith("2026-11"));
 

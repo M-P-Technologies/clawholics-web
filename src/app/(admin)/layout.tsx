@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import { isApiAdmin } from "@/server/auth";
 import ForgetPublicContent from "@/components/providers/ForgetPublicContent";
+import { ButtonTextSizeProvider } from "@/components/atoms/ButtonTextSize";
 
 // Search engines must not list the admin screens
 export const metadata: Metadata = { title: "Admin", robots: { index: false, follow: false } };
@@ -22,9 +23,10 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   if (user.publicMetadata?.role !== "admin" && !(await isApiAdmin("admin layout"))) redirect("/");
 
   return (
-    <>
+    // Buttons read text-sm until 2xl here, as in the client app (the site's grow from md)
+    <ButtonTextSizeProvider size="app">
       <ForgetPublicContent />
       {children}
-    </>
+    </ButtonTextSizeProvider>
   );
 }

@@ -352,7 +352,7 @@ const TACDropdown: React.FC<DropdownProps> = ({
             aria-expanded={isOpen}
             className="flex min-w-0 flex-1 items-center justify-between gap-3 text-left"
           >
-            <span className="block min-w-0 font-bold text-base truncate text-gray-red uppercase">
+            <span className="block min-w-0 font-bold text-base truncate text-gray-red">
               {title || "Untitled"}
             </span>
 
