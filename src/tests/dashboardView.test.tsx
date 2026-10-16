@@ -138,7 +138,7 @@ describe("DashboardView next appointments (without the bookings table)", () => {
     const next = within(screen.getByRole("region", { name: "Next appointments" }));
     expect(next.getByText("Dana D")).toBeInTheDocument();
     expect(next.getByText(/Gel Manicure · Maxine/)).toBeInTheDocument();
-    expect(next.getByText(/15:00-16:00/)).toBeInTheDocument();
+    expect(next.getByText(/3:00 PM - 4:00 PM/)).toBeInTheDocument();
     expect(next.getByRole("link", { name: "Open the schedule" })).toHaveAttribute("href", "/schedule");
   });
 

@@ -3,6 +3,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useNavigate, useSearchParams } from "@/lib/router";
 import { API_BASE_URL } from "@/apiConfig";
 import { usePolling } from "@/hooks/usePolling";
+import { longDateLabel, timeRangeLabel } from "@/lib/timeFormat";
 import { type Appointment, type PaymentDetails } from "@/utils/paymentConfirmation";
 
 export function usePaymentConfirmation() {
@@ -107,5 +108,8 @@ export function usePaymentConfirmation() {
   const isConfirmed = data?.status === "CONFIRMED" || data?.status === "AWAITING_CONFIRMATION";
   const awaitingSalon = data?.status === "AWAITING_CONFIRMATION";
 
-  return { isFailed, isConfirmed, awaitingSalon, navigate, appointment_id, data, payment, loading, paymentStatus, timedOut, checkAgain };
+  const dateLabel = longDateLabel(data?.appointment_date);
+  const timeLabel = timeRangeLabel(data?.appointment_time);
+
+  return { isFailed, isConfirmed, awaitingSalon, navigate, appointment_id, data, dateLabel, timeLabel, payment, loading, paymentStatus, timedOut, checkAgain };
 }

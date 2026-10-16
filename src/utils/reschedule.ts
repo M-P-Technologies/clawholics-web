@@ -1,3 +1,5 @@
+import { timeRangeLabel } from "../lib/timeFormat";
+
 // --- HELPER FUNCTIONS ---
 const parseTimeRange = (range: string) => {
   const [start, end] = range.split("-");
@@ -26,13 +28,4 @@ export const toLocalDateString = (date: Date) => {
   return `${y}-${m}-${d}`;
 };
 
-export const formatSlot = (slot: string) => {
-  const [start, end] = slot.split("-");
-  const format = (t: string) => {
-    const [h24, m] = t.split(":").map(Number);
-    const ampm = h24 >= 12 ? "PM" : "AM";
-    const h = h24 % 12 || 12;
-    return `${h}:${m.toString().padStart(2, "0")} ${ampm}`;
-  };
-  return `${format(start)} - ${format(end)}`;
-};
+export const formatSlot = timeRangeLabel;

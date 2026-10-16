@@ -52,6 +52,8 @@ describe("payment confirmation when paid", () => {
       ...waiting, isConfirmed: true, awaitingSalon: true,
       payment: { first_name: "Ana", payment_method: "QR Ph", email: "ana@example.com" },
       data: { service_name: "Hard Gel", appointment_date: "2026-10-20", appointment_time: "9:00 AM - 11:00 AM" },
+      dateLabel: "October 20, 2026",
+      timeLabel: "9:00 AM - 11:00 AM",
     });
     render(<PaymentConfirmation />);
     expect(screen.getByRole("heading", { name: "Payment received" })).toBeInTheDocument();
@@ -63,12 +65,14 @@ describe("payment confirmation when paid", () => {
       ...waiting, isConfirmed: true,
       payment: { first_name: "Ana", payment_method: "QR Ph", email: "ana@example.com" },
       data: { service_name: "Hard Gel", appointment_date: "2026-10-20", appointment_time: "9:00 AM - 11:00 AM" },
+      dateLabel: "October 20, 2026",
+      timeLabel: "9:00 AM - 11:00 AM",
     });
     render(<PaymentConfirmation />);
     expect(screen.getByRole("heading", { name: "Booking confirmed" })).toBeInTheDocument();
     expect(screen.getByText(/Thank you, Ana!/)).toBeInTheDocument();
     expect(screen.getByText(/ana@example.com/)).toBeInTheDocument();
-    for (const v of ["Hard Gel", "2026-10-20", "9:00 AM - 11:00 AM"]) expect(screen.getByText(v)).toBeInTheDocument();
+    for (const v of ["Hard Gel", "October 20, 2026", "9:00 AM - 11:00 AM"]) expect(screen.getByText(v)).toBeInTheDocument();
     expect(screen.getByText("Amount paid", { selector: "dt" })).toBeInTheDocument();
   });
 

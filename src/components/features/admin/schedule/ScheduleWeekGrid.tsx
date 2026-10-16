@@ -1,3 +1,4 @@
+import { timeRangeLabel } from "@/lib/timeFormat";
 import clsx from "clsx";
 import { scheduleClientName, sortByStartTime, toDateKey } from "@/services/scheduleAgenda";
 import type { MonthlySchedule, NailArtist, ScheduleAppointment } from "@/services/scheduleService";
@@ -40,7 +41,6 @@ const LEGEND: [Group, string][] = [
 ];
 
 const artistName = (artist: NailArtist) => artist.name || `${artist.first_name ?? ""} ${artist.last_name ?? ""}`.trim() || "Artist";
-const timeRange = (time: string) => time.split("-").map((t) => t.trim()).join(" – ");
 
 interface ScheduleWeekGridProps {
   /** Monday to Sunday */
@@ -153,7 +153,7 @@ export default function ScheduleWeekGrid({ days, schedule, todayKey, query, serv
                                   key={b.id}
                                   type="button"
                                   data-status={group}
-                                  aria-label={`${client}, ${b.service_name}, ${b.appointment_time}, ${group}`}
+                                  aria-label={`${client}, ${b.service_name}, ${timeRangeLabel(b.appointment_time)}, ${group}`}
                                   onClick={() => onOpen(b)}
                                   className={clsx(
                                     "w-full rounded-md border-l-[3px] px-1.5 py-1 text-left transition-shadow hover:shadow-md focus-visible:outline-2 focus-visible:outline-crimson",
@@ -162,7 +162,7 @@ export default function ScheduleWeekGrid({ days, schedule, todayKey, query, serv
                                 >
                                   <span className="block truncate text-xs font-bold leading-tight">{client}</span>
                                   <span className="block truncate text-[10px] leading-tight opacity-80">{b.service_name}</span>
-                                  <span className="block truncate text-[10px] leading-tight opacity-80">{timeRange(b.appointment_time)}</span>
+                                  <span className="block truncate text-[10px] leading-tight opacity-80">{timeRangeLabel(b.appointment_time)}</span>
                                 </button>
                               );
                             })}

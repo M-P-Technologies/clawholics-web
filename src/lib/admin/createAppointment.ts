@@ -1,4 +1,5 @@
 // The create-appointment form's types and pure helpers (state in hooks/admin/useCreateAppointment)
+import { timeRangeLabel } from "../timeFormat";
 
 export interface Service {
   id: number;
@@ -50,18 +51,4 @@ export const isOverlapping = (slotA: string, slotB: string) => {
   return rangeA.start < rangeB.end && rangeB.start < rangeA.end;
 };
 
-export const formatSlot = (slot: string) => {
-  const [start, end] = slot.split("-");
-
-  if (!start || !end) return slot;
-
-  const format = (time: string) => {
-    const [hour24, minute] = time.split(":").map(Number);
-    const ampm = hour24 >= 12 ? "PM" : "AM";
-    const hour = hour24 % 12 || 12;
-
-    return `${hour}:${minute.toString().padStart(2, "0")} ${ampm}`;
-  };
-
-  return `${format(start)} - ${format(end)}`;
-};
+export const formatSlot = timeRangeLabel;

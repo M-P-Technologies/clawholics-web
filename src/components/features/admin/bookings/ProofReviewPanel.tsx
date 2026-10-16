@@ -12,6 +12,7 @@ type ProofSummary,
 } from "@/services/proofService";
 import { getProofState } from "@/services/proofState";
 import { parseServerTime } from "@/services/serverTime";
+import { manilaDateTime } from "@/lib/timeFormat";
 import { ImagePreviewDialog } from "@/components/organisms";
 import { Button } from "@/components/atoms";
 import { SectionSkeleton } from "@/components/features/admin/skeletons/skeletons";
@@ -26,10 +27,7 @@ interface Props {
   onReviewed: (proof: PaymentProof) => void;
 }
 
-const formatWhen = (value?: string | null) => {
-  const time = parseServerTime(value);
-  return Number.isNaN(time) ? "" : new Date(time).toLocaleString();
-};
+const formatWhen = manilaDateTime;
 
 
 export default function ProofReviewPanel({

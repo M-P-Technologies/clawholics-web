@@ -16,6 +16,8 @@ import { sendLoyaltyRewardEmails } from "../email";
 import { inBackground, orNull, pgErrorCode, readJson, routeNotFound, toId } from "../http";
 import { getLoyaltyStampsRequired } from "../loyalty";
 import { ported } from "../worker";
+import { manilaTimeOfDay } from "@/lib/timeFormat";
+import { parseServerTime } from "@/services/serverTime";
 
 // Directory, profile and loyalty routes, ported from worker-api/src/index.ts
 // (~lines 1386-1703). Bodies, status codes and messages match the Worker, including its
@@ -565,8 +567,8 @@ export const getScanHistory = ported(async () => {
       userId: r.userId,
       clientName: `${r.first_name} ${r.last_name}`,
       action: r.action,
-      // The Worker printed the UTC time in its runtime's en-US format
-      time: new Date(`${r.created_at.replace(" ", "T")}Z`).toLocaleTimeString("en-US", { timeZone: "UTC" }),
+      // Manila time, like the scans the scanner adds itself
+      time: manilaTimeOfDay(parseServerTime(r.created_at)),
     })),
   );
 });

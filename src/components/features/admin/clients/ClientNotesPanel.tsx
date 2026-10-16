@@ -10,7 +10,7 @@ saveNextSteps,
 updateNote,
 type ClientNote,
 } from "@/services/clientNotesService";
-import { parseServerTime } from "@/services/serverTime";
+import { manilaDateTime } from "@/lib/timeFormat";
 import { Button } from "@/components/atoms";
 import { SectionSkeleton } from "@/components/features/admin/skeletons/skeletons";
 
@@ -20,10 +20,7 @@ interface Props {
   clerkId?: string | null;
 }
 
-const formatWhen = (value?: string | null) => {
-  const time = parseServerTime(value);
-  return Number.isNaN(time) ? "" : new Date(time).toLocaleString();
-};
+const formatWhen = manilaDateTime;
 
 const primaryClass =
   "rounded-md bg-crimson px-3 py-1 text-xs font-bold text-light-orange hover:bg-gray-red disabled:cursor-not-allowed disabled:opacity-40";

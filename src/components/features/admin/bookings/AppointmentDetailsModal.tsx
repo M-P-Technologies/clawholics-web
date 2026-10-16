@@ -1,3 +1,4 @@
+import { timeRangeLabel } from "@/lib/timeFormat";
 import { ArrowUpRight, X as CloseIconLucide } from "lucide-react";
 import { useId, type ReactNode } from "react";
 import type { Appointment, AppointmentStatus } from "@/services/appointmentService";
@@ -94,7 +95,7 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
             <SummaryRow label="Service" value={appointment.service_name || "No service"} />
             <SummaryRow label="Nail artist" value={appointment.nailist_name || "No artist"} />
             <SummaryRow label="Date" value={dateLabel(appointment.appointment_date) || "No date"} />
-            <SummaryRow label="Time" value={appointment.appointment_time || "No time"} />
+            <SummaryRow label="Time" value={timeRangeLabel(appointment.appointment_time) || "No time"} />
             <div className="flex items-center justify-between gap-3 border-t border-dotted border-crimson-light pt-3">
               <dt className="text-[13px] text-gray-red">Status</dt>
               <dd>
