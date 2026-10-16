@@ -28,7 +28,7 @@ export default function ArtistDetail() {
   if (notFound || !nailist) {
     return (
       <PageShell>
-        <Section innerClassName="min-h-[70vh] items-center justify-center text-center gap-3 md:gap-9">
+        <Section innerClassName="min-h-[70vh] items-center justify-center text-center gap-3 md:gap-6">
           <SectionHeader
             align="center"
             title="Artist not found"
@@ -43,13 +43,13 @@ export default function ArtistDetail() {
   return (
     <PageShell>
       <Section>
-        <div className="grid grid-cols-1 lg:grid-cols-2 items-start gap-3 md:gap-9">
+        <div className="grid grid-cols-1 lg:grid-cols-2 items-start gap-3 md:gap-6">
           {/* ARTIST DETAILS */}
-          <div className="flex flex-col gap-3 md:gap-9">
+          <div className="flex flex-col gap-3 md:gap-6">
             <BackButton to="/artists" label="All artists" />
             {/* Phones and tablets: the position pill, the photos as a carousel, then the compact
                 overview. From `lg` up: the details here and the photo beside them. */}
-            <p className="w-fit rounded-md border border-crimson-light px-3 py-1 label-caps text-crimson-ink lg:hidden">
+            <p className="w-fit rounded-full bg-crimson-light/40 px-3 py-1 label-caps text-berry lg:hidden">
               {nailist.position}
             </p>
             <div className="lg:hidden">
@@ -59,7 +59,7 @@ export default function ArtistDetail() {
               <ArtistOverview nailist={nailist} workCount={gallery.length} />
             </div>
             <div className="hidden flex-col gap-3 lg:flex">
-              <p className="w-fit rounded-md border border-crimson-light px-3 py-1 label-caps text-crimson-ink">
+              <p className="w-fit rounded-full bg-crimson-light/40 px-3 py-1 label-caps text-berry">
                 {nailist.position}
               </p>
               {/* The phone overview above holds the page's one h1 (both are in the HTML; CSS shows one) */}
@@ -79,7 +79,7 @@ export default function ArtistDetail() {
                   <dt className={infoLabelClass}>Services</dt>
                   <dd className="flex flex-wrap gap-3">
                     {nailist.offered_services.map((name) => (
-                      <span key={name} className="rounded-md border border-crimson-light px-3 py-1 text-sm text-crimson-ink">
+                      <span key={name} className="rounded-full bg-crimson-light/40 px-3 py-1 text-sm text-berry">
                         {name}
                       </span>
                     ))}
@@ -90,11 +90,11 @@ export default function ArtistDetail() {
           </div>
 
           {/* PHOTO (desktop) */}
-          <div className="hidden overflow-hidden rounded-sm border border-crimson-light/80 bg-light-orange p-2 shadow-xl shadow-crimson/10 lg:block">
+          <div className="hidden overflow-hidden rounded-2xl border border-crimson-light/40 bg-light-orange p-2 shadow-petal lg:block">
             <img
               src={nailist.image}
               alt={`${nailist.name}, ${nailist.position}`}
-              className="aspect-3/4 w-full rounded-sm object-cover object-top"
+              className="aspect-3/4 w-full rounded-xl object-cover object-top"
             />
           </div>
         </div>
@@ -109,7 +109,7 @@ export default function ArtistDetail() {
         )}
 
         <div className="flex justify-center">
-          <Button onClick={() => setPickerOpen(true)} className="w-full px-9 sm:w-auto sm:px-15">
+          <Button onClick={() => setPickerOpen(true)} className="w-full sm:w-auto">
             Book this artist
           </Button>
         </div>

@@ -90,7 +90,7 @@ const setNewSlot = (start: string, end: string) => {
 };
 const addSlot = (start: string, end: string) => {
   setNewSlot(start, end);
-  fireEvent.click(screen.getByRole("button", { name: "ADD" }));
+  fireEvent.click(screen.getByRole("button", { name: "Add time slot" }));
 };
 
 beforeEach(() => {
@@ -178,14 +178,14 @@ describe("artist editor", () => {
 
   it("adds a time slot and removes one", async () => {
     await renderArtist();
-    expect(screen.queryByRole("button", { name: "ADD" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Add time slot" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Edit" }));
     // the existing slot's two pickers, then the new-slot pair (re-queried: the pickers remount on every render)
     const times = () => document.querySelectorAll<HTMLInputElement>('input[type="time"]');
     expect(times()).toHaveLength(4);
     fireEvent.change(times()[2], { target: { value: "13:00" } });
     fireEvent.change(times()[3], { target: { value: "15:00" } });
-    fireEvent.click(screen.getByRole("button", { name: "ADD" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add time slot" }));
     await screen.findAllByDisplayValue("13:00");
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() => expect(nailist.updateNailistTimeSlots).toHaveBeenCalledTimes(1));
@@ -419,16 +419,16 @@ describe("artist editor", () => {
     it("checks a new time slot before adding it", async () => {
       await renderArtist();
       fireEvent.click(screen.getByRole("button", { name: "Edit" }));
-      fireEvent.click(screen.getByRole("button", { name: "ADD" }));
+      fireEvent.click(screen.getByRole("button", { name: "Add time slot" }));
       expect(show).toHaveBeenLastCalledWith("error", "Add both times", expect.any(String));
       setNewSlot("11:00", "10:00");
-      fireEvent.click(screen.getByRole("button", { name: "ADD" }));
+      fireEvent.click(screen.getByRole("button", { name: "Add time slot" }));
       expect(show).toHaveBeenLastCalledWith("error", "Check the times", expect.any(String));
       setNewSlot("09:00", "09:00");
-      fireEvent.click(screen.getByRole("button", { name: "ADD" }));
+      fireEvent.click(screen.getByRole("button", { name: "Add time slot" }));
       expect(show).toHaveBeenLastCalledWith("error", "Check the times", expect.any(String));
       setNewSlot("08:00", "10:00");
-      fireEvent.click(screen.getByRole("button", { name: "ADD" }));
+      fireEvent.click(screen.getByRole("button", { name: "Add time slot" }));
       expect(show).toHaveBeenLastCalledWith("error", "Duplicate time slot", expect.any(String));
       expect(show).toHaveBeenCalledTimes(4);
       // still one saved slot (two pickers) plus the new-slot pair

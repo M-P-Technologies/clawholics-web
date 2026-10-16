@@ -38,21 +38,21 @@ describe("ServicesTable", () => {
     expect(within(cards[0]).getByRole("button", { name: "Book Hard Gel" })).toBeInTheDocument();
   });
 
-  it("shows ten rows a page on a computer, and starts a new list on page 1", () => {
+  it("shows five rows a page on a computer, and starts a new list on page 1", () => {
     layout.table = true;
     const many = Array.from({ length: 12 }, (_, i) => ({ ...services[0], id: 100 + i, name: `Service ${i + 1}` }));
     const { rerender } = render(<ServicesTable label="Services" services={many} onBook={vi.fn()} paginateTable />);
     const table = screen.getByRole("table", { name: "Services" });
-    // The header row plus ten service rows
-    expect(within(table).getAllByRole("row")).toHaveLength(11);
-    expect(within(table).getByText("Service 10")).toBeInTheDocument();
-    expect(within(table).queryByText("Service 11")).toBeNull();
-    expect(screen.getByText("Showing 1–10 of 12")).toBeInTheDocument();
+    // The header row plus five service rows
+    expect(within(table).getAllByRole("row")).toHaveLength(6);
+    expect(within(table).getByText("Service 5")).toBeInTheDocument();
+    expect(within(table).queryByText("Service 6")).toBeNull();
+    expect(screen.getByText("Showing 1–5 of 12")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /page 2/i }));
-    // Two services, and eight hidden filler rows keeping the ten-row height (as in the Admin Directory)
+    fireEvent.click(screen.getByRole("button", { name: /page 3/i }));
+    // Two services, and three hidden filler rows keeping the five-row height (as in the Admin Directory)
     expect(within(table).getAllByRole("row").filter((row) => !row.hasAttribute("data-filler"))).toHaveLength(3);
-    expect(table.querySelectorAll("tr[data-filler]")).toHaveLength(8);
+    expect(table.querySelectorAll("tr[data-filler]")).toHaveLength(3);
     expect(within(table).getByText("Service 12")).toBeInTheDocument();
     expect(screen.getByText("Showing 11–12 of 12")).toBeInTheDocument();
 

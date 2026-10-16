@@ -74,7 +74,7 @@ export default function PhotoRow({ photos, title, instagram }: PhotoRowProps) {
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`Follow us on Instagram, ${instagram.name}`}
-            className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-3 rounded-sm bg-light-orange px-3 py-2 text-sm font-bold text-gray-red shadow-xl shadow-crimson/20 transition-colors hover:text-crimson-ink sm:inline-flex"
+            className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-3 rounded-full bg-light-orange px-3 py-2 text-sm font-bold text-gray-red shadow-xl shadow-crimson/20 transition-colors hover:text-crimson-ink sm:inline-flex"
           >
             <InstagramIcon className="h-5 w-5 shrink-0 text-crimson" />
             {instagram.name}

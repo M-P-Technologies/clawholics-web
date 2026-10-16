@@ -73,7 +73,7 @@ export default function ActiveBookings({ load }: { load: BookingsLoader }) {
               <li
                 key={a.id}
                 className={clsx(
-                  "flex items-start justify-between gap-3 rounded-xl border-l-4 px-3 py-3",
+                  "flex min-w-0 items-start justify-between gap-3 overflow-hidden rounded-xl border-l-4 px-3 py-3",
                   current ? "border-berry bg-crimson-light/40" : done ? "border-crimson-light bg-light-orange/40 opacity-75" : "border-crimson bg-crimson-light/20",
                 )}
               >
@@ -81,13 +81,14 @@ export default function ActiveBookings({ load }: { load: BookingsLoader }) {
                   <p className="truncate text-sm font-bold text-gray-red">{`${a.first_name ?? ""} ${a.last_name ?? ""}`.trim() || "Client"}</p>
                   <span className="block truncate text-xs text-gray-red">{a.service_name}</span>
                 </span>
-                <span className="shrink-0 text-right">
-                  <span className="flex items-center justify-end gap-1.5">
-                    {current && <span className="rounded-full bg-berry px-2 py-0.5 text-[10px] font-bold text-pearl">Now</span>}
-                    {done && <span className="rounded-full bg-sand px-2 py-0.5 text-[10px] font-bold text-gray-red">Done</span>}
-                    <span className="text-[13px] font-bold text-gray-red">{a.nailist_name}</span>
+                {/* In a narrow card both sides give way, each cut off with an ellipsis */}
+                <span className="min-w-0 text-right">
+                  <span className="flex min-w-0 items-center justify-end gap-1.5">
+                    {current && <span className="shrink-0 rounded-full bg-berry px-2 py-0.5 text-[10px] font-bold text-pearl">Now</span>}
+                    {done && <span className="shrink-0 rounded-full bg-sand px-2 py-0.5 text-[10px] font-bold text-gray-red">Done</span>}
+                    <span className="min-w-0 truncate text-[13px] font-bold text-gray-red">{a.nailist_name}</span>
                   </span>
-                  <span className="block whitespace-nowrap text-xs text-gray-red">{`${clock(start)} – ${clock(end)}`}</span>
+                  <span className="block truncate text-xs text-gray-red">{`${clock(start)} – ${clock(end)}`}</span>
                 </span>
               </li>
             );

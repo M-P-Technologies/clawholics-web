@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import clsx from "clsx";
 import { useTableLayout } from "@/hooks/useMinWidth";
 import { CardFields, RowCard, RowCards, TableFrame } from "@/components/organisms";
@@ -20,12 +20,14 @@ interface Props {
   showVisits?: boolean;
   /** When the server pages the list: `users` is the page shown, out of `total` */
   serverPage?: { page: number; pageSize: number; total: number; onPage: (page: number) => void };
+  /** A button for the card's heading row (e.g. Add admin); with it the card shows its `label` as a title */
+  action?: ReactNode;
 }
 
 // The people in a directory, five to a page: photo, name and email, phone, joined, last active, and
 // visits (or role). A row selects that person for the profile card beside the table. On a phone
 // each person is a card, five to a page.
-export default function DirectoryTable({ label, users, profiles, selectedId, onSelect, showVisits = false, serverPage }: Props) {
+export default function DirectoryTable({ label, users, profiles, selectedId, onSelect, showVisits = false, serverPage, action }: Props) {
   const [localPage, setLocalPage] = useState(1);
   // A new search or list starts again on the first page
   useEffect(() => setLocalPage(1), [users]);
@@ -52,9 +54,18 @@ export default function DirectoryTable({ label, users, profiles, selectedId, onS
     <span className="rounded-full bg-crimson-light/50 px-3 py-0.5 text-xs font-bold text-berry">{roleOf(user.role)}</span>
   );
 
+  // The title and the action in one row, as on the Appointments card
+  const header = action && (
+    <div className="flex items-center justify-between gap-3">
+      <h2 className="min-w-0 truncate font-display text-2xl font-normal text-gray-red">{label}</h2>
+      {action}
+    </div>
+  );
+
   if (!asTable) {
     return (
       <section aria-label={`${label} list`} className="flex min-w-0 flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-3 shadow-petal">
+        {header}
         <RowCards label={label}>
           {view.rows.map((user) => {
             const name = nameOf(user);
@@ -96,6 +107,7 @@ export default function DirectoryTable({ label, users, profiles, selectedId, onS
 
   return (
     <section aria-label={`${label} list`} className="flex min-w-0 flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-6 shadow-petal lg:h-full">
+      {header}
       {/* Grows with the card beside it, keeping the pager at the bottom */}
       <TableFrame label={label} minWidthClass="min-w-160" className="flex-1"
         head={

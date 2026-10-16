@@ -3,8 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import CreateAppointmentDialog from "@/components/features/admin/bookings/CreateAppointmentDialog";
 
 // The modal is one form (no steps, no walk-in/registered switch, no toasts: the caller toasts after
-// onCreated). Its date and time block is drawn twice (phone and desktop position), so those controls
-// are looked up with getAllBy and acted on through the first copy.
+// onCreated). Laid out like the client's booking page, with one date and time block at every width.
 
 const booking = {
   createAdminAppointment: vi.fn(),
@@ -120,13 +119,12 @@ const chooseArtist = async (name: string) => {
 };
 const chooseService = (name: string) => choose(serviceSelect(), name);
 const dayButtons = (pattern: RegExp) => screen.getAllByRole("button", { name: pattern });
-// `copy` is which of the two date-and-time blocks (phone position 0, desktop position 1) is used
-const pickDate = async (pattern: RegExp, copy = 0) => {
-  fireEvent.click(dayButtons(pattern)[copy]);
+const pickDate = async (pattern: RegExp) => {
+  fireEvent.click(dayButtons(pattern)[0]);
   await waitFor(() => expect(summaryValue("Date")).not.toBe("–"));
 };
 const timeButtons = (pattern: RegExp) => screen.getAllByRole("button", { name: pattern });
-const pickTime = (pattern: RegExp, copy = 0) => fireEvent.click(timeButtons(pattern)[copy]);
+const pickTime = (pattern: RegExp) => fireEvent.click(timeButtons(pattern)[0]);
 
 const fillClient = (first = "Ana", last = "Cruz", phone = "09171234567", email = "") => {
   fireEvent.change(screen.getByPlaceholderText("First name"), { target: { value: first } });
@@ -440,23 +438,19 @@ describe("CreateAppointmentDialog: date and time", () => {
   });
 });
 
-describe("CreateAppointmentDialog: the two date-and-time blocks, per-artist slots and days off", () => {
-  it("draws the date and time block twice, and both copies show the same choice", async () => {
+describe("CreateAppointmentDialog: the date-and-time block, per-artist slots and days off", () => {
+  it("draws one date and time block, and the summary follows the choice", async () => {
     await renderModal();
     await chooseArtist("Mara");
-    expect(screen.getAllByRole("heading", { name: "Date and time" })).toHaveLength(2);
-    await pickDate(/October 15th, 2026/, 1);
+    expect(screen.getAllByRole("heading", { name: "Date and time" })).toHaveLength(1);
+    await pickDate(/October 15th, 2026/);
     await waitFor(() => expect(timeButtons(/9:00 AM - 10:00 AM/)[0]).toBeDisabled());
-    expect(timeButtons(/10:00 AM - 11:00 AM/)).toHaveLength(2);
-    pickTime(/10:00 AM - 11:00 AM/, 1);
+    expect(timeButtons(/10:00 AM - 11:00 AM/)).toHaveLength(1);
+    pickTime(/10:00 AM - 11:00 AM/);
     expect(timeButtons(/10:00 AM - 11:00 AM/)[0]).toHaveAttribute("aria-pressed", "true");
-    expect(timeButtons(/10:00 AM - 11:00 AM/)[1]).toHaveAttribute("aria-pressed", "true");
     expect(timeButtons(/1:00 PM - 2:00 PM/)[0]).toHaveAttribute("aria-pressed", "false");
     expect(summaryValue("Date")).toBe("2026-10-15");
     expect(summaryValue("Time")).toBe("10:00 AM - 11:00 AM");
-    // and a time picked through the first copy shows in the second
-    pickTime(/1:00 PM - 2:00 PM/, 0);
-    expect(timeButtons(/1:00 PM - 2:00 PM/)[1]).toHaveAttribute("aria-pressed", "true");
   });
 
   it("looks up the booked slots of the chosen artist and date, then of the new artist and date", async () => {
@@ -549,30 +543,6 @@ describe("CreateAppointmentDialog: submitting", () => {
     });
     expect(onClose).not.toHaveBeenCalled();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-  });
-
-  it("books with the date and time picked through the second date-and-time block", async () => {
-    const { onCreated } = await renderModal();
-    fillClient("Ana", "Cruz", "09171234567");
-    await chooseArtist("Mara");
-    chooseService("Nail Art");
-    await pickDate(/October 15th, 2026/, 1);
-    await waitFor(() => expect(timeButtons(/9:00 AM - 10:00 AM/)[1]).toBeDisabled());
-    pickTime(/1:00 PM - 2:00 PM/, 1);
-    fireEvent.click(screen.getByRole("button", { name: "Create appointment" }));
-    await waitFor(() => expect(onCreated).toHaveBeenCalledTimes(1));
-    expect(booking.createAdminAppointment).toHaveBeenCalledWith({
-      first_name: "Ana",
-      last_name: "Cruz",
-      phone: "09171234567",
-      email: "",
-      service_id: 11,
-      service_name: "Nail Art",
-      nailist_id: 1,
-      nailist_name: "Mara",
-      appointment_date: "2026-10-15",
-      appointment_time: "13:00-14:00",
-    });
   });
 
   it("sends an empty email when none is given", async () => {

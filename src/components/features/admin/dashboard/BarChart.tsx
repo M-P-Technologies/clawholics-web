@@ -1,5 +1,6 @@
 
 import { useEffect, useRef, useState } from "react";
+import { useMediumUp } from "@/hooks/useMinWidth";
 
 interface BarChartProps {
   title: string;
@@ -14,9 +15,8 @@ interface BarChartProps {
 const W = 300;
 // The least the drawing is tall; in a taller card it grows to fill it (see useDrawingHeight)
 const MIN_H = 156;
-const LEFT = 26;
-const TOP = 8;
-const BOTTOM = 22;
+// The labels' size on screen, in pixels: text-sm, text-base from `md`
+const LABEL_PX = { small: 14, medium: 16 } as const;
 
 // Up to about four evenly spaced gridlines, at round numbers (1, 2 or 5 times a power of ten),
 // from 0 to the first one at or above `max`
@@ -30,32 +30,44 @@ function niceTicks(max: number): number[] {
 
 // The drawing is always W units wide, so its height in the same units follows the shape of the
 // box it is in: a card stretched by its neighbour gets taller bars, not empty space under them.
+// `scale` is screen pixels per unit, so the labels can be drawn at a fixed size on screen.
 function useDrawingHeight() {
   const boxRef = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState(MIN_H);
+  const [scale, setScale] = useState(1);
   useEffect(() => {
     const box = boxRef.current;
     if (!box || typeof ResizeObserver === "undefined") return;
     const measure = () => {
       const { width, height: boxHeight } = box.getBoundingClientRect();
-      if (width > 0) setHeight(Math.max(MIN_H, Math.round((W * boxHeight) / width)));
+      if (width > 0) {
+        setHeight(Math.max(MIN_H, Math.round((W * boxHeight) / width)));
+        setScale(width / W);
+      }
     };
     const observer = new ResizeObserver(measure);
     observer.observe(box);
     return () => observer.disconnect();
   }, []);
-  return { boxRef, height };
+  return { boxRef, height, scale };
 }
 
 // Grouped columns, one pair per entry: `a` and `b` side by side, each from the baseline and
 // scaled on its own value, with rounded ends. Labelled gridlines run behind them.
 export default function BarChart({ title, data, aLabel, bLabel, aColor, bColor, emptyText }: BarChartProps) {
-  const { boxRef, height: H } = useDrawingHeight();
+  const { boxRef, height: H, scale } = useDrawingHeight();
+  const labelPx = useMediumUp() ? LABEL_PX.medium : LABEL_PX.small;
   const max = Math.max(...data.map((d) => Math.max(d.a, d.b)), 0);
   if (max === 0) return <p className="text-sm text-gray-red">{emptyText}</p>;
 
   const ticks = niceTicks(max);
   const top = ticks[ticks.length - 1];
+  // The labels and the room for them, worked out in pixels and turned into drawing units
+  const px = (pixels: number) => pixels / scale;
+  const fontSize = px(labelPx);
+  const LEFT = px(String(top).length * labelPx * 0.6 + 10);
+  const TOP = px(labelPx / 2 + 2);
+  const BOTTOM = px(labelPx + 10);
   const innerW = W - LEFT;
   const innerH = H - TOP - BOTTOM;
   const slot = innerW / data.length;
@@ -88,7 +100,7 @@ export default function BarChart({ title, data, aLabel, bLabel, aColor, bColor, 
       <svg role="img" aria-label={summary} viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 h-full w-full">
         {ticks.map((tick) => (
           <g key={tick}>
-            <text data-tick x={LEFT - 4} y={y(tick) + 3} textAnchor="end" fontSize="9" fill="#7a5f5a">{tick}</text>
+            <text data-tick x={LEFT - px(6)} y={y(tick) + fontSize * 0.35} textAnchor="end" fontSize={fontSize} fill="#7a5f5a">{tick}</text>
             {tick === 0 ? (
               <line x1={LEFT} x2={W} y1={base} y2={base} stroke="#f3b6c4" strokeWidth="1.5" strokeLinecap="round" />
             ) : (
@@ -107,7 +119,7 @@ export default function BarChart({ title, data, aLabel, bLabel, aColor, bColor, 
               <rect x={LEFT + slot * i} y={TOP} width={slot} height={innerH} fill="transparent" />
               {bar("a", d.a, ax, aColor)}
               {bar("b", d.b, bx, bColor)}
-              <text x={center} y={H - 6} textAnchor="middle" fontSize="9" fill="#7a5f5a">{d.label}</text>
+              <text x={center} y={H - px(4)} textAnchor="middle" fontSize={fontSize} fill="#7a5f5a">{d.label}</text>
             </g>
           );
         })}

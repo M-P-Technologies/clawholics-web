@@ -54,7 +54,7 @@ export default function SectionHeader({ title, subtitle, children, align = "left
   }
 
   return (
-    <div className={clsx("flex flex-col gap-3 md:gap-9", align === "center" && "text-center", className)}>
+    <div className={clsx("flex flex-col gap-3 md:gap-6", align === "center" && "text-center", className)}>
       <Tag className="font-display text-4xl font-normal uppercase leading-tight tracking-widest text-gray-red lg:text-5xl 2xl:text-6xl">{title}</Tag>
       {subtitle && <p className={clsx("max-w-2xl copy-lead", align === "center" && "mx-auto")}>{subtitle}</p>}
       {children && <div>{children}</div>}

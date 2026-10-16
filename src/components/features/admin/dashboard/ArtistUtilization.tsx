@@ -76,7 +76,7 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
         </div>
         <div className="flex items-center gap-1">
           {from !== thisWeek && (
-            <Button type="button" variant="bare" onClick={() => setAnchor(today)} className="mr-1 rounded-full border border-crimson-light px-3 py-1 text-xs font-bold text-gray-red hover:bg-crimson-light/30">
+            <Button type="button" variant="bare" onClick={() => setAnchor(today)} className="mr-1 rounded-full border border-crimson-light px-3 py-1 text-sm 2xl:text-base font-bold text-gray-red hover:bg-crimson-light/30">
               This week
             </Button>
           )}
@@ -144,7 +144,7 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
             </>
           ) : (
           /* Wider than a phone: it scrolls sideways, with the artists' column kept in view */
-          <div className="-mx-6 overflow-x-auto px-6">
+          <div className="overflow-x-auto">
             <table className="w-full min-w-160 border-separate border-spacing-0 text-sm text-gray-red">
               <thead>
                 <tr>

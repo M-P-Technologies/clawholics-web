@@ -151,7 +151,7 @@ describe("Dashboard", () => {
     fetchDashboard.mockResolvedValue(base());
     render(<Dashboard />);
     await screen.findByRole("group", { name: "Collected" });
-    fireEvent.click(screen.getByRole("button", { name: "This week" }));
+    fireEvent.click(screen.getByRole("tab", { name: "This week" }));
     await waitFor(() => expect(fetchDashboard).toHaveBeenCalledWith("week", "tok", "admin_1"));
   });
 
@@ -166,9 +166,9 @@ describe("Dashboard", () => {
     let releaseWeek: (d: DashboardResponse) => void = () => {};
     fetchDashboard.mockImplementationOnce(() => new Promise<DashboardResponse>((resolve) => { releaseWeek = resolve; }));
     fetchDashboard.mockResolvedValueOnce(withCollected("last30", 777));
-    fireEvent.click(screen.getByRole("button", { name: "This week" }));
+    fireEvent.click(screen.getByRole("tab", { name: "This week" }));
     await waitFor(() => expect(fetchDashboard).toHaveBeenCalledTimes(2));
-    fireEvent.click(screen.getByRole("button", { name: "Last 30 days" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Last 30 days" }));
     expect(await screen.findByText("₱777")).toBeInTheDocument();
 
     releaseWeek(withCollected("week", 999)); // arrives late

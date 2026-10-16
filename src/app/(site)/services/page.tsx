@@ -4,15 +4,15 @@ import { Clock } from "lucide-react";
 import CtaBand from "@/components/home/CtaBand";
 import ImageCard from "@/components/home/ImageCard";
 import { Button, LoadingBar } from "@/components/atoms";
-import { LoadError, SectionHeader, Pagination, EmptyState } from "@/components/molecules";
+import { LoadError, SectionHeader, SegmentedControl, Pagination, EmptyState } from "@/components/molecules";
 import PageShell from "@/components/layout/PageShell";
 import Section from "@/components/layout/Section";
-import { chipClass, inputClass } from "@/components/tokens";
+import { inputClass } from "@/components/tokens";
 import { servicePath } from "@/utils/slug";
 import { useServices } from "@/hooks/useServices";
 
 export default function Services() {
-  const { resetFilters, cards, error, reload, content, banner, primary, secondary, category, setCategory, search, categoryNames, handleSearchChange, page, totalPages, pageItems, listRef, goToPage, emptyMessage } = useServices();
+  const { resetFilters, cards, error, reload, content, banner, primary, secondary, category, setCategory, search, categoryOptions, handleSearchChange, page, totalPages, pageItems, listRef, goToPage, emptyMessage } = useServices();
 
   if (error && !content) return <LoadError what="services" onRetry={reload} />;
   if (!content) return <LoadingBar label="Loading services" />;
@@ -22,20 +22,9 @@ export default function Services() {
       <Section>
         <SectionHeader title={banner.home_services_title} subtitle={content.home_services_subtitle}>
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-            {/* CATEGORY FILTERS */}
-            <div className="flex flex-wrap gap-3">
-              {categoryNames.map((cat) => (
-                <Button
-                  variant="bare"
-                  key={cat}
-                  type="button"
-                  onClick={() => setCategory(cat)}
-                  aria-pressed={category === cat}
-                  className={chipClass(category === cat)}
-                >
-                  {cat}
-                </Button>
-              ))}
+            {/* CATEGORY FILTERS: the admin's pill switch, scrolling sideways when there are many */}
+            <div className="min-w-0 overflow-x-auto pb-1">
+              <SegmentedControl label="Service category" options={categoryOptions} value={category} onChange={setCategory} className="w-max" />
             </div>
 
             {/* SEARCH */}
@@ -56,7 +45,7 @@ export default function Services() {
         <section
           ref={listRef}
           aria-label="Available nail services"
-          className="flex min-h-[30vh] scroll-mt-24 flex-col items-center justify-start gap-3 md:gap-9"
+          className="flex min-h-[30vh] scroll-mt-24 flex-col items-center justify-start gap-3 md:gap-6"
         >
           {cards.length === 0 ? (
             <EmptyState
@@ -74,7 +63,7 @@ export default function Services() {
               </Button>
             </EmptyState>
           ) : (
-            <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-9">
+            <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
               {pageItems.map((s, index) => (
                 <ImageCard
                   key={s.id}

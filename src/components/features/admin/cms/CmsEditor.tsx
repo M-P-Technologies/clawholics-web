@@ -88,14 +88,14 @@ export default function CmsEditor({ title, pages, drafts, refreshKey = 0, header
               pane === "preview" ? "flex" : "hidden",
             )}
           >
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-crimson-light/40 px-3 py-2">
+            <div className="flex items-center justify-between gap-3 border-b border-crimson-light/40 px-3 py-2">
               {pages.length > 1 ? (
-                <Select aria-label="Page" value={current?.path ?? path} onChange={(e) => setPath(e.target.value)} className="w-44" options={pages.map((p) => ({ value: p.path, label: p.label }))} />
+                <Select aria-label="Page" value={current?.path ?? path} onChange={(e) => setPath(e.target.value)} className="w-44 min-w-0 shrink" options={pages.map((p) => ({ value: p.path, label: p.label }))} />
               ) : (
-                <p className="px-1 text-[13px] font-bold text-gray-red">{pages[0]?.label}</p>
+                <p className="min-w-0 truncate px-1 text-[13px] font-bold text-gray-red">{pages[0]?.label}</p>
               )}
 
-              <div role="group" aria-label="Device" className="flex gap-1 rounded-full bg-crimson-light/25 p-1">
+              <div role="group" aria-label="Device" className="flex shrink-0 gap-1 rounded-full bg-crimson-light/25 p-1">
                 {(
                   [
                     { value: "desktop", label: "Desktop", Icon: Monitor },
@@ -118,7 +118,7 @@ export default function CmsEditor({ title, pages, drafts, refreshKey = 0, header
                 ))}
               </div>
 
-              <div className="flex items-center gap-1">
+              <div className="flex shrink-0 items-center gap-1">
                 <Button type="button" variant="bare" aria-label="Reload preview" onClick={() => setReloads((n) => n + 1)} className="rounded-full p-2 text-gray-red hover:bg-crimson-light/30">
                   <RotateCw size={16} aria-hidden="true" />
                 </Button>

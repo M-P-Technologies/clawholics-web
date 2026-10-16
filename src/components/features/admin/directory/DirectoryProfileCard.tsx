@@ -85,6 +85,8 @@ interface Props {
   onEdit?: (user: DirectoryUser) => void;
   onDelete?: (user: DirectoryUser) => void;
   onNotes?: (user: DirectoryUser) => void;
+  /** Inside a sheet: no border or shadow of its own */
+  bare?: boolean;
 }
 
 // The selected person in the Admin or Client Directory: their photo in a square frame, name and
@@ -97,6 +99,7 @@ export default function DirectoryProfileCard({
   onEdit,
   onDelete,
   onNotes,
+  bare = false,
 }: Props) {
   const name = nameOf(user);
   const role = roleOf(user.role);
@@ -126,7 +129,10 @@ export default function DirectoryProfileCard({
   return (
     <section
       aria-label={name}
-      className="flex min-w-0 flex-col overflow-clip rounded-2xl border border-crimson-light/40 bg-milk text-center shadow-petal lg:h-full"
+      className={clsx(
+        "flex min-w-0 flex-col overflow-clip rounded-2xl bg-milk text-center",
+        bare ? "" : "border border-crimson-light/40 shadow-petal lg:h-full",
+      )}
     >
       {/* The banner the round photo sits on. On desktop it takes the room the card has left, so the
           card matches the table's height beside it */}
@@ -241,7 +247,7 @@ export default function DirectoryProfileCard({
         {clientHref && (
           <Link
             to={clientHref}
-            className="flex w-full items-center justify-between gap-3 rounded-xl border border-crimson-light/60 px-3 py-3 text-sm font-bold text-berry transition-colors hover:bg-crimson-light/20"
+            className="flex w-full items-center justify-between gap-3 rounded-xl border border-crimson-light/60 px-3 py-3 text-sm 2xl:text-base font-bold text-berry transition-colors hover:bg-crimson-light/20"
           >
             View client page
             <ArrowRight size={16} aria-hidden="true" />
@@ -252,30 +258,31 @@ export default function DirectoryProfileCard({
           <div className="flex w-full flex-wrap justify-center gap-3 border-t border-dotted border-crimson-light pt-3">
             {onNotes && (
               <Button
+                size="sm"
                 type="button"
                 variant="secondary"
                 onClick={() => onNotes(user)}
-                className="px-3! py-1.5!"
               >
                 Notes
               </Button>
             )}
             {onEdit && (
               <Button
+                size="sm"
                 type="button"
                 variant="secondary"
                 onClick={() => onEdit(user)}
-                className="px-3! py-1.5!"
               >
                 Edit
               </Button>
             )}
             {onDelete && (
               <Button
+                size="sm"
                 type="button"
                 variant="secondary"
                 onClick={() => onDelete(user)}
-                className="border-danger! px-3! py-1.5! text-danger-ink! hover:bg-danger! hover:text-pearl!"
+                className="border-danger! text-danger-ink! hover:bg-danger! hover:text-pearl!"
               >
                 Delete
               </Button>

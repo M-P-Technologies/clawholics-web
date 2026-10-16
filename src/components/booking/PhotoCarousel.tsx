@@ -25,7 +25,7 @@ interface PhotoCarouselProps {
 
 // The photo strip's round arrow buttons (components/home/PhotoStrip)
 const ARROW =
-  "absolute top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-crimson-light bg-light-orange text-crimson-ink shadow-md shadow-crimson/20 transition-colors hover:bg-crimson hover:text-light-orange focus-visible:outline-2 focus-visible:outline-crimson";
+  "absolute top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-crimson-light/40 bg-light-orange text-crimson-ink shadow-md shadow-crimson/20 transition-colors hover:bg-crimson hover:text-light-orange focus-visible:outline-2 focus-visible:outline-crimson";
 
 // A swipeable row of framed photos, one at a time, with dots. Each photo sits in a cream frame
 // like the photos on the artist page. Scroll-snap does the swiping, so it works with touch,
@@ -66,8 +66,8 @@ export default function PhotoCarousel({ photos, label, aspect = "aspect-square",
       >
         {photos.map((photo, index) => (
           <div key={photo.id} className="w-full shrink-0 snap-center">
-            <div className={clsx(framed && "overflow-hidden rounded-sm border border-crimson-light/80 bg-light-orange p-2 shadow-xl shadow-crimson/10")}>
-              <div className={clsx("relative w-full overflow-hidden bg-sand/50", framed && "rounded-sm", aspect)}>
+            <div className={clsx(framed && "overflow-hidden rounded-2xl border border-crimson-light/40 bg-light-orange p-2 shadow-petal")}>
+              <div className={clsx("relative w-full overflow-hidden bg-sand/50", framed && "rounded-xl", aspect)}>
                 <Image
                   src={photo.image_url}
                   alt={`${label}, photo ${index + 1} of ${photos.length}`}
@@ -86,14 +86,14 @@ export default function PhotoCarousel({ photos, label, aspect = "aspect-square",
       {photos.length > 1 && (
         <div className="flex items-center justify-center">
           {photos.map((photo, index) => (
-            // The dot is drawn inside a 24px button, the smallest tap target WCAG allows
+            // Dots 6px apart, as in every carousel: the arrows are the full-size way to move
             <button
               key={photo.id}
               type="button"
               aria-label={`Show photo ${index + 1}`}
               aria-current={index === active}
               onClick={() => show(index)}
-              className="flex h-6 min-w-6 cursor-pointer items-center justify-center"
+              className="flex h-6 cursor-pointer items-center justify-center px-0.75"
             >
               <span
                 aria-hidden="true"

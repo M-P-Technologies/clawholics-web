@@ -52,7 +52,7 @@ export default function BirthdayVoucherPopup() {
         role="dialog"
         aria-modal="true"
         aria-labelledby="birthday-popup-title"
-        className="flex w-full max-w-md flex-col items-center gap-3 rounded-sm border border-crimson-light bg-light-orange p-6 text-center text-gray-red shadow-2xl shadow-crimson/20 drawer-panel md:p-9 max-sm:max-h-[90vh] max-sm:max-w-none max-sm:overflow-y-auto max-sm:rounded-t-md max-sm:rounded-b-none"
+        className="flex w-full max-w-md flex-col items-center gap-3 rounded-2xl border border-crimson-light/40 bg-light-orange p-6 text-center text-gray-red shadow-2xl shadow-crimson/20 drawer-panel md:p-9 max-sm:max-h-[90vh] max-sm:max-w-none max-sm:overflow-y-auto max-sm:rounded-t-md max-sm:rounded-b-none"
       >
         <Cake size={36} aria-hidden="true" className="text-berry" />
         <h2 id="birthday-popup-title" className="font-display text-2xl uppercase tracking-widest text-gray-red">

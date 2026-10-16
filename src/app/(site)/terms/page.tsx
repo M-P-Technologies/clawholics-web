@@ -28,7 +28,7 @@ export default function Terms() {
           />
         ) : (
           <Panel>
-            <div className="flex flex-col gap-3 md:gap-9">
+            <div className="flex flex-col gap-3 md:gap-6">
               {tacs.map((tac) => (
                 <div key={tac.id} className="flex flex-col gap-3">
                   <h2 className="font-display text-lg font-normal uppercase tracking-widest text-gray-red md:text-xl">

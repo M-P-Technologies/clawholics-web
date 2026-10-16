@@ -25,10 +25,10 @@ describe("admin sidebar", () => {
     expect(box.className).toContain("shrink-0");
   });
 
-  it("groups the screens: Overview, Front Desk (with the scanner), Content Management and Salon (Settings)", () => {
+  it("groups the screens: Overview, Front Desk (with the scanner), and Content Management (Settings is in the top bar)", () => {
     render(<SideBar />);
     const nav = screen.getByRole("navigation", { name: "Admin navigation" });
-    expect([...nav.querySelectorAll("h3")].map((h) => h.textContent)).toEqual(["Overview", "Front Desk", "Content Management", "Salon"]);
+    expect([...nav.querySelectorAll("h3")].map((h) => h.textContent)).toEqual(["Overview", "Front Desk", "Content Management"]);
     const frontDesk = within(nav.querySelectorAll("h3")[1].parentElement as HTMLElement);
     expect(frontDesk.getAllByRole("button").map((b) => b.textContent)).toEqual(["Clients & Bookings", "Schedule", "Admin Scanner", "Admin Directory"]);
   });

@@ -154,7 +154,7 @@ export default function BookingsTable({ load }: { load: BookingsLoader }) {
                       <Link
                         to={`/clients/${a.user_id}`}
                         aria-label={`Open ${name}`}
-                        className="inline-flex items-center justify-center gap-3 rounded-lg bg-berry px-3 py-2 text-[13px] font-bold text-pearl transition-colors hover:bg-gray-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson"
+                        className="inline-flex items-center justify-center gap-3 rounded-lg bg-berry px-3 py-2 text-sm 2xl:text-base font-bold text-pearl transition-colors hover:bg-gray-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson"
                       >
                         <SquarePen size={15} aria-hidden="true" />
                         Client page

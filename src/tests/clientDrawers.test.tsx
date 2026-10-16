@@ -17,12 +17,13 @@ const sheetProps = () => ({
   onClose: vi.fn(), onPay: vi.fn(), onReschedule: vi.fn(), onCancel: vi.fn(), onProofUploaded: vi.fn(), onSubmitReview: vi.fn(async () => undefined),
 });
 
-describe("the client's drawers", () => {
-  it("shows an appointment in a drawer, its details as rows, and every action", () => {
+describe("the client's sheets", () => {
+  it("shows an appointment in a modal sheet (no side drawer), its details as rows, and every action", () => {
     const p = sheetProps();
     render(<AppointmentSheet view={view()} {...p} />);
     const sheet = within(screen.getByRole("dialog", { name: "Appointment" }));
-    expect(document.querySelector(".drawer-right")).not.toBeNull();
+    expect(document.querySelector(".drawer-right")).toBeNull();
+    expect(document.querySelector(".drawer-panel")).not.toBeNull();
     expect(sheet.getByText("Hard Gel")).toBeInTheDocument();
     for (const label of ["Artist", "Date", "Time", "Status"]) expect(sheet.getByText(label, { selector: "dt" })).toBeInTheDocument();
     expect(sheet.getByText("October 20, 2026", { selector: "dd" })).toBeInTheDocument();
@@ -34,7 +35,7 @@ describe("the client's drawers", () => {
     expect(p.onCancel).toHaveBeenCalled();
   });
 
-  it("edits the details in a drawer", () => {
+  it("edits the details in a modal sheet (no side drawer)", () => {
     render(
       <EditDetailsSheet
         open error={null}
@@ -45,7 +46,8 @@ describe("the client's drawers", () => {
       />,
     );
     expect(screen.getByRole("dialog", { name: "Edit details" })).toBeInTheDocument();
-    expect(document.querySelector(".drawer-right")).not.toBeNull();
+    expect(document.querySelector(".drawer-right")).toBeNull();
+    expect(document.querySelector(".drawer-panel")).not.toBeNull();
     expect(screen.getByLabelText(/First name/)).toHaveValue("Ana");
   });
 });

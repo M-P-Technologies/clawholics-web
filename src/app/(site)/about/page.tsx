@@ -25,16 +25,16 @@ export default function About() {
           operating hours, and salon philosophy.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-9">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6">
           <div
             className="flow-root whitespace-pre-line text-base leading-8 text-gray-red md:col-span-2"
           >
-            <div className="mb-9 h-fit w-full overflow-hidden whitespace-normal rounded-sm border border-crimson-light/80 bg-light-orange p-2 shadow-xl shadow-crimson/10 md:float-right md:mb-3 md:ml-9 md:w-1/2">
+            <div className="mb-9 h-fit w-full overflow-hidden whitespace-normal rounded-2xl border border-crimson-light/40 bg-light-orange p-2 shadow-petal md:float-right md:mb-3 md:ml-9 md:w-1/2">
               <img
                 src={data.about_image}
                 alt="Interior of Clawholics by Max nail studio"
                 fetchPriority="high"
-                className="aspect-square w-full rounded-sm object-cover"
+                className="aspect-square w-full rounded-xl object-cover"
               />
             </div>
             <div dangerouslySetInnerHTML={{ __html: aboutHtml }} />
@@ -60,7 +60,7 @@ export default function About() {
             )}
 
             {data.about_location_url ? (
-              <MapFrame src={data.about_location_url} className="h-60 w-full overflow-hidden rounded-sm border border-crimson-light" />
+              <MapFrame src={data.about_location_url} className="h-60 w-full overflow-hidden rounded-2xl border border-crimson-light/40" />
             ) : (
               <p className="text-gray-red">Map not available</p>
             )}
@@ -85,7 +85,7 @@ export default function About() {
         </div>
 
         {gallery.length > 0 && (
-          <div className="flex flex-col gap-3 md:gap-9">
+          <div className="flex flex-col gap-3 md:gap-6">
             <h2 className="font-display text-2xl font-normal uppercase tracking-widest text-gray-red md:text-4xl">
               Gallery
             </h2>

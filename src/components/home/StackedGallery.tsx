@@ -27,7 +27,7 @@ export default function StackedGallery({ photos, label = "Photo gallery" }: { ph
   const go = (step: number) => setCurrent((i) => (i + step + count) % count);
 
   return (
-    <div role="region" aria-roledescription="carousel" aria-label={label} className="flex flex-col gap-3 md:gap-9">
+    <div role="region" aria-roledescription="carousel" aria-label={label} className="flex flex-col gap-3 md:gap-6">
       <SharpenFilter />
       {/* The front photo is 3/4 of this box wide and as tall as the box: square photos need a box of 4:3 (phones), 16:9 photos a box of 64:27 */}
       <div className="relative z-10 aspect-4/3 w-full sm:aspect-64/27">
@@ -49,7 +49,7 @@ export default function StackedGallery({ photos, label = "Photo gallery" }: { ph
               aria-hidden={depth !== 0}
               loading="lazy"
               className={clsx(
-                "absolute inset-y-0 aspect-square h-full w-3/4 sm:aspect-video rounded-sm border border-crimson-light/80 bg-light-orange object-cover shadow-xl shadow-crimson/10 transition-[left,transform,opacity] duration-700 ease-out motion-reduce:transition-none",
+                "absolute inset-y-0 aspect-square h-full w-3/4 sm:aspect-video rounded-2xl border border-crimson-light/40 bg-light-orange object-cover shadow-petal transition-[left,transform,opacity] duration-700 ease-out motion-reduce:transition-none",
                 !slot && "pointer-events-none",
               )}
               style={{
@@ -77,14 +77,14 @@ export default function StackedGallery({ photos, label = "Photo gallery" }: { ph
 
           <div className="flex items-center">
             {photos.map((photo, index) => (
-              // The dot is drawn inside a 24px button, the smallest tap target WCAG allows
+              // Dots 6px apart, as in every carousel: the arrows are the full-size way to move
               <button
                 key={`${photo.id}-${index}`}
                 type="button"
                 aria-label={`Show photo ${index + 1}`}
                 aria-current={index === current}
                 onClick={() => setCurrent(index)}
-                className="group flex h-6 min-w-6 cursor-pointer items-center justify-center"
+                className="group flex h-6 cursor-pointer items-center justify-center px-0.75"
               >
                 <span
                   aria-hidden="true"

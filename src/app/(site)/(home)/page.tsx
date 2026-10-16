@@ -70,7 +70,7 @@ export default function Home() {
         </div>
 
         <div className="relative mx-auto grid w-full grid-cols-1 max-w-6xl items-center px-3 md:px-9 lg:min-h-[min(44rem,calc(100svh-4rem))] lg:grid-cols-2">
-          <div className="relative -mt-3 flex flex-col gap-3 pb-12 md:gap-9 lg:mt-0 lg:py-0">
+          <div className="relative -mt-3 flex flex-col gap-3 pb-12 md:gap-6 lg:mt-0 lg:py-0">
             <Bow
               aria-hidden="true"
               focusable="false"
@@ -87,7 +87,7 @@ export default function Home() {
               <Button
                 to="/services"
                 aria-label="Book appointment: see our nail services"
-                className="relative w-full justify-center rounded-full py-3 pl-6 pr-15"
+                className="relative w-full justify-center rounded-full pl-6 pr-15"
               >
                 Book appointment
                 <span
@@ -124,7 +124,7 @@ export default function Home() {
         </div>
       </header>
 
-      <Section id="why-choose-us" innerClassName="gap-3 md:gap-9">
+      <Section id="why-choose-us" innerClassName="gap-3 md:gap-6">
         <Blush tone="crimson" className="-right-32 top-10 h-80 w-80" />
         <h2 className={sectionTitleClass}>{t.home_features_title}</h2>
         <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-l border-t border-crimson-light/80">
@@ -137,7 +137,7 @@ export default function Home() {
                 to={link}
                 className="group flex h-full flex-col bg-light-orange p-6 transition-colors sm:flex-col gap-3 hover:bg-light-orange focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-crimson"
               >
-                <div className="w-full flex flex-row sm:flex-col items-center sm:items-start gap-3 sm:gap-9">
+                <div className="w-full flex flex-row sm:flex-col items-center sm:items-start gap-3 sm:gap-6">
                   <div className="flex shrink-0 sm:w-full sm:items-center sm:justify-between">
                     <Icon size={40} className="shrink-0 text-crimson" strokeWidth={1.5} aria-hidden="true" />
                     <ArrowRight
@@ -159,8 +159,8 @@ export default function Home() {
 
       <Section id="studio-intro">
         <Blush className="-left-40 top-1/2 h-96 w-96" />
-        <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] items-center gap-3 md:gap-9">
-          <div className="flex flex-col gap-3 md:gap-9">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] items-center gap-3 md:gap-6">
+          <div className="flex flex-col gap-3 md:gap-6">
             <p className="copy-note">{t.home_offer_eyebrow}</p>
             <p className="whitespace-pre-line bg-linear-to-b from-gray-red to-gray-red/50 bg-clip-text font-display text-2xl leading-snug tracking-wide text-transparent md:text-3xl">
               {t.home_offer_text}
@@ -201,14 +201,14 @@ export default function Home() {
 
       <Section id="about-teaser">
         <Blush tone="crimson" className="-right-32 top-1/4 h-80 w-80" />
-        <div className="flex flex-col lg:flex-row lg:items-center gap-3 md:gap-9">
-          <div className="lg:w-2/3 flex flex-col gap-9">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-3 md:gap-6">
+          <div className="lg:w-2/3 flex flex-col gap-6">
             <p className="copy-note">{t.home_about_eyebrow}</p>
             <h2 className="font-display text-4xl font-normal uppercase leading-tight tracking-widest text-gray-red md:text-5xl">
               {t.home_about_heading}
             </h2>
           </div>
-          <div className="lg:w-1/3 flex flex-col gap-3 md:gap-9">
+          <div className="lg:w-1/3 flex flex-col gap-3 md:gap-6">
             <p className="copy-lead">{t.home_about_text}</p>
             <Button to="/about" variant="secondary" className="self-start">
               {t.home_about_link_label}
@@ -232,7 +232,7 @@ export default function Home() {
       )}
 
       {testimonials.length > 0 && (
-        <Section id="reviews" innerClassName="gap-3 md:gap-9">
+        <Section id="reviews" innerClassName="gap-3 md:gap-6">
           <h2 className={sectionTitleClass}>{t.home_reviews_title}</h2>
           {/* What clients said about their visits: only the reviews an admin approved for the home page */}
           <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:gap-6 lg:grid-cols-3">
@@ -255,7 +255,7 @@ export default function Home() {
       )}
 
       {faqs.length > 0 && (
-        <Section id="faq" innerClassName="max-w-4xl! gap-3 md:gap-9">
+        <Section id="faq" innerClassName="max-w-4xl! gap-3 md:gap-6">
           <Blush className="-right-32 top-1/4 h-80 w-80" />
           <h2 className={sectionTitleClass}>{t.home_faq_title}</h2>
           <FaqList faqs={faqs} />

@@ -326,13 +326,14 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
       {/* One row at every width; on a phone the button drops its icon to fit */}
       <div className="flex items-center justify-between gap-3">
         <h2 className="min-w-0 truncate font-display text-2xl font-normal text-gray-red">Appointments</h2>
-        <Button type="button" onClick={() => setCreating(true)} className="shrink-0 whitespace-nowrap px-3! py-2! text-xs sm:px-3! sm:text-[13px]">
+        <Button size="sm" type="button" onClick={() => setCreating(true)} className="shrink-0 whitespace-nowrap">
           <Plus size={14} aria-hidden="true" className="hidden sm:block" />
           New appointment
         </Button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
+      {/* One row from md (the filters and the search share it, giving way rather than wrapping); a column below */}
+      <div className="flex flex-col gap-3 md:flex-row md:items-center">
         {asTable ? (
           filters.map((filter) => (
             <Select
@@ -341,7 +342,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
               value={filter.value}
               onChange={(e) => filter.pick(e.target.value)}
               options={filter.options}
-              className={filter.key === "artist" ? "w-40" : "w-44"}
+              className={clsx("min-w-0 flex-1", filter.key === "artist" ? "max-w-40" : "max-w-44")}
               triggerClassName="h-9! py-0! text-[13px]"
             />
           ))
@@ -354,7 +355,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
                 type="button"
                 aria-label={`${filter.title}: ${filter.options.find((o) => o.value === filter.value)?.label}`}
                 onClick={() => setOpenFilter(filter.key)}
-                className="flex h-9 min-w-0 items-center justify-between gap-1 rounded-md border border-crimson-light bg-light-orange/70 px-3 text-xs text-gray-red focus-visible:outline-2 focus-visible:outline-crimson"
+                className="flex h-9 min-w-0 items-center justify-between gap-1 rounded-md border border-crimson-light bg-milk px-3 text-sm text-gray-red focus-visible:outline-2 focus-visible:outline-crimson"
               >
                 <span className="min-w-0 truncate">{filter.options.find((o) => o.value === filter.value)?.label}</span>
                 <ChevronDown size={14} aria-hidden="true" className="shrink-0 text-crimson" />
@@ -362,7 +363,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
             ))}
           </div>
         )}
-        <label className="relative w-full sm:ml-auto sm:w-72">
+        <label className="relative w-full md:ml-auto md:w-72 md:min-w-40">
           <span className="sr-only">Search appointments</span>
           <input
             type="search"
@@ -481,16 +482,6 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
       )}
 
       {appointments !== null && <Pagination page={view.current} totalPages={view.pages} onPageChange={setPage} summary={view} />}
-
-      {/* Phones: a round button to add an appointment, above the tab bar */}
-      <Button
-        type="button"
-        aria-label="Create appointment"
-        onClick={() => setCreating(true)}
-        className="fixed bottom-20 right-4 z-30 h-14 w-14 rounded-full p-0! shadow-lg shadow-crimson/30 lg:hidden"
-      >
-        <Plus size={24} aria-hidden="true" />
-      </Button>
 
       {creating && (
         <CreateAppointmentDialog

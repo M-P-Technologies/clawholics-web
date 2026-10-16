@@ -1,6 +1,7 @@
-import { ArrowLeft as BackButtonIcon } from "lucide-react";
-import React, { useState } from "react";
-import { LoadingBar, Button } from "@/components/atoms";
+import { useState, type SyntheticEvent } from "react";
+import { UserPlus } from "lucide-react";
+import { Button } from "@/components/atoms";
+import { FormField } from "@/components/molecules";
 import { Dialog } from "@/components/organisms";
 
 type AddAdminFormData = {
@@ -14,17 +15,14 @@ interface AddAdminModalProps {
   isSaving?: boolean;
 }
 
-const AddAdminModal: React.FC<AddAdminModalProps> = ({
-  open,
-  onClose,
-  onSubmit,
-  isSaving,
-}) => {
+// Promotes an existing account to admin by its email, drawn like the admin's other dialogs: the
+// title and close button, the field, and Cancel and Make admin in the footer
+export default function AddAdminModal({ open, onClose, onSubmit, isSaving = false }: AddAdminModalProps) {
   const [email, setEmail] = useState("");
 
   if (!open) return null;
 
-  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     onSubmit({ email });
     setEmail("");
@@ -38,67 +36,35 @@ const AddAdminModal: React.FC<AddAdminModalProps> = ({
       placement="sheet"
       size="md"
       dismissible={!isSaving}
-      header={
-        isSaving ? (
-          <span className="sr-only">Add admin</span>
-        ) : (
-          <div className="relative flex items-center justify-center text-gray-red">
-            <Button
-              variant="bare"
-              type="button"
-              onClick={onClose}
-              className="absolute left-0 flex items-center justify-center hover:scale-110 transition-transform"
-            >
-              <BackButtonIcon size={32} className="text-crimson" />
-            </Button>
-            <h1 className="text-center text-3xl leading-none font-display">
-              CLAWHOLICS
-            </h1>
-          </div>
-        )
+      footer={
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <Button variant="secondary" type="button" onClick={onClose} disabled={isSaving}>
+            Cancel
+          </Button>
+          <Button type="submit" form="add-admin-form" loading={isSaving} loadingText="Adding…">
+            <UserPlus size={16} aria-hidden="true" />
+            Make admin
+          </Button>
+        </div>
       }
     >
-      {isSaving ? (
-        <div className="flex flex-col items-center justify-center py-12">
-          <LoadingBar inline />
-        </div>
-      ) : (
-        <>
-          <p className="my-3 text-center text-lg text-gray-red opacity-90 font-sans">
-            Promote an existing user to Admin.
-          </p>
-
-          <form onSubmit={handleSubmit} className="space-y-9 font-sans">
-            <div>
-              <p className="block text-base mb-2 text-gray-red font-bold opacity-80 ml-2">
-                User's Email Address:
-              </p>
-              <input
-                id="adminEmail"
-                name="adminEmail"
-                autoComplete="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="e.g., teammate@example.com"
-                className="h-11 w-full rounded-md bg-milk px-3 outline-none border border-crimson/20 focus:ring-1 focus:ring-crimson text-gray-red transition-shadow"
-              />
-            </div>
-
-            <div className="mt-9 flex items-center justify-center">
-              <Button
-                type="submit"
-                className="hover:scale-105"
-              >
-                MAKE ADMIN
-              </Button>
-            </div>
-          </form>
-        </>
-      )}
+      <form id="add-admin-form" onSubmit={handleSubmit} className="flex flex-col gap-3">
+        <p className="text-sm leading-relaxed text-gray-red">
+          Give an existing account admin access. They need to have signed up on the site first.
+        </p>
+        <FormField
+          compact
+          id="adminEmail"
+          name="adminEmail"
+          label="Their email address"
+          type="email"
+          autoComplete="email"
+          required
+          disabled={isSaving}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+      </form>
     </Dialog>
   );
-};
-
-export default AddAdminModal;
+}

@@ -1,6 +1,5 @@
-import clsx from "clsx";
 import { DASHBOARD_RANGES, type DashboardRange } from "@/lib/dashboardPeriods";
-import { Button } from "@/components/atoms";
+import { SegmentedControl } from "@/components/molecules";
 
 export const PERIOD_LABELS: Record<DashboardRange, string> = {
   week: "This week",
@@ -10,31 +9,20 @@ export const PERIOD_LABELS: Record<DashboardRange, string> = {
   year: "This year",
 };
 
+const PERIOD_OPTIONS = DASHBOARD_RANGES.map((range) => ({ value: range, label: PERIOD_LABELS[range] }));
+
 interface PeriodSwitchProps {
   value: DashboardRange;
   onChange: (range: DashboardRange) => void;
 }
 
-// A row of chips that scrolls sideways when it does not fit (in the top bar it gives way to the
-// rest of the bar); its slim scrollbar shows only while the row is hovered
+// The admin's pill switch (SegmentedControl, like Day | Month and Edit | Preview). It scrolls
+// sideways when it does not fit (in the top bar it gives way to the rest of the bar); its slim
+// scrollbar shows only while the row is hovered.
 export default function PeriodSwitch({ value, onChange }: PeriodSwitchProps) {
   return (
-    <div role="group" aria-label="Period" className="hover-scrollbar -mx-3 flex gap-3 overflow-x-auto px-3 pb-1 lg:mx-0 lg:min-w-0 lg:px-0">
-      {DASHBOARD_RANGES.map((range) => (
-        <Button
-          key={range}
-          variant="bare"
-          type="button"
-          aria-pressed={value === range}
-          onClick={() => onChange(range)}
-          className={clsx(
-            "shrink-0 rounded-full border px-3 py-1.5 text-[13px] font-medium transition-colors",
-            value === range ? "border-berry bg-berry text-pearl shadow-petal" : "border-crimson-light bg-milk/70 text-gray-red hover:border-crimson hover:text-berry",
-          )}
-        >
-          {PERIOD_LABELS[range]}
-        </Button>
-      ))}
+    <div className="hover-scrollbar min-w-0 overflow-x-auto pb-1">
+      <SegmentedControl label="Period" options={PERIOD_OPTIONS} value={value} onChange={onChange} className="w-max" />
     </div>
   );
 }

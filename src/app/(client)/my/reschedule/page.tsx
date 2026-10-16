@@ -91,7 +91,7 @@ export default function Reschedule() {
             onClick={handleConfirmReschedule}
             disabled={!selectedDate || !selectedTime || isSubmitting}
             aria-busy={isSubmitting}
-            className="w-full px-9 sm:w-auto sm:px-15 disabled:cursor-wait disabled:opacity-60"
+            className="w-full sm:w-auto disabled:cursor-wait disabled:opacity-60"
           >
             {isSubmitting ? "Processing..." : "Confirm reschedule"}
           </Button>

@@ -96,7 +96,7 @@ export default function Onboarding() {
                   <div
                     role="listbox"
                     aria-labelledby="gender-label"
-                    className="absolute bottom-full z-30 mb-2 w-full overflow-hidden rounded-sm border border-crimson-light bg-light-orange py-1 shadow-xl shadow-crimson/20"
+                    className="absolute bottom-full z-30 mb-2 w-full overflow-hidden rounded-2xl border border-crimson-light/40 bg-light-orange py-1 shadow-xl shadow-crimson/20"
                   >
                     {genderOptions.map((option) => (
                       <button

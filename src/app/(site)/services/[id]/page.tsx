@@ -22,7 +22,7 @@ function Appointment() {
   if (notFound || !service) {
     return (
       <PageShell>
-        <Section innerClassName="min-h-[70vh] items-center justify-center text-center gap-3 md:gap-9">
+        <Section innerClassName="min-h-[70vh] items-center justify-center text-center gap-3 md:gap-6">
           <SectionHeader
             align="center"
             title="Service not found"
@@ -39,13 +39,13 @@ function Appointment() {
   return (
     <PageShell>
       <Section>
-        <div className="grid grid-cols-1 lg:grid-cols-2 items-start gap-3 md:gap-9">
+        <div className="grid grid-cols-1 lg:grid-cols-2 items-start gap-3 md:gap-6">
           {/* SERVICE DETAILS */}
-          <div className="flex flex-col gap-3 md:gap-9">
+          <div className="flex flex-col gap-3 md:gap-6">
             <BackButton />
             {/* Phones and tablets: the category pill, then the photos as a carousel (the main photo
                 first). From `lg` up the photos stay in the gallery at the bottom. */}
-            <p className="w-fit rounded-md border border-crimson-light px-3 py-1 label-caps text-crimson-ink lg:hidden">
+            <p className="w-fit rounded-full bg-crimson-light/40 px-3 py-1 label-caps text-berry lg:hidden">
               {service.category}
             </p>
             <div className="lg:hidden">
@@ -59,7 +59,7 @@ function Appointment() {
               <ServiceOverview service={service} priceLines={priceLines} />
             </div>
             <div className="hidden flex-col gap-3 lg:flex">
-              <p className="w-fit rounded-md border border-crimson-light px-3 py-1 label-caps text-crimson-ink">
+              <p className="w-fit rounded-full bg-crimson-light/40 px-3 py-1 label-caps text-berry">
                 {service.category}
               </p>
               {/* The phone overview above holds the page's one h1 (both are in the HTML; CSS shows one) */}
@@ -99,7 +99,7 @@ function Appointment() {
 
           {/* TERMS */}
           <Panel title="Terms & conditions">
-            <div className="flex flex-col gap-3 md:gap-9">
+            <div className="flex flex-col gap-3 md:gap-6">
               {terms.map((term) => (
                 <div key={term.id} className="flex flex-col gap-1">
                   <h3 className="label-caps">
@@ -124,7 +124,7 @@ function Appointment() {
         )}
 
         <div className="flex justify-center">
-          <Button onClick={handleContinue} className="w-full px-9 sm:w-auto sm:px-15">
+          <Button onClick={handleContinue} className="w-full sm:w-auto">
             Book now
           </Button>
         </div>

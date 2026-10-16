@@ -52,6 +52,9 @@ export function useServices() {
       .map((c) => c.name),
   ];
 
+  // The category switch's choices (a SegmentedControl)
+  const categoryOptions = categoryNames.map((name) => ({ value: name, label: name }));
+
   const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
 
   // Each service with the price line its card shows
@@ -84,5 +87,5 @@ export function useServices() {
     ? `Nothing matches "${query}". Check the spelling, try a shorter word, or clear the search to see everything.`
     : "There are no services in this category yet. Pick another category to keep browsing.";
 
-  return { resetFilters, cards, error, reload, filtered, content, banner, primary, secondary, category, setCategory, search, setSearch, categoryNames, handleSearchChange, page, totalPages, pageItems, listRef, goToPage, emptyMessage };
+  return { resetFilters, cards, error, reload, filtered, content, banner, primary, secondary, category, setCategory, search, setSearch, categoryNames, categoryOptions, handleSearchChange, page, totalPages, pageItems, listRef, goToPage, emptyMessage };
 }

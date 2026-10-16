@@ -80,7 +80,8 @@ export default function ClientAppointments({ appointments, notesFor, draft, busy
 
   const cell = "border-t border-dotted border-crimson-light py-3 pr-3 align-top";
   return (
-    <div className="-mx-6 overflow-x-auto px-6">
+    // A container, so a visit's notes can take the width that shows (100cqw) instead of the table's
+    <div className="@container overflow-x-auto">
       <table aria-label="Appointments" className="w-full min-w-220 border-separate border-spacing-0 text-sm text-gray-red">
         <thead>
           <tr className="text-left text-xs text-gray-red">
@@ -121,7 +122,8 @@ export default function ClientAppointments({ appointments, notesFor, draft, busy
               (writing || notesFor(a.id).length > 0) && (
                 <tr key={`${a.id}-notes`}>
                   <td colSpan={COLUMNS.length} className="pb-3">
-                    {notesOf(a)}
+                    {/* Kept in view while the wide table scrolls sideways under it */}
+                    <div className="sticky left-0 w-[100cqw]">{notesOf(a)}</div>
                   </td>
                 </tr>
               ),

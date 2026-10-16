@@ -57,7 +57,7 @@ export default function ArtistOverview({ nailist, workCount }: ArtistOverviewPro
           <h2 className="label-caps">Services</h2>
           <div className="flex flex-wrap gap-3">
             {services.map((name) => (
-              <span key={name} className="rounded-md border border-crimson-light px-3 py-1 text-sm text-crimson-ink">
+              <span key={name} className="rounded-full bg-crimson-light/40 px-3 py-1 text-sm text-berry">
                 {name}
               </span>
             ))}

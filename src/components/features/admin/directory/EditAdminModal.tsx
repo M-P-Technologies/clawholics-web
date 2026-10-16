@@ -1,5 +1,6 @@
 import type { AdminEditForm } from "@/hooks/admin/useAdminDirectory";
-import { Button, LoadingBar } from "@/components/atoms";
+import { Button } from "@/components/atoms";
+import { FormField } from "@/components/molecules";
 import { Dialog } from "@/components/organisms";
 
 interface EditAdminModalProps {
@@ -11,10 +12,8 @@ interface EditAdminModalProps {
   onSave: () => void;
 }
 
-const inputClass = "w-full bg-milk border border-crimson-light rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-crimson";
-const labelClass = "block text-sm opacity-80 mb-1 ml-2";
-
-// Edits an admin's name; the email is the account's, so it only shows
+// Edits an admin's name; the email is the account's, so it only shows. Drawn like the admin's other
+// dialogs: the title and close button, the fields, and Cancel and Save in the footer.
 export default function EditAdminModal({ open, form, saving, onChange, onClose, onSave }: EditAdminModalProps) {
   return (
     <Dialog
@@ -24,50 +23,24 @@ export default function EditAdminModal({ open, form, saving, onChange, onClose, 
       placement="sheet"
       size="md"
       dismissible={!saving}
-      header={saving ? <span className="sr-only">Edit admin</span> : <h1 className="text-3xl text-center font-display">EDIT ADMIN</h1>}
-    >
-      {saving ? (
-        <div className="flex flex-col items-center justify-center py-12">
-          <LoadingBar inline />
+      footer={
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <Button variant="secondary" type="button" onClick={onClose} disabled={saving}>
+            Cancel
+          </Button>
+          <Button type="button" onClick={onSave} loading={saving} loadingText="Saving…">
+            Save changes
+          </Button>
         </div>
-      ) : (
-        <>
-          <div className="flex flex-col gap-3 font-sans">
-            <div>
-              <label htmlFor="edit-admin-first-name" className={labelClass}>First Name</label>
-              <input id="edit-admin-first-name" type="text" value={form.firstName} onChange={(e) => onChange({ ...form, firstName: e.target.value })} className={inputClass} />
-            </div>
-            <div>
-              <label htmlFor="edit-admin-last-name" className={labelClass}>Last Name</label>
-              <input id="edit-admin-last-name" type="text" value={form.lastName} onChange={(e) => onChange({ ...form, lastName: e.target.value })} className={inputClass} />
-            </div>
-            <div>
-              <label htmlFor="edit-admin-email" className={labelClass}>Email Address</label>
-              <input
-                id="edit-admin-email"
-                type="email"
-                value={form.email}
-                readOnly
-                disabled
-                className="w-full bg-crimson/10 border border-crimson/20 text-gray-red rounded-md px-3 py-2 cursor-not-allowed"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-center gap-3 font-sans">
-            <Button
-              variant="bare"
-              onClick={onClose}
-              className="px-9 py-2 text-base rounded-md border border-crimson font-bold hover:scale-105 transition-colors hover:bg-light-orange"
-            >
-              Cancel
-            </Button>
-            <Button onClick={onSave} loading={saving} loadingText="Saving...">
-              Save Changes
-            </Button>
-          </div>
-        </>
-      )}
+      }
+    >
+      <div className="flex flex-col gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <FormField compact id="edit-admin-first-name" name="firstName" label="First name" type="text" disabled={saving} value={form.firstName} onChange={(e) => onChange({ ...form, firstName: e.target.value })} />
+          <FormField compact id="edit-admin-last-name" name="lastName" label="Last name" type="text" disabled={saving} value={form.lastName} onChange={(e) => onChange({ ...form, lastName: e.target.value })} />
+        </div>
+        <FormField compact id="edit-admin-email" name="email" label="Email address (from their account)" type="email" readOnly disabled value={form.email} />
+      </div>
     </Dialog>
   );
 }

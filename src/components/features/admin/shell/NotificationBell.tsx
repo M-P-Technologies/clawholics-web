@@ -2,7 +2,7 @@
 
 import { Bell, CalendarCheck, Receipt } from "lucide-react";
 import clsx from "clsx";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { useAdminNotifications } from "@/hooks/admin/useAdminNotifications";
 import { notificationAge, notificationLine, notificationLink, notificationTitle } from "@/lib/admin/notifications";
@@ -32,8 +32,11 @@ export default function NotificationBell() {
     const measure = () => {
       const rect = button.current?.getBoundingClientRect();
       if (!rect) return;
-      // At least 16px from the screen's right edge, as the admin's gutter
-      setPlace({ top: rect.bottom + 8, right: Math.max(16, window.innerWidth - rect.right) });
+      // At least 16px from the screen's edges, as the admin's gutter: in line with the bell's right
+      // edge where it fits, moved right where the list (22rem) would run off the left
+      const width = Math.min(352, window.innerWidth - 32);
+      const right = Math.min(Math.max(16, window.innerWidth - rect.right), window.innerWidth - width - 16);
+      setPlace({ top: rect.bottom + 8, right });
     };
     measure();
     window.addEventListener("resize", measure);
@@ -88,8 +91,9 @@ export default function NotificationBell() {
           ref={panel}
           role="region"
           aria-label="New bookings"
-          style={{ top: place.top, right: place.right }}
-          className="fixed z-60 flex w-[min(22rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-crimson-light/40 bg-milk shadow-xl shadow-crimson/20"
+          // Phones: centred on the screen; from sm, under the bell (`--bell-right`)
+          style={{ top: place.top, "--bell-right": `${place.right}px` } as CSSProperties}
+          className="fixed z-60 flex max-sm:left-1/2 max-sm:-translate-x-1/2 sm:right-(--bell-right) w-[min(22rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-crimson-light/40 bg-milk shadow-xl shadow-crimson/20"
         >
           <p className="border-b border-crimson-light/40 px-3 py-3 font-display text-lg text-gray-red">New bookings</p>
           {bell.failed ? (

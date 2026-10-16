@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { publicQueries } from "@/lib/publicQueries";
 import type { AboutContent } from "../services/aboutService";
 import { sanitizeHtml } from "../utils/sanitizeHtml";
+import { useIsClient } from "./useIsClient";
 import { DAYS_ORDER } from "../data/about";
 
 export function useAbout() {
@@ -30,7 +31,10 @@ export function useAbout() {
     void aboutQuery.refetch();
   };
 
-  const aboutHtml = data ? sanitizeHtml(data.about_description) : "";
+  // DOMPurify only runs in the browser: empty on the server and through hydration (the content is
+  // prefilled on the server, so building it on the first client render didn't match the HTML)
+  const isClient = useIsClient();
+  const aboutHtml = data && isClient ? sanitizeHtml(data.about_description) : "";
 
   // One row per day that has opening hours, with the day name stripped from the time.
   const businessHours = DAYS_ORDER.flatMap((day) => {

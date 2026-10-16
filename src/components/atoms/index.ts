@@ -1,5 +1,6 @@
 // Shared atoms: the smallest pieces. Explicit re-exports only (never `export *`), so two files can't clash.
 export { default as Button, type ButtonProps } from "./Button";
+export { ButtonTextSizeProvider, useButtonTextSize, BUTTON_TEXT, type ButtonTextSize } from "./ButtonTextSize";
 export { default as Badge, type BadgeTone } from "./Badge";
 export { default as Card } from "./Card";
 export { default as IconButton } from "./IconButton";

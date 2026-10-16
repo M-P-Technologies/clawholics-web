@@ -10,6 +10,7 @@ import ScheduleAgenda from "@/components/features/admin/schedule/ScheduleAgenda"
 import ScheduleWeekGrid from "@/components/features/admin/schedule/ScheduleWeekGrid";
 import { Button, Select } from "@/components/atoms";
 import { Dialog } from "@/components/organisms";
+import { SegmentedControl } from "@/components/molecules";
 import { ScheduleSkeleton } from "@/components/features/admin/skeletons/skeletons";
 import { useSchedule } from "@/hooks/admin/useSchedule";
 import { PHONE_VIEWS } from "@/lib/admin/schedule";
@@ -33,21 +34,8 @@ export default function Schedule() {
         {/* PHONE: Day | Month switch and the filter */}
         {!s.desktop && (
           <div className="mb-3 flex items-center justify-between gap-3 lg:hidden">
-            <div role="group" aria-label="View" className="flex rounded-full border border-crimson-light p-0.5">
-              {PHONE_VIEWS.map(({ value: view, label }) => (
-                <Button
-                  key={view}
-                  variant="bare"
-                  type="button"
-                  aria-pressed={s.phoneView === view}
-                  onClick={() => s.showPhoneView(view)}
-                  className={clsx("rounded-full px-3 py-1 text-[13px] font-medium transition-colors", s.phoneView === view ? "bg-crimson text-on-crimson" : "text-gray-red")}
-                >
-                  {label}
-                </Button>
-              ))}
-            </div>
-            <Button variant="secondary" type="button" onClick={() => s.setFilterOpen(true)} className="relative px-3! py-2!">
+            <SegmentedControl label="View" options={PHONE_VIEWS} value={s.phoneView} onChange={s.showPhoneView} className="w-fit" />
+            <Button size="sm" variant="secondary" type="button" onClick={() => s.setFilterOpen(true)} className="relative">
               Filter
               {s.filterBy !== "All" && <span aria-hidden="true" className="absolute right-1 top-1 h-2 w-2 rounded-full bg-crimson" />}
             </Button>
@@ -74,7 +62,7 @@ export default function Schedule() {
                   <ChevronRight size={20} aria-hidden="true" />
                 </Button>
               </div>
-              <Button variant="secondary" type="button" onClick={s.thisWeek} className="px-3! py-1.5!">
+              <Button size="sm" variant="secondary" type="button" onClick={s.thisWeek}>
                 Today
               </Button>
               <label className="relative ml-auto w-64">

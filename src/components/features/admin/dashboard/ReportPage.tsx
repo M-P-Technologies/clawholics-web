@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useDashboardReport, type ReportProps } from "@/hooks/admin/useReports";
+import { useReportWideLayout } from "@/hooks/useMinWidth";
 import { Button } from "@/components/atoms";
 import { EmptyState } from "@/components/molecules";
 import AdminShell from "@/components/features/admin/shell/AdminShell";
@@ -10,9 +11,11 @@ import { ReportSkeleton } from "@/components/features/admin/skeletons/skeletons"
 
 // The frame of the Dashboard, Sales and Performance pages: the period switch, the numbers for
 // that period (hooks/admin/useReports), a skeleton of the page the first time, and a retry when they
-// can't be loaded. Each page draws its own cards from the same numbers.
+// can't be loaded. Each page draws its own cards from the same numbers. The switch sits in the top
+// bar from `2xl`; below that it gets its own row under the top bar, above the cards.
 export default function ReportPage({ title, children }: { title: string; children: (report: ReportProps) => ReactNode }) {
   const { range, setRange, data, loading, failed, retry } = useDashboardReport(title);
+  const wide = useReportWideLayout();
 
   if (!data && loading) return <ReportSkeleton title={title} />;
 
@@ -36,7 +39,13 @@ export default function ReportPage({ title, children }: { title: string; childre
   }
 
   return (
-    <AdminShell title={title} actions={<div className="min-w-0"><PeriodSwitch value={range} onChange={setRange} /></div>}>
+    <AdminShell title={title} actions={wide && <div className="min-w-0"><PeriodSwitch value={range} onChange={setRange} /></div>}>
+      {/* shrink-0: the frame is a screen-high column, and a sideways-scrolling row would be squashed in it */}
+      {!wide && (
+        <div className="shrink-0">
+          <PeriodSwitch value={range} onChange={setRange} />
+        </div>
+      )}
       {children({ data, loading, failed })}
     </AdminShell>
   );

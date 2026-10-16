@@ -126,16 +126,16 @@ export default function StripEditor({ services, strip, onChange, upload, uploadi
       )}
       <div className="flex flex-wrap gap-3">
         <Button
+          size="sm"
           type="button"
           variant="secondary"
           disabled={strip.length >= MAX_STRIP_SLIDES || unused.length === 0}
           onClick={() => onChange([...strip, { serviceId: (unused.find((s) => s.image) ?? unused[0]).id, title: "", image: "" }])}
-          className="px-3! py-1.5! text-[13px]"
         >
           <Plus size={14} aria-hidden="true" />
           Add a slide
         </Button>
-        <Button type="button" variant="bare" onClick={() => onChange(null)} className="gap-1 rounded-md px-3 py-1.5 text-[13px] font-bold text-gray-red hover:bg-crimson-light/30">
+        <Button type="button" variant="bare" onClick={() => onChange(null)} className="gap-1 rounded-md px-3 py-1.5 text-sm 2xl:text-base font-bold text-gray-red hover:bg-crimson-light/30">
           <RotateCcw size={14} aria-hidden="true" />
           Show every service again
         </Button>

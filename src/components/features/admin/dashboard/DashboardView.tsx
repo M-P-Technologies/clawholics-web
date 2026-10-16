@@ -58,7 +58,7 @@ export default function DashboardView({ data, loading = false, failed = false, l
 
   return (
     <ViewBody loading={loading} failed={failed}>
-      <div className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:gap-6 xl:grid-cols-4">
         <StatCard icon={Wallet} label="Collected" value={peso(kpis.collected.value)} change={describeChange(kpis.collected.value, kpis.collected.previous)} hint="downpayments received" sparkline={spark("Collected", "collected", peso)} />
         <StatCard icon={Receipt} label="Estimated sales" value={peso(kpis.estimatedSales.value)} change={describeChange(kpis.estimatedSales.value, kpis.estimatedSales.previous)} hint="list price of completed services" sparkline={spark("Estimated sales", "estimatedSales", peso)} />
         <StatCard icon={CalendarHeart} label="Bookings" value={String(kpis.bookings.value)} change={describeChange(kpis.bookings.value, kpis.bookings.previous)} hint="confirmed and completed" sparkline={spark("Bookings", "bookings", String)} />
@@ -68,13 +68,13 @@ export default function DashboardView({ data, loading = false, failed = false, l
       {/* Words on the right, figures on the left. On a phone the notes come straight after the
           stat cards; from lg up they take one column of the same four-column grid as the stat cards, so
           they are exactly one card wide, and stay in view while the charts scroll. */}
-      <div className="grid grid-cols-1 gap-3 md:gap-6 lg:grid-cols-4 lg:items-start">
+      <div className="grid grid-cols-1 gap-3 md:gap-6 lg:grid-cols-3 lg:items-start">
         <div className="flex flex-col gap-3 md:gap-6 lg:sticky lg:top-0 lg:order-last">
           <SalonNotes data={data} />
           {loadBookings && <ActiveBookings load={loadBookings} />}
         </div>
 
-        <div className="flex min-w-0 flex-col gap-3 md:gap-6 lg:col-span-3">
+        <div className="flex min-w-0 flex-col gap-3 md:gap-6 lg:col-span-2">
           <div className="grid grid-cols-1 gap-3 md:gap-6 xl:grid-cols-2">
             <Card as="section" aria-label="Bookings per month" className="flex min-w-0 flex-col gap-3"><SectionHeader size="card" title="Bookings per month" />
               <BarChart

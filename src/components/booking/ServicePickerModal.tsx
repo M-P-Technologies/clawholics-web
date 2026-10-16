@@ -36,7 +36,7 @@ export default function ServicePickerModal({ open, artistName, services, onPick,
         aria-modal="true"
         aria-labelledby="service-picker-title"
         onClick={(e) => e.stopPropagation()}
-        className="flex max-h-[90vh] w-full max-w-2xl flex-col gap-3 overflow-y-auto rounded-sm border border-crimson-light bg-light-orange p-3 shadow-2xl shadow-crimson/20 md:gap-9 md:p-9 drawer-panel max-sm:min-h-[40vh] max-sm:max-w-none max-sm:rounded-t-md max-sm:rounded-b-none"
+        className="flex max-h-[90vh] w-full max-w-2xl flex-col gap-3 overflow-y-auto rounded-2xl border border-crimson-light/40 bg-light-orange p-3 shadow-2xl shadow-crimson/20 md:gap-9 md:p-9 drawer-panel max-sm:min-h-[40vh] max-sm:max-w-none max-sm:rounded-t-md max-sm:rounded-b-none"
       >
         <div className="flex flex-col gap-1">
           <h2 id="service-picker-title" className="font-display text-2xl font-normal uppercase tracking-widest text-gray-red">
@@ -61,7 +61,7 @@ export default function ServicePickerModal({ open, artistName, services, onPick,
                     variant="bare"
                     type="button"
                     onClick={() => onPick(service)}
-                    className="flex w-full flex-col items-stretch whitespace-normal overflow-hidden rounded-sm border border-crimson-light text-left transition-colors hover:border-crimson hover:bg-crimson-light/30"
+                    className="flex w-full flex-col items-stretch whitespace-normal overflow-hidden rounded-xl border border-crimson-light text-left transition-colors hover:border-crimson hover:bg-crimson-light/30"
                   >
                     <span className="relative block aspect-square w-full overflow-hidden bg-sand/50">
                       {service.image && (

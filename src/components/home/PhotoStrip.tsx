@@ -16,13 +16,13 @@ interface PhotoStripProps {
 const CAPTION_FADE_MS = 170;
 
 const ARROW_BUTTON =
-  "pointer-events-auto absolute top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-crimson-light bg-light-orange text-crimson-ink shadow-md shadow-crimson/20 transition-colors hover:bg-crimson hover:text-on-crimson focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson";
+  "pointer-events-auto absolute top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-crimson-light/40 bg-light-orange text-crimson-ink shadow-md shadow-crimson/20 transition-colors hover:bg-crimson hover:text-on-crimson focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson";
 
 // Service details shown along the bottom of the middle photo.
 function StripCaption({ item, visible = true }: { item: StripItem; visible?: boolean }) {
   return (
     <div
-      className={`absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 rounded-b-sm bg-linear-to-t from-gray-red/80 via-gray-red/40 to-transparent p-3 pt-15 transition-opacity ease-in-out motion-reduce:transition-none md:p-9 md:pt-24 ${
+      className={`absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 sm:rounded-b-xl bg-linear-to-t from-gray-red/80 via-gray-red/40 to-transparent p-3 pt-15 transition-opacity ease-in-out motion-reduce:transition-none md:p-9 md:pt-24 ${
         visible ? "opacity-100 duration-300" : "opacity-0 duration-150"
       }`}
     >
@@ -88,7 +88,7 @@ export default function PhotoStrip({ items }: PhotoStripProps) {
 
   if (count === 1) {
     return (
-      <div className="relative aspect-square w-full overflow-hidden sm:rounded-sm lg:aspect-video">
+      <div className="relative aspect-square w-full overflow-hidden sm:rounded-xl lg:aspect-video">
         <Image
           src={items[0].image}
           alt={items[0].name}
@@ -150,7 +150,7 @@ export default function PhotoStrip({ items }: PhotoStripProps) {
           {/* Soft glow around the middle slot, shown while the strip is hovered. It sits behind
               the photos (they are opaque), so it only shows past their edges and never over them. */}
           <div aria-hidden="true" className="absolute top-0 z-0" style={slotStyle}>
-            <div className="absolute inset-0 sm:rounded-sm opacity-0 shadow-[0_0_48px_12px] shadow-crimson/40 transition-opacity duration-500 group-hover/strip:opacity-100 motion-reduce:transition-none" />
+            <div className="absolute inset-0 sm:rounded-xl opacity-0 shadow-[0_0_48px_12px] shadow-crimson/40 transition-opacity duration-500 group-hover/strip:opacity-100 motion-reduce:transition-none" />
           </div>
 
           <div
@@ -171,7 +171,7 @@ export default function PhotoStrip({ items }: PhotoStripProps) {
                 <li
                   key={k}
                   aria-hidden={k !== pos}
-                  className={`relative shrink-0 overflow-hidden sm:rounded-sm transition-[width] duration-500 ease-in-out motion-reduce:transition-none ${noMotion}`}
+                  className={`relative shrink-0 overflow-hidden sm:rounded-xl transition-[width] duration-500 ease-in-out motion-reduce:transition-none ${noMotion}`}
                   style={{
                     width: k === pos ? "var(--wide-w)" : "var(--narrow-w)",
                     height: "calc(var(--wide-w) * var(--ratio))",
@@ -205,7 +205,7 @@ export default function PhotoStrip({ items }: PhotoStripProps) {
           </div>
         </div>
 
-        <div className="flex items-center justify-center gap-3" aria-hidden="true">
+        <div className="flex items-center justify-center gap-1.5" aria-hidden="true">
           {items.map((item, i) => (
             <span
               key={item.id}

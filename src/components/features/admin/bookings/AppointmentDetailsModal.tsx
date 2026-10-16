@@ -1,7 +1,5 @@
 import { ArrowUpRight, X as CloseIconLucide } from "lucide-react";
 import { useId, type ReactNode } from "react";
-import clsx from "clsx";
-import { useAdminWideLayout } from "@/hooks/useMinWidth";
 import type { Appointment, AppointmentStatus } from "@/services/appointmentService";
 import { Link } from "@/lib/router";
 import { Avatar, Button, Select } from "@/components/atoms";
@@ -41,8 +39,8 @@ const dateLabel = (ymd?: string) => {
   return MONTHS[m - 1] ? `${MONTHS[m - 1]} ${d}, ${y}` : ymd;
 };
 
-// One appointment's details, in a drawer that slides in from the right on a computer and a bottom
-// sheet below `lg` (as in the client app): the client, the appointment (with its status), the
+// One appointment's details, in a modal on a computer and a bottom sheet below `lg` (as in the
+// client app): the client, the appointment (with its status), the
 // payment, the proof review and the private notes. The Dialog handles focus, Escape and a click outside.
 const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFetcher, clerkId, onProofReviewed }: AppointmentDetailsModalProps) => {
   const titleId = useId();
@@ -51,17 +49,17 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
   const showProofPanel = currentStatus === "AWAITING_PROOF" || Boolean(appointment.latest_proof);
   // Walk-in bookings have no real client account, so there is nobody to keep notes on.
   const isWalkin = Boolean(appointment.is_walkin);
-  const wide = useAdminWideLayout();
 
   return (
     <Dialog
       open
       onClose={onClose}
       title={customerName}
-      placement={wide ? "drawer" : "sheet"}
+      placement="sheet"
+      size="xl"
       header={
-        // In the sheet, the sheet pads it and keeps it above the part that scrolls
-        <div className={clsx("flex shrink-0 items-start gap-3 border-b border-crimson-light/50", wide ? "px-6 py-3" : "pb-3")}>
+        // The sheet pads it and keeps it above the part that scrolls
+        <div className="flex shrink-0 items-start gap-3 border-b border-crimson-light/50 pb-3">
           <Avatar name={customerName} size="lg" decorative />
           <div className="min-w-0 flex-1">
             <p className="text-xs font-medium text-gray-red">Appointment #{appointment.id}</p>
@@ -84,8 +82,8 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
         </div>
       }
     >
-        {/* Body: scrolls on its own */}
-        <div className={clsx("flex flex-col gap-3 text-gray-red", wide && "min-h-0 flex-1 overflow-y-auto px-6 py-6")}>
+        {/* Body: the sheet scrolls it under the header */}
+        <div className="flex flex-col gap-3 text-gray-red">
           <Section title="Client" aside={`Client #${appointment.user_id}`}>
             <SummaryRow label="Name" value={customerName} />
             <SummaryRow label="Email" value={appointment.email || "No email"} />

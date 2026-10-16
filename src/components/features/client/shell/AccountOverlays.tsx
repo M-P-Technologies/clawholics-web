@@ -27,8 +27,17 @@ export default function AccountOverlays({ account: a, openId, setOpenId }: Accou
         tokenFetcher={a.getToken}
         clerkId={a.clerkUser?.id}
         onClose={() => setOpenId(null)}
-        onPay={() => openView && a.payForAppointment(openView.appt)}
-        onReschedule={() => openView && a.rescheduleAppointment(openView.appt)}
+        // The sheet is drawn for every tab, so it's closed before going to another page
+        onPay={() => {
+          if (!openView) return;
+          setOpenId(null);
+          a.payForAppointment(openView.appt);
+        }}
+        onReschedule={() => {
+          if (!openView) return;
+          setOpenId(null);
+          a.rescheduleAppointment(openView.appt);
+        }}
         onCancel={() => {
           if (!openView) return;
           setOpenId(null);
@@ -58,7 +67,7 @@ export default function AccountOverlays({ account: a, openId, setOpenId }: Accou
       {/* THE REWARD MODAL */}
       {a.showRewardModal && (
         <div className="fixed inset-0 z-100 flex items-end sm:items-center justify-center bg-gray-red/40 backdrop-blur-sm px-3 sm:px-9 drawer-backdrop max-sm:p-0">
-          <div className="bg-light-orange border border-crimson-light rounded-sm p-9 md:p-12 max-w-2xl w-full text-center text-gray-red shadow-2xl relative flex flex-col items-center gap-3 md:gap-9 drawer-panel max-sm:max-h-[90vh] max-sm:min-h-[40vh] max-sm:w-full max-sm:max-w-none max-sm:overflow-y-auto max-sm:rounded-t-md max-sm:rounded-b-none">
+          <div className="bg-light-orange border border-crimson-light rounded-sm p-9 md:p-12 max-w-2xl w-full text-center text-gray-red shadow-2xl relative flex flex-col items-center gap-3 md:gap-6 drawer-panel max-sm:max-h-[90vh] max-sm:min-h-[40vh] max-sm:w-full max-sm:max-w-none max-sm:overflow-y-auto max-sm:rounded-t-md max-sm:rounded-b-none">
             <h1 className="font-display text-3xl font-normal uppercase tracking-widest text-gray-red md:text-4xl">
               Congratulations, {a.dbUser?.first_name}!
             </h1>
@@ -72,7 +81,6 @@ export default function AccountOverlays({ account: a, openId, setOpenId }: Accou
             </p>
             <Button
               onClick={a.closeRewardModal}
-              className="px-9 sm:px-12"
             >
               Continue
             </Button>
