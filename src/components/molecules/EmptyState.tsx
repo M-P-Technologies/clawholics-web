@@ -23,14 +23,16 @@ const ICONS = {
   info: Info,
 };
 
+// Each icon sits in a soft circle of its own colour, like the cards' icons
 const ICON_COLORS = {
-  error: "text-danger-ink",
-  empty: "text-crimson-ink",
-  success: "text-success-ink",
-  info: "text-crimson-ink",
+  error: "bg-danger/10 text-danger-ink",
+  empty: "bg-crimson-light/40 text-berry",
+  success: "bg-success/15 text-success-ink",
+  info: "bg-crimson-light/40 text-berry",
 };
 
-// One look for every "nothing to show" moment: it failed, it is empty, it worked, or FYI.
+// One look for every "nothing to show" moment: it failed, it is empty, it worked, or FYI. Drawn
+// like the brand's cards: milk white, a soft pink border and the petal shadow.
 // Errors are announced right away (role="alert"); the others politely (role="status").
 export default function EmptyState({ kind, title, message, children, className }: EmptyStateProps) {
   const Icon = ICONS[kind];
@@ -39,12 +41,14 @@ export default function EmptyState({ kind, title, message, children, className }
     <div
       role={kind === "error" ? "alert" : "status"}
       className={clsx(
-        "mx-auto flex w-full max-w-xl flex-col items-center gap-3 rounded-sm border border-crimson-light/80 bg-light-orange p-9 text-center",
+        "mx-auto flex w-full max-w-xl flex-col items-center gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-6 text-center shadow-petal sm:p-9",
         className,
       )}
     >
-      <Icon size={40} strokeWidth={1.5} aria-hidden="true" className={ICON_COLORS[kind]} />
-      <h2 className="font-display text-xl font-normal uppercase tracking-widest text-gray-red md:text-2xl">
+      <span aria-hidden="true" className={clsx("flex h-14 w-14 items-center justify-center rounded-full", ICON_COLORS[kind])}>
+        <Icon size={28} strokeWidth={1.75} />
+      </span>
+      <h2 className="font-display text-2xl font-normal text-gray-red md:text-3xl">
         {title}
       </h2>
       {message && <p className="copy-body">{message}</p>}
