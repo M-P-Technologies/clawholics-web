@@ -6,6 +6,7 @@ import { adminDataChanged, adminQueries } from "@/lib/adminQueries";
 import clsx from "clsx";
 import AppointmentDetailsModal from "@/components/features/admin/bookings/AppointmentDetailsModal";
 import CreateAppointmentDialog from "@/components/features/admin/bookings/CreateAppointmentDialog";
+import ProofThumb from "@/components/features/admin/bookings/ProofThumb";
 import { ListSkeleton } from "@/components/features/admin/skeletons/ListSkeleton";
 import { AlertDialog, CardFields, CARDS_PER_PAGE, Dialog, RowCard, RowCards, TableFrame } from "@/components/organisms";
 import { Button, Select, initialsOf } from "@/components/atoms";
@@ -435,6 +436,9 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
                   ["Visits", clientFacts(a).visits],
                 ]}
               />
+              <div className="flex items-center gap-3 text-xs text-gray-red">
+                Payment screenshot <ProofThumb proof={a.latest_proof} appointmentId={a.id} />
+              </div>
               <div className="flex items-center justify-between gap-3">
                 {statusSelect(a)}
                 {manageButton(a, true)}
@@ -443,10 +447,10 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
           ))}
         </RowCards>
       ) : (
-        <TableFrame label="Appointments" minWidthClass="min-w-305"
+        <TableFrame label="Appointments" minWidthClass="min-w-320"
           head={
             <tr className="text-left text-xs text-gray-red">
-              {["Client", "Phone", "Joined", "Last active", "Visits", "Service", "Artist", "Date", "Time", "Status", "Manage"].map((h) => (
+              {["Client", "Phone", "Joined", "Last active", "Visits", "Service", "Artist", "Date", "Time", "Proof", "Status", "Manage"].map((h) => (
                 <th key={h} scope="col" className={clsx("pb-2 pr-3 font-medium", h === "Manage" && "pr-0 text-center", h === "Visits" && "text-right")}>
                   {h}
                 </th>
@@ -473,6 +477,9 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
               <td className={cell}>{a.nailist_name || "–"}</td>
               <td className={clsx(cell, "whitespace-nowrap")}>{dateLabel(a.appointment_date)}</td>
               <td className={clsx(cell, "whitespace-nowrap")}>{a.appointment_time || "–"}</td>
+              <td className={cell}>
+                <ProofThumb proof={a.latest_proof} appointmentId={a.id} />
+              </td>
               <td className={cell}>{statusSelect(a)}</td>
               <td className={clsx(cell, "pr-0 text-center")}>{manageButton(a)}</td>
             </tr>

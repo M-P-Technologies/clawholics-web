@@ -71,7 +71,7 @@ describe("Appointments table", () => {
     expect(await screen.findByRole("table", { name: "Appointments" })).toBeInTheDocument();
     expect(rows()).toHaveLength(4);
     const headers = within(screen.getByRole("table", { name: "Appointments" })).getAllByRole("columnheader").map((h) => h.textContent);
-    expect(headers).toEqual(["Client", "Phone", "Joined", "Last active", "Visits", "Service", "Artist", "Date", "Time", "Status", "Manage"]);
+    expect(headers).toEqual(["Client", "Phone", "Joined", "Last active", "Visits", "Service", "Artist", "Date", "Time", "Proof", "Status", "Manage"]);
     expect(within(rows()[0]).getByText("Nov 20, 2026")).toBeInTheDocument();
     const table = within(screen.getByRole("table", { name: "Appointments" }));
     expect(table.getByText("Proof overdue")).toBeInTheDocument();
@@ -245,5 +245,20 @@ describe("parseStatusParam", () => {
     expect(parseStatusParam("PROOF_PENDING")).toBe("PROOF_PENDING");
     expect(parseStatusParam("nope")).toBe("ALL");
     expect(parseStatusParam(null)).toBe("ALL");
+  });
+});
+
+describe("the payment screenshot column", () => {
+  it("shows the latest screenshot as a thumbnail that opens it, or None yet", async () => {
+    fetchAppointments.mockResolvedValue([
+      appt(1, { status: "AWAITING_CONFIRMATION", latest_proof: { id: 9, status: "PENDING", image_url: "https://img/s.webp", created_at: "2026-10-16T10:00:00Z" } }),
+      appt(2),
+    ]);
+    render(<AppointmentsTable />);
+    expect(await screen.findByRole("columnheader", { name: "Proof" })).toBeInTheDocument();
+    const thumb = screen.getByRole("button", { name: "View payment screenshot for appointment #1" });
+    expect(screen.getAllByText("None yet").length).toBeGreaterThan(0);
+    await userEvent.click(thumb);
+    expect(await screen.findByRole("img", { name: "Payment screenshot for appointment #1" })).toHaveAttribute("src", "https://img/s.webp");
   });
 });

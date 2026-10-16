@@ -47,6 +47,8 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
   const customerName = `${appointment.first_name ?? ""} ${appointment.last_name ?? ""}`.trim() || `User #${appointment.user_id}`;
   const currentStatus = (appointment.status?.trim().toUpperCase() || "PENDING") as AppointmentStatus;
   const showProofPanel = currentStatus === "AWAITING_PROOF" || Boolean(appointment.latest_proof);
+  // Confirming a booking paid online needs the client's screenshot (pending or approved)
+  const hasScreenshot = appointment.latest_proof?.status === "PENDING" || appointment.latest_proof?.status === "APPROVED";
   // Walk-in bookings have no real client account, so there is nobody to keep notes on.
   const isWalkin = Boolean(appointment.is_walkin);
 
@@ -119,9 +121,15 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
           {currentStatus === "AWAITING_CONFIRMATION" && (
             <div role="group" aria-label="Confirm this booking" className="flex flex-col gap-3 rounded-xl border border-warning/40 bg-warning/10 p-3">
               <p className="text-sm text-gray-red">
-                The client paid the downpayment online. Confirm the booking to let them know it&apos;s set: they get the confirmation email then.
+                The client paid the downpayment online. Check their screenshot of the payment, then confirm the booking to let them know it&apos;s set: they get the confirmation email then.
               </p>
-              <Button type="button" onClick={() => onStatusChange(appointment.id, "CONFIRMED")} className="w-full sm:w-auto sm:self-start">
+              {!hasScreenshot && <p className="text-sm font-bold text-warning-ink">Waiting for the client&apos;s payment screenshot.</p>}
+              <Button
+                type="button"
+                disabled={!hasScreenshot}
+                onClick={() => onStatusChange(appointment.id, "CONFIRMED")}
+                className="w-full sm:w-auto sm:self-start"
+              >
                 Confirm booking
               </Button>
             </div>

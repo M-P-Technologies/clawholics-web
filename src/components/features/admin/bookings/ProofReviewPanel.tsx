@@ -75,7 +75,8 @@ export default function ProofReviewPanel({
 
   const latest: ProofSummary | null = history[0] ?? latestProof ?? null;
   const state = getProofState({ status, proof_due_at: proofDueAt, latest_proof: latest }, Date.now());
-  const canReview = latest?.status === "PENDING" && status.trim().toUpperCase() === "AWAITING_PROOF";
+  // Paid by proof (PENDING, or the old AWAITING_PROOF), or paid online and waiting for the salon
+  const canReview = latest?.status === "PENDING" && ["PENDING", "AWAITING_PROOF", "AWAITING_CONFIRMATION"].includes(status.trim().toUpperCase());
 
   const submit = async (review: ProofReview) => {
     if (!latest || busy) return;
