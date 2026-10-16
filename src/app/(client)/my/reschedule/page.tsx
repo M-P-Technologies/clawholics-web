@@ -17,9 +17,11 @@ export default function Reschedule() {
   return (
     <ClientScreen title="Reschedule" back="history">
       <div className="flex flex-col gap-6">
-
-        <div className="grid grid-cols-1 gap-4 md:gap-8 lg:grid-cols-5 lg:gap-16 xl:grid-cols-2">
-          <Card className="flex flex-col gap-6 lg:col-span-3 xl:col-span-1">
+        {/* As in Book: the form takes two thirds and the summary one third; both cards stretch to the
+            row's height, so they always end level */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-6">
+          {/* NEW DATE AND TIME */}
+          <Card className="flex flex-col gap-6 lg:col-span-2">
             <SectionHeader
               size="section"
               title="Reschedule your visit"
@@ -27,75 +29,69 @@ export default function Reschedule() {
             />
 
             <div className="flex flex-col gap-3">
-            <SectionHeader size="label" title="Pick date & time" />
+              <SectionHeader size="label" title="Pick date & time" />
+              {/* Side by side only when this column itself is wide enough (the two blocks need about 565px);
+                  a screen-width breakpoint is wrong here, since beside the summary card the column is narrower. */}
+              <div className="@container">
+              <div className="flex flex-col gap-3 @xl:flex-row">
+                <div className={clsx(surface.tint, "flex items-center justify-center p-3")}>
+                  <DayCalendar
+                    monthsAhead={1}
+                    month={month}
+                    onMonthChange={setMonth}
+                    selected={selectedDay}
+                    onSelect={handleDateSelect}
+                    isDisabled={isDisabledDate}
+                    isFullyBooked={isDateFullyBooked}
+                  />
+                </div>
 
-            {/* Side by side only when this column itself is wide enough (the two blocks need about 565px);
-                a screen-width breakpoint is wrong here, since beside the summary cards the column is narrower. */}
-            <div className="@container">
-            <div className="flex flex-col gap-4 @xl:flex-row">
-              <div className={clsx(surface.tint, "flex items-center justify-center p-4")}>
-                <DayCalendar
-                  monthsAhead={1}
-                  month={month}
-                  onMonthChange={setMonth}
-                  selected={selectedDay}
-                  onSelect={handleDateSelect}
-                  isDisabled={isDisabledDate}
-                  isFullyBooked={isDateFullyBooked}
+                <TimeSlotList
+                  boxed
+                  slots={uniqueTimeSlots}
+                  selected={selectedTime}
+                  onSelect={setSelectedTime}
+                  isBlocked={isSlotBlocked}
+                  format={formatSlot}
+                  emptyText="Select a date to view available times."
                 />
               </div>
-
-              <TimeSlotList
-                  boxed
-                slots={uniqueTimeSlots}
-                selected={selectedTime}
-                onSelect={setSelectedTime}
-                isBlocked={isSlotBlocked}
-                format={formatSlot}
-                emptyText="Select a date to view available times."
-              />
-            </div>
-            </div>
+              </div>
             </div>
           </Card>
 
-          <div className="flex h-fit flex-col gap-4 md:gap-8 lg:col-span-2 xl:col-span-1">
-            <Card className="flex flex-col gap-3">
-              <SectionHeader size="card" title="Current appointment" />
-              <p className="font-display text-xl text-gray-red">
+          {/* SUMMARY: the visit as booked, then the new date and time */}
+          <Card as="aside" className="flex flex-col gap-3">
+            <SectionHeader size="card" title="Reschedule summary" />
+            <div className="flex flex-col items-start gap-3">
+              <p className="font-display text-2xl text-gray-red">
                 {appointment.service_name}
               </p>
-              <p className="text-sm text-gray-red/80">
-                {appointment.service_description}
-              </p>
-              <dl>
-                <SummaryRow label="Artist" value={appointment.nailist_name} />
-                <SummaryRow label="Old date" value={oldDateLabel} />
-                <SummaryRow label="Old time" value={oldTimeLabel} />
-              </dl>
-            </Card>
+              <p className="line-clamp-3 text-sm text-gray-red" title={appointment.service_description}>{appointment.service_description}</p>
+            </div>
 
-            <Card className="flex flex-col gap-3">
-              <SectionHeader size="card" title="New selection" />
+            <dl className="border-t border-crimson-light/40 pt-2">
+              <SummaryRow label="Artist" value={appointment.nailist_name} />
+              <SummaryRow label="Old date" value={oldDateLabel} />
+              <SummaryRow label="Old time" value={oldTimeLabel} />
+            </dl>
+
+            <div className="flex flex-col gap-1 border-t border-crimson-light/40 pt-3">
+              <SectionHeader size="label" title="New selection" />
               <dl>
-                <SummaryRow
-                  label="New date"
-                  value={<b>{newDateLabel}</b>}
-                />
-                <SummaryRow
-                  label="New time"
-                  value={<b>{newTimeLabel}</b>}
-                />
+                <SummaryRow label="New date" value={<b>{newDateLabel}</b>} />
+                <SummaryRow label="New time" value={<b>{newTimeLabel}</b>} />
               </dl>
-            </Card>
-          </div>
+            </div>
+          </Card>
         </div>
 
         <div className="flex justify-center">
           <Button
             onClick={handleConfirmReschedule}
             disabled={!selectedDate || !selectedTime || isSubmitting}
-            className="px-8 sm:px-12"
+            aria-busy={isSubmitting}
+            className="w-full px-9 sm:w-auto sm:px-15 disabled:cursor-wait disabled:opacity-60"
           >
             {isSubmitting ? "Processing..." : "Confirm reschedule"}
           </Button>

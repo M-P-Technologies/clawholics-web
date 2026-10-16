@@ -9,8 +9,8 @@ export default function AuthTabs({ current }: { current: "login" | "signup" }) {
       to={to}
       aria-current={active ? "page" : undefined}
       className={clsx(
-        "flex-1 rounded-md py-3 text-center text-sm font-bold uppercase tracking-extrawide transition-colors",
-        active ? "bg-crimson text-light-orange shadow-md shadow-crimson/30" : "text-gray-red hover:text-crimson",
+        "flex-1 rounded-md py-3 text-center text-sm md:text-base font-semibold transition-colors",
+        active ? "bg-crimson text-light-orange shadow-md shadow-crimson/30" : "text-gray-red hover:text-crimson-ink",
       )}
     >
       {label}
@@ -18,7 +18,7 @@ export default function AuthTabs({ current }: { current: "login" | "signup" }) {
   );
 
   return (
-    <nav aria-label="Account" className="flex w-full max-w-[400px] gap-1 rounded-md border border-crimson-light bg-light-orange p-1">
+    <nav aria-label="Account" className="flex w-full max-w-100 gap-1 rounded-md border border-crimson-light bg-light-orange p-1">
       {tab("/login", "Login", current === "login")}
       {tab("/signup", "Sign up", current === "signup")}
     </nav>

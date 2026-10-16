@@ -20,7 +20,7 @@ export default function ServiceGallery({ images, label = "Service image gallery"
   return (
     <>
       {/* PREVIEW GRID */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-3">
         {preview.map((img, index) => (
           <Button
             variant="bare"
@@ -106,7 +106,7 @@ export default function ServiceGallery({ images, label = "Service image gallery"
               </Button>
             </div>
 
-            <div className="flex gap-1 overflow-x-auto p-4 md:items-center md:justify-center">
+            <div className="flex gap-1 overflow-x-auto p-3 md:items-center md:justify-center">
               {images.map((img, index) => (
                 <Button
                   variant="bare"

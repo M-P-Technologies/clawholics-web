@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { DEFAULT_HERO_IMAGE } from "../data/home";
 import { ctaLink, iconFor, readHomeSections } from "../lib/homeSections";
+import { canOptimizeImage } from "../lib/imageHosts";
 import { useHome } from "./useHome";
 import { useTestimonials } from "./useTestimonials";
 
@@ -36,6 +37,8 @@ export function useHomePage() {
         ? {
             t,
             heroImage: home.content.home_hero_image || DEFAULT_HERO_IMAGE,
+            /** Whether next/image may resize the hero (an image from elsewhere is drawn as it is) */
+            heroOptimized: canOptimizeImage(home.content.home_hero_image || DEFAULT_HERO_IMAGE),
             /** The "Why choose us" cards, each with its icon */
             features: sections.features.map((feature) => ({ ...feature, Icon: iconFor(feature.icon) })),
             offerImage: sections.offerImage,

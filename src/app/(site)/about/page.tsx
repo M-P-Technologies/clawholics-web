@@ -7,6 +7,7 @@ import StackedGallery from "@/components/home/StackedGallery";
 import PageShell from "@/components/layout/PageShell";
 import Panel from "@/components/layout/Panel";
 import Section from "@/components/layout/Section";
+import MapFrame from "@/components/home/MapFrame";
 import { useAbout } from "@/hooks/useAbout";
 
 export default function About() {
@@ -24,16 +25,15 @@ export default function About() {
           operating hours, and salon philosophy.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-9">
           <div
-            className="flow-root whitespace-pre-line text-base leading-8 text-gray-red/80 md:col-span-2"
+            className="flow-root whitespace-pre-line text-base leading-8 text-gray-red md:col-span-2"
           >
-            <div className="mb-8 h-fit w-full overflow-hidden whitespace-normal rounded-sm border border-crimson-light/80 bg-light-orange p-2 shadow-xl shadow-crimson/10 md:float-right md:mb-4 md:ml-8 md:w-1/2">
+            <div className="mb-9 h-fit w-full overflow-hidden whitespace-normal rounded-sm border border-crimson-light/80 bg-light-orange p-2 shadow-xl shadow-crimson/10 md:float-right md:mb-3 md:ml-9 md:w-1/2">
               <img
                 src={data.about_image}
                 alt="Interior of Clawholics by Max nail studio"
-                loading="lazy"
-                decoding="async"
+                fetchPriority="high"
                 className="aspect-square w-full rounded-sm object-cover"
               />
             </div>
@@ -41,36 +41,28 @@ export default function About() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-9">
           <Panel title="Location" className="min-w-0">
             <Button
               variant="bare"
               type="button"
               onClick={handleCopyLocation}
-              aria-label="Copy salon address"
               title="Click to copy address."
-              className="flex w-full cursor-pointer items-start gap-2 whitespace-normal rounded-md text-left text-gray-red transition-colors hover:text-crimson focus-visible:outline-2 focus-visible:outline-crimson"
+              className="flex w-full cursor-pointer items-center gap-3 whitespace-normal rounded-md text-left text-gray-red transition-colors hover:text-crimson-ink focus-visible:outline-2 focus-visible:outline-crimson"
             >
               <MapPin aria-hidden="true" focusable="false" size={24} className="shrink-0 text-crimson" />
-              <span className="min-w-0 flex-1">{data.about_location}</span>
+              <span className="min-w-0 flex-1"><span className="sr-only">Copy salon address: </span>{data.about_location}</span>
             </Button>
             {copied && (
-              <p role="status" aria-live="polite" className="text-sm text-crimson">
+              <p role="status" aria-live="polite" className="text-sm text-crimson-ink">
                 Address copied to clipboard.
               </p>
             )}
 
             {data.about_location_url ? (
-              <iframe
-                title="Map showing Clawholics by Max location"
-                src={data.about_location_url}
-                className="h-60 w-full rounded-sm border border-crimson-light"
-                loading="lazy"
-                referrerPolicy="strict-origin-when-cross-origin"
-                sandbox="allow-scripts allow-same-origin allow-popups"
-              />
+              <MapFrame src={data.about_location_url} className="h-60 w-full overflow-hidden rounded-sm border border-crimson-light" />
             ) : (
-              <p className="text-gray-red/70">Map not available</p>
+              <p className="text-gray-red">Map not available</p>
             )}
           </Panel>
 
@@ -79,9 +71,9 @@ export default function About() {
               {businessHours.map(({ day, time }) => (
                 <div
                   key={day}
-                  className="flex items-center justify-between gap-4 border-b border-crimson-light/80 py-4 text-gray-red"
+                  className="flex items-center justify-between gap-3 border-b border-crimson-light/80 py-3 text-gray-red"
                 >
-                  <dt className="flex items-center gap-4 font-medium">
+                  <dt className="flex items-center gap-3 font-medium">
                     <Clock aria-hidden="true" focusable="false" size={20} className="shrink-0 text-crimson" />
                     {day}
                   </dt>
@@ -93,7 +85,7 @@ export default function About() {
         </div>
 
         {gallery.length > 0 && (
-          <div className="flex flex-col gap-4 md:gap-8">
+          <div className="flex flex-col gap-3 md:gap-9">
             <h2 className="font-display text-2xl font-normal uppercase tracking-widest text-gray-red md:text-4xl">
               Gallery
             </h2>

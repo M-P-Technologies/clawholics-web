@@ -41,7 +41,7 @@ const ArtistDetailsFields = ({
 
     <div className="relative flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
-        <h3 className="text-[13px] font-medium text-gray-red/80">
+        <h3 className="text-[13px] font-medium text-gray-red">
           Position
         </h3>
       </div>

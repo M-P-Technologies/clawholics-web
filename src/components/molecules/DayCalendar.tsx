@@ -7,7 +7,7 @@ import "react-day-picker/dist/style.css";
 const SIZE = {
   sm: {
     day: "h-7 w-7 p-0 text-center sm:h-8 sm:w-8",
-    button: "h-7 w-7 text-[12px] sm:h-8 sm:w-8 sm:text-[13px]",
+    button: "h-7 w-7 text-xs sm:h-8 sm:w-8 sm:text-[13px]",
     grid: "border-spacing-1 sm:border-spacing-1.5",
   },
   md: { day: "h-9 w-9 p-0 text-center", button: "h-9 w-9 text-sm", grid: "border-spacing-1.5" },
@@ -46,28 +46,28 @@ export default function DayCalendar({ month, onMonthChange, selected, onSelect, 
       })}
       disabled={isDisabled}
       modifiers={{ fullyBooked: isFullyBooked }}
-      modifiersClassNames={{ fullyBooked: "[&>button]:text-crimson" }}
+      modifiersClassNames={{ fullyBooked: "[&>button]:text-crimson-ink" }}
       classNames={{
         root: "relative w-fit max-w-full",
         month: "w-full",
-        month_caption: "flex h-7 items-center justify-center text-[12px] font-bold uppercase tracking-wide text-gray-red sm:text-[13px]",
-        caption_label: "text-[13px] font-bold uppercase sm:text-[14px]",
+        month_caption: "flex h-7 items-center justify-center text-xs font-bold uppercase tracking-wide text-gray-red sm:text-[13px]",
+        caption_label: "text-[13px] font-bold uppercase sm:text-sm",
         nav: "absolute left-0 right-0 top-0 flex items-center justify-between",
         button_previous: "flex h-7 w-7 items-center justify-center transition hover:scale-110 aria-disabled:cursor-not-allowed aria-disabled:opacity-20",
         button_next: "flex h-7 w-7 items-center justify-center transition hover:scale-110 aria-disabled:cursor-not-allowed aria-disabled:opacity-20",
         chevron: "h-3.5 w-3.5 fill-crimson text-gray-red",
         month_grid: clsx("w-full border-separate", s.grid),
-        weekday: "pb-1 text-center text-[12px] font-bold text-gray-red sm:text-[13px]",
+        weekday: "pb-1 text-center text-xs font-bold text-gray-red sm:text-[13px]",
         day: s.day,
         day_button: clsx(
           s.button,
-          "rounded-md bg-crimson-light/40 font-bold text-gray-red transition-colors duration-200 hover:bg-crimson hover:text-light-orange focus:bg-crimson focus:text-light-orange disabled:cursor-not-allowed disabled:opacity-30 disabled:line-through disabled:hover:bg-crimson-light/40 disabled:hover:text-gray-red",
+          "rounded-md bg-crimson-light/40 font-bold text-gray-red transition-colors duration-200 hover:bg-crimson hover:text-on-crimson focus:bg-crimson focus:text-on-crimson disabled:cursor-not-allowed disabled:opacity-30 disabled:line-through disabled:hover:bg-crimson-light/40 disabled:hover:text-gray-red",
         ),
         // On the cell: fill its button, which would otherwise hide a background on the cell
-        selected: "[&>button]:!bg-berry [&>button]:!text-pearl",
-        range_start: "!bg-transparent",
-        range_middle: "!bg-transparent",
-        range_end: "!bg-transparent",
+        selected: "[&>button]:bg-berry! [&>button]:text-pearl!",
+        range_start: "bg-transparent!",
+        range_middle: "bg-transparent!",
+        range_end: "bg-transparent!",
         disabled: "pointer-events-none",
         today: "[&>button]:ring-2 [&>button]:ring-crimson/60",
         outside: "opacity-0 pointer-events-none",

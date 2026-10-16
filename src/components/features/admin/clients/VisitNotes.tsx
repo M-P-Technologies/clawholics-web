@@ -20,16 +20,16 @@ export default function VisitNotes({ appointment, notes, draft, busy, onDraft, o
   const writing = draft?.appointmentId === appointment.id;
   if (notes.length === 0 && !writing) return null;
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-crimson-light/50 bg-light-orange/40 p-3">
+    <div className="flex flex-col gap-3 rounded-xl border border-crimson-light/50 bg-light-orange/40 p-3">
       {notes.length > 0 && (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-3">
           {notes.map((n) => (
             <NoteItem key={n.id} note={n} onDelete={() => onDelete(n.id)} />
           ))}
         </ul>
       )}
       {writing && (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           <textarea
             aria-label={`Note about ${dateLabel(appointment.appointment_date)}`}
             rows={2}
@@ -38,7 +38,7 @@ export default function VisitNotes({ appointment, notes, draft, busy, onDraft, o
             placeholder="What happened at this appointment?"
             className={noteFieldClass}
           />
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <Button type="button" loading={busy} disabled={!draft.text.trim()} onClick={onSave}>
               Save note
             </Button>

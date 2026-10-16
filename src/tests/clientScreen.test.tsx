@@ -58,13 +58,18 @@ describe("ClientScreen", () => {
 
   it("shows a back link to the given path when there is one", () => {
     renderWith(signedIn(), <ClientScreen title="Book" back="/my/explore"><p /></ClientScreen>);
-    expect(screen.getByRole("link", { name: /back/i })).toHaveAttribute("href", "/my/explore");
+    // A round icon on phones and a text link on computers (CSS shows one); both go to the same place
+    const backs = screen.getAllByRole("link", { name: /back/i });
+    expect(backs).toHaveLength(2);
+    for (const back of backs) expect(back).toHaveAttribute("href", "/my/explore");
   });
 
   it("goes back one step in history when asked to", () => {
     renderWith(signedIn(), <ClientScreen title="Payment" back="history"><p /></ClientScreen>);
-    fireEvent.click(screen.getByRole("button", { name: /back/i }));
-    expect(navigate).toHaveBeenCalledWith(-1);
+    const backs = screen.getAllByRole("button", { name: /back/i });
+    expect(backs).toHaveLength(2);
+    for (const back of backs) fireEvent.click(back);
+    expect(navigate.mock.calls).toEqual([[-1], [-1]]);
   });
 
   it("has no back link on a tab", () => {

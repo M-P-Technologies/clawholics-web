@@ -23,6 +23,7 @@ import { fetchPublicReviews, type PublicReview } from "../services/reviewService
 import { fetchPaymentSettings } from "../services/paymentService";
 import { fetchLoyaltySettings } from "../services/settingsService";
 import type { HomeContent, TeamContent } from "../types";
+import { PUBLIC, publicKeys } from "./publicKeys";
 
 // The public site's content as TanStack Query queries. Pages that show the same content share
 // one request and one cached copy, and coming back to a page shows the cached copy at once
@@ -43,41 +44,40 @@ export function makeQueryClient() {
 /** The error fetchServiceById throws for a service the server doesn't have */
 export const SERVICE_NOT_FOUND = "Service not found";
 
-/** The first part of every public query's key, so they can be dropped together */
-export const PUBLIC = "public";
+export { PUBLIC };
 
 /** The home content keys (Admin > Homepage and Contact Us), e.g. home_title */
 export type HomeContentMap = HomeContent & Record<string, string>;
 
 export const publicQueries = {
-  home: () => queryOptions({ queryKey: [PUBLIC, "content", "home"], queryFn: (): Promise<HomeContentMap> => fetchHomeContent() }),
-  team: () => queryOptions({ queryKey: [PUBLIC, "content", "team"], queryFn: (): Promise<TeamContent> => fetchTeamContent() }),
-  legal: () => queryOptions({ queryKey: [PUBLIC, "content", "legal"], queryFn: fetchLegalContent }),
-  about: () => queryOptions({ queryKey: [PUBLIC, "content", "about"], queryFn: (): Promise<AboutContent> => fetchAboutContent() }),
-  carousel: () => queryOptions({ queryKey: [PUBLIC, "carousel"], queryFn: (): Promise<CarouselItem[]> => fetchCarousel() }),
-  services: () => queryOptions({ queryKey: [PUBLIC, "services"], queryFn: (): Promise<NailService[]> => fetchServices() }),
+  home: () => queryOptions({ queryKey: publicKeys.home, queryFn: (): Promise<HomeContentMap> => fetchHomeContent() }),
+  team: () => queryOptions({ queryKey: publicKeys.team, queryFn: (): Promise<TeamContent> => fetchTeamContent() }),
+  legal: () => queryOptions({ queryKey: publicKeys.legal, queryFn: fetchLegalContent }),
+  about: () => queryOptions({ queryKey: publicKeys.about, queryFn: (): Promise<AboutContent> => fetchAboutContent() }),
+  carousel: () => queryOptions({ queryKey: publicKeys.carousel, queryFn: (): Promise<CarouselItem[]> => fetchCarousel() }),
+  services: () => queryOptions({ queryKey: publicKeys.services, queryFn: (): Promise<NailService[]> => fetchServices() }),
   service: (id: number) =>
     queryOptions({
-      queryKey: [PUBLIC, "services", id],
+      queryKey: publicKeys.service(id),
       queryFn: (): Promise<NailService> => fetchServiceById(id),
       // A service that isn't there won't be there on a second try either
       retry: (failures, error) => error.message !== SERVICE_NOT_FOUND && failures < 1,
     }),
   serviceGallery: (id: number) =>
     queryOptions({
-      queryKey: [PUBLIC, "services", id, "gallery"],
+      queryKey: publicKeys.serviceGallery(id),
       queryFn: async (): Promise<ServiceGalleryImage[]> => {
         const gallery: unknown = await fetchServiceGallery(id);
         return Array.isArray(gallery) ? gallery : [];
       },
     }),
-  categories: () => queryOptions({ queryKey: [PUBLIC, "categories"], queryFn: (): Promise<ServiceCategory[]> => fetchCategories() }),
-  faqs: () => queryOptions({ queryKey: [PUBLIC, "faqs"], queryFn: (): Promise<Faq[]> => fetchFaqs() }),
-  tacs: () => queryOptions({ queryKey: [PUBLIC, "tacs"], queryFn: (): Promise<Tac[]> => fetchTacs() }),
+  categories: () => queryOptions({ queryKey: publicKeys.categories, queryFn: (): Promise<ServiceCategory[]> => fetchCategories() }),
+  faqs: () => queryOptions({ queryKey: publicKeys.faqs, queryFn: (): Promise<Faq[]> => fetchFaqs() }),
+  tacs: () => queryOptions({ queryKey: publicKeys.tacs, queryFn: (): Promise<Tac[]> => fetchTacs() }),
   // The list endpoint can answer with an error object, so anything but a list counts as a failure
   nailists: () =>
     queryOptions({
-      queryKey: [PUBLIC, "nailists"],
+      queryKey: publicKeys.nailists,
       queryFn: async (): Promise<Nailist[]> => {
         const list: unknown = await fetchNailists();
         if (!Array.isArray(list)) throw new Error("Unexpected artist list");
@@ -86,9 +86,9 @@ export const publicQueries = {
     }),
   /** null when there is no such artist */
   nailist: (id: number) =>
-    queryOptions({ queryKey: [PUBLIC, "nailists", id], queryFn: (): Promise<Nailist | null> => fetchNailistById(id) }),
+    queryOptions({ queryKey: publicKeys.nailist(id), queryFn: (): Promise<Nailist | null> => fetchNailistById(id) }),
   nailistGallery: (id: number) =>
-    queryOptions({ queryKey: [PUBLIC, "nailists", id, "gallery"], queryFn: (): Promise<NailistGalleryImage[]> => fetchNailistGallery(id) }),
+    queryOptions({ queryKey: publicKeys.nailistGallery(id), queryFn: (): Promise<NailistGalleryImage[]> => fetchNailistGallery(id) }),
   reviews: () => queryOptions({ queryKey: [PUBLIC, "reviews"], queryFn: (): Promise<PublicReview[]> => fetchPublicReviews() }),
   /** The downpayment and the payment methods the salon has turned on */
   paymentSettings: () => queryOptions({ queryKey: [PUBLIC, "paymentSettings"], queryFn: fetchPaymentSettings }),

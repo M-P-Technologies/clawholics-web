@@ -7,8 +7,9 @@ vi.mock("@/lib/router", () => ({
   Link: ({ to, children, ...rest }: { to: string; children: React.ReactNode }) => <a href={to} {...rest}>{children}</a>,
 }));
 vi.mock("@/hooks/useServicePhotos", () => ({ useServicePhotos: () => () => "" }));
-const layout = { table: true };
-vi.mock("@/hooks/useMinWidth", () => ({ useTableLayout: () => layout.table }));
+// A table, without the panel beside it (below lg) unless a case asks for it
+const layout = { table: true, wide: false };
+vi.mock("@/hooks/useMinWidth", () => ({ useTableLayout: () => layout.table, useClientWideLayout: () => layout.wide }));
 
 const view = (id: number, status = "confirmed", over = {}) => ({
   appt: { id, service_name: `Service ${id}`, nailist_id: 1, nailist_name: "Max", appointment_date: "2026-10-20", appointment_time: "09:00-11:00", status },
@@ -27,11 +28,17 @@ const makeHook = (over: Record<string, unknown> = {}) => ({
   historyFilter: "all", historySortBy: "appointmentDateDesc", handleHistoryFilterChange: vi.fn(), handleHistorySortChange: vi.fn(),
   hasMoreHistory: false, showAllHistory: false, toggleHistory: vi.fn(),
   openAppointment: vi.fn(), reviews: {},
+  currentTime: Date.parse("2026-10-16T00:00:00Z"), getToken: vi.fn(async () => null), submitReview: vi.fn(), handleProofUploaded: vi.fn(),
+  payForAppointment: vi.fn(), rescheduleAppointment: vi.fn(), startCancel: vi.fn(),
   ...over,
 });
 
+// The list's card (the panel beside it shows the chosen visit's name too)
+const listCard = () => screen.getByRole("region", { name: "Appointments" });
+
 beforeEach(() => {
   layout.table = true;
+  layout.wide = false;
   hook = makeHook();
 });
 
@@ -39,11 +46,11 @@ describe("My appointments", () => {
   it("starts on Upcoming and switches to Past", () => {
     render(<MyAppointments />);
     expect(screen.getByRole("tab", { name: /Upcoming/ })).toHaveAttribute("aria-selected", "true");
-    expect(screen.getByText("Service 1")).toBeInTheDocument();
-    expect(screen.queryByText("Service 3")).toBeNull();
+    expect(within(listCard()).getByText("Service 1")).toBeInTheDocument();
+    expect(within(listCard()).queryByText("Service 3")).toBeNull();
     fireEvent.click(screen.getByRole("tab", { name: /Past/ }));
-    expect(screen.getByText("Service 3")).toBeInTheDocument();
-    expect(screen.queryByText("Service 1")).toBeNull();
+    expect(within(listCard()).getByText("Service 3")).toBeInTheDocument();
+    expect(within(listCard()).queryByText("Service 1")).toBeNull();
   });
 
   it("is a table on a computer with the artist, date, time and status", () => {
@@ -70,6 +77,23 @@ describe("My appointments", () => {
     expect(hook.openAppointment).toHaveBeenCalledWith(2);
   });
 
+  it("shows the chosen appointment in the panel beside the list on a computer, as Explore does", () => {
+    layout.wide = true;
+    render(<MyAppointments />);
+    // The first one to start with, its row marked
+    expect(screen.getByRole("complementary", { name: "Service 1 details" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Open Service 1" }).closest("tr")).toHaveAttribute("aria-selected", "true");
+    // No Open column: the row itself opens the visit
+    expect(within(screen.getByRole("table")).queryByRole("button", { name: /^Open$/ })).toBeNull();
+    // Clicking a row shows it there instead of opening the drawer
+    fireEvent.click(screen.getByRole("button", { name: "Open Service 2" }).closest("tr")!.querySelector("td")!);
+    const panel = screen.getByRole("complementary", { name: "Service 2 details" });
+    expect(panel.parentElement).toHaveClass("hidden", "lg:block");
+    expect(hook.openAppointment).not.toHaveBeenCalled();
+    fireEvent.click(within(panel).getByRole("button", { name: "Cancel appointment" }));
+    expect(hook.startCancel).toHaveBeenCalledWith(expect.objectContaining({ id: 2 }));
+  });
+
   it("opens it from a phone card too", () => {
     layout.table = false;
     render(<MyAppointments />);
@@ -80,8 +104,8 @@ describe("My appointments", () => {
   it("marks the appointment the link pointed at", () => {
     hook = makeHook({ highlightedAppointmentId: 2 });
     render(<MyAppointments />);
-    expect(screen.getByText("Service 2").closest("tr")).toHaveAttribute("data-highlighted", "true");
-    expect(screen.getByText("Service 1").closest("tr")).not.toHaveAttribute("data-highlighted");
+    expect(within(listCard()).getByText("Service 2").closest("tr")).toHaveAttribute("data-highlighted", "true");
+    expect(within(listCard()).getByText("Service 1").closest("tr")).not.toHaveAttribute("data-highlighted");
   });
 
   it("marks a completed visit that hasn't been reviewed", () => {
@@ -121,8 +145,8 @@ describe("My appointments", () => {
     hook = makeHook({ upcoming: Array.from({ length: 7 }, (_, i) => view(i + 1)), pastViews: Array.from({ length: 7 }, (_, i) => view(i + 20, "completed")) });
     render(<MyAppointments />);
     fireEvent.click(screen.getByRole("button", { name: "Next page" }));
-    expect(screen.getByText("Service 6")).toBeInTheDocument();
+    expect(within(listCard()).getByText("Service 6")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("tab", { name: /Past/ }));
-    expect(screen.getByText("Service 20")).toBeInTheDocument();
+    expect(within(listCard()).getByText("Service 20")).toBeInTheDocument();
   });
 });

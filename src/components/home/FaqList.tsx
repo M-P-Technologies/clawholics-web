@@ -15,7 +15,7 @@ function FaqItem({ faq }: { faq: Faq }) {
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between gap-4 whitespace-normal py-4 text-left md:gap-8"
+        className="flex w-full items-center justify-between gap-3 whitespace-normal py-3 text-left md:gap-9"
       >
         <span className="min-w-0 flex-1 font-display text-base tracking-wide text-gray-red md:text-lg">
           {faq.question}
@@ -30,7 +30,7 @@ function FaqItem({ faq }: { faq: Faq }) {
         id={panelId}
         role="region"
         className={`grid transition-all duration-300 ${
-          open ? "grid-rows-[1fr] pb-4 opacity-100" : "grid-rows-[0fr] opacity-0"
+          open ? "grid-rows-[1fr] pb-3 opacity-100" : "grid-rows-[0fr] opacity-0"
         }`}
       >
         <p className="overflow-hidden whitespace-pre-line copy-body">

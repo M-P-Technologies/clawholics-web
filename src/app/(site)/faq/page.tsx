@@ -18,7 +18,7 @@ export default function Faq() {
 
   return (
     <PageShell>
-      <Section innerClassName="!max-w-4xl !gap-8">
+      <Section innerClassName="max-w-4xl! gap-9!">
         <Blush className="-right-32 top-1/4 h-80 w-80" />
         <SectionHeader title={words.home_faq_page_title} subtitle={words.home_faq_page_intro} />
 

@@ -21,7 +21,7 @@ export default function StripEditor({ services, strip, onChange, upload, uploadi
 
   if (!strip) {
     return (
-      <div className="flex flex-col items-start gap-2 rounded-xl bg-crimson-light/20 p-3 text-[13px] leading-snug text-gray-red">
+      <div className="flex flex-col items-start gap-3 rounded-xl bg-crimson-light/20 p-3 text-[13px] leading-snug text-gray-red">
         <p className="text-[13px] leading-snug">
           Right now the strip shows every service that has a photo ({withPhotos.length}), using each service&apos;s name and photo.
         </p>
@@ -45,13 +45,13 @@ export default function StripEditor({ services, strip, onChange, upload, uploadi
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-[13px] leading-snug text-gray-red/70">The price, hours and Book button always come from the service. Drag to change the order.</p>
+      <p className="text-[13px] leading-snug text-gray-red">The price, hours and Book button always come from the service. Drag to change the order.</p>
       {keyed.length > 0 && (
         <SortableList
           items={keyed}
           getItemId={(slide) => slide.id}
           onReorder={(items) => onChange(items.map(({ serviceId, title, image }) => ({ serviceId, title, image })))}
-          className="flex flex-col gap-2"
+          className="flex flex-col gap-3"
           renderItem={(slide, { dragHandleProps, isDragging }) => {
             const index = strip.findIndex((s) => s.serviceId === slide.serviceId);
             const service = serviceOf(slide.serviceId);
@@ -59,20 +59,20 @@ export default function StripEditor({ services, strip, onChange, upload, uploadi
             const slot = `strip-${slide.serviceId}`;
             const inputId = `strip-photo-${slide.serviceId}`;
             return (
-              <div className={`flex flex-col gap-2 rounded-xl border border-crimson-light/50 bg-milk p-2.5 ${isDragging ? "opacity-0" : ""}`}>
-                <div className="flex items-center gap-2">
+              <div className={`flex flex-col gap-3 rounded-xl border border-crimson-light/50 bg-milk p-3 ${isDragging ? "opacity-0" : ""}`}>
+                <div className="flex items-center gap-3">
                   <DragHandle {...dragHandleProps} />
                   {photo ? (
                     // eslint-disable-next-line @next/next/no-img-element -- R2 images, sized by CSS like the rest of the admin
                     <img src={photo} alt="" className="h-12 w-16 shrink-0 rounded-md object-cover" />
                   ) : (
-                    <span className="flex h-12 w-16 shrink-0 items-center justify-center rounded-md bg-crimson-light/30 text-center text-[10px] text-gray-red/70">No photo</span>
+                    <span className="flex h-12 w-16 shrink-0 items-center justify-center rounded-md bg-crimson-light/30 text-center text-[10px] text-gray-red">No photo</span>
                   )}
                   <select
                     aria-label="Service"
                     value={slide.serviceId}
                     onChange={(e) => update(index, { serviceId: Number(e.target.value), title: "", image: "" })}
-                    className={`${fieldClass} min-w-0 flex-1 !py-1.5`}
+                    className={`${fieldClass} min-w-0 flex-1 py-1.5!`}
                   >
                     {[service, ...unused].filter((s): s is NailService => !!s).map((s) => (
                       <option key={s.id} value={s.id}>
@@ -81,7 +81,7 @@ export default function StripEditor({ services, strip, onChange, upload, uploadi
                     ))}
                     {!service && <option value={slide.serviceId}>A deleted service</option>}
                   </select>
-                  <Button type="button" variant="bare" aria-label={`Remove the ${service?.name ?? "deleted service"} slide`} onClick={() => onChange(strip.filter((_, i) => i !== index))} className="rounded-full p-1.5 text-crimson hover:bg-crimson-light/30">
+                  <Button type="button" variant="bare" aria-label={`Remove the ${service?.name ?? "deleted service"} slide`} onClick={() => onChange(strip.filter((_, i) => i !== index))} className="rounded-full p-1.5 text-crimson-ink hover:bg-crimson-light/30">
                     <X size={16} aria-hidden="true" />
                   </Button>
                 </div>
@@ -89,10 +89,10 @@ export default function StripEditor({ services, strip, onChange, upload, uploadi
                   <span className={fieldLabelClass}>Title on the photo</span>
                   <input value={slide.title} placeholder={service?.name ?? ""} onChange={(e) => update(index, { title: e.target.value })} className={fieldClass} />
                 </label>
-                <div className="flex flex-wrap items-center gap-2 text-[12px]">
+                <div className="flex flex-wrap items-center gap-3 text-xs">
                   <label
                     htmlFor={inputId}
-                    className={`inline-flex cursor-pointer items-center gap-1 rounded-md border border-crimson-light px-2.5 py-1 font-bold text-gray-red hover:bg-crimson-light/30 ${uploading[slot] ? "pointer-events-none opacity-50" : ""}`}
+                    className={`inline-flex cursor-pointer items-center gap-1 rounded-md border border-crimson-light px-3 py-1 font-bold text-gray-red hover:bg-crimson-light/30 ${uploading[slot] ? "pointer-events-none opacity-50" : ""}`}
                   >
                     {uploading[slot] ? "Uploading…" : slide.image ? "Replace photo" : "Use another photo"}
                     <input
@@ -110,11 +110,11 @@ export default function StripEditor({ services, strip, onChange, upload, uploadi
                     />
                   </label>
                   {slide.image && (
-                    <Button type="button" variant="bare" onClick={() => update(index, { image: "" })} className="rounded-md px-2.5 py-1 font-bold text-gray-red/80 hover:bg-crimson-light/30">
+                    <Button type="button" variant="bare" onClick={() => update(index, { image: "" })} className="rounded-md px-3 py-1 font-bold text-gray-red hover:bg-crimson-light/30">
                       Use the service photo
                     </Button>
                   )}
-                  {!photo && <span className="text-danger">This slide is hidden until it has a photo.</span>}
+                  {!photo && <span className="text-danger-ink">This slide is hidden until it has a photo.</span>}
                 </div>
               </div>
             );
@@ -124,18 +124,18 @@ export default function StripEditor({ services, strip, onChange, upload, uploadi
           )}
         />
       )}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-3">
         <Button
           type="button"
           variant="secondary"
           disabled={strip.length >= MAX_STRIP_SLIDES || unused.length === 0}
           onClick={() => onChange([...strip, { serviceId: (unused.find((s) => s.image) ?? unused[0]).id, title: "", image: "" }])}
-          className="!px-3 !py-1.5 text-[13px]"
+          className="px-3! py-1.5! text-[13px]"
         >
           <Plus size={14} aria-hidden="true" />
           Add a slide
         </Button>
-        <Button type="button" variant="bare" onClick={() => onChange(null)} className="gap-1 rounded-md px-3 py-1.5 text-[13px] font-bold text-gray-red/80 hover:bg-crimson-light/30">
+        <Button type="button" variant="bare" onClick={() => onChange(null)} className="gap-1 rounded-md px-3 py-1.5 text-[13px] font-bold text-gray-red hover:bg-crimson-light/30">
           <RotateCcw size={14} aria-hidden="true" />
           Show every service again
         </Button>

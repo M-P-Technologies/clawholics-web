@@ -1,7 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import AppointmentSheet from "@/components/features/client/appointments/AppointmentSheet";
-import RewardsSheet from "@/components/features/client/profile/RewardsSheet";
 import EditDetailsSheet from "@/components/features/client/profile/EditDetailsSheet";
 import type { AppointmentView } from "@/types/profile";
 
@@ -33,12 +32,6 @@ describe("the client's drawers", () => {
     expect(p.onPay).toHaveBeenCalled();
     expect(p.onReschedule).toHaveBeenCalled();
     expect(p.onCancel).toHaveBeenCalled();
-  });
-
-  it("shows the loyalty card in a drawer", () => {
-    render(<RewardsSheet open onClose={vi.fn()} stamps={4} cardNumber="CLAWHOLICS-2026-0007" clerkId="u" onRedeem={vi.fn()} />);
-    expect(screen.getByRole("dialog", { name: "Loyalty card" })).toBeInTheDocument();
-    expect(document.querySelector(".drawer-right")).not.toBeNull();
   });
 
   it("edits the details in a drawer", () => {

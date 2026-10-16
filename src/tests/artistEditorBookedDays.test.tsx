@@ -47,10 +47,10 @@ describe("artist editor day off calendar", () => {
     fireEvent.click(screen.getByRole("button", { name: /Mara/ }));
     await screen.findByText("08:00 AM");
 
-    await waitFor(() => expect(dayCell(14)).toHaveClass("[&>button]:!bg-danger/40"));
+    await waitFor(() => expect(dayCell(14)).toHaveClass("[&>button]:bg-danger/40!"));
     for (const day of [15, 16, 17]) {
-      expect(dayCell(day)).not.toHaveClass("[&>button]:!bg-danger/40");
-      expect(dayCell(day)).toHaveClass("[&>button]:!bg-success/50");
+      expect(dayCell(day)).not.toHaveClass("[&>button]:bg-danger/40!");
+      expect(dayCell(day)).toHaveClass("[&>button]:bg-success/50!");
     }
   });
 });

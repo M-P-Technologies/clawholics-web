@@ -1,10 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { Link } from "@/lib/router";
 import Bow from "@/assets/bow.svg";
 import emblem from "@/assets/logo/emblem-pink.png";
-import { Button, LoadingBar, Blush } from "@/components/atoms";
+import { Button, LoadingBar, Blush, Stars } from "@/components/atoms";
 import ArtistSpotlight from "@/components/home/ArtistSpotlight";
 import FaqList from "@/components/home/FaqList";
 import FloatingFacebookButton from "@/components/home/FloatingFacebookButton";
@@ -16,7 +17,6 @@ import Section from "@/components/layout/Section";
 import { FACEBOOK_URL } from "@/data/home";
 import { sectionTitleClass } from "@/components/tokens";
 import { useHomePage } from "@/hooks/useHomePage";
-import Testimonials from "@/components/home/Testimonials";
 
 export default function Home() {
   const { retryProfile, contentError, reloadContent, isBusy, content, faqs, nailists, about, profileCheckFailed, stripItems, testimonials, heroFailed, onHeroError, exploreMore, view } = useHomePage();
@@ -33,7 +33,7 @@ export default function Home() {
       {profileCheckFailed && (
         <div
           role="alert"
-          className="fixed inset-x-0 top-16 z-40 bg-crimson px-4 py-2 text-center text-sm text-light-orange"
+          className="fixed inset-x-0 top-16 z-40 bg-crimson px-3 py-2 text-center text-sm text-on-crimson"
         >
           We couldn't load your profile right now.{" "}
           <Button
@@ -46,7 +46,7 @@ export default function Home() {
           </Button>
         </div>
       )}
-      <header className="relative overflow-x-clip lg:pt-16">
+      <header className="relative overflow-x-clip lg:pt-15">
         <Blush className="-left-32 top-40 h-96 w-96" />
         <Blush tone="crimson" className="left-1/3 top-2/3 h-72 w-72" />
 
@@ -56,21 +56,25 @@ export default function Home() {
             laptop its content is centered in view instead of pushed below the fold. */}
         <div className="relative h-100 lg:absolute lg:inset-y-0 lg:right-0 lg:h-auto lg:w-1/2">
           {!heroFailed && (
-            <img
+            <Image
               src={view.heroImage}
               alt="Soft gel extensions by Clawholics by Max"
+              fill
+              priority
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              unoptimized={!view.heroOptimized}
               onError={onHeroError}
               className="absolute inset-0 h-full w-full rounded-bl-4xl object-cover mask-[linear-gradient(to_bottom,black_35%,rgba(0,0,0,0.9)_48%,rgba(0,0,0,0.72)_60%,rgba(0,0,0,0.5)_72%,rgba(0,0,0,0.28)_83%,rgba(0,0,0,0.1)_92%,transparent)] lg:mask-[linear-gradient(to_right,transparent,rgba(0,0,0,0.12)_8%,rgba(0,0,0,0.4)_16%,rgba(0,0,0,0.72)_26%,rgba(0,0,0,0.92)_36%,black_46%),linear-gradient(to_bottom,black_35%,rgba(0,0,0,0.9)_48%,rgba(0,0,0,0.72)_60%,rgba(0,0,0,0.5)_72%,rgba(0,0,0,0.28)_83%,rgba(0,0,0,0.1)_92%,transparent)] lg:mask-intersect object-[50%_50%] lg:object-[50%_48%]"
             />
           )}
         </div>
 
-        <div className="relative mx-auto grid w-full grid-cols-1 max-w-6xl items-center px-4 md:px-8 lg:min-h-[min(44rem,calc(100svh-4rem))] lg:grid-cols-2">
-          <div className="relative -mt-4 flex flex-col gap-4 pb-12 md:gap-8 lg:mt-0 lg:py-0">
+        <div className="relative mx-auto grid w-full grid-cols-1 max-w-6xl items-center px-3 md:px-9 lg:min-h-[min(44rem,calc(100svh-4rem))] lg:grid-cols-2">
+          <div className="relative -mt-3 flex flex-col gap-3 pb-12 md:gap-9 lg:mt-0 lg:py-0">
             <Bow
               aria-hidden="true"
               focusable="false"
-              className="-mb-16 h-14 w-14 -rotate-12 text-white md:-mb-22 drop-shadow-md"
+              className="-mb-15 h-14 w-14 -rotate-12 text-light-orange md:-mb-21 drop-shadow-md"
             />
             <h1 className="font-display font-normal text-6xl md:text-8xl text-crimson">
               {content.home_title}
@@ -79,16 +83,16 @@ export default function Home() {
               {t.home_hero_text}
             </p>
             {/* Phones: one wide button, and a small Explore that scrolls to the next section */}
-            <div className="flex flex-col items-center gap-4 md:hidden">
+            <div className="flex flex-col items-center gap-3 md:hidden">
               <Button
                 to="/services"
-                aria-label="Go to our nail services page to book an appointment"
-                className="relative w-full justify-center rounded-full py-4 pl-6 pr-16"
+                aria-label="Book appointment: see our nail services"
+                className="relative w-full justify-center rounded-full py-3 pl-6 pr-15"
               >
                 Book appointment
                 <span
                   aria-hidden="true"
-                  className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-light-orange text-crimson"
+                  className="absolute right-2 top-1/2 flex p-2 -translate-y-1/2 items-center justify-center rounded-full bg-light-orange text-crimson-ink"
                 >
                   <ArrowRight size={18} />
                 </span>
@@ -98,17 +102,17 @@ export default function Home() {
                 type="button"
                 onClick={exploreMore}
                 aria-label="Explore: scroll down to see more"
-                className="flex-col gap-1 text-sm text-gray-red transition-colors hover:text-crimson"
+                className="flex-col gap-3 text-sm text-on-crimson transition-colors hover:underline"
               >
                 Explore
                 <ChevronDown size={20} aria-hidden="true" className="animate-bounce motion-reduce:animate-none" />
               </Button>
             </div>
 
-            <div className="hidden gap-4 md:flex">
+            <div className="hidden gap-3 md:flex">
               <Button
                 to="/services"
-                aria-label="Go to our nail services page to book an appointment"
+                aria-label="Book now: see our nail services"
               >
                 Book now
               </Button>
@@ -120,7 +124,7 @@ export default function Home() {
         </div>
       </header>
 
-      <Section id="why-choose-us" innerClassName="gap-4 md:gap-8">
+      <Section id="why-choose-us" innerClassName="gap-3 md:gap-9">
         <Blush tone="crimson" className="-right-32 top-10 h-80 w-80" />
         <h2 className={sectionTitleClass}>{t.home_features_title}</h2>
         <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-l border-t border-crimson-light/80">
@@ -131,9 +135,9 @@ export default function Home() {
             >
               <Link
                 to={link}
-                className="group flex h-full flex-col bg-light-orange p-4 md:p-8 transition-colors sm:flex-col gap-4 hover:bg-light-orange focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-crimson"
+                className="group flex h-full flex-col bg-light-orange p-6 transition-colors sm:flex-col gap-3 hover:bg-light-orange focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-crimson"
               >
-                <div className="w-full flex flex-row sm:flex-col items-center sm:items-start gap-4 sm:gap-8">
+                <div className="w-full flex flex-row sm:flex-col items-center sm:items-start gap-3 sm:gap-9">
                   <div className="flex shrink-0 sm:w-full sm:items-center sm:justify-between">
                     <Icon size={40} className="shrink-0 text-crimson" strokeWidth={1.5} aria-hidden="true" />
                     <ArrowRight
@@ -155,8 +159,8 @@ export default function Home() {
 
       <Section id="studio-intro">
         <Blush className="-left-40 top-1/2 h-96 w-96" />
-        <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] items-center gap-4 md:gap-8">
-          <div className="flex flex-col gap-4 md:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] items-center gap-3 md:gap-9">
+          <div className="flex flex-col gap-3 md:gap-9">
             <p className="copy-note">{t.home_offer_eyebrow}</p>
             <p className="whitespace-pre-line bg-linear-to-b from-gray-red to-gray-red/50 bg-clip-text font-display text-2xl leading-snug tracking-wide text-transparent md:text-3xl">
               {t.home_offer_text}
@@ -164,7 +168,7 @@ export default function Home() {
             <Button
               to={t.home_offer_link}
               variant="bare" arrow
-              className="text-sm font-bold uppercase tracking-extrawide text-gray-red hover:text-crimson gap-4 self-start"
+              className="text-sm font-semibold text-gray-red hover:text-crimson-ink gap-3 self-start"
             >
               {t.home_offer_link_label}
             </Button>
@@ -197,14 +201,14 @@ export default function Home() {
 
       <Section id="about-teaser">
         <Blush tone="crimson" className="-right-32 top-1/4 h-80 w-80" />
-        <div className="flex flex-col lg:flex-row lg:items-center gap-4 md:gap-8">
-          <div className="lg:w-2/3 flex flex-col gap-8">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-3 md:gap-9">
+          <div className="lg:w-2/3 flex flex-col gap-9">
             <p className="copy-note">{t.home_about_eyebrow}</p>
             <h2 className="font-display text-4xl font-normal uppercase leading-tight tracking-widest text-gray-red md:text-5xl">
               {t.home_about_heading}
             </h2>
           </div>
-          <div className="lg:w-1/3 flex flex-col gap-4 md:gap-8">
+          <div className="lg:w-1/3 flex flex-col gap-3 md:gap-9">
             <p className="copy-lead">{t.home_about_text}</p>
             <Button to="/about" variant="secondary" className="self-start">
               {t.home_about_link_label}
@@ -228,18 +232,34 @@ export default function Home() {
       )}
 
       {testimonials.length > 0 && (
-        <Section id="reviews" innerClassName="gap-4 md:gap-8">
+        <Section id="reviews" innerClassName="gap-3 md:gap-9">
           <h2 className={sectionTitleClass}>{t.home_reviews_title}</h2>
-          <Testimonials reviews={testimonials} />
+          {/* What clients said about their visits: only the reviews an admin approved for the home page */}
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:gap-6 lg:grid-cols-3">
+            {testimonials.map((review) => (
+              <li key={review.id} className="flex flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-6 shadow-petal">
+                <Stars rating={review.rating} />
+                {review.comment && <blockquote className="whitespace-pre-wrap text-sm leading-relaxed text-gray-red wrap-anywhere">{review.comment}</blockquote>}
+                {review.photo_url && (
+                  // eslint-disable-next-line @next/next/no-img-element -- R2 images, sized by CSS like the rest of the site
+                  <img src={review.photo_url} alt={`${review.client_name ?? "A client"}'s nails`} loading="lazy" className="aspect-4/3 w-full rounded-xl object-cover" />
+                )}
+                <p className="mt-auto flex flex-col text-[13px] text-gray-red">
+                  <span className="font-bold text-gray-red">{review.client_name ?? "A happy client"}</span>
+                  {review.service_name}
+                </p>
+              </li>
+            ))}
+          </ul>
         </Section>
       )}
 
       {faqs.length > 0 && (
-        <Section id="faq" innerClassName="!max-w-4xl gap-4 md:gap-8">
+        <Section id="faq" innerClassName="max-w-4xl! gap-3 md:gap-9">
           <Blush className="-right-32 top-1/4 h-80 w-80" />
           <h2 className={sectionTitleClass}>{t.home_faq_title}</h2>
           <FaqList faqs={faqs} />
-          <Link to="/faq" className="inline-flex w-fit items-center gap-2 text-sm font-bold uppercase tracking-widest text-crimson underline-offset-4 hover:underline">
+          <Link to="/faq" className="inline-flex w-fit items-center gap-3 text-sm font-semibold text-crimson-ink underline-offset-4 hover:underline">
             Open the FAQ page
             <ArrowRight size={16} aria-hidden="true" />
           </Link>

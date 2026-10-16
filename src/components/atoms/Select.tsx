@@ -139,12 +139,12 @@ export default function Select({
         }}
         className={clsx(
           inputClass,
-          "flex cursor-pointer items-center gap-2 py-2 pr-10 text-left text-sm",
+          "flex cursor-pointer items-center gap-3 py-2 pr-9 text-left text-sm",
           triggerClassName,
         )}
       >
         {selected?.leading}
-        <span className={clsx("min-w-0 flex-1 truncate", !selected && "text-gray-red/50")}>
+        <span className={clsx("min-w-0 flex-1 truncate", !selected && "text-gray-red")}>
           {selected ? selected.label : placeholder}
         </span>
       </button>
@@ -176,9 +176,9 @@ export default function Select({
                   onClick={() => choose(option)}
                   onMouseEnter={() => setActive(index)}
                   className={clsx(
-                    "flex w-full cursor-pointer items-center gap-4 whitespace-nowrap rounded-sm px-4 py-2 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+                    "flex w-full cursor-pointer items-center gap-3 whitespace-nowrap rounded-sm px-3 py-2 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50",
                     index === active ? "bg-crimson-light/30" : "",
-                    isSelected ? "font-bold text-crimson" : "text-gray-red",
+                    isSelected ? "font-bold text-crimson-ink" : "text-gray-red",
                   )}
                 >
                   {option.leading}

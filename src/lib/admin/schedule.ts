@@ -64,9 +64,9 @@ export const getArtistStatus = (artist: ArtistSchedule) => (artist.isDayOff ? "D
 
 export const getStatusPillClass = (artist: ArtistSchedule) => {
   const status = getArtistStatus(artist);
-  if (status === "Fully Booked") return "bg-danger/20 text-danger";
-  if (status === "Available") return "bg-success/20 text-success";
-  return "bg-gray-red/20 text-gray-red/70";
+  if (status === "Fully Booked") return "bg-danger/20 text-danger-ink";
+  if (status === "Available") return "bg-success/20 text-success-ink";
+  return "bg-gray-red/20 text-gray-red";
 };
 
 export const getDayDotColor = (artist: ArtistSchedule) => (artist.isDayOff ? "bg-gray-red/50" : isFullyBooked(artist) ? "bg-danger" : "bg-success");

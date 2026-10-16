@@ -32,7 +32,7 @@ export default function Schedule() {
       <div className="flex flex-1 flex-col overflow-y-auto pb-2">
         {/* PHONE: Day | Month switch and the filter */}
         {!s.desktop && (
-          <div className="mb-4 flex items-center justify-between gap-2 lg:hidden">
+          <div className="mb-3 flex items-center justify-between gap-3 lg:hidden">
             <div role="group" aria-label="View" className="flex rounded-full border border-crimson-light p-0.5">
               {PHONE_VIEWS.map(({ value: view, label }) => (
                 <Button
@@ -41,13 +41,13 @@ export default function Schedule() {
                   type="button"
                   aria-pressed={s.phoneView === view}
                   onClick={() => s.showPhoneView(view)}
-                  className={clsx("rounded-full px-4 py-1 text-[13px] font-medium transition-colors", s.phoneView === view ? "bg-crimson text-light-orange" : "text-gray-red")}
+                  className={clsx("rounded-full px-3 py-1 text-[13px] font-medium transition-colors", s.phoneView === view ? "bg-crimson text-on-crimson" : "text-gray-red")}
                 >
                   {label}
                 </Button>
               ))}
             </div>
-            <Button variant="secondary" type="button" onClick={() => s.setFilterOpen(true)} className="relative !px-3 !py-2">
+            <Button variant="secondary" type="button" onClick={() => s.setFilterOpen(true)} className="relative px-3! py-2!">
               Filter
               {s.filterBy !== "All" && <span aria-hidden="true" className="absolute right-1 top-1 h-2 w-2 rounded-full bg-crimson" />}
             </Button>
@@ -69,12 +69,12 @@ export default function Schedule() {
                 <Button variant="bare" type="button" aria-label="Previous week" onClick={s.previousWeek} className="rounded-full p-1.5 text-gray-red hover:bg-crimson-light/30">
                   <ChevronLeft size={20} aria-hidden="true" />
                 </Button>
-                <h3 className="min-w-[12rem] text-center text-[16px] font-bold text-gray-red">{s.weekLabel}</h3>
+                <h3 className="min-w-48 text-center text-base font-bold text-gray-red">{s.weekLabel}</h3>
                 <Button variant="bare" type="button" aria-label="Next week" onClick={s.nextWeek} className="rounded-full p-1.5 text-gray-red hover:bg-crimson-light/30">
                   <ChevronRight size={20} aria-hidden="true" />
                 </Button>
               </div>
-              <Button variant="secondary" type="button" onClick={s.thisWeek} className="px-4! py-1.5!">
+              <Button variant="secondary" type="button" onClick={s.thisWeek} className="px-3! py-1.5!">
                 Today
               </Button>
               <label className="relative ml-auto w-64">
@@ -85,9 +85,9 @@ export default function Schedule() {
                   value={s.query}
                   onChange={(e) => s.setQuery(e.target.value)}
                   placeholder="Search clients or services…"
-                  className="h-9 w-full rounded-full border border-crimson-light bg-milk pl-9 pr-4 text-[13px] text-gray-red outline-none placeholder:text-gray-red/60 focus:ring-2 focus:ring-crimson"
+                  className="h-9 w-full rounded-full border border-crimson-light bg-milk pl-9 pr-3 text-[13px] text-gray-red outline-none placeholder:text-gray-red/60 focus:ring-2 focus:ring-crimson"
                 />
-                <Search size={16} aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-red/60" />
+                <Search size={16} aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-red" />
               </label>
               <Select className="w-48" aria-label="Service" value={s.service} onChange={(e) => s.setService(e.target.value)}>
                 <option value="All">All Services</option>
@@ -135,8 +135,8 @@ export default function Schedule() {
       )}
 
       <Dialog open={s.filterOpen} title="Filter schedule" onClose={() => s.setFilterOpen(false)}>
-        <div className="flex flex-col gap-2">
-          <p className="text-sm text-gray-red/80">Artist</p>
+        <div className="flex flex-col gap-3">
+          <p className="text-sm text-gray-red">Artist</p>
           <Select aria-label="Artist" value={s.filterBy} onChange={(e) => s.setFilterBy(e.target.value)}>
             <option value="All">All Artists</option>
             {artistOptions}

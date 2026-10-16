@@ -14,7 +14,7 @@ const CIRCUMFERENCE = 2 * Math.PI * R;
 // with its value and share, so nothing depends on color alone.
 export default function DonutChart({ title, slices, centerLabel, emptyText }: DonutChartProps) {
   const total = slices.reduce((sum, s) => sum + s.value, 0);
-  if (total === 0) return <p className="text-sm text-gray-red/70">{emptyText}</p>;
+  if (total === 0) return <p className="text-sm text-gray-red">{emptyText}</p>;
 
   const gap = slices.filter((s) => s.value > 0).length > 1 ? 1.5 : 0;
   let offset = 0;
@@ -24,7 +24,7 @@ export default function DonutChart({ title, slices, centerLabel, emptyText }: Do
     // The legend sits beside the ring only when the card itself has room (a container query):
     // in a narrow card it goes underneath, so the names and figures stay inside
     <div className="@container w-full">
-      <div className="flex flex-col items-center gap-4 @md:flex-row">
+      <div className="flex flex-col items-center gap-3 @md:flex-row">
         <div className="relative h-44 w-44 shrink-0">
           <svg role="img" aria-label={summary} viewBox="0 0 100 100" className="h-full w-full -rotate-90">
             <circle cx="50" cy="50" r={R} fill="none" stroke={TRACK} strokeWidth="14" />
@@ -47,16 +47,16 @@ export default function DonutChart({ title, slices, centerLabel, emptyText }: Do
           </svg>
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
             <span className="font-display text-3xl text-berry">{total}</span>
-            <span className="text-[12px] text-gray-red/70">{centerLabel}</span>
+            <span className="text-xs text-gray-red">{centerLabel}</span>
           </div>
         </div>
 
-        <ul className="flex min-w-0 flex-1 flex-col gap-2 self-stretch text-sm text-gray-red">
+        <ul className="flex min-w-0 flex-1 flex-col gap-3 self-stretch text-sm text-gray-red">
           {slices.map((s) => (
-            <li key={s.label} className="flex items-center gap-2">
+            <li key={s.label} className="flex items-center gap-3">
               <span aria-hidden="true" className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: s.color }} />
               <span className="min-w-0 flex-1 truncate">{s.label}</span>
-              <span className="shrink-0 text-gray-red/80">{`${s.value} (${Math.round((s.value / total) * 100)}%)`}</span>
+              <span className="shrink-0 text-gray-red">{`${s.value} (${Math.round((s.value / total) * 100)}%)`}</span>
             </li>
           ))}
         </ul>

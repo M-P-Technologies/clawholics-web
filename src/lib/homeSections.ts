@@ -59,7 +59,7 @@ export const HOME_TEXT_DEFAULTS = {
   home_theme_display: "gloock",
   home_theme_script: "luxurious",
   home_theme_body: "noto",
-  home_hero_text: "From classic manicures to nail art, every service is designed to make you feel pampered and beautiful.",
+  home_hero_text: "Softgel and hard gel extensions, BIAB, Russian manicures and lashes in Cagayan de Oro. Choose your artist and book online.",
   home_offer_eyebrow: "Clawholics by Max",
   home_offer_text:
     "Nail art studio offering manicures and pedicures, from gel sets to softgel and hardgel extensions, plus BIAB overlays and Russian manicure. We also do lashes, brow lamination and tints.",
@@ -72,7 +72,8 @@ export const HOME_TEXT_DEFAULTS = {
     "Clawholics by Max was founded in 2023 with a simple dream. What began in a tiny corner of an eatery is now a nail studio built on dedication and heart.",
   home_about_link_label: "Read our story",
   home_reviews_title: "What our clients say",
-  // The client app (/my): the birthday banner on Home, and the Explore screen's subtitle
+  // The client app (/my): the birthday banner on Home. home_explore_subtitle is no longer shown
+  // (Explore has no heading card now); its saved value is simply unused
   home_birthday_enabled: "1",
   home_birthday_title: "Happy birthday, {name}!",
   home_birthday_line: "Enjoy a birthday treat this month",
@@ -196,11 +197,16 @@ export interface HomeFeature {
   link: string;
 }
 
+/** The longest a "Why choose us?" card's title and text may be (Admin > Homepage), so the four
+ *  cards stay the same size: the defaults run 11-16 and 72-74 characters */
+export const FEATURE_TITLE_MAX = 24;
+export const FEATURE_TEXT_MAX = 80;
+
 export const DEFAULT_FEATURES: HomeFeature[] = [
   { icon: "sparkles", title: "Nails and lashes", text: "Manicures, gel and softgel sets, eyelash extensions and brow lamination.", link: "/services" },
   { icon: "users", title: "Pick your artist", text: "Choose a master or junior technician and book the one whose work you love.", link: "/artists" },
-  { icon: "heart", title: "Made with care", text: "Founded in 2023 on dedication, creativity and heart, in every set we do.", link: "/about" },
-  { icon: "mail", title: "Easy to reach", text: "Message us, call, or find us on social media, and we will get back to you soon.", link: "/contact" },
+  { icon: "heart", title: "Local since 2023", text: "Started in a tiny eatery corner, now a full nail studio in Cagayan de Oro.", link: "/about" },
+  { icon: "calendar-heart", title: "Book online", text: "Choose a service and an open time, then hold your slot with a downpayment.", link: "/services" },
 ];
 
 /** One slide of the service photo strip: a service, with its own photo and title if set */
@@ -222,7 +228,7 @@ export interface HomeOffer {
   /** Empty shows the banner without a photo */
   image: string;
   buttonLabel: string;
-  /** /my/explore, /my/explore/<service id>, a page of the site, or a web address */
+  /** /my/explore, /my/explore?service=<id> (older saves: /my/explore/<id>, redirected), a page of the site, or a web address */
   link: string;
 }
 

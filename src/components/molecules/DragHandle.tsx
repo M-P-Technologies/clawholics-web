@@ -20,7 +20,7 @@ const DragHandle = ({
       className="cursor-grab active:cursor-grabbing flex items-center shrink-0"
       aria-label="Drag to reorder"
     >
-      <DragSvg size={18} className="text-gray-red/70" />
+      <DragSvg size={18} className="text-gray-red" />
     </Button>
   );
 };

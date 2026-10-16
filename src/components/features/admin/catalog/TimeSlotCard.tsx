@@ -41,12 +41,12 @@ const TimeSlotCard = ({
     onChange: (value: string) => void;
   }) => {
     return disabled ? (
-      <div className="w-full h-[35px] bg-milk rounded-md px-3 flex items-center text-sm text-gray-red leading-none cursor-not-allowed border border-crimson-light">
+      <div className="w-full h-8.75 bg-milk rounded-md px-3 flex items-center text-sm text-gray-red leading-none cursor-not-allowed border border-crimson-light">
         {displayValue}
       </div>
     ) : (
       <div
-        className="relative w-full h-[35px] bg-milk rounded-md px-4 flex items-center cursor-pointer border border-crimson-light"
+        className="relative w-full h-8.75 bg-milk rounded-md px-3 flex items-center cursor-pointer border border-crimson-light"
         onClick={(e) => openTimePicker(e.currentTarget)}
       >
         <input
@@ -66,9 +66,9 @@ const TimeSlotCard = ({
       {isLoading ? (
         <SectionSkeleton label="Loading time slots" lines={3} />
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           <div
-            className={`grid gap-4 items-center ${
+            className={`grid gap-3 items-center ${
               disabled
                 ? "grid-cols-[1fr_1fr]"
                 : "grid-cols-[1fr_1fr_20px]"
@@ -121,7 +121,7 @@ const TimeSlotCard = ({
               })
             ) : (
               <p
-                className={`text-[15px] text-gray-red ${
+                className={`text-base text-gray-red ${
                   disabled ? "col-span-2" : "col-span-3"
                 }`}
               >
@@ -131,8 +131,8 @@ const TimeSlotCard = ({
           </div>
 
           {!disabled && (
-            <div className="flex flex-col gap-4">
-              <div className="grid grid-cols-[1fr_1fr_20px] gap-4 items-center">
+            <div className="flex flex-col gap-3">
+              <div className="grid grid-cols-[1fr_1fr_20px] gap-3 items-center">
                 <TimePill
                   value={newStartTime}
                   displayValue={formatTimeDisplay(newStartTime)}
@@ -152,7 +152,7 @@ const TimeSlotCard = ({
                 <Button
                   type="button"
                   onClick={handleAddTimeSlot}
-                  className="w-[100px]"
+                  className="w-25"
                 >
                   ADD
                 </Button>

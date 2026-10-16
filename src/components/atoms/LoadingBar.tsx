@@ -12,7 +12,7 @@ interface LoadingBarProps {
 const message = (label: string, hint?: string) => (
   <>
     <p className="copy-note">{label}…</p>
-    {hint && <p className="max-w-xs text-center text-sm text-gray-red/60">{hint}</p>}
+    {hint && <p className="max-w-xs text-center text-sm text-gray-red">{hint}</p>}
   </>
 );
 
@@ -21,7 +21,7 @@ const message = (label: string, hint?: string) => (
 export const LoadingBar = ({ label = "Loading", hint, inline = false }: LoadingBarProps) => {
   if (inline) {
     return (
-      <div role="status" aria-live="polite" className="flex flex-col items-center justify-center gap-4">
+      <div role="status" aria-live="polite" className="flex flex-col items-center justify-center gap-3">
         <TyingBow className="h-16 w-14 text-crimson" />
         {message(label, hint)}
       </div>
@@ -32,7 +32,7 @@ export const LoadingBar = ({ label = "Loading", hint, inline = false }: LoadingB
     <div
       role="status"
       aria-live="polite"
-      className="fixed inset-0 z-100 flex flex-col items-center justify-center gap-4 overflow-hidden bg-light-orange"
+      className="fixed inset-0 z-100 flex flex-col items-center justify-center gap-3 overflow-hidden bg-light-orange"
     >
       <Blush className="-left-24 top-8 h-72 w-72 sm:h-96 sm:w-96" />
       <Blush tone="crimson" className="-right-20 bottom-4 h-72 w-72 sm:h-96 sm:w-96" />

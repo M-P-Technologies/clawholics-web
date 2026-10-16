@@ -25,9 +25,9 @@ describe("time slots", () => {
 
   it("sits in its own tinted box when boxed, and plainly otherwise", () => {
     const { container, rerender } = render(<TimeSlotList {...props} boxed />);
-    expect(container.firstElementChild).toHaveClass("rounded-xl", "p-4");
+    expect(container.firstElementChild).toHaveClass("rounded-xl", "p-3");
     rerender(<TimeSlotList {...props} />);
-    expect(container.firstElementChild).not.toHaveClass("p-4");
+    expect(container.firstElementChild).not.toHaveClass("p-3");
   });
 
   it("lays the slots out in two scrolling columns for a narrow dialog", () => {
@@ -74,12 +74,12 @@ describe("day calendar", () => {
   it("fills the chosen day's own button, so it shows even without focus", () => {
     render(<DayCalendar {...base} />);
     const button = screen.getByRole("button", { name: /\b20(st|nd|rd|th)?,.*selected/i });
-    expect(button.parentElement).toHaveClass("[&>button]:!bg-berry", "[&>button]:!text-pearl");
+    expect(button.parentElement).toHaveClass("[&>button]:bg-berry!", "[&>button]:text-pearl!");
   });
 
   it("marks a fully booked day", () => {
     render(<DayCalendar {...base} />);
-    expect(day(21).parentElement).toHaveClass("[&>button]:text-crimson");
+    expect(day(21).parentElement).toHaveClass("[&>button]:text-crimson-ink");
   });
 
   it("is compact in a dialog and roomier on a page", () => {

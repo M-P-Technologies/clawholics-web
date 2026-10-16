@@ -57,7 +57,7 @@ export default function TabBar({ label, items, isActive = (path, current) => pat
         <div
           id={more.id}
           ref={sheetRef}
-          className="drawer-panel fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-40 max-h-[70vh] overflow-y-auto rounded-t-3xl border-t border-crimson-light/60 bg-milk px-5 py-3 shadow-2xl shadow-crimson/25"
+          className="drawer-panel fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-40 max-h-[70vh] overflow-y-auto rounded-t-3xl border-t border-crimson-light/60 bg-milk px-6 py-3 shadow-2xl shadow-crimson/25"
         >
           {more.content(() => setMoreOpen(false))}
         </div>
@@ -88,7 +88,7 @@ export default function TabBar({ label, items, isActive = (path, current) => pat
               aria-expanded={moreOpen}
               aria-controls={moreOpen ? more.id : undefined}
               onClick={() => setMoreOpen((open) => !open)}
-              className={clsx(nav.tab(moreActive), "!flex-col")}
+              className={clsx(nav.tab(moreActive), "flex-col!")}
             >
               <Ellipsis size={22} aria-hidden="true" />
               <span>More</span>

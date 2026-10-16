@@ -33,7 +33,7 @@ export default function ScheduleAgenda({ selected, onSelect, dayData, onOpenAppo
   const dayTitle = selected.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       <div role="group" aria-label="Week" className="flex items-center gap-1">
         <Button variant="bare" type="button" aria-label="Previous week" onClick={() => onSelect(addDays(selected, -7))} className="p-1 text-gray-red">
           <ChevronLeft size={22} aria-hidden="true" />
@@ -53,8 +53,8 @@ export default function ScheduleAgenda({ selected, onSelect, dayData, onOpenAppo
                 aria-pressed={isSelected}
                 onClick={() => onSelect(day)}
                 className={clsx(
-                  "flex min-w-0 flex-col items-center gap-1 rounded-md py-2 text-[11px] transition-colors",
-                  isSelected ? "bg-crimson text-light-orange" : "text-gray-red hover:bg-crimson-light/30",
+                  "flex min-w-0 flex-col items-center gap-1 rounded-md py-2 text-xs transition-colors",
+                  isSelected ? "bg-crimson text-on-crimson" : "text-gray-red hover:bg-crimson-light/30",
                   sameDay(day, today) && !isSelected && "ring-1 ring-crimson",
                 )}
               >
@@ -81,26 +81,26 @@ export default function ScheduleAgenda({ selected, onSelect, dayData, onOpenAppo
       <h4 className="font-display text-lg uppercase tracking-widest text-gray-red">{dayTitle}</h4>
 
       {artistOff.map((artist) => (
-        <p key={artist.id} className="text-sm text-gray-red/70">
+        <p key={artist.id} className="text-sm text-gray-red">
           {artist.name} is off
         </p>
       ))}
 
       {appointments.length === 0 ? (
-        <p className="text-sm text-gray-red/70">No appointments on this day.</p>
+        <p className="text-sm text-gray-red">No appointments on this day.</p>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-3">
           {appointments.map((appointment) => (
             <li key={appointment.id}>
               <Button
                 variant="bare"
                 type="button"
                 onClick={() => onOpenAppointment(appointment)}
-                className="flex w-full items-start gap-4 rounded-2xl border border-crimson-light/40 bg-milk px-4 py-3 shadow-petal text-left"
+                className="flex w-full items-start gap-3 rounded-2xl border border-crimson-light/40 bg-milk px-3 py-3 shadow-petal text-left"
               >
-                <span className="w-24 shrink-0 text-sm font-bold text-crimson">{appointment.appointment_time || "No time"}</span>
+                <span className="w-24 shrink-0 text-sm font-bold text-crimson-ink">{appointment.appointment_time || "No time"}</span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[15px] font-bold uppercase leading-tight text-gray-red">
+                  <span className="block truncate text-base font-bold uppercase leading-tight text-gray-red">
                     {scheduleClientName(appointment)}
                   </span>
                   <span className="block truncate text-[13px] text-gray-red">

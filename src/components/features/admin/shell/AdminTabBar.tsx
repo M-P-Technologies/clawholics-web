@@ -8,7 +8,7 @@ import { MORE_GROUPS, MORE_ITEMS, TAB_ITEMS } from "@/components/features/admin/
 // The phone's admin navigation: four tabs go straight to the screens used every day; "More" opens a
 // sheet with the content screens, the admin directory and the account actions.
 const sheetLink = (active: boolean) =>
-  clsx("block py-3 text-sm font-medium tracking-wide", active ? "text-crimson" : "text-gray-red");
+  clsx("block py-3 text-sm font-medium tracking-wide", active ? "text-crimson-ink" : "text-gray-red");
 
 export default function AdminTabBar() {
   const { pathname } = useLocation();
@@ -34,7 +34,7 @@ export default function AdminTabBar() {
           <>
             {MORE_GROUPS.map((group) => (
               <section key={group.title} aria-label={group.title} className="pb-1">
-                <h2 className="pb-1 pt-3 font-display text-lg font-normal text-gray-red/70">{group.title}</h2>
+                <h2 className="pb-1 pt-3 font-display text-lg font-normal text-gray-red">{group.title}</h2>
                 {group.items.map((item) => (
                   <Link key={item.path} to={item.path} className={sheetLink(pathname === item.path)}>
                     {item.label}
@@ -48,7 +48,7 @@ export default function AdminTabBar() {
             <Button
               variant="bare"
               type="button"
-              className="block w-full py-3 text-left text-sm text-gray-red/80 transition-colors hover:text-crimson"
+              className="block w-full py-3 text-left text-sm text-gray-red transition-colors hover:text-crimson-ink"
               onClick={() => {
                 clerk.openUserProfile();
                 close();
@@ -59,7 +59,7 @@ export default function AdminTabBar() {
             <Button
               variant="bare"
               type="button"
-              className="block w-full py-3 text-left text-sm text-gray-red/80 transition-colors hover:text-crimson"
+              className="block w-full py-3 text-left text-sm text-gray-red transition-colors hover:text-crimson-ink"
               onClick={() => {
                 close();
                 void logout();

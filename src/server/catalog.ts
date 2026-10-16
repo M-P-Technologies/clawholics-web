@@ -101,6 +101,16 @@ export const getNailistGallery = (nailistId: number) => getSql()`
   select * from nailist_gallery where nailist_id = ${nailistId} order by position asc limit 10
 `;
 
+/** Every artist's gallery in one query (each as getNailistGallery answers it), for the Artists
+ *  page's photo strip instead of one request per artist */
+export const getAllNailistGalleries = () => getSql()`
+  select g.* from nailists n
+  cross join lateral (
+    select * from nailist_gallery where nailist_id = n.id order by position asc limit 10
+  ) g
+  order by g.nailist_id, g.position
+`;
+
 // One query instead of the Worker's two extra queries per artist.
 const nailistsWithServices = (id: number | null) => {
   const sql = getSql();

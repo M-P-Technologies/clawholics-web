@@ -11,6 +11,7 @@ import "server-only";
 
 import { currentSql, logDatabaseActivity, resetSql, sqlResponds } from "./db";
 import { workingTimeWait } from "./loopTimer";
+import { rateLimited } from "./rateLimit";
 
 type Handler<C> = (req: Request, context: C) => Response | Promise<Response>;
 
@@ -108,6 +109,9 @@ export function ported<C>(handler: Handler<C>, { requireOrigin = true } = {}): H
         { status: 403 },
       );
     }
+    // Too many requests from one visitor (server/rateLimit.ts)
+    const limited = rateLimited(req);
+    if (limited) return limited;
     const path = new URL(req.url).pathname;
     const startedAt = Date.now();
     const deadline = wait(REQUEST_TIMEOUT_MS, "timeout" as const);

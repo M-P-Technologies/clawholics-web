@@ -25,7 +25,7 @@ export default function DialogDemo() {
         <p className="text-sm text-gray-red">Centred on every screen.</p>
       </Dialog>
       <Dialog open={open === "drawer"} onClose={close} title="Drawer" placement="drawer">
-        <p className="p-5 text-sm text-gray-red">Slides in from the right.</p>
+        <p className="p-6 text-sm text-gray-red">Slides in from the right.</p>
       </Dialog>
       <ConfirmDialog open={open === "confirm"} onClose={close} onConfirm={close} title="Delete it?" confirmLabel="Delete" loadingLabel="Deleting...">
         This cannot be undone.

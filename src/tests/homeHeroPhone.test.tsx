@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Home from "@/app/(site)/page";
+import Home from "@/app/(site)/(home)/page";
 
 vi.mock("@/hooks/useHome", () => ({
   useHome: () => ({
@@ -28,7 +28,7 @@ describe("home hero on phones", () => {
     const phone = byClass(container, "md:hidden");
     expect(phone).not.toBeNull();
 
-    const book = within(phone).getByRole("link", { name: /book an appointment/i });
+    const book = within(phone).getByRole("link", { name: /^Book appointment/ });
     expect(book).toHaveAttribute("href", "/services");
     expect(book).toHaveTextContent("Book appointment");
 
@@ -41,7 +41,7 @@ describe("home hero on phones", () => {
   it("keeps the two original buttons for tablets and desktops", () => {
     const { container } = render(<Home />);
     const desktop = byClass(container, "md:flex");
-    expect(within(desktop).getByRole("link", { name: /book an appointment/i })).toHaveTextContent("Book now");
+    expect(within(desktop).getByRole("link", { name: /^Book now/ })).toHaveTextContent("Book now");
     expect(within(desktop).getByRole("link", { name: "View services" })).toHaveAttribute("href", "/services");
   });
 

@@ -6,7 +6,7 @@ import { fieldLabelClass } from "@/components/features/admin/cms/fields";
 
 const cardClass = (chosen: boolean) =>
   clsx(
-    "relative flex flex-col gap-2 rounded-xl border p-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson",
+    "relative flex flex-col gap-3 rounded-xl border p-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson",
     chosen ? "border-crimson bg-crimson-light/20" : "border-crimson-light/60 hover:border-crimson",
   );
 
@@ -21,7 +21,7 @@ export function PalettePicker({ value, onChange }: { value: string; onChange: (k
   return (
     <div className="flex flex-col gap-1.5">
       <span className={fieldLabelClass}>Colour set</span>
-      <div role="radiogroup" aria-label="Colour set" className="grid grid-cols-2 gap-2">
+      <div role="radiogroup" aria-label="Colour set" className="grid grid-cols-2 gap-3">
         {PALETTES.map(({ key, label, colors }) => (
           <button key={key} type="button" role="radio" aria-checked={value === key} onClick={() => onChange(key)} className={cardClass(value === key)}>
             <span aria-hidden="true" className="flex overflow-hidden rounded-md border border-gray-red/10">
@@ -56,13 +56,13 @@ export function FontPicker({ label, fonts, value, onChange, sample, size }: Font
   return (
     <div className="flex flex-col gap-1.5">
       <span className={fieldLabelClass}>{label}</span>
-      <div role="radiogroup" aria-label={label} className="flex flex-col gap-2">
+      <div role="radiogroup" aria-label={label} className="flex flex-col gap-3">
         {fonts.map((font) => (
           <button key={font.key} type="button" role="radio" aria-checked={value === font.key} aria-label={font.label} onClick={() => onChange(font.key)} className={cardClass(value === font.key)}>
-            <span className={size === "large" ? "pr-6 text-2xl leading-tight text-gray-red" : "pr-6 text-[15px] text-gray-red"} style={{ fontFamily: font.css }}>
+            <span className={size === "large" ? "pr-6 text-2xl leading-tight text-gray-red" : "pr-6 text-base text-gray-red"} style={{ fontFamily: font.css }}>
               {sample}
             </span>
-            <span className="text-[12px] text-gray-red/60">{font.label}</span>
+            <span className="text-xs text-gray-red">{font.label}</span>
             {value === font.key && <Chosen />}
           </button>
         ))}

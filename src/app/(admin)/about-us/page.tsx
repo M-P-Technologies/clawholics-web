@@ -34,7 +34,7 @@ export default function AboutUs() {
         <CarouselEditor photos={gallery} onChange={editor.setGallery} uploading={editor.galleryUploading} upload={editor.uploadGalleryPhoto} />
       </PanelSection>
 
-      <div className="mx-4 mt-5 rounded-xl bg-crimson-light/20 p-3 text-[13px] leading-snug text-gray-red sm:mx-5">
+      <div className="mx-3 mt-6 rounded-xl bg-crimson-light/20 p-3 text-[13px] leading-snug text-gray-red sm:mx-6">
         The address and map link also show on the Contact page and when booking, and the address, map, opening hours and Good to know list in the home page&apos;s Quick contact. Whatever you change here shows there too.
       </div>
 

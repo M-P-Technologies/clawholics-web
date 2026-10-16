@@ -24,7 +24,7 @@ describe("ClientShell", () => {
     render(<ClientShell><p>Content</p></ClientShell>);
     const tabs = screen.getByRole("navigation", { name: "App tabs" });
     expect(tabs.closest(".lg\\:hidden")).not.toBeNull();
-    expect(within(tabs).getAllByRole("link").map((l) => l.textContent)).toEqual(["Home", "Appointments", "Explore", "Profile"]);
+    expect(within(tabs).getAllByRole("link").map((l) => l.textContent)).toEqual(["Home", "Bookings", "Explore", "Profile"]);
     expect(within(tabs).getByRole("link", { name: "Explore" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByText("Content")).toBeInTheDocument();
   });
@@ -32,7 +32,8 @@ describe("ClientShell", () => {
   it("has a desktop sidebar with the same tabs and a way back to the site", () => {
     render(<ClientShell><p>x</p></ClientShell>);
     const side = screen.getByRole("navigation", { name: "App menu" });
-    expect(side.closest("aside")!.className).toContain("lg:flex");
+    // Shown from sm up (phones get the tab bar instead)
+    expect(side.closest("aside")!.parentElement!.className).toContain("sm:block");
     expect(within(side).getByRole("button", { name: "Home" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: /Back to site/ })).toHaveAttribute("href", "/");
   });
@@ -47,8 +48,8 @@ describe("ClientShell", () => {
     expect(signOut).toHaveBeenCalledWith({ redirectUrl: "/" });
   });
 
-  it("hides the tab bar on a service's page and the booking steps", () => {
-    for (const path of ["/my/explore/3", "/my/book", "/my/payment"]) {
+  it("hides the tab bar on the booking steps", () => {
+    for (const path of ["/my/book", "/my/payment"]) {
       pathname = path;
       const { unmount } = render(<ClientShell><p>x</p></ClientShell>);
       expect(screen.queryByRole("navigation", { name: "App tabs" })).not.toBeInTheDocument();

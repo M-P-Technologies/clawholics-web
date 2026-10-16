@@ -9,7 +9,7 @@ const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 // xl: a two-column form (the admin's create-appointment form)
-const SIZE = { sm: "lg:max-w-sm", md: "lg:max-w-md", lg: "lg:max-w-lg", xl: "lg:max-w-[700px]", "2xl": "lg:max-w-3xl" } as const;
+const SIZE = { sm: "lg:max-w-sm", md: "lg:max-w-md", lg: "lg:max-w-lg", xl: "lg:max-w-175", "2xl": "lg:max-w-3xl" } as const;
 
 // Open dialogs, oldest first: only the last one answers Escape, and the page's scroll is
 // locked once for all of them and given back when the last one closes.
@@ -39,12 +39,14 @@ interface DialogProps {
   hideClose?: boolean;
   /** Replaces the heading row. Mark the element that should get focus first with `data-autofocus`. */
   header?: ReactNode;
+  /** Kept at the bottom, outside the part that scrolls (e.g. the sheet's main action) */
+  footer?: ReactNode;
   children: ReactNode;
 }
 
 // Every pop-up of the site: focus moves in and stays in, Escape closes, the page behind can't scroll,
 // and focus goes back to what opened it.
-export default function Dialog({ open, onClose, title, placement = "sheet", size = "lg", role = "dialog", dismissible = true, hideClose = false, header, children }: DialogProps) {
+export default function Dialog({ open, onClose, title, placement = "sheet", size = "lg", role = "dialog", dismissible = true, hideClose = false, header, footer, children }: DialogProps) {
   const panelRef = useRef<HTMLDivElement | null>(null);
   const closeRef = useRef(onClose);
   const [token] = useState(() => ({}));
@@ -92,12 +94,22 @@ export default function Dialog({ open, onClose, title, placement = "sheet", size
 
   if (!open) return null;
   const drawer = placement === "drawer";
+  const defaultHeader = (
+    <div className="flex items-center justify-between gap-3 border-b border-crimson-light/50 pb-3">
+      <h2 className="font-display text-xl font-normal normal-case tracking-normal text-gray-red">{title}</h2>
+      {!hideClose && (
+        <Button variant="bare" type="button" aria-label="Close" onClick={onClose} className="shrink-0 rounded-full p-1.5 text-gray-red hover:bg-crimson-light/40 hover:text-gray-red">
+          <X size={20} aria-hidden="true" />
+        </Button>
+      )}
+    </div>
+  );
 
   return (
     <div
       className={clsx(
-        "drawer-backdrop fixed inset-0 z-[60] flex bg-gray-red/40 backdrop-blur-sm",
-        drawer ? "justify-end" : placement === "center" ? "items-center justify-center px-4" : "items-end justify-center lg:items-center lg:px-8",
+        "drawer-backdrop fixed inset-0 z-60 flex bg-gray-red/40 backdrop-blur-sm",
+        drawer ? "justify-end" : placement === "center" ? "items-center justify-center px-3" : "items-end justify-center lg:items-center lg:px-9",
       )}
       onClick={() => dismissible && onClose()}
     >
@@ -111,24 +123,28 @@ export default function Dialog({ open, onClose, title, placement = "sheet", size
         className={clsx(
           "flex flex-col bg-milk text-gray-red shadow-2xl shadow-crimson/20",
           drawer
-            ? "drawer-right h-full w-full max-w-[480px]"
+            ? "drawer-right h-full w-full max-w-120"
             : clsx(
-                "drawer-panel max-h-[90vh] w-full gap-4 overflow-y-auto border border-crimson-light/40 p-5 md:p-6",
+                // Only the body scrolls: the heading (and a footer) stay put, and the scrollbar stays
+                // inside the sheet instead of running down its rounded edge
+                "drawer-panel max-h-[90vh] w-full overflow-hidden border border-crimson-light/40",
                 placement === "center" ? "max-w-md rounded-2xl" : clsx("rounded-t-3xl lg:rounded-2xl", SIZE[size]),
               ),
         )}
       >
-        {header ?? (
-          <div className="flex items-center justify-between gap-4 border-b border-crimson-light/50 pb-3">
-            <h2 className="font-display text-xl font-normal normal-case tracking-normal text-gray-red">{title}</h2>
-            {!hideClose && (
-              <Button variant="bare" type="button" aria-label="Close" onClick={onClose} className="shrink-0 rounded-full p-1.5 text-gray-red/70 hover:bg-crimson-light/40 hover:text-gray-red">
-                <X size={20} aria-hidden="true" />
-              </Button>
-            )}
-          </div>
+        {drawer ? (
+          <>
+            {header ?? defaultHeader}
+            {children}
+            {footer}
+          </>
+        ) : (
+          <>
+            <div className="shrink-0 px-6 pt-6">{header ?? defaultHeader}</div>
+            <div className={clsx("flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-6 pt-3", footer ? "pb-3" : "pb-6")}>{children}</div>
+            {footer && <div className="shrink-0 border-t border-crimson-light/50 px-6 py-3">{footer}</div>}
+          </>
         )}
-        {children}
       </div>
     </div>
   );
@@ -152,8 +168,8 @@ interface ConfirmDialogProps {
 export function ConfirmDialog({ open, title, children, confirmLabel, loadingLabel, cancelLabel = "Cancel", loading = false, onConfirm, onClose }: ConfirmDialogProps) {
   return (
     <Dialog open={open} onClose={onClose} title={title} role="alertdialog" size="md" dismissible={!loading} hideClose>
-      <div className="text-center text-sm leading-relaxed text-gray-red/90 md:text-base">{children}</div>
-      <div className="flex flex-wrap justify-center gap-4">
+      <div className="text-center text-sm leading-relaxed text-gray-red md:text-base">{children}</div>
+      <div className="flex flex-wrap justify-center gap-3">
         <Button variant="secondary" onClick={onClose} disabled={loading}>{cancelLabel}</Button>
         <Button onClick={onConfirm} loading={loading} loadingText={loadingLabel}>{confirmLabel}</Button>
       </div>
@@ -175,8 +191,8 @@ interface AlertDialogProps {
 export function AlertDialog({ open, title, message, buttonText = "OK", hideCloseButton = false, onClose, onAction }: AlertDialogProps) {
   return (
     <Dialog open={open} onClose={onClose} title={title} role="alertdialog" size="md" dismissible={!hideCloseButton} hideClose>
-      <p className="text-left leading-relaxed text-gray-red/80">{message}</p>
-      <div className="flex justify-end gap-4">
+      <p className="text-left leading-relaxed text-gray-red">{message}</p>
+      <div className="flex justify-end gap-3">
         {!hideCloseButton && <Button variant="secondary" onClick={onClose}>Close</Button>}
         {onAction && <Button onClick={onAction}>{buttonText}</Button>}
       </div>
@@ -197,11 +213,11 @@ export function FeedbackDialog({ open, title, message, isError, onClose }: Feedb
   const Icon = isError ? X : Check;
   return (
     <Dialog open={open} onClose={onClose} title={title} size="sm" hideClose header={<span className="sr-only">{title}</span>}>
-      <div className="flex flex-col items-center gap-4 text-center">
+      <div className="flex flex-col items-center gap-3 text-center">
         <span className={clsx("flex h-16 w-16 items-center justify-center rounded-full", isError ? "bg-danger/10" : "bg-crimson/10")}>
           <Icon aria-hidden="true" className="h-8 w-8 text-gray-red" />
         </span>
-        <p className="font-display text-2xl text-crimson">{title}</p>
+        <p className="font-display text-2xl text-crimson-ink">{title}</p>
         <p className="text-sm leading-relaxed text-gray-red md:text-base">{message}</p>
         <Button onClick={onClose}>Continue</Button>
       </div>

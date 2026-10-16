@@ -69,7 +69,7 @@ export default function CmsEditor({ title, pages, drafts, refreshKey = 0, header
           onChange={setPane}
         />
 
-        <div className="flex min-h-0 flex-1 gap-5">
+        <div className="flex min-h-0 flex-1 gap-6">
           <aside
             aria-label={`${title} settings`}
             className={clsx(
@@ -88,7 +88,7 @@ export default function CmsEditor({ title, pages, drafts, refreshKey = 0, header
               pane === "preview" ? "flex" : "hidden",
             )}
           >
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-crimson-light/40 px-3 py-2">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-crimson-light/40 px-3 py-2">
               {pages.length > 1 ? (
                 <Select aria-label="Page" value={current?.path ?? path} onChange={(e) => setPath(e.target.value)} className="w-44" options={pages.map((p) => ({ value: p.path, label: p.label }))} />
               ) : (
@@ -108,8 +108,8 @@ export default function CmsEditor({ title, pages, drafts, refreshKey = 0, header
                     aria-pressed={device === value}
                     onClick={() => setDevice(value)}
                     className={clsx(
-                      "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-bold transition-colors",
-                      device === value ? "bg-milk text-berry shadow-sm" : "text-gray-red/80 hover:text-berry",
+                      "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition-colors",
+                      device === value ? "bg-milk text-berry shadow-sm" : "text-gray-red hover:text-berry",
                     )}
                   >
                     <Icon size={14} aria-hidden="true" />
@@ -267,9 +267,9 @@ function usePreviewFrame(frameRef: RefObject<HTMLIFrameElement | null>, drafts: 
 export function CmsLoadError({ title, what, onRetry }: { title: string; what: string; onRetry: () => void }) {
   return (
     <AdminShell title={title}>
-      <div role="alert" className="flex max-w-lg flex-col items-start gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-5 text-sm text-gray-red shadow-petal">
+      <div role="alert" className="flex max-w-lg flex-col items-start gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-6 text-sm text-gray-red shadow-petal">
         <p className="font-display text-xl">We couldn&apos;t load {what}</p>
-        <p className="text-[13px] leading-snug text-gray-red/80">
+        <p className="text-[13px] leading-snug text-gray-red">
           The website still shows it as it was. Editing is paused until it loads, so nothing gets replaced by an empty form.
         </p>
         <Button type="button" onClick={onRetry}>

@@ -410,7 +410,7 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
         { params: Promise.resolve({}) } as never,
       );
 
-    it("TC-PAY-02: the webhook needs Xendit's callback token, then confirms the paid booking", async () => {
+    it("TC-PAY-02: the webhook needs Xendit's callback token; the paid booking then waits for an admin to confirm it", async () => {
       const { body } = await book("user_a", nextDate());
       as("user_a");
       const invoice = await callRoute(payments.createPayment, "/api/payment/create", { method: "POST", body: { appointment_id: body.appointment_id, payment_method: "GCASH" } });
@@ -422,6 +422,12 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       const ok = await webhook("cb-token", { external_id: invoice.body.external_id, status: "PAID" });
       expect(ok.status).toBe(200);
       expect(await ok.text()).toBe("OK");
+      // Paid, but only the salon confirms a booking
+      expect(await statusOf(body.appointment_id)).toBe("AWAITING_CONFIRMATION");
+
+      as("user_admin");
+      const confirmed = await callRoute(booking.updateAppointmentStatus, "/x", { method: "PATCH", body: { status: "CONFIRMED" }, params: { id: String(body.appointment_id) } });
+      expect(confirmed.status).toBe(200);
       expect(await statusOf(body.appointment_id)).toBe("CONFIRMED");
       await Promise.all(background);
     });

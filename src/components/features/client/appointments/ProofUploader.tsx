@@ -83,9 +83,9 @@ export default function ProofUploader({
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-1">
-        <label htmlFor={inputId} className="text-[12px] text-gray-red/70">
+        <label htmlFor={inputId} className="text-xs text-gray-red">
           Payment screenshot
         </label>
         <input
@@ -95,7 +95,7 @@ export default function ProofUploader({
           accept="image/jpeg,image/png,image/webp"
           onChange={handleChange}
           disabled={busy}
-          className="text-sm text-gray-red file:mr-4 file:cursor-pointer file:rounded-full file:border file:border-crimson-light file:bg-milk file:px-4 file:py-1.5 file:text-[13px] file:font-bold file:text-berry"
+          className="text-sm text-gray-red file:mr-3 file:cursor-pointer file:rounded-full file:border file:border-crimson-light file:bg-milk file:px-3 file:py-1.5 file:text-[13px] file:font-bold file:text-berry"
         />
       </div>
 
@@ -108,7 +108,7 @@ export default function ProofUploader({
       )}
 
       {error && (
-        <p role="alert" className="text-sm font-medium text-danger">
+        <p role="alert" className="text-sm font-medium text-danger-ink">
           {error}
         </p>
       )}

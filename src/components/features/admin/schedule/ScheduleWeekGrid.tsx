@@ -10,6 +10,7 @@ const GROUP_OF: Record<string, Group> = {
   CONFIRMED: "confirmed",
   PENDING: "pending",
   AWAITING_PROOF: "pending",
+  AWAITING_CONFIRMATION: "pending",
   COMPLETED: "completed",
   CANCELLED: "cancelled",
   CANCELED: "cancelled",
@@ -23,7 +24,7 @@ const BLOCK: Record<Group, string> = {
   confirmed: "border-berry bg-crimson-light/45",
   pending: "border-[#b87a12] bg-[#fbeed6]",
   completed: "border-[#2f9468] bg-[#e1f1e8]",
-  cancelled: "border-[#9a8a86] bg-[#efe9e6] text-gray-red/60 line-through",
+  cancelled: "border-[#9a8a86] bg-[#efe9e6] text-gray-red line-through",
 };
 const SWATCH: Record<Group, string> = {
   confirmed: "bg-berry",
@@ -85,10 +86,10 @@ export default function ScheduleWeekGrid({ days, schedule, todayKey, query, serv
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="min-h-0 flex-1 overflow-auto rounded-2xl border border-crimson-light/40 bg-milk shadow-petal">
-        <table aria-label="Week schedule" className="w-full min-w-[900px] table-fixed border-separate border-spacing-0 text-sm text-gray-red">
+        <table aria-label="Week schedule" className="w-full min-w-225 table-fixed border-separate border-spacing-0 text-sm text-gray-red">
           <thead className="sticky top-0 z-20 bg-milk">
             <tr>
-              <th scope="col" className="sticky left-0 z-30 w-44 border-b border-crimson-light/60 bg-milk px-4 py-3 text-left text-[12px] font-medium text-gray-red/70">
+              <th scope="col" className="sticky left-0 z-30 w-44 border-b border-crimson-light/60 bg-milk px-3 py-3 text-left text-xs font-medium text-gray-red">
                 Artist
               </th>
               {days.map((date, i) => {
@@ -101,8 +102,8 @@ export default function ScheduleWeekGrid({ days, schedule, todayKey, query, serv
                       onClick={() => onOpenDay(keys[i])}
                       className="flex w-full flex-col items-center rounded-lg py-0.5 hover:bg-crimson-light/30 focus-visible:outline-2 focus-visible:outline-crimson"
                     >
-                      <span className={clsx("text-[12px] font-bold", isToday ? "text-berry" : "text-gray-red/80")}>{DAY_NAMES[date.getDay()].slice(0, 3)}</span>
-                      <span className={clsx("text-[11px]", isToday ? "text-berry" : "text-gray-red/60")}>{date.getDate()}</span>
+                      <span className={clsx("text-xs font-bold", isToday ? "text-berry" : "text-gray-red")}>{DAY_NAMES[date.getDay()].slice(0, 3)}</span>
+                      <span className={clsx("text-xs", isToday ? "text-berry" : "text-gray-red")}>{date.getDate()}</span>
                       {isToday && <span className="text-[10px] font-bold text-berry">Today</span>}
                     </button>
                   </th>
@@ -115,8 +116,8 @@ export default function ScheduleWeekGrid({ days, schedule, todayKey, query, serv
               const name = artistName(a);
               return (
                 <tr key={a.id}>
-                  <th scope="row" className="sticky left-0 z-10 border-b border-crimson-light/40 bg-milk px-4 py-3 text-left align-top font-normal">
-                    <span className="flex items-center gap-2.5">
+                  <th scope="row" className="sticky left-0 z-10 border-b border-crimson-light/40 bg-milk px-3 py-3 text-left align-top font-normal">
+                    <span className="flex items-center gap-3">
                       <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-crimson-light/50 font-display text-base text-berry">
                         {name.replace(/^Miss\s+/i, "").charAt(0).toUpperCase()}
                       </span>
@@ -141,7 +142,7 @@ export default function ScheduleWeekGrid({ days, schedule, todayKey, query, serv
                         )}
                       >
                         {off && items.length === 0 ? (
-                          <span className="block pt-2 text-center text-[11px] font-medium text-gray-red/50">Day off</span>
+                          <span className="block pt-2 text-center text-xs font-medium text-gray-red">Day off</span>
                         ) : (
                           <div className="flex flex-col gap-1">
                             {items.map((b) => {
@@ -159,7 +160,7 @@ export default function ScheduleWeekGrid({ days, schedule, todayKey, query, serv
                                     BLOCK[group],
                                   )}
                                 >
-                                  <span className="block truncate text-[11px] font-bold leading-tight">{client}</span>
+                                  <span className="block truncate text-xs font-bold leading-tight">{client}</span>
                                   <span className="block truncate text-[10px] leading-tight opacity-80">{b.service_name}</span>
                                   <span className="block truncate text-[10px] leading-tight opacity-80">{timeRange(b.appointment_time)}</span>
                                 </button>
@@ -175,10 +176,10 @@ export default function ScheduleWeekGrid({ days, schedule, todayKey, query, serv
             })}
           </tbody>
         </table>
-        {artists.length === 0 && <p className="px-4 py-6 text-sm text-gray-red/70">No artists to show.</p>}
+        {artists.length === 0 && <p className="px-3 py-6 text-sm text-gray-red">No artists to show.</p>}
       </div>
 
-      <ul aria-label="Legend" className="flex flex-wrap gap-x-5 gap-y-1 rounded-2xl bg-milk px-4 py-2.5 text-[12px] text-gray-red/80 shadow-petal">
+      <ul aria-label="Legend" className="flex flex-wrap gap-x-6 gap-y-1 rounded-2xl bg-milk px-3 py-3 text-xs text-gray-red shadow-petal">
         {LEGEND.map(([group, label]) => (
           <li key={group} className="flex items-center gap-1.5">
             <span aria-hidden="true" className={clsx("h-3 w-1 rounded-full", SWATCH[group])} />

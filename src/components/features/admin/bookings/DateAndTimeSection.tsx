@@ -18,11 +18,11 @@ export default function DateAndTimeSection({ a }: { a: CreateAppointment }) {
       </h4>
 
       {loadingSlots ? (
-        <div className="rounded-xl bg-crimson-light/15 px-4 py-8 text-center text-[13px] text-gray-red/70">
+        <div className="rounded-xl bg-crimson-light/15 px-3 py-9 text-center text-[13px] text-gray-red">
           Loading availability...
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 gap-3">
           {/* CALENDAR */}
           <div className="flex justify-center rounded-xl bg-light-orange/40 px-2 py-2">
             <DayCalendar

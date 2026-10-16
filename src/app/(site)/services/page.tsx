@@ -21,9 +21,9 @@ export default function Services() {
     <PageShell>
       <Section>
         <SectionHeader title={banner.home_services_title} subtitle={content.home_services_subtitle}>
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
             {/* CATEGORY FILTERS */}
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-3">
               {categoryNames.map((cat) => (
                 <Button
                   variant="bare"
@@ -56,7 +56,7 @@ export default function Services() {
         <section
           ref={listRef}
           aria-label="Available nail services"
-          className="flex min-h-[30vh] scroll-mt-24 flex-col items-center justify-start gap-4 md:gap-8"
+          className="flex min-h-[30vh] scroll-mt-24 flex-col items-center justify-start gap-3 md:gap-9"
         >
           {cards.length === 0 ? (
             <EmptyState
@@ -74,18 +74,19 @@ export default function Services() {
               </Button>
             </EmptyState>
           ) : (
-            <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
-              {pageItems.map((s) => (
+            <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-9">
+              {pageItems.map((s, index) => (
                 <ImageCard
                   key={s.id}
+                  priority={index === 0}
                   image={s.image}
                   imageAlt={`${s.name} nail service sample`}
                   aspect="aspect-4/3"
                   title={s.name}
                   subtitle={
-                    <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center justify-between gap-3">
                       <span>{s.priceLabel}</span>
-                      <span className="inline-flex items-center gap-1.5 font-normal text-gray-red/80">
+                      <span className="inline-flex items-center gap-1.5 font-normal text-gray-red">
                         <Clock size={16} aria-hidden="true" focusable="false" />
                         {s.duration}
                       </span>
@@ -93,8 +94,8 @@ export default function Services() {
                   }
                   description={s.description}
                   footer={
-                    <Button to={servicePath(s)} aria-label={`View details for ${s.name}`}>
-                      Learn more
+                    <Button to={servicePath(s)}>
+                      Learn more<span className="sr-only"> about {s.name}</span>
                     </Button>
                   }
                 />

@@ -70,8 +70,10 @@ export function useHome() {
   // with its price and hours
   const stripItems: StripItem[] = buildStripItems(services, readHomeSections(content).strip);
 
-  // Admins are sent to their own screens, so nothing is shown while that happens
-  const isBusy = !inCmsPreview() && (!isLoaded || (!!user && String(user.publicMetadata?.role || "").toLowerCase() === "admin"));
+  // Admins are sent to their own screens, so nothing is shown while that happens. The page isn't
+  // held back until Clerk has loaded: visitors see it at once (it's in the first HTML), and an
+  // admin sees it only for the moment before the redirect.
+  const isBusy = !inCmsPreview() && isLoaded && clerkAdmin;
 
   const retryProfile = () => void profileQuery.refetch();
 

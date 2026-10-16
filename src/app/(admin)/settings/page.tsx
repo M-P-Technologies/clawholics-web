@@ -17,9 +17,9 @@ export default function Settings() {
       <div className="flex-1 overflow-y-auto pb-2">
         <div className="mx-auto w-full max-w-3xl rounded-2xl border border-crimson-light/40 bg-milk shadow-petal">
           {s.isLoading ? (
-            <SectionSkeleton label="Loading settings" lines={6} className="p-5" />
+            <SectionSkeleton label="Loading settings" lines={6} className="p-6" />
           ) : s.loadFailed ? (
-            <div className="flex flex-col items-start gap-3 p-5">
+            <div className="flex flex-col items-start gap-3 p-6">
               <p className="font-bold text-gray-red">We couldn&apos;t load the settings.</p>
               <Button type="button" variant="secondary" onClick={s.retry}>
                 Try again
@@ -37,8 +37,8 @@ export default function Settings() {
                   onChange={s.setDownpayment}
                   hint="A whole number of pesos. Bookings already paid keep the amount they paid."
                 />
-                <fieldset className="flex flex-col gap-2">
-                  <legend className="mb-1.5 text-[13px] font-medium text-gray-red/80">Ways to pay the downpayment</legend>
+                <fieldset className="flex flex-col gap-3">
+                  <legend className="mb-1.5 text-[13px] font-medium text-gray-red">Ways to pay the downpayment</legend>
                   {PAYMENT_METHOD_CHOICES.map((choice) => (
                     <label key={choice.value} className="flex cursor-pointer items-start gap-3 rounded-xl border border-crimson-light/50 p-3">
                       <input
@@ -49,7 +49,7 @@ export default function Settings() {
                       />
                       <span className="flex flex-col gap-0.5">
                         <span className="text-sm font-bold text-gray-red">{choice.label}</span>
-                        <span className="text-[12px] leading-snug text-gray-red/70">{choice.hint}</span>
+                        <span className="text-xs leading-snug text-gray-red">{choice.hint}</span>
                       </span>
                     </label>
                   ))}

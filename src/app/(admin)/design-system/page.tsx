@@ -1,7 +1,7 @@
 "use client";
 
 import { CalendarHeart, QrCode, Trash2, Wallet } from "lucide-react";
-import { Avatar, Badge, Blush, Button, Card, Checkbox, IconButton, Input, LoadingBar, Pearls, Select, StarPicker, Stars } from "@/components/atoms";
+import { Avatar, Badge, Blush, Button, Card, Checkbox, IconButton, Input, LoadingBar, Select, StarPicker, Stars } from "@/components/atoms";
 import { EditActions, EmptyState, FormField, SectionHeader, StatCard } from "@/components/molecules";
 import { CardFields, RowCard, RowCards, SideBar, TabBar, TableFrame, TopBar } from "@/components/organisms";
 import AdminShell from "@/components/features/admin/shell/AdminShell";
@@ -20,7 +20,7 @@ import { AVATAR_SIZES, BADGE_TONES, DEMO_NAV } from "@/lib/admin/designSystem";
 export default function DesignSystem() {
   return (
     <AdminShell title="Design system">
-      <div className="flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto pb-10">
+      <div className="flex min-h-0 flex-1 flex-col gap-9 overflow-y-auto pb-9">
         <Group title="Atoms">
           <GallerySection title="Button">
             <Button>Primary</Button>
@@ -55,8 +55,8 @@ export default function DesignSystem() {
             <Input aria-label="Demo disabled" placeholder="Disabled" disabled />
           </GallerySection>
           <GallerySection title="Checkbox">
-            <label className="flex items-center gap-2 text-sm text-gray-red"><Checkbox defaultChecked /> Checked</label>
-            <label className="flex items-center gap-2 text-sm text-gray-red"><Checkbox /> Unchecked</label>
+            <label className="flex items-center gap-3 text-sm text-gray-red"><Checkbox defaultChecked /> Checked</label>
+            <label className="flex items-center gap-3 text-sm text-gray-red"><Checkbox /> Unchecked</label>
           </GallerySection>
           <GallerySection title="Select">
             <Select aria-label="Example" value="a" onChange={() => {}}>
@@ -70,11 +70,10 @@ export default function DesignSystem() {
             <Stars rating={4} />
             <StarPicker value={3} onChange={() => {}} />
           </GallerySection>
-          <GallerySection title="Pearls"><Pearls className="w-40" /></GallerySection>
         </Group>
         <Group title="Molecules">
           <GallerySection title="FormField">
-            <div className="grid w-full max-w-md gap-4">
+            <div className="grid w-full max-w-md gap-3">
               <FormField id="ds-email" name="email" label="Email" type="email" value="ana@example.com" compact onChange={() => {}} />
               <FormField id="ds-email-error" name="email" label="Email" type="email" value="ana@example" compact error="Please check this address" onChange={() => {}} />
             </div>
@@ -92,7 +91,7 @@ export default function DesignSystem() {
             <SegmentedDemo />
           </GallerySection>
           <GallerySection title="StatCard">
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-3">
               <StatCard icon={Wallet} label="Collected" value="₱2,000" change={{ kind: "up", label: "+20%" }} hint="downpayments received" />
               <StatCard size="hero" label="Estimated sales" value="₱12,500" hint="list price of completed services" />
               <StatCard size="compact" icon={CalendarHeart} label="Visits" value="4" hint="completed" />
@@ -106,7 +105,7 @@ export default function DesignSystem() {
             <ToastDemo />
           </GallerySection>
           <GallerySection title="EmptyState">
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-3 md:grid-cols-2">
               <EmptyState kind="error" title="It failed" message="Something went wrong. Please try again." />
               <EmptyState kind="empty" title="Nothing yet" message="Book a visit to see it here." />
               <EmptyState kind="success" title="All done" message="Your changes were saved." />
@@ -115,7 +114,7 @@ export default function DesignSystem() {
           </GallerySection>
           <GallerySection title="SortableList"><SortableDemo /></GallerySection>
           <GallerySection title="EditActions">
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3">
               <EditActions isEditing={false} isSaving={false} onEdit={() => {}} onCancel={() => {}} onSave={() => {}} onDelete={() => {}} />
               <EditActions isEditing isSaving={false} onEdit={() => {}} onCancel={() => {}} onSave={() => {}} />
             </div>
@@ -137,12 +136,12 @@ export default function DesignSystem() {
             <TopBar title="Example" greeting="Welcome, Ana!" today="Wednesday, Oct 14" account={{ name: "Ana Cruz", email: "ana@example.com", imageUrl: "" }} />
           </GallerySection>
           <GallerySection title="SideBar">
-            <div className="h-[480px]">
+            <div className="h-120">
               <SideBar label="Demo menu" groups={DEMO_NAV} storageKey="ds-rail" footer={() => null} />
             </div>
           </GallerySection>
           <GallerySection title="TabBar">
-            <div className="relative h-24 [&_nav]:static lg:[&>div]:!block">
+            <div className="relative h-24 [&_nav]:static lg:[&>div]:block!">
               <TabBar label="Demo tabs" items={DEMO_NAV[0].items} />
             </div>
           </GallerySection>
@@ -153,11 +152,11 @@ export default function DesignSystem() {
             </p>
           </GallerySection>
           <GallerySection title="DataTable">
-            <TableFrame label="Example bookings" minWidthClass="min-w-[480px]" head={<tr className="text-left text-[12px] text-gray-red/70"><th scope="col" className="pb-2 pr-3 font-medium">Client</th><th scope="col" className="pb-2 pr-3 font-medium">When</th></tr>}>
+            <TableFrame label="Example bookings" minWidthClass="min-w-120" head={<tr className="text-left text-xs text-gray-red"><th scope="col" className="pb-2 pr-3 font-medium">Client</th><th scope="col" className="pb-2 pr-3 font-medium">When</th></tr>}>
               <tr><th scope="row" className="py-2 pr-3 text-left font-normal">Ana</th><td className="py-2 pr-3">Oct 20</td></tr>
               <tr><th scope="row" className="py-2 pr-3 text-left font-normal">Bea</th><td className="py-2 pr-3">Oct 22</td></tr>
             </TableFrame>
-            <p className="mt-4 text-sm text-gray-red">The same rows as cards, which phones show instead of the table.</p>
+            <p className="mt-3 text-sm text-gray-red">The same rows as cards, which phones show instead of the table.</p>
             <RowCards label="Example cards">
               <RowCard><CardFields fields={[["Client", "Ana"], ["When", "Oct 20"]]} /></RowCard>
               <RowCard><CardFields fields={[["Client", "Bea"], ["When", "Oct 22"]]} /></RowCard>

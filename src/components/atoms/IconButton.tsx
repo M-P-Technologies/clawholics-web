@@ -3,9 +3,9 @@ import clsx from "clsx";
 import Button from "./Button";
 
 const TONE = {
-  plain: "text-gray-red/70 hover:bg-crimson-light/30 hover:text-berry",
-  milk: "bg-milk text-gray-red shadow-petal hover:text-crimson",
-  brand: "bg-crimson text-milk hover:bg-crimson/85",
+  plain: "text-gray-red hover:bg-crimson-light/30 hover:text-berry",
+  milk: "bg-milk text-gray-red shadow-petal hover:text-crimson-ink",
+  brand: "bg-crimson text-light-orange hover:bg-crimson/85",
 } as const;
 const SIZE = { sm: "h-8 w-8", md: "h-10 w-10" } as const;
 

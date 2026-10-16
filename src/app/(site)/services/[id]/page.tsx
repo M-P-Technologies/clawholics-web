@@ -22,7 +22,7 @@ function Appointment() {
   if (notFound || !service) {
     return (
       <PageShell>
-        <Section innerClassName="min-h-[70vh] items-center justify-center text-center gap-4 md:gap-8">
+        <Section innerClassName="min-h-[70vh] items-center justify-center text-center gap-3 md:gap-9">
           <SectionHeader
             align="center"
             title="Service not found"
@@ -39,13 +39,13 @@ function Appointment() {
   return (
     <PageShell>
       <Section>
-        <div className="grid grid-cols-1 lg:grid-cols-2 items-start gap-4 md:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 items-start gap-3 md:gap-9">
           {/* SERVICE DETAILS */}
-          <div className="flex flex-col gap-4 md:gap-8">
+          <div className="flex flex-col gap-3 md:gap-9">
             <BackButton />
             {/* Phones and tablets: the category pill, then the photos as a carousel (the main photo
                 first). From `lg` up the photos stay in the gallery at the bottom. */}
-            <p className="w-fit rounded-md border border-crimson-light px-4 py-1 label-caps text-crimson lg:hidden">
+            <p className="w-fit rounded-md border border-crimson-light px-3 py-1 label-caps text-crimson-ink lg:hidden">
               {service.category}
             </p>
             <div className="lg:hidden">
@@ -58,14 +58,15 @@ function Appointment() {
             <div className="lg:hidden">
               <ServiceOverview service={service} priceLines={priceLines} />
             </div>
-            <div className="hidden flex-col gap-4 lg:flex">
-              <p className="w-fit rounded-md border border-crimson-light px-4 py-1 label-caps text-crimson">
+            <div className="hidden flex-col gap-3 lg:flex">
+              <p className="w-fit rounded-md border border-crimson-light px-3 py-1 label-caps text-crimson-ink">
                 {service.category}
               </p>
-              <SectionHeader title={service.name} subtitle={service.description} />
+              {/* The phone overview above holds the page's one h1 (both are in the HTML; CSS shows one) */}
+              <SectionHeader level={2} title={service.name} subtitle={service.description} />
             </div>
 
-            <dl className="hidden grid-cols-1 gap-x-4 gap-y-1 border-t border-crimson-light/80 pt-4 text-gray-red lg:grid sm:grid-cols-[140px_1fr] sm:gap-y-4 md:pt-8 [&>dd:not(:last-child)]:mb-3 sm:[&>dd:not(:last-child)]:mb-0">
+            <dl className="hidden grid-cols-1 gap-x-3 gap-y-1 border-t border-crimson-light/80 pt-3 text-gray-red lg:grid sm:grid-cols-[140px_1fr] sm:gap-y-3 md:pt-9 [&>dd:not(:last-child)]:mb-3 sm:[&>dd:not(:last-child)]:mb-0">
               <dt className={infoLabelClass}>Duration</dt>
               <dd>{service.duration}</dd>
 
@@ -84,11 +85,11 @@ function Appointment() {
               </dd>
 
               <dt className={infoLabelClass}>Deposit</dt>
-              <dd className="flex flex-col gap-2">
+              <dd className="flex flex-col gap-3">
                 <p>
                   To secure your slot, a <b>₱500</b> booking deposit is required at checkout.
                 </p>
-                <ul className="ml-4 list-disc text-gray-red/80">
+                <ul className="ml-3 list-disc text-gray-red">
                   <li>₱400 is deductible from your final bill.</li>
                   <li>₱100 is a non-refundable reservation fee.</li>
                 </ul>
@@ -98,7 +99,7 @@ function Appointment() {
 
           {/* TERMS */}
           <Panel title="Terms & conditions">
-            <div className="flex flex-col gap-4 md:gap-8">
+            <div className="flex flex-col gap-3 md:gap-9">
               {terms.map((term) => (
                 <div key={term.id} className="flex flex-col gap-1">
                   <h3 className="label-caps">
@@ -114,7 +115,7 @@ function Appointment() {
         </div>
 
         {gallery.length > 0 && (
-          <div className="hidden flex-col gap-4 lg:flex">
+          <div className="hidden flex-col gap-3 lg:flex">
             <h2 className="font-display font-normal not-italic uppercase tracking-widest text-gray-red text-xl md:text-2xl">
               {service.name} gallery
             </h2>
@@ -123,7 +124,7 @@ function Appointment() {
         )}
 
         <div className="flex justify-center">
-          <Button onClick={handleContinue} className="w-full px-8 sm:w-auto sm:px-16">
+          <Button onClick={handleContinue} className="w-full px-9 sm:w-auto sm:px-15">
             Book now
           </Button>
         </div>
@@ -143,7 +144,7 @@ function Appointment() {
 
 export default function Page() {
   return (
-    <OnboardingGate>
+    <OnboardingGate showWhileChecking>
       <Appointment />
     </OnboardingGate>
   );

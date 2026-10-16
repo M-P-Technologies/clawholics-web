@@ -21,8 +21,8 @@ export default function SalesView({ data, loading, failed }: SalesViewProps) {
     <ViewBody loading={loading} failed={failed}>
       <MoneyCards money={data.money} revenue={data.kpis.estimatedSales.value} trend={data.trend} />
 
-      <div className="grid grid-cols-1 gap-4 md:gap-6 xl:grid-cols-2">
-        <Card as="section" aria-label="Top services" className="flex min-w-0 flex-col gap-4"><SectionHeader size="card" title="Top services" />
+      <div className="grid grid-cols-1 gap-3 md:gap-6 xl:grid-cols-2">
+        <Card as="section" aria-label="Top services" className="flex min-w-0 flex-col gap-3"><SectionHeader size="card" title="Top services" />
           <RankedBars
             title="Top services"
             rows={data.services.map((s) => ({ label: s.name, value: s.bookings, valueLabel: `${s.bookings} · ${peso(s.estimatedSales)}`, color: BAR_COLOR }))}
@@ -30,7 +30,7 @@ export default function SalesView({ data, loading, failed }: SalesViewProps) {
           />
         </Card>
 
-        <Card as="section" aria-label="How bookings ended" className="flex min-w-0 flex-col gap-4"><SectionHeader size="card" title="How bookings ended" />
+        <Card as="section" aria-label="How bookings ended" className="flex min-w-0 flex-col gap-3"><SectionHeader size="card" title="How bookings ended" />
           <RankedBars
             title="Appointments by status"
             rows={[

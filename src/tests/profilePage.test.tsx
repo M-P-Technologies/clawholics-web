@@ -43,7 +43,7 @@ const makeHook = (over: Record<string, unknown> = {}) => ({
   payForAppointment: vi.fn(), rescheduleAppointment: vi.fn(), startCancel: vi.fn(), handleClientRedeem: vi.fn(), handleProofUploaded: vi.fn(),
   showRewardModal: false, closeRewardModal: vi.fn(), todayFormatted: "", isCancelModalOpen: false, selectedAppt: null, selectedApptDateLabel: "",
   isLateCancellation: false, actionError: null, closeCancelModal: vi.fn(), isCancelling: false, handleCancelAppointment: vi.fn(),
-  openAppointment: vi.fn(), openRewards: vi.fn(), reviews: {},
+  openAppointment: vi.fn(), reviews: {},
   ...over,
 });
 
@@ -52,12 +52,14 @@ beforeEach(() => {
 });
 
 describe("MyAppointments", () => {
-  it("lists upcoming and past appointments and opens one", () => {
+  it("lists upcoming and past appointments and shows the chosen one beside the list", () => {
     render(<MyAppointments />);
     expect(screen.getByRole("banner")).toContainElement(screen.getByRole("heading", { level: 1, name: "My appointments" }));
     const list = within(screen.getByRole("region", { name: "Appointments" }));
     fireEvent.click(list.getByRole("button", { name: /Service 2/ }));
-    expect(hook.openAppointment).toHaveBeenCalledWith(2);
+    // A computer here (no matchMedia): the panel shows it rather than the drawer
+    expect(screen.getByRole("complementary", { name: "Service 2 details" })).toBeInTheDocument();
+    expect(hook.openAppointment).not.toHaveBeenCalled();
   });
 });
 
@@ -79,15 +81,18 @@ describe("MyProfile", () => {
   it("shows the glance cards, the loyalty card and where the booking is", () => {
     render(<MyProfile />);
     expect(within(screen.getByRole("group", { name: "Loyalty stamps" })).getByText("4 / 10")).toBeInTheDocument();
-    expect(screen.getByText(/6 more visits to a reward/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Open your loyalty card" }));
-    expect(hook.openRewards).toHaveBeenCalled();
     expect(screen.getByRole("list", { name: "Booking progress" })).toBeInTheDocument();
+    // The loyalty card is a tab of the panel, not a drawer
+    fireEvent.click(screen.getByRole("tab", { name: "Loyalty card" }));
+    expect(screen.getByText("Clawholics Loyalty Card")).toBeInTheDocument();
+    expect(screen.getByText(/6 more visits to a reward/)).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 
   it("says when a reward is ready", () => {
     hook = makeHook({ stamps: 10 });
     render(<MyProfile />);
+    fireEvent.click(screen.getByRole("tab", { name: "Loyalty card" }));
     expect(screen.getByText(/reward is ready/i)).toBeInTheDocument();
   });
 
@@ -99,11 +104,13 @@ describe("MyProfile", () => {
     expect(screen.getByText("Nothing booked ahead.")).toBeInTheDocument();
   });
 
-  it("links back to the site and to the legal pages", () => {
+  it("links back to the site and to the legal pages, in a new tab", () => {
     render(<MyProfile />);
-    expect(screen.getByRole("link", { name: "Back to site" })).toHaveAttribute("href", "/");
-    expect(screen.getByRole("link", { name: "Terms" })).toHaveAttribute("href", "/tou");
-    expect(screen.getByRole("link", { name: "Privacy" })).toHaveAttribute("href", "/privacy");
+    for (const [name, href] of [["Back to site", "/"], ["Terms", "/tou"], ["Privacy", "/privacy"]]) {
+      const link = screen.getByRole("link", { name: (n) => n.startsWith(name) && n.endsWith("(opens in a new tab)") });
+      expect(link).toHaveAttribute("href", href);
+      expect(link).toHaveAttribute("target", "_blank");
+    }
   });
 });
 

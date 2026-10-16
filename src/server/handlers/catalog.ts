@@ -3,6 +3,7 @@ import { requireAdmin } from "../auth";
 import { getService, isContentSection } from "../catalog";
 import { getSql } from "../db";
 import { orNull, pgErrorCode, readJson, routeNotFound, toId } from "../http";
+import { imageBytes, NOT_AN_IMAGE } from "../imageFiles";
 import { createImageKey, publicBaseUrl, putObject } from "../r2";
 import { changesCatalog } from "../publicCache";
 import { forwardToWorker, ported } from "../worker";
@@ -62,9 +63,12 @@ export const uploadContentImage = ported<SectionContext>(async (req) => {
   }
   if (file.size > MAX_UPLOAD_SIZE) return Response.json({ error: "Image must be 4MB or smaller." }, { status: 400 });
 
+  const bytes = await imageBytes(file);
+  if (!bytes) return Response.json({ error: NOT_AN_IMAGE }, { status: 400 });
+
   const key = createImageKey("content", file.name);
   const imageUrl = `${publicBaseUrl()}/${key}`;
-  await putObject(key, new Uint8Array(await file.arrayBuffer()), file.type);
+  await putObject(key, bytes, file.type);
   return Response.json({ imageUrl, key });
 });
 

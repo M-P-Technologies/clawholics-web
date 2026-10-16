@@ -87,7 +87,7 @@ describe("Appointments table", () => {
       pageSize: 5,
       proofToReview: true,
       sort: "upcoming",
-      statuses: ["PENDING", "AWAITING_PROOF", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUNDED"],
+      statuses: ["PENDING", "AWAITING_PROOF", "AWAITING_CONFIRMATION", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUNDED"],
     });
   });
 

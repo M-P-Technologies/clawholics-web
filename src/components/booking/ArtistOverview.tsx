@@ -15,9 +15,9 @@ interface ArtistOverviewProps {
 
 const Stat = ({ icon, value, label }: { icon: ReactNode; value: string; label: string }) => (
   <div className="flex min-w-0 flex-col items-center gap-1 text-center">
-    <span className="text-crimson">{icon}</span>
+    <span className="text-crimson-ink">{icon}</span>
     <span className="text-base font-bold leading-tight text-gray-red">{value}</span>
-    <span className="text-xs text-gray-red/70">{label}</span>
+    <span className="text-xs text-gray-red">{label}</span>
   </div>
 );
 
@@ -29,12 +29,12 @@ export default function ArtistOverview({ nailist, workCount }: ArtistOverviewPro
   const services = nailist.offered_services ?? [];
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       <h1 className="font-display text-2xl font-normal uppercase leading-tight tracking-wider text-gray-red sm:text-3xl sm:tracking-widest">
         {nailist.name}
       </h1>
 
-      <div className="flex justify-around gap-2 border-y border-crimson-light/80 py-4">
+      <div className="flex justify-around gap-3 border-y border-crimson-light/80 py-3">
         <Stat icon={<Award size={28} strokeWidth={1.5} aria-hidden="true" />} value={role} label={rest.join(" ") || "Artist"} />
         {services.length > 0 && <Stat icon={<Sparkles size={28} strokeWidth={1.5} aria-hidden="true" />} value={String(services.length)} label="Services" />}
         {workCount > 0 && <Stat icon={<Images size={28} strokeWidth={1.5} aria-hidden="true" />} value={String(workCount)} label="Photos of work" />}
@@ -53,11 +53,11 @@ export default function ArtistOverview({ nailist, workCount }: ArtistOverviewPro
       )}
 
       {services.length > 0 && (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           <h2 className="label-caps">Services</h2>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-3">
             {services.map((name) => (
-              <span key={name} className="rounded-md border border-crimson-light px-4 py-1 text-sm text-crimson">
+              <span key={name} className="rounded-md border border-crimson-light px-3 py-1 text-sm text-crimson-ink">
                 {name}
               </span>
             ))}

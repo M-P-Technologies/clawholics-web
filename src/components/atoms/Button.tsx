@@ -37,13 +37,13 @@ type NativeAnchorProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, keyof But
 export type ButtonProps = ButtonOwnProps & NativeButtonProps & NativeAnchorProps;
 
 const BASE =
-  "inline-flex min-w-0 shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson";
+  "inline-flex min-w-0 shrink-0 cursor-pointer items-center justify-center gap-3 whitespace-nowrap transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson";
 
 const VARIANTS: Record<ButtonVariant, string> = {
   primary:
-    "rounded-md bg-crimson px-4 py-2 text-sm font-bold uppercase tracking-extrawide text-light-orange sm:px-6 sm:py-3 shadow-md shadow-crimson/30 hover:bg-gray-red active:translate-y-px",
+    "rounded-md bg-crimson px-3 sm:px-4 py-2 text-sm md:text-base font-semibold text-light-orange shadow-md shadow-crimson/30 hover:bg-gray-red active:translate-y-px",
   secondary:
-    "rounded-md border border-crimson px-4 py-2 text-sm font-bold uppercase tracking-extrawide text-crimson sm:px-6 sm:py-3 hover:bg-crimson hover:text-light-orange active:translate-y-px",
+    "rounded-md border border-crimson px-3 sm:px-4 py-2 text-sm md:text-base font-semibold text-crimson hover:bg-crimson hover:text-on-crimson active:translate-y-px",
   bare: "",
 };
 

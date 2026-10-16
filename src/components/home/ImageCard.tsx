@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import clsx from "clsx";
+import Image from "next/image";
+import { canOptimizeImage } from "@/lib/imageHosts";
 
 interface ImageCardProps {
   image: string;
@@ -16,6 +18,8 @@ interface ImageCardProps {
   mobileLines?: 2 | 3;
   /** Buttons and details at the bottom of the card */
   footer: ReactNode;
+  /** The first card on the page: its photo is loaded first, as the page's main image */
+  priority?: boolean;
 }
 
 // The framed photo card shared by the Services and Artists pages: photo with a cream
@@ -36,26 +40,30 @@ export default function ImageCard({
   description,
   mobileLines = 2,
   footer,
+  priority = false,
 }: ImageCardProps) {
   return (
     <article className="group flex h-full flex-row overflow-hidden sm:flex-col rounded-sm border border-crimson-light/80 bg-light-orange shadow-xl shadow-crimson/10 transition-colors duration-300 hover:border-crimson">
-      <div className="p-2 max-sm:w-2/5 max-sm:shrink-0">
-        <div className={clsx("w-full overflow-hidden rounded-sm bg-crimson-light", aspect, "max-sm:aspect-9/16")}>
-          <img
-            loading="lazy"
+      <div className="p-3 max-sm:w-2/5 max-sm:shrink-0">
+        <div className={clsx("relative w-full overflow-hidden rounded-sm bg-crimson-light", aspect, "max-sm:aspect-9/16")}>
+          <Image
             src={image}
             alt={imageAlt}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            fill
+            priority={priority}
+            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 40vw"
+            unoptimized={!canOptimizeImage(image)}
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
         </div>
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col gap-4 p-4 max-sm:pl-2 md:p-8">
-        <div className="flex flex-col gap-2">
-          <h3 id={titleId} className="font-display text-xl font-normal uppercase tracking-widest text-gray-red">
+      <div className="flex min-w-0 flex-1 flex-col gap-3 p-3 max-sm:pl-2 md:p-6">
+        <div className="flex flex-col gap-3">
+          <h2 id={titleId} className="font-display text-xl font-normal uppercase tracking-widest text-gray-red">
             {title}
-          </h3>
-          <div className="text-sm font-bold text-crimson">{subtitle}</div>
+          </h2>
+          <div className="text-sm font-bold text-crimson-ink">{subtitle}</div>
         </div>
 
         <p className={clsx("whitespace-pre-line copy-body", DESCRIPTION_LINES[mobileLines])}>

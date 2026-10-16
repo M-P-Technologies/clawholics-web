@@ -52,19 +52,19 @@ export default function ActiveBookings({ load }: { load: BookingsLoader }) {
   const more = todays.length - shown.length;
 
   return (
-    <section aria-label="Active bookings" className="flex min-w-0 flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-5 shadow-petal">
-      <div className="flex items-baseline justify-between gap-2">
+    <section aria-label="Active bookings" className="flex min-w-0 flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-6 shadow-petal">
+      <div className="flex items-baseline justify-between gap-3">
         <h2 className="font-display text-xl font-normal text-gray-red">Active bookings</h2>
-        <span className="text-[12px] text-gray-red/70">{dayLabel(today)}</span>
+        <span className="text-xs text-gray-red">{dayLabel(today)}</span>
       </div>
       {failed ? (
-        <p className="text-sm text-gray-red/70">We couldn&apos;t load today&apos;s bookings.</p>
+        <p className="text-sm text-gray-red">We couldn&apos;t load today&apos;s bookings.</p>
       ) : rows === null ? (
         <SectionSkeleton label="Loading today's bookings" lines={4} />
       ) : todays.length === 0 ? (
-        <p className="text-sm text-gray-red/70">No bookings today.</p>
+        <p className="text-sm text-gray-red">No bookings today.</p>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-3">
           {shown.map((a) => {
             const { start, end } = range(a.appointment_time);
             const done = isDone(a);
@@ -73,13 +73,13 @@ export default function ActiveBookings({ load }: { load: BookingsLoader }) {
               <li
                 key={a.id}
                 className={clsx(
-                  "flex items-start justify-between gap-3 rounded-xl border-l-4 px-3 py-2.5",
+                  "flex items-start justify-between gap-3 rounded-xl border-l-4 px-3 py-3",
                   current ? "border-berry bg-crimson-light/40" : done ? "border-crimson-light bg-light-orange/40 opacity-75" : "border-crimson bg-crimson-light/20",
                 )}
               >
                 <span className="min-w-0">
-                  <p className="truncate text-[14px] font-bold text-gray-red">{`${a.first_name ?? ""} ${a.last_name ?? ""}`.trim() || "Client"}</p>
-                  <span className="block truncate text-[12px] text-gray-red/80">{a.service_name}</span>
+                  <p className="truncate text-sm font-bold text-gray-red">{`${a.first_name ?? ""} ${a.last_name ?? ""}`.trim() || "Client"}</p>
+                  <span className="block truncate text-xs text-gray-red">{a.service_name}</span>
                 </span>
                 <span className="shrink-0 text-right">
                   <span className="flex items-center justify-end gap-1.5">
@@ -87,7 +87,7 @@ export default function ActiveBookings({ load }: { load: BookingsLoader }) {
                     {done && <span className="rounded-full bg-sand px-2 py-0.5 text-[10px] font-bold text-gray-red">Done</span>}
                     <span className="text-[13px] font-bold text-gray-red">{a.nailist_name}</span>
                   </span>
-                  <span className="block whitespace-nowrap text-[12px] text-gray-red/80">{`${clock(start)} – ${clock(end)}`}</span>
+                  <span className="block whitespace-nowrap text-xs text-gray-red">{`${clock(start)} – ${clock(end)}`}</span>
                 </span>
               </li>
             );

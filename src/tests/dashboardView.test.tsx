@@ -38,7 +38,7 @@ describe("DashboardView layout", () => {
     expect(main.className).toContain("lg:col-span-3");
   });
 
-  it("spaces every card the same: gap-4, and gap-6 from md up", () => {
+  it("spaces every card the same: gap-3, and gap-6 from md up", () => {
     render(<DashboardView data={data} />);
     const statGrid = screen.getByRole("group", { name: "Collected" }).parentElement as HTMLElement;
     const column = screen.getByRole("region", { name: "Salon notes" }).parentElement as HTMLElement;
@@ -47,7 +47,7 @@ describe("DashboardView layout", () => {
     const main = charts.parentElement as HTMLElement;
     const page = lower.parentElement as HTMLElement;
     for (const el of [statGrid, lower, main, charts, page]) {
-      expect(el.className).toContain("gap-4");
+      expect(el.className).toContain("gap-3");
       expect(el.className).toContain("md:gap-6");
     }
   });
@@ -132,3 +132,20 @@ describe("DashboardView: bookings", () => {
   });
 });
 
+describe("DashboardView next appointments (without the bookings table)", () => {
+  const item = { id: 1, client_name: "Dana D", service_name: "Gel Manicure", nailist_name: "Maxine", appointment_date: "2026-10-14", appointment_time: "15:00-16:00" };
+
+  it("lists the next appointments with who, what and when", () => {
+    render(<DashboardView data={{ ...data, next: [item] }} />);
+    const next = within(screen.getByRole("region", { name: "Next appointments" }));
+    expect(next.getByText("Dana D")).toBeInTheDocument();
+    expect(next.getByText(/Gel Manicure · Maxine/)).toBeInTheDocument();
+    expect(next.getByText(/15:00-16:00/)).toBeInTheDocument();
+    expect(next.getByRole("link", { name: "Open the schedule" })).toHaveAttribute("href", "/schedule");
+  });
+
+  it("says so when there are none", () => {
+    render(<DashboardView data={{ ...data, next: [] }} />);
+    expect(screen.getByText("No upcoming confirmed appointments.")).toBeInTheDocument();
+  });
+});

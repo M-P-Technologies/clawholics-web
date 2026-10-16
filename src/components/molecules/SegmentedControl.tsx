@@ -43,15 +43,15 @@ export default function SegmentedControl<T extends string>({ label, options, val
             onClick={() => onChange(option.value)}
             onKeyDown={(e) => move(e, index)}
             className={clsx(
-              "inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-1.5 text-[13px] font-bold transition-colors",
+              "inline-flex items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-bold transition-colors",
               focusRing,
               fill && "flex-1 sm:flex-none",
-              selected ? "bg-milk text-berry shadow-sm" : "text-gray-red/80 hover:text-berry",
+              selected ? "bg-milk text-berry shadow-sm" : "text-gray-red hover:text-berry",
             )}
           >
             {Icon && <Icon size={14} aria-hidden="true" />}
             {option.label}
-            {option.count !== undefined && <span className="rounded-full bg-crimson-light/50 px-1.5 text-[11px] text-berry">{option.count}</span>}
+            {option.count !== undefined && <span className="rounded-full bg-crimson-light/50 px-1.5 text-xs text-berry">{option.count}</span>}
           </button>
         );
       })}

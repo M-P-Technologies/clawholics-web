@@ -25,3 +25,9 @@ export function describePoints(value: number | null, previous: number | null): C
   if (points === 0) return { kind: "flat", label: "0 pts" };
   return points > 0 ? { kind: "up", label: `+${points} pts` } : { kind: "down", label: `${points} pts` };
 }
+
+/** "Wed, Oct 14" for a YYYY-MM-DD day */
+export const shortDay = (ymd: string) => {
+  const [year, month, day] = ymd.split("-").map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+};

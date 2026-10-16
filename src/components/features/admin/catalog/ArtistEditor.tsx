@@ -22,15 +22,15 @@ const ArtistEditor: React.FC<ArtistEditorProps> = (props) => {
 
   return (
     <>
-      <div className="flex flex-col w-full rounded-xl border border-crimson-light/50 bg-milk px-3 py-2.5">
+      <div className="flex flex-col w-full rounded-xl border border-crimson-light/50 bg-milk px-3 py-3">
         <Button
           variant="bare"
           type="button"
           onClick={() => editor.setIsOpen((prevState) => !prevState)}
           aria-expanded={isOpen}
-          className="flex items-center justify-between w-full gap-4 sm:gap-4 text-left min-h-[35px]"
+          className="flex items-center justify-between w-full gap-3 sm:gap-3 text-left min-h-8.75"
         >
-          <span className="block min-w-0 font-bold text-[15px] truncate text-gray-red">
+          <span className="block min-w-0 font-bold text-base truncate text-gray-red">
             {editor.title || "Untitled Artist"}
           </span>
 
@@ -51,10 +51,10 @@ const ArtistEditor: React.FC<ArtistEditorProps> = (props) => {
 
         <div
           className={`transition-all duration-300 ease-in-out overflow-hidden ${
-            isOpen ? "max-h-[2600px] opacity-100 mt-4" : "max-h-0 opacity-0"
+            isOpen ? "max-h-[2600px] opacity-100 mt-3" : "max-h-0 opacity-0"
           }`}
         >
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3">
             <ArtistDetailsFields
               isEditing={isEditing}
               name={editor.name}

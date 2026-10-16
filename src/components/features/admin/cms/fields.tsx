@@ -27,13 +27,13 @@ export function PanelSection({ title, description, page, aside, children }: Pane
   const { showPage } = useCmsEditor();
   const show = () => page && showPage(page);
   return (
-    <section aria-label={title} onFocusCapture={show} onPointerDownCapture={show} className="flex flex-col gap-4 border-b border-crimson-light/40 px-4 py-5 last:border-b-0 sm:px-5">
+    <section aria-label={title} onFocusCapture={show} onPointerDownCapture={show} className="flex flex-col gap-3 border-b border-crimson-light/40 px-3 py-6 last:border-b-0 sm:px-6">
       <div className="flex flex-col gap-1">
         <div className="flex items-baseline justify-between gap-3">
           <h2 className="font-display text-xl font-normal text-gray-red">{title}</h2>
-          {aside && <span className="shrink-0 text-[12px] font-bold text-gray-red/70">{aside}</span>}
+          {aside && <span className="shrink-0 text-xs font-bold text-gray-red">{aside}</span>}
         </div>
-        {description && <p className="text-[13px] leading-snug text-gray-red/70">{description}</p>}
+        {description && <p className="text-[13px] leading-snug text-gray-red">{description}</p>}
       </div>
       {children}
     </section>
@@ -52,21 +52,35 @@ interface TextFieldProps {
   /** The phone keyboard to show, e.g. "numeric" for whole numbers */
   inputMode?: "numeric";
   disabled?: boolean;
+  /** The most characters allowed; the box stops there and a counter shows how many are used */
+  maxLength?: number;
 }
 
-export function TextField({ label, value, onChange, rows, hint, placeholder, type = "text", inputMode, disabled }: TextFieldProps) {
+export function TextField({ label, value, onChange, rows, hint, placeholder, type = "text", inputMode, disabled, maxLength }: TextFieldProps) {
   const id = useId();
+  const counterId = useId();
+  const limit = maxLength ? { maxLength, "aria-describedby": counterId } : {};
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className={fieldLabelClass}>
         {label}
       </label>
       {rows ? (
-        <Textarea id={id} rows={rows} value={value} placeholder={placeholder} disabled={disabled} onChange={(e) => onChange(e.target.value)} className="min-h-0! resize-y leading-relaxed" />
+        <Textarea id={id} rows={rows} value={value} placeholder={placeholder} disabled={disabled} onChange={(e) => onChange(e.target.value)} className="min-h-0! resize-y leading-relaxed" {...limit} />
       ) : (
-        <Input id={id} type={type} inputMode={inputMode} value={value} placeholder={placeholder} disabled={disabled} onChange={(e) => onChange(e.target.value)} />
+        <Input id={id} type={type} inputMode={inputMode} value={value} placeholder={placeholder} disabled={disabled} onChange={(e) => onChange(e.target.value)} {...limit} />
       )}
-      {hint && <p className="text-[12px] leading-snug text-gray-red/60">{hint}</p>}
+      {(hint || maxLength) && (
+        <div className="flex items-start justify-between gap-3">
+          {hint ? <p className="text-xs leading-snug text-gray-red">{hint}</p> : <span />}
+          {maxLength && (
+            // A text saved before the limit can be longer; it shows over the limit until shortened
+            <p id={counterId} className={`shrink-0 text-xs tabular-nums ${value.length > maxLength ? "font-bold text-danger-ink" : "text-gray-red"}`}>
+              {value.length}/{maxLength}
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -151,7 +165,7 @@ export function IconPicker({ label, value, icons, onChange }: IconPickerProps) {
             onClick={() => onChange(key)}
             className={clsx(
               "flex aspect-square items-center justify-center rounded-lg border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson",
-              value === key ? "border-crimson bg-crimson-light/40 text-berry" : "border-crimson-light/60 text-gray-red/70 hover:border-crimson hover:text-crimson",
+              value === key ? "border-crimson bg-crimson-light/40 text-berry" : "border-crimson-light/60 text-gray-red hover:border-crimson hover:text-crimson-ink",
             )}
           >
             <Icon className="h-5 w-5" strokeWidth={1.5} />
@@ -200,12 +214,12 @@ export function ImageField({ label, value, uploading, onUpload, onRemove, hint, 
     <div className="flex flex-col gap-1.5">
       <span className={fieldLabelClass}>{label}</span>
       {shown ? (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           <div className="relative overflow-hidden rounded-lg border border-crimson-light/60 bg-crimson-light/20">
             {/* eslint-disable-next-line @next/next/no-img-element -- R2 images, sized by CSS like the rest of the admin */}
             <img src={shown} alt={label} className={clsx("aspect-video w-full", fit === "contain" ? "object-contain p-2" : "object-cover")} />
             {!value && (
-              <span className="absolute left-2 top-2 rounded-full bg-milk/90 px-2 py-0.5 text-[11px] font-bold text-gray-red">Default</span>
+              <span className="absolute left-2 top-2 rounded-full bg-milk/90 px-2 py-0.5 text-xs font-bold text-gray-red">Default</span>
             )}
             {uploading && (
               <span className="absolute inset-0 flex items-center justify-center bg-milk/70 text-[13px] font-bold text-gray-red">
@@ -214,7 +228,7 @@ export function ImageField({ label, value, uploading, onUpload, onRemove, hint, 
               </span>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <label
               htmlFor={id}
               className={clsx(
@@ -227,7 +241,7 @@ export function ImageField({ label, value, uploading, onUpload, onRemove, hint, 
               {input}
             </label>
             {value && (
-              <Button type="button" variant="bare" onClick={onRemove} disabled={uploading} className="gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-bold text-danger hover:bg-danger/10">
+              <Button type="button" variant="bare" onClick={onRemove} disabled={uploading} className="gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-bold text-danger-ink hover:bg-danger/10">
                 <Trash2 size={14} aria-hidden="true" />
                 {fallback ? "Use the default" : "Remove"}
               </Button>
@@ -237,7 +251,7 @@ export function ImageField({ label, value, uploading, onUpload, onRemove, hint, 
       ) : (
         <DropArea id={id} uploading={uploading} onFile={pick} input={input} />
       )}
-      {hint && <p className="text-[12px] leading-snug text-gray-red/60">{hint}</p>}
+      {hint && <p className="text-xs leading-snug text-gray-red">{hint}</p>}
     </div>
   );
 }
@@ -253,7 +267,7 @@ export function DropArea({ id, uploading, onFile, input, label = "Upload a photo
         if (!uploading) onFile(e.dataTransfer.files?.[0]);
       }}
       className={clsx(
-        "flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-crimson-light px-4 py-6 text-center transition-colors focus-within:ring-2 focus-within:ring-crimson",
+        "flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-crimson-light px-3 py-6 text-center transition-colors focus-within:ring-2 focus-within:ring-crimson",
         uploading ? "cursor-wait opacity-70" : "cursor-pointer hover:border-crimson hover:bg-crimson-light/15",
       )}
     >
@@ -261,7 +275,7 @@ export function DropArea({ id, uploading, onFile, input, label = "Upload a photo
         {uploading ? <Loader2 size={18} className="animate-spin" /> : <ImagePlus size={18} />}
       </span>
       <span className="text-[13px] font-bold text-gray-red">{uploading ? "Uploading…" : label}</span>
-      {!uploading && <span className="text-[12px] text-gray-red/60">PNG, JPG or WebP. Click, or drop it here.</span>}
+      {!uploading && <span className="text-xs text-gray-red">PNG, JPG or WebP. Click, or drop it here.</span>}
       {input}
     </label>
   );
@@ -280,16 +294,16 @@ interface SaveBarProps {
 export function SaveBar({ dirty, saving, busy = false, onSave, onDiscard }: SaveBarProps) {
   useUnsavedWarning(dirty);
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-crimson-light/40 px-4 py-3 sm:px-5">
-      <p role="status" className="flex items-center gap-2 text-[13px] font-medium text-gray-red/80">
+    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-crimson-light/40 px-3 py-3 sm:px-6">
+      <p role="status" className="flex items-center gap-3 text-[13px] font-medium text-gray-red">
         <span aria-hidden="true" className={clsx("h-2 w-2 rounded-full", dirty ? "bg-crimson" : "bg-success")} />
         {dirty ? "Unsaved changes" : "Live on the site"}
       </p>
-      <div className="flex gap-2">
-        <Button type="button" variant="secondary" onClick={onDiscard} disabled={!dirty || saving} className="px-4! py-1.5! text-[13px]">
+      <div className="flex gap-3">
+        <Button type="button" variant="secondary" onClick={onDiscard} disabled={!dirty || saving} className="px-3! py-1.5! text-[13px]">
           Discard
         </Button>
-        <Button type="button" onClick={onSave} loading={saving} loadingText="Saving…" disabled={!dirty || busy} className="px-4! py-1.5! text-[13px]">
+        <Button type="button" onClick={onSave} loading={saving} loadingText="Saving…" disabled={!dirty || busy} className="px-3! py-1.5! text-[13px]">
           Save
         </Button>
       </div>
@@ -300,7 +314,7 @@ export function SaveBar({ dirty, saving, busy = false, onSave, onDiscard }: Save
 // The panel's top bar for editors whose items save one at a time
 export function ItemsNote({ children }: { children: ReactNode }) {
   return (
-    <p className="border-b border-crimson-light/40 px-4 py-3 text-[13px] leading-snug text-gray-red/70 sm:px-5">{children}</p>
+    <p className="border-b border-crimson-light/40 px-3 py-3 text-[13px] leading-snug text-gray-red sm:px-6">{children}</p>
   );
 }
 
@@ -319,7 +333,7 @@ function useUnsavedWarning(dirty: boolean) {
 // A block of the page that's edited on another screen, with a link there
 export function ElsewhereNote({ to, screen, children }: { to: string; screen: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col items-start gap-2 rounded-xl bg-crimson-light/20 p-3 text-[13px] leading-snug text-gray-red">
+    <div className="flex flex-col items-start gap-3 rounded-xl bg-crimson-light/20 p-3 text-[13px] leading-snug text-gray-red">
       <p className="text-[13px] leading-snug">{children}</p>
       <Link to={to} className="inline-flex items-center gap-1 font-bold text-berry underline underline-offset-4">
         Edit in {screen}

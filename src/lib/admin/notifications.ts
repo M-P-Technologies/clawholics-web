@@ -6,8 +6,8 @@ import type { AdminNotification } from "../../services/notificationService";
 /** How often the bell asks for new notifications while an admin screen is open (and visible) */
 export const NOTIFICATIONS_POLL_MS = 30_000;
 
-/** "Booking paid" or "Payment proof to review" */
-export const notificationTitle = (n: AdminNotification) => (n.kind === "proof_uploaded" ? "Payment proof to review" : "Booking paid");
+/** "Booking paid, to confirm" or "Payment proof to review" */
+export const notificationTitle = (n: AdminNotification) => (n.kind === "proof_uploaded" ? "Payment proof to review" : "Booking paid, to confirm");
 
 /** "Ana Cruz · Gel manicure with Maxine · Oct 20, 2:00 PM" (whatever of it is known) */
 export function notificationLine(n: AdminNotification) {
@@ -17,9 +17,9 @@ export function notificationLine(n: AdminNotification) {
   return [who, what, when].filter(Boolean).join(" · ");
 }
 
-/** A proof opens the list of proofs to review; a paid booking opens its client's page */
+/** A proof opens the list of proofs to review; a paid booking the bookings waiting to be confirmed */
 export const notificationLink = (n: AdminNotification) =>
-  n.kind === "proof_uploaded" || n.client_user_id === null ? "/clients?status=PROOF_PENDING" : `/clients/${n.client_user_id}`;
+  n.kind === "proof_uploaded" ? "/clients?status=PROOF_PENDING" : "/clients?status=AWAITING_CONFIRMATION";
 
 /** "just now", "5 min ago", "3 h ago", "2 days ago" */
 export function notificationAge(createdAt: string, now = Date.now()) {

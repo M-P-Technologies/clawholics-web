@@ -15,7 +15,7 @@ export default function Privacy() {
 
   return (
     <PageShell>
-      <Section innerClassName="max-w-4xl !gap-8">
+      <Section innerClassName="max-w-4xl gap-9!">
         <BackButton />
         <Panel as="article">
           <div className="legal-text" dangerouslySetInnerHTML={{ __html: html }} />

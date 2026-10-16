@@ -6,7 +6,7 @@ import { isApiAdmin } from "@/server/auth";
 import ForgetPublicContent from "@/components/providers/ForgetPublicContent";
 
 // Search engines must not list the admin screens
-export const metadata: Metadata = { robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Admin", robots: { index: false, follow: false } };
 
 // Every admin screen needs a signed-in admin. It is checked on the server before the screen
 // renders; the API still enforces the role on every admin request.

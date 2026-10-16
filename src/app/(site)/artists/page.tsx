@@ -28,11 +28,12 @@ export default function Team() {
           />
         )}
 
-        <div ref={listRef} className="flex scroll-mt-24 flex-col gap-4 md:gap-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
-          {pageItems.map((n) => (
+        <div ref={listRef} className="flex scroll-mt-24 flex-col gap-3 md:gap-9">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-9">
+          {pageItems.map((n, index) => (
             <ImageCard
               key={n.id}
+              priority={index === 0}
               image={n.image}
               imageAlt={`${n.name}, ${n.position} at Clawholics by Max`}
               aspect="aspect-3/4"
@@ -42,12 +43,8 @@ export default function Team() {
               description={n.bio}
               mobileLines={3}
               footer={
-                <Button
-                  to={artistPath(n)}
-                  aria-label={`Learn more about ${n.name}`}
-                  className="w-fit"
-                >
-                  Learn more
+                <Button to={artistPath(n)} className="w-fit">
+                  Learn more<span className="sr-only"> about {n.name}</span>
                 </Button>
               }
             />

@@ -2,7 +2,6 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { Wallet } from "lucide-react";
 import { describe, expect, it, vi } from "vitest";
 import { StatCard } from "@/components/molecules";
-import NextAppointments from "@/components/features/admin/dashboard/NextAppointments";
 import PeriodSwitch from "@/components/features/admin/dashboard/PeriodSwitch";
 
 vi.mock("@/lib/router", () => ({
@@ -47,7 +46,7 @@ describe("StatCard icon", () => {
 
   it("keeps the label clear of the badge", () => {
     render(<StatCard label="Estimated sales" value="₱1" icon={Wallet} />);
-    expect(screen.getByText("Estimated sales").className).toContain("pr-10");
+    expect(screen.getByText("Estimated sales").className).toContain("pr-9");
   });
 });
 
@@ -57,7 +56,7 @@ describe("StatCard with a big number", () => {
     const value = screen.getByText("₱1,250,000");
     expect(value.className).toContain("text-3xl");
     expect(value.className).toContain("sm:text-4xl");
-    expect(value.className).toContain("break-words");
+    expect(value.className).toContain("wrap-break-word");
   });
 });
 
@@ -71,22 +70,5 @@ describe("PeriodSwitch", () => {
     expect(screen.getByRole("button", { name: "This month" })).toHaveAttribute("aria-pressed", "true");
     fireEvent.click(screen.getByRole("button", { name: "Last 30 days" }));
     expect(onChange).toHaveBeenCalledWith("last30");
-  });
-});
-
-describe("NextAppointments", () => {
-  const item = { id: 1, client_name: "Dana D", service_name: "Gel Manicure", nailist_name: "Maxine", appointment_date: "2026-10-14", appointment_time: "15:00-16:00" };
-
-  it("lists the next appointments with who, what and when", () => {
-    render(<NextAppointments items={[item]} />);
-    expect(screen.getByText("Dana D")).toBeInTheDocument();
-    expect(screen.getByText(/Gel Manicure/)).toBeInTheDocument();
-    expect(screen.getByText(/Maxine/)).toBeInTheDocument();
-    expect(screen.getByText(/15:00-16:00/)).toBeInTheDocument();
-  });
-
-  it("says so when there are none", () => {
-    render(<NextAppointments items={[]} />);
-    expect(screen.getByText("No upcoming confirmed appointments.")).toBeInTheDocument();
   });
 });

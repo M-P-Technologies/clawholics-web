@@ -19,12 +19,12 @@ function ClientDirectory() {
 
   return (
     <AdminShell title="Clients & Bookings">
-      <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pb-2">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 md:gap-6 overflow-y-auto pb-2">
         {!directory.usersFailed && <DirectoryStats label="Client totals" stats={directory.stats} />}
 
         {directory.leadsView && (
           <section aria-label="Warm leads" className="flex flex-col gap-3">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl border border-crimson-light/40 bg-milk px-4 py-3 text-sm text-gray-red shadow-petal">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl border border-crimson-light/40 bg-milk px-3 py-3 text-sm text-gray-red shadow-petal">
               <p>{directory.leadsMessage}</p>
               <Link to="/clients" className="font-bold text-berry underline underline-offset-4">
                 Back to the appointments
@@ -41,7 +41,7 @@ function ClientDirectory() {
                 showVisits
               />
             )}
-            {directory.leadsLoaded && leads.length === 0 && !directory.leadsFailed && <p className="text-sm text-gray-red/70">No warm leads right now.</p>}
+            {directory.leadsLoaded && leads.length === 0 && !directory.leadsFailed && <p className="text-sm text-gray-red">No warm leads right now.</p>}
           </section>
         )}
 

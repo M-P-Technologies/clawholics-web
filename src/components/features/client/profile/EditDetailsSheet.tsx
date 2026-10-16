@@ -25,8 +25,8 @@ interface EditDetailsSheetProps {
 export default function EditDetailsSheet(p: EditDetailsSheetProps) {
   return (
     <Dialog open={p.open} title="Edit details" onClose={p.onCancel} placement="drawer">
-      <div className="flex flex-col gap-4">
-        {p.error && <div role="alert" className="rounded-xl bg-danger/10 px-4 py-3 text-[13px] font-bold text-danger">{p.error}</div>}
+      <div className="flex flex-col gap-3">
+        {p.error && <div role="alert" className="rounded-xl bg-danger/10 px-3 py-3 text-[13px] font-bold text-danger-ink">{p.error}</div>}
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {p.fields.map((field) => (
@@ -34,7 +34,7 @@ export default function EditDetailsSheet(p: EditDetailsSheetProps) {
           ))}
 
           <div className="flex flex-col gap-1">
-            <p className="text-[12px] text-gray-red/70">Gender:</p>
+            <p className="text-xs text-gray-red">Gender:</p>
             <div className="relative">
               <Button variant="bare" type="button" onClick={p.onToggleGender} className="flex w-full items-center justify-between rounded-md border border-crimson-light bg-milk px-3 py-2 text-left text-sm text-gray-red">
                 <span className={p.genderLabel ? "" : "opacity-60"}>{p.genderLabel || "Select gender"}</span>
@@ -54,7 +54,7 @@ export default function EditDetailsSheet(p: EditDetailsSheetProps) {
                     <div
                       key={option.value}
                       onClick={() => p.onSelectGender(option.value)}
-                      className={`cursor-pointer px-4 py-2.5 text-sm transition-colors ${
+                      className={`cursor-pointer px-3 py-3 text-sm transition-colors ${
                         p.genderValue === option.value ? "bg-crimson-light/40 font-bold text-berry" : "text-gray-red hover:bg-crimson-light/25"
                       }`}
                     >
@@ -67,13 +67,13 @@ export default function EditDetailsSheet(p: EditDetailsSheetProps) {
           </div>
 
           <div className="flex flex-col gap-1">
-            <p className="text-[12px] text-gray-red/70">Best way to reach you (optional):</p>
+            <p className="text-xs text-gray-red">Best way to reach you (optional):</p>
             <Select aria-label="Best way to reach you" value={p.contactMethod} options={p.contactMethodOptions} placeholder="No preference" onChange={(e) => p.onSelectContactMethod(e.target.value)} />
-            <p className="text-[12px] text-gray-red/60">We use these only to reach you about your appointment.</p>
+            <p className="text-xs text-gray-red">We use these only to reach you about your appointment.</p>
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 border-t border-crimson-light/50 pt-4 sm:flex-row-reverse sm:justify-start">
+        <div className="flex flex-col gap-3 border-t border-crimson-light/50 pt-3 sm:flex-row-reverse sm:justify-start">
           <Button type="button" onClick={p.onSave} className="w-full sm:w-auto">Save</Button>
           <Button type="button" variant="secondary" onClick={p.onCancel} className="w-full sm:w-auto">Cancel</Button>
         </div>

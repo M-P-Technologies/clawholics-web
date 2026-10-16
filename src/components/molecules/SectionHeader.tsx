@@ -23,14 +23,14 @@ export default function SectionHeader({ title, subtitle, children, align = "left
   if (size === "label") {
     return (
       <div className={clsx("flex items-center justify-between", className)}>
-        <Tag className="text-[13px] font-medium text-gray-red/80">{title}</Tag>
+        <Tag className="text-[13px] font-medium text-gray-red">{title}</Tag>
       </div>
     );
   }
 
   if (size === "card") {
     return (
-      <Tag className={clsx("flex items-center gap-2.5 font-display text-xl font-normal text-gray-red", className)}>
+      <Tag className={clsx("flex items-center gap-3 font-display text-xl font-normal text-gray-red", className)}>
         {Icon && (
           <span aria-hidden="true" className="flex h-9 w-9 items-center justify-center rounded-full bg-crimson-light/40 text-berry">
             <Icon size={18} strokeWidth={1.75} />
@@ -46,15 +46,15 @@ export default function SectionHeader({ title, subtitle, children, align = "left
       <div className={clsx("flex flex-col gap-1", className)}>
         <div className="flex items-baseline justify-between gap-3">
           <Tag className="font-display text-xl font-normal normal-case tracking-normal text-gray-red">{title}</Tag>
-          {action && <span className="text-[13px] font-bold text-crimson">{action}</span>}
+          {action && <span className="text-[13px] font-bold text-crimson-ink">{action}</span>}
         </div>
-        {subtitle && <p className="text-sm text-gray-red/80">{subtitle}</p>}
+        {subtitle && <p className="text-sm text-gray-red">{subtitle}</p>}
       </div>
     );
   }
 
   return (
-    <div className={clsx("flex flex-col gap-4 md:gap-8", align === "center" && "text-center", className)}>
+    <div className={clsx("flex flex-col gap-3 md:gap-9", align === "center" && "text-center", className)}>
       <Tag className="font-display text-4xl font-normal uppercase leading-tight tracking-widest text-gray-red lg:text-5xl 2xl:text-6xl">{title}</Tag>
       {subtitle && <p className={clsx("max-w-2xl copy-lead", align === "center" && "mx-auto")}>{subtitle}</p>}
       {children && <div>{children}</div>}

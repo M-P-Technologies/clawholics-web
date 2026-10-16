@@ -27,8 +27,8 @@ export default function Navbar() {
   // On every page the bar is see-through at the top and turns solid once the page is scrolled
   const solid = scrolled;
   const desktopLink = (to: string) =>
-    `group relative flex items-center gap-2 whitespace-nowrap py-4 text-sm font-medium tracking-wide transition-colors hover:text-crimson ${
-      pathname === to ? "text-crimson" : "text-gray-red"
+    `group relative flex items-center gap-3 whitespace-nowrap py-3 text-sm font-medium tracking-wide transition-colors hover:text-crimson-ink ${
+      pathname === to ? "text-crimson-ink" : "text-gray-red"
     }`;
 
   return (
@@ -41,12 +41,12 @@ export default function Navbar() {
       }`}
     >
       {/* DESKTOP */}
-      <div className="mx-auto hidden h-16 w-full max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-8 px-8 lg:grid">
+      <div className="mx-auto hidden h-16 w-full max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-9 px-9 lg:grid">
         <Link to="/" aria-label="Go to Clawholics by Max homepage" className="w-fit">
           <Logo className="h-11 w-11 text-crimson" aria-hidden="true" focusable="false" />
         </Link>
 
-        <div ref={containerRef} className="relative flex items-center gap-8">
+        <div ref={containerRef} className="relative flex items-center gap-9">
           {NAV_LINKS.map(({ to, label }) => (
             <Link
               key={to}
@@ -69,12 +69,12 @@ export default function Navbar() {
           )}
         </div>
 
-        <div className="flex items-center justify-end gap-4">
+        <div className="flex items-center justify-end gap-3">
           <Show when="signed-out">
             <Link
               aria-label="Log in"
               title="Log in"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-crimson text-crimson transition-colors hover:bg-crimson hover:text-light-orange focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-crimson text-crimson-ink transition-colors hover:bg-crimson hover:text-on-crimson focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson"
               to="/login"
             >
               <User size={18} aria-hidden="true" />
@@ -82,7 +82,7 @@ export default function Navbar() {
           </Show>
           <Show when="signed-in">
             <Link
-              className="whitespace-nowrap text-sm font-medium tracking-wide text-gray-red transition-colors hover:text-crimson"
+              className="whitespace-nowrap text-sm font-medium tracking-wide text-gray-red transition-colors hover:text-crimson-ink"
               to={CLIENT_PATHS.home}
             >
               My account
@@ -99,7 +99,7 @@ export default function Navbar() {
 
       {/* MOBILE: the logo, and on the right the page's back button when it has one (BackButton
           portals into the slot). The links are in the tab bar at the bottom (MobileTabBar). */}
-      <div className="flex h-16 items-center justify-between px-4 lg:hidden">
+      <div className="flex h-16 items-center justify-between px-3 lg:hidden">
         <Link to="/" aria-label="Go to Clawholics by Max homepage">
           <Logo className="h-11 w-11 text-crimson" aria-hidden="true" focusable="false" />
         </Link>

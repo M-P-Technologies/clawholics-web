@@ -90,24 +90,24 @@ export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, 
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
-        <h3 className="text-[13px] font-medium text-gray-red/80">
+        <h3 className="text-[13px] font-medium text-gray-red">
           Photos of their work{nailistId !== null && ` (${images.length}/${MAX_IMAGES})`}
         </h3>
       </div>
 
       {nailistId === null ? (
-        <p className="text-[13px] text-gray-red/80">Save the artist first, then you can add photos of their work.</p>
+        <p className="text-[13px] text-gray-red">Save the artist first, then you can add photos of their work.</p>
       ) : loadFailed ? (
-        <p role="alert" className="text-[13px] text-danger">
+        <p role="alert" className="text-[13px] text-danger-ink">
           We couldn&apos;t load this artist&apos;s photos. Please close and reopen the artist to try again.
         </p>
       ) : (
         <>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             {images.map((image) => (
               <div
                 key={image.id}
-                className="flex items-center justify-between w-full min-h-[36px] bg-milk rounded-md px-4 py-1 overflow-visible border border-crimson-light"
+                className="flex items-center justify-between w-full min-h-9 bg-milk rounded-md px-3 py-1 overflow-visible border border-crimson-light"
               >
                 <Button
                   variant="bare"
@@ -133,18 +133,18 @@ export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, 
               </div>
             ))}
             {images.length === 0 && !isEditing && (
-              <p className="text-[13px] text-gray-red/80">No photos yet. Press Edit to add some.</p>
+              <p className="text-[13px] text-gray-red">No photos yet. Press Edit to add some.</p>
             )}
           </div>
 
           {isEditing && images.length < MAX_IMAGES && (
-            <label className={`flex flex-col items-center justify-center w-full mt-4 ${busy ? "cursor-not-allowed" : "cursor-pointer"}`}>
+            <label className={`flex flex-col items-center justify-center w-full mt-3 ${busy ? "cursor-not-allowed" : "cursor-pointer"}`}>
               <div className="flex items-center justify-center w-10.5 h-10.5 rounded-sm bg-crimson/15 text-gray-red">
                 <UploadIcon size={28} className="text-crimson" />
               </div>
 
               <p className="text-[13px] text-gray-red">{busy ? "Working..." : "Click here to upload photos"}</p>
-              <p className="text-[12px] text-gray-red/70">Photos are saved as soon as they are uploaded or removed.</p>
+              <p className="text-xs text-gray-red">Photos are saved as soon as they are uploaded or removed.</p>
 
               <input
                 type="file"

@@ -14,8 +14,8 @@ interface SummaryRowProps {
 // from the row above by a dotted line. Goes inside a <dl>. A long value wraps.
 export default function SummaryRow({ label, value, icon, strong = false }: SummaryRowProps) {
   return (
-    <div className="flex items-baseline justify-between gap-4 border-t border-dotted border-crimson-light py-2 first:border-t-0 first:pt-0">
-      <dt className="flex shrink-0 items-center gap-2 text-[13px] text-gray-red/70">
+    <div className="flex items-baseline justify-between gap-3 border-t border-dotted border-crimson-light py-2 first:border-t-0 first:pt-0">
+      <dt className="flex shrink-0 items-center gap-3 text-[13px] text-gray-red">
         {icon && (
           <span aria-hidden="true" className="shrink-0 text-crimson">
             {icon}
@@ -25,7 +25,7 @@ export default function SummaryRow({ label, value, icon, strong = false }: Summa
       </dt>
       <dd
         className={clsx(
-          "min-w-0 break-words text-right",
+          "min-w-0 wrap-break-word text-right",
           strong ? "font-display text-xl text-berry" : "text-[13px] font-bold text-gray-red",
         )}
       >

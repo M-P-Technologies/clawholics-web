@@ -43,7 +43,7 @@ export default function Pagination({ page, totalPages, onPageChange, summary }: 
   if (totalPages <= 1 && !summary) return null;
   return (
     <div className={clsx("flex flex-wrap items-center gap-3", summary ? "justify-between" : "justify-center")}>
-      {summary && <p className="text-[13px] text-gray-red/70">{`Showing ${summary.first}–${summary.last} of ${summary.total}`}</p>}
+      {summary && <p className="text-[13px] text-gray-red">{`Showing ${summary.first}–${summary.last} of ${summary.total}`}</p>}
       {totalPages > 1 && (
         <nav aria-label="Pages" className="flex flex-wrap items-center gap-1">
           <Button type="button" variant="bare" aria-label="Previous page" disabled={page === 1} onClick={() => onPageChange(page - 1)} className="rounded-lg p-1.5 text-gray-red hover:bg-crimson-light/30 disabled:opacity-40">

@@ -31,24 +31,24 @@ export default function EditActions({
   const locked = isSaving || busy;
 
   return (
-    <div className="flex min-h-9 flex-wrap justify-end gap-2">
+    <div className="flex min-h-9 flex-wrap justify-end gap-3">
       {isEditing ? (
         <>
-          <Button variant="secondary" onClick={onCancel} disabled={locked} className="px-4! py-1.5! text-[13px]">
+          <Button variant="secondary" onClick={onCancel} disabled={locked} className="px-3! py-1.5! text-[13px]">
             Cancel
           </Button>
-          <Button onClick={onSave} loading={isSaving} loadingText={isCreateMode ? "Adding..." : "Saving..."} disabled={busy} className="px-4! py-1.5! text-[13px]">
+          <Button onClick={onSave} loading={isSaving} loadingText={isCreateMode ? "Adding..." : "Saving..."} disabled={busy} className="px-3! py-1.5! text-[13px]">
             {isCreateMode ? "Add" : "Save"}
           </Button>
         </>
       ) : isCreateMode ? null : (
         <>
           {onDelete && (
-            <Button variant="secondary" onClick={onDelete} className="px-4! py-1.5! text-[13px]">
+            <Button variant="secondary" onClick={onDelete} className="px-3! py-1.5! text-[13px]">
               Delete
             </Button>
           )}
-          <Button onClick={onEdit} className="px-4! py-1.5! text-[13px]">
+          <Button onClick={onEdit} className="px-3! py-1.5! text-[13px]">
             Edit
           </Button>
         </>

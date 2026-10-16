@@ -15,7 +15,7 @@ export default function SearchDemo() {
         value={b}
         onChange={setB}
         trailing={
-          <button type="button" aria-label="Filter by category" className="flex h-10 w-10 items-center justify-center rounded-xl bg-crimson text-milk">
+          <button type="button" aria-label="Filter by category" className="flex h-10 w-10 items-center justify-center rounded-xl bg-crimson text-light-orange">
             <SlidersHorizontal size={18} aria-hidden="true" />
           </button>
         }

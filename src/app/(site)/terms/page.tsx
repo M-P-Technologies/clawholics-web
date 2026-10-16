@@ -16,7 +16,7 @@ export default function Terms() {
 
   return (
     <PageShell>
-      <Section innerClassName="max-w-4xl !gap-8">
+      <Section innerClassName="max-w-4xl gap-9!">
         <BackButton />
         <SectionHeader title="Terms & conditions" />
 
@@ -28,12 +28,12 @@ export default function Terms() {
           />
         ) : (
           <Panel>
-            <div className="flex flex-col gap-4 md:gap-8">
+            <div className="flex flex-col gap-3 md:gap-9">
               {tacs.map((tac) => (
-                <div key={tac.id} className="flex flex-col gap-2">
-                  <h3 className="font-display text-lg font-normal uppercase tracking-widest text-gray-red md:text-xl">
+                <div key={tac.id} className="flex flex-col gap-3">
+                  <h2 className="font-display text-lg font-normal uppercase tracking-widest text-gray-red md:text-xl">
                     {tac.section}
-                  </h3>
+                  </h2>
                   <p className="whitespace-pre-line copy-lead">
                     {tac.content}
                   </p>

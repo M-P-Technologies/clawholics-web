@@ -22,7 +22,7 @@ export default function ScheduleMonthGrid({ month, onMonthChange, onPrevious, on
         <Button variant="bare" type="button" onClick={onPrevious} aria-label="Previous month" className="flex h-8 w-8 items-center justify-center">
           <BackButton size={32} className="text-gray-red" />
         </Button>
-        <h3 className="text-[16px] lg:text-[18px] uppercase">{monthLabel(month)}</h3>
+        <h3 className="text-base lg:text-lg uppercase">{monthLabel(month)}</h3>
         <Button variant="bare" type="button" onClick={onNext} aria-label="Next month" className="flex h-8 w-8 items-center justify-center">
           <BackButton size={32} className="text-gray-red rotate-180" />
         </Button>
@@ -40,11 +40,11 @@ export default function ScheduleMonthGrid({ month, onMonthChange, onPrevious, on
           month_caption: "hidden",
           caption_label: "hidden",
           nav: "hidden",
-          weekdays: "grid grid-cols-7 gap-1 lg:gap-4 mb-2 text-center text-gray-red font-bold text-[11px] sm:text-[13px] lg:text-[16px]",
+          weekdays: "grid grid-cols-7 gap-1 lg:gap-3 mb-2 text-center text-gray-red font-bold text-xs sm:text-[13px] lg:text-base",
           weekday: "py-1",
-          weeks: "grid grid-rows-6 gap-1 lg:gap-4 lg:flex-1",
-          week: "grid grid-cols-7 gap-1 lg:gap-4",
-          day: "h-[52px] sm:h-[68px] lg:min-h-[105px] lg:h-full w-full",
+          weeks: "grid grid-rows-6 gap-1 lg:gap-3 lg:flex-1",
+          week: "grid grid-cols-7 gap-1 lg:gap-3",
+          day: "h-13 sm:h-17 lg:min-h-26.25 lg:h-full w-full",
           day_button: "h-full w-full p-0",
           outside: "invisible",
           today: "",
@@ -63,11 +63,11 @@ export default function ScheduleMonthGrid({ month, onMonthChange, onPrevious, on
                 variant="bare"
                 type="button"
                 onClick={() => onOpenDate(toDateKey(validDate))}
-                className={`flex h-full min-h-0 lg:min-h-[105px] w-full flex-col rounded-sm bg-light-orange/40 px-1 py-1 lg:px-2 lg:py-2 text-left transition ${
+                className={`flex h-full min-h-0 lg:min-h-26.25 w-full flex-col rounded-sm bg-light-orange/40 px-1 py-1 lg:px-2 lg:py-2 text-left transition ${
                   isPastDay(validDate) ? "opacity-40" : "hover:scale-[1.02] hover:shadow"
                 }`}
               >
-                <p className="mb-1 lg:mb-2 text-[13px] lg:text-[16px] font-semibold leading-none text-gray-red">{validDate.getDate()}</p>
+                <p className="mb-1 lg:mb-2 text-[13px] lg:text-base font-semibold leading-none text-gray-red">{validDate.getDate()}</p>
 
                 <div className="flex w-full flex-wrap gap-0.5 lg:hidden">
                   {artists.slice(0, 4).map((artist) => (
@@ -79,7 +79,7 @@ export default function ScheduleMonthGrid({ month, onMonthChange, onPrevious, on
                   {artists.slice(0, 3).map((artist) => (
                     <div key={artist.id} className="flex w-full items-center gap-1 rounded-sm bg-light-orange px-1 lg:px-2 py-0.5">
                       <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${getDayDotColor(artist)}`} />
-                      <span className="truncate text-[9px] sm:text-[10px] lg:text-[11px] leading-tight text-gray-red">{artist.name}</span>
+                      <span className="truncate text-[10px] sm:text-[10px] lg:text-xs leading-tight text-gray-red">{artist.name}</span>
                     </div>
                   ))}
                 </div>

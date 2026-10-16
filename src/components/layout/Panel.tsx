@@ -13,8 +13,8 @@ export default function Panel({ title, children, as: Tag = "section", className 
   return (
     <Tag
       className={clsx(
-        "flex flex-col gap-4",
-        "rounded-sm border border-crimson-light/80 bg-light-orange shadow-xl shadow-crimson/10 p-4 md:p-8",
+        "flex flex-col gap-3",
+        "rounded-sm border border-crimson-light/80 bg-light-orange shadow-xl shadow-crimson/10 p-6 md:p-9",
         className,
       )}
     >

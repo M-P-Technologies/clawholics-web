@@ -22,8 +22,8 @@ const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({
       placement="sheet"
       size="2xl"
       header={
-        <div className="flex items-center justify-between gap-4">
-          <h3 className="truncate text-[20px] font-bold text-gray-red sm:text-[20px]">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="truncate text-xl font-bold text-gray-red sm:text-xl">
             {title}
           </h3>
 

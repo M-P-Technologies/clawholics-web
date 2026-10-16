@@ -11,7 +11,7 @@ interface ReviewCardProps {
   onSubmit: (appointmentId: number, draft: ReviewDraft) => Promise<unknown>;
 }
 
-const cardClass = "flex flex-col gap-3 rounded-xl border border-crimson-light/60 bg-light-orange/40 p-4 text-gray-red";
+const cardClass = "flex flex-col gap-3 rounded-xl border border-crimson-light/60 bg-light-orange/40 p-3 text-gray-red";
 
 // A completed visit's review: the form to leave one (stars, a few words, a photo), or the review left
 export default function ReviewCard({ appointmentId, review, onSubmit }: ReviewCardProps) {
@@ -75,7 +75,7 @@ export default function ReviewCard({ appointmentId, review, onSubmit }: ReviewCa
       <div>
         <h5 className="text-base font-bold">How was your visit?</h5>
         <p className="text-sm opacity-80">Rate it and tell us about it. A photo of your nails is welcome too.</p>
-        <p className="text-[12px] opacity-70">We may show your review on our website, with your first name and the initial of your last name.</p>
+        <p className="text-xs opacity-70">We may show your review on our website, with your first name and the initial of your last name.</p>
       </div>
       <StarPicker value={rating} onChange={setRating} />
       <textarea
@@ -96,13 +96,13 @@ export default function ReviewCard({ appointmentId, review, onSubmit }: ReviewCa
           </Button>
         </div>
       ) : (
-        <label htmlFor={inputId} className="flex cursor-pointer items-center gap-2 self-start text-sm font-bold text-berry underline underline-offset-4">
+        <label htmlFor={inputId} className="flex cursor-pointer items-center gap-3 self-start text-sm font-bold text-berry underline underline-offset-4">
           <ImagePlus size={16} aria-hidden="true" />
           Add a photo
         </label>
       )}
       <input id={inputId} type="file" accept="image/jpeg,image/png,image/webp" onChange={pickPhoto} className="sr-only" />
-      {error && <p role="alert" className="text-sm text-danger">{error}</p>}
+      {error && <p role="alert" className="text-sm text-danger-ink">{error}</p>}
       <Button type="button" onClick={send} loading={busy} disabled={rating === 0} className="w-full">
         Send review
       </Button>

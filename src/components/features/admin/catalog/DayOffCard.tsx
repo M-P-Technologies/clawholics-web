@@ -43,14 +43,14 @@ const DayOffCard = ({
         <SectionSkeleton label="Loading days off" lines={2} />
       ) : (
         <>
-          <div className="mb-4 flex flex-col gap-1">
-            <p className="text-[15px] text-gray-red">Regular:</p>
+          <div className="mb-3 flex flex-col gap-1">
+            <p className="text-base text-gray-red">Regular:</p>
 
-            <div className="flex flex-wrap gap-x-4 gap-y-1">
+            <div className="flex flex-wrap gap-x-3 gap-y-1">
               {WEEK_DAYS.map((day) => (
                 <label
                   key={day.value}
-                  className="flex items-center gap-1 text-[14px] text-gray-red"
+                  className="flex items-center gap-1 text-sm text-gray-red"
                 >
                   <span className="relative flex items-center justify-center">
                     <input
@@ -78,7 +78,7 @@ const DayOffCard = ({
             </div>
           </div>
 
-          <p className="text-[15px] text-gray-red mb-1">Custom Dates:</p>
+          <p className="text-base text-gray-red mb-1">Custom Dates:</p>
 
           {/* Calendar above its legend: the editor's side panel is narrow at every screen size */}
           <div className="flex flex-col gap-3">
@@ -113,7 +113,7 @@ const DayOffCard = ({
                   month_grid:
                     "w-full table-fixed border-separate border-spacing-1",
                   weekday:
-                    "text-center text-[11px] font-bold text-gray-red pb-1",
+                    "text-center text-xs font-bold text-gray-red pb-1",
                   day: "p-0 text-center",
                   day_button:
                     "w-full aspect-square rounded-sm text-[13px] font-bold text-gray-red transition-colors disabled:cursor-not-allowed",
@@ -129,29 +129,29 @@ const DayOffCard = ({
                   ),
                 }}
                 modifiersClassNames={{
-                  booked: "[&>button]:!bg-danger/40",
-                  dayOff: "[&>button]:!bg-gray-red/40",
-                  available: "[&>button]:!bg-success/50",
+                  booked: "[&>button]:bg-danger/40!",
+                  dayOff: "[&>button]:bg-gray-red/40!",
+                  available: "[&>button]:bg-success/50!",
                 }}
               />
             </div>
 
-            <div className="flex flex-wrap gap-x-4 gap-y-2">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-wrap gap-x-3 gap-y-2">
+              <div className="flex items-center gap-3">
                 <span className="block w-4 h-4 rounded-sm bg-success/50" />
                 <span className="text-[13px] text-gray-red">
                   Available
                 </span>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <span className="block w-4 h-4 rounded-sm bg-danger/40" />
                 <span className="text-[13px] text-gray-red">
                   Booked
                 </span>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <span className="block w-4 h-4 rounded-sm bg-gray-red/40" />
                 <span className="text-[13px] text-gray-red">
                   Day off

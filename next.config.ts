@@ -33,11 +33,40 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  // No "X-Powered-By: Next.js" header telling visitors what the site runs on
+  poweredByHeader: false,
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          // HTTPS only: browsers that have seen the site go straight to https:// for the next two
+          // years (Vercel already redirects http to https). Not includeSubDomains: that would
+          // also lock out any subdomain still served over http. Ignored on http://localhost.
+          { key: "Strict-Transport-Security", value: "max-age=63072000" },
+          // Only this site may show its pages in a frame (the admin's live preview does), so
+          // another site can't overlay it to trick clicks; no plugins; no <base> hijacking.
+          // Scripts, styles and images aren't restricted here: Clerk, Xendit, Google Maps and
+          // Fonts load from their own domains, and Next's inline scripts would need nonces.
+          { key: "Content-Security-Policy", value: "frame-ancestors 'self'; object-src 'none'; base-uri 'self'" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          // Files are used as the type the server says, never guessed (an upload can't turn into a page)
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          // Other sites see only that a visitor came from clawholicsbymax.com, not which page
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          // The camera only for this site (the stamp scanner); no microphone or location
+          { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=()" },
+        ],
+      },
+    ];
+  },
   async redirects() {
     // Pages that moved; keep old links and bookmarks working
     return [
       // The client's pages moved into the client app (/my); the query (e.g. ?appointment_id=) is kept
       { source: "/profile", destination: "/my/profile", permanent: true },
+      // The client app's service page is gone: Explore opens the service in its panel (or phone sheet)
+      { source: "/my/explore/:id", destination: "/my/explore?service=:id", permanent: true },
       { source: "/booking", destination: "/my/book", permanent: true },
       { source: "/payment", destination: "/my/payment", permanent: true },
       { source: "/payment-confirmation", destination: "/my/confirmation", permanent: true },

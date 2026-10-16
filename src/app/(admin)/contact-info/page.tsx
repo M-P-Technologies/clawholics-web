@@ -27,7 +27,7 @@ export default function ContactUs() {
       header={error ? undefined : <SaveBar dirty={editor.dirty} saving={editor.isSaving} onSave={editor.save} onDiscard={editor.discard} />}
     >
       {error ? (
-        <div className="flex flex-col items-start gap-3 px-5 py-6 text-sm text-gray-red">
+        <div className="flex flex-col items-start gap-3 px-6 py-6 text-sm text-gray-red">
           {error}
           <Button type="button" onClick={editor.retry}>
             Try again
@@ -67,15 +67,15 @@ export default function ContactUs() {
                   <Button type="button" variant="bare" aria-label={`Move the ${label} link down`} disabled={index === links.length - 1} onClick={() => moveLink(index, 1)} className="rounded-md p-1.5 text-gray-red hover:bg-crimson-light/30 disabled:opacity-30">
                     <ArrowDown size={16} aria-hidden="true" />
                   </Button>
-                  <Button type="button" variant="bare" onClick={() => editor.removeLink(index)} className="gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] font-bold text-danger hover:bg-danger/10">
+                  <Button type="button" variant="bare" onClick={() => editor.removeLink(index)} className="gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-bold text-danger-ink hover:bg-danger/10">
                     <Trash2 size={14} aria-hidden="true" />
                     Remove
                   </Button>
                 </div>
               </SubCard>
             ))}
-            {links.length === 0 && <p className="text-[13px] text-gray-red/70">No social media links yet.</p>}
-            <Button type="button" variant="secondary" disabled={links.length >= MAX_SOCIAL_LINKS} onClick={editor.addLink} className="self-start px-4! py-1.5! text-[13px]">
+            {links.length === 0 && <p className="text-[13px] text-gray-red">No social media links yet.</p>}
+            <Button type="button" variant="secondary" disabled={links.length >= MAX_SOCIAL_LINKS} onClick={editor.addLink} className="self-start px-3! py-1.5! text-[13px]">
               <Plus size={14} aria-hidden="true" />
               Add a social link
             </Button>

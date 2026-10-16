@@ -165,10 +165,11 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
         `select count(*) filter (where action = 'stamp')::int as stamps,
                 count(*) filter (where action = 'redeem')::int as redeemed
          from scan_history where ${LOCAL_DATE("created_at")} between $1 and $2`, p),
-      one<{ today: number; unpaid: number; proofs_to_review: number }>(
+      one<{ today: number; unpaid: number; proofs_to_review: number; to_confirm: number }>(
         `${APPT} select
            (select count(*)::int from appt where d = $1 and st = 'CONFIRMED') as today,
            (select count(*)::int from appt where st = 'PENDING') as unpaid,
+           (select count(*)::int from appt where st = 'AWAITING_CONFIRMATION') as to_confirm,
            (select count(*)::int from appt a where a.st = 'AWAITING_PROOF'
               and (select pp.status from payment_proofs pp where pp.appointment_id = a.id
                    order by pp.created_at desc, pp.id desc limit 1) = 'PENDING') as proofs_to_review`, [today]),
@@ -309,7 +310,7 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
     },
     trend,
     loyalty,
-    attention: { today: attention.today, proofsToReview: attention.proofs_to_review, unpaid: attention.unpaid, warmLeads: warm.n },
+    attention: { today: attention.today, proofsToReview: attention.proofs_to_review, toConfirm: attention.to_confirm, unpaid: attention.unpaid, warmLeads: warm.n },
     money: {
       balanceAtSalon: { value: current.balanceAtSalon, previous: before.balanceAtSalon },
       returningRevenue: { value: current.returningRevenue, previous: before.returningRevenue },
@@ -336,7 +337,7 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
     outcomes: {
       confirmed: outcome("CONFIRMED"),
       completed: outcome("COMPLETED"),
-      pending: outcome("PENDING", "AWAITING_PROOF"),
+      pending: outcome("PENDING", "AWAITING_PROOF", "AWAITING_CONFIRMATION"),
       cancelled: outcome("CANCELLED", "CANCELED"),
       refunded: outcome("REFUNDED"),
     },

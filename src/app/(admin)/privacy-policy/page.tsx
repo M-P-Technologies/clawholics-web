@@ -35,12 +35,12 @@ export default function PrivacyPolicy() {
       >
         <RichTextField label="Privacy policy" initialHtml={editor.html} resetKey={editor.resetKey} onChange={editor.setHtml} />
         {editor.differsFromOriginal && (
-          <Button type="button" variant="bare" onClick={editor.restoreOriginal} className="gap-1.5 self-start rounded-md px-2.5 py-1.5 text-[13px] font-bold text-gray-red/80 hover:bg-crimson-light/30">
+          <Button type="button" variant="bare" onClick={editor.restoreOriginal} className="gap-1.5 self-start rounded-md px-3 py-1.5 text-[13px] font-bold text-gray-red hover:bg-crimson-light/30">
             <RotateCcw size={14} aria-hidden="true" />
             Put back the original
           </Button>
         )}
-        <p className="text-[12px] leading-snug text-gray-red/60">Remember to update the &ldquo;Last updated&rdquo; date near the top when the policy changes.</p>
+        <p className="text-xs leading-snug text-gray-red">Remember to update the &ldquo;Last updated&rdquo; date near the top when the policy changes.</p>
       </PanelSection>
     </CmsEditor>
   );

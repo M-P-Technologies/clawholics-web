@@ -83,7 +83,8 @@ describe("payment step", () => {
     render(<Payment />);
     fireEvent.click(screen.getByRole("checkbox", { name: /I agree with the/ }));
     expect(base.toggleAgree).toHaveBeenCalled();
-    expect(screen.getByRole("link", { name: "Terms & Conditions" })).toHaveAttribute("href", "/terms");
+    expect(screen.getByRole("link", { name: /^Terms & Conditions\s*\(opens in a new tab\)$/ })).toHaveAttribute("href", "/terms");
+    expect(screen.getByRole("link", { name: /Terms & Conditions/ })).toHaveAttribute("target", "_blank");
     fireEvent.click(screen.getByRole("button", { name: "Pay downpayment" }));
     expect(base.handlePay).toHaveBeenCalled();
   });

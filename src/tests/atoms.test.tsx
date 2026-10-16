@@ -9,12 +9,12 @@ describe("Card", () => {
     const box = screen.getByRole("region", { name: "Box" });
     expect(box.className).toContain("bg-milk");
     expect(box.className).toContain("shadow-petal");
-    expect(box.className).toContain("p-5");
+    expect(box.className).toContain("p-6");
   });
   it("has a tinted tone and no padding when asked", () => {
     const { container } = render(<Card tone="tint" padding="none">x</Card>);
     expect((container.firstChild as HTMLElement).className).toContain("bg-crimson-light/15");
-    expect((container.firstChild as HTMLElement).className).not.toContain("p-5");
+    expect((container.firstChild as HTMLElement).className).not.toContain("p-6");
   });
 });
 

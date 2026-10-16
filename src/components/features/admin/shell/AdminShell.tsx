@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { AppShell, TopBar } from "@/components/organisms";
+import { AppShell, PHONE_STICKY_TOP_BAR, TopBar } from "@/components/organisms";
 import { useAdminAccount } from "@/hooks/admin/useAdminAccount";
 import { useAdminWideLayout } from "@/hooks/useMinWidth";
 import NotificationBell from "@/components/features/admin/shell/NotificationBell";
@@ -38,6 +38,8 @@ export default function AdminShell({ title, titleAside, actions, children }: Adm
         account={{ name: account.name, email: account.email || "Admin", imageUrl: account.imageUrl }}
         bell={<NotificationBell />}
         wide={wide}
+        // On phones it stays at the top as the tab bar stays at the bottom (as in the client app)
+        className={PHONE_STICKY_TOP_BAR}
       />
 
       {children}

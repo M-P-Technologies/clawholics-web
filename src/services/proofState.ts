@@ -17,7 +17,7 @@ export type ProofUiState =
 
 const norm = (value?: string | null) => (value ?? "").trim().toLowerCase();
 
-const ACTIVE_STATUSES = ["pending", "awaiting_proof", "confirmed"];
+const ACTIVE_STATUSES = ["pending", "awaiting_proof", "awaiting_confirmation", "confirmed"];
 
 export const isActiveAppointmentStatus = (status?: string | null): boolean =>
   ACTIVE_STATUSES.includes(norm(status));

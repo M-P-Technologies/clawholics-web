@@ -20,7 +20,7 @@ interface CtaBandProps {
 // on a soft pink glow. Used at the bottom of pages to point people to their next step.
 export default function CtaBand({ title, text, primary, secondary }: CtaBandProps) {
   return (
-    <Section innerClassName="items-center text-center gap-4 md:gap-8">
+    <Section innerClassName="items-center text-center gap-3 md:gap-9">
       <Blush
         tone="crimson"
         className="left-1/2 top-1/2 h-72 w-full max-w-2xl -translate-x-1/2 -translate-y-1/2"
@@ -29,7 +29,7 @@ export default function CtaBand({ title, text, primary, secondary }: CtaBandProp
         {title}
       </h2>
       <p className="mx-auto max-w-lg copy-lead">{text}</p>
-      <div className="flex flex-wrap items-center justify-center gap-4">
+      <div className="flex flex-wrap items-center justify-center gap-3">
         <Button to={primary.to} href={primary.href}>
           {primary.label}
         </Button>
