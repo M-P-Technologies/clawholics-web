@@ -32,6 +32,10 @@ function createClient(): Sql {
     max_lifetime: 60,
     keep_alive: 5,
     connect_timeout: 10,
+    // No pg_type lookup on every new connection (connections are short-lived, so that ran
+    // thousands of times). It only teaches postgres.js to parse array columns; queries return
+    // lists as json instead.
+    fetch_types: false,
   };
   return postgres(url, options);
 }
@@ -50,7 +54,7 @@ const isBuild = () => process.env.NEXT_PHASE === "phase-production-build";
 function createBuildClient(): Sql {
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("DATABASE_URL is not set");
-  return postgres(url, { prepare: false, max: 1, idle_timeout: 1, connect_timeout: 10 });
+  return postgres(url, { prepare: false, max: 1, idle_timeout: 1, connect_timeout: 10, fetch_types: false });
 }
 
 /** Lazily created, so importing this module never needs DATABASE_URL (e.g. at build time). */
@@ -84,7 +88,7 @@ export async function sqlResponds(sql: Sql | undefined = globalForDb.clawholicsS
 export async function logDatabaseActivity(label: string) {
   const url = process.env.DATABASE_URL;
   if (!url) return;
-  const probe = postgres(url, { prepare: false, max: 1, connect_timeout: 5, idle_timeout: 1 });
+  const probe = postgres(url, { prepare: false, max: 1, connect_timeout: 5, idle_timeout: 1, fetch_types: false });
   try {
     const rows = await probe<{ pid: number; state: string; wait: string | null; secs: number; query: string }[]>`
       select pid, state, coalesce(wait_event_type || ':' || wait_event, '') as wait,

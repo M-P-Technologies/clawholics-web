@@ -53,12 +53,25 @@ const CLIENT_ACCOUNT = `coalesce(u.role, 'customer') = 'customer' and u.clerk_id
 
 // Warm leads: client accounts that haven't booked, whose last sign of interest (making the account
 // or starting a booking) is on or after $1. Used for the count and for the Client Directory's list.
+// Appointments are read once, grouped by client, rather than twice per user in correlated subqueries.
 const WARM_LEADS = `
   select u.clerk_id from users u
-  where ${CLIENT_ACCOUNT} and not ${HAS_BOOKED}
-    and greatest(${LOCAL_DATE("u.created_at")},
-      coalesce((select max(${LOCAL_DATE("s.created_at")}) from appointments s where s.user_id = u.id), '')) >= $1`;
+  left join (
+    select user_id, bool_or(upper(trim(status)) in ${BOOKED}) as booked,
+      max(created_at::timestamp) as last_started
+    from appointments group by user_id
+  ) a on a.user_id = u.id
+  where ${CLIENT_ACCOUNT} and not coalesce(a.booked, false)
+    and ${LOCAL_DATE("greatest(u.created_at::timestamp, a.last_started)")} >= $1`;
 const warmSince = (today: string) => addDays(today, -LAPSED_DAYS);
+
+// Each client's first completed visit, for "returning" (a completed visit before the period). Read
+// from appointments directly so the APPT query it's joined to is used once, and stays filtered by
+// date instead of being built in full for every row it's compared with.
+const FIRST_VISIT = `first_visit as (
+    select user_id, min(appointment_date) as first_d from appointments
+    where upper(trim(status)) = 'COMPLETED' group by user_id
+  )`;
 
 // The glance cards' lines, one point per trend bucket: client accounts at the bucket's end (today's
 // count less the accounts made after it), and the different services and artists booked in it
@@ -120,9 +133,9 @@ async function spanMetrics(span: Span) {
        from users u where ${CLIENT_ACCOUNT} and ${LOCAL_DATE("u.created_at")} between $1 and $2`, p),
     // the same "returning" as the rate: a client with a completed visit before the period
     one<{ value: number }>(
-      `${APPT} select coalesce(sum(price), 0)::int as value from appt v
-       where v.st = 'COMPLETED' and not v.is_guest and v.d between $1 and $2
-         and exists (select 1 from appt b where b.user_id = v.user_id and b.st = 'COMPLETED' and b.d < $1)`, p),
+      `${APPT}, ${FIRST_VISIT} select coalesce(sum(v.price), 0)::int as value
+       from appt v join first_visit f on f.user_id = v.user_id and f.first_d < $1
+       where v.st = 'COMPLETED' and not v.is_guest and v.d between $1 and $2`, p),
   ]);
   return {
     bookings: counts.bookings,
@@ -166,13 +179,14 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
                 count(*) filter (where action = 'redeem')::int as redeemed
          from scan_history where ${LOCAL_DATE("created_at")} between $1 and $2`, p),
       one<{ today: number; unpaid: number; proofs_to_review: number; to_confirm: number }>(
-        `${APPT} select
-           (select count(*)::int from appt where d = $1 and st = 'CONFIRMED') as today,
-           (select count(*)::int from appt where st = 'PENDING') as unpaid,
-           (select count(*)::int from appt where st = 'AWAITING_CONFIRMATION') as to_confirm,
-           (select count(*)::int from appt a where a.st = 'AWAITING_PROOF'
-              and (select pp.status from payment_proofs pp where pp.appointment_id = a.id
-                   order by pp.created_at desc, pp.id desc limit 1) = 'PENDING') as proofs_to_review`, [today]),
+        `select
+           count(*) filter (where d = $1 and st = 'CONFIRMED')::int as today,
+           count(*) filter (where st = 'PENDING')::int as unpaid,
+           count(*) filter (where st = 'AWAITING_CONFIRMATION')::int as to_confirm,
+           count(*) filter (where st = 'AWAITING_PROOF'
+             and (select pp.status from payment_proofs pp where pp.appointment_id = a.id
+                  order by pp.created_at desc, pp.id desc limit 1) = 'PENDING')::int as proofs_to_review
+         from (select id, appointment_date as d, upper(trim(status)) as st from appointments) a`, [today]),
       one<{ n: number }>(
         `${APPT} select count(*)::int as n
          from (select user_id, max(d) as last_d from appt where st = 'COMPLETED' and not is_guest group by user_id) t
@@ -205,14 +219,14 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
       // cards ("returning" means a completed visit before the period's first day, $1)
       trendSpan
         ? rows<{ d: string; bookings: number; sales: number; balance: number; returning: number; lost: number }>(
-            `${APPT} select d, count(*) filter (where st in ${BOOKED})::int as bookings,
+            `${APPT}, ${FIRST_VISIT} select d, count(*) filter (where st in ${BOOKED})::int as bookings,
                coalesce(sum(price) filter (where st = 'COMPLETED'), 0)::int as sales,
                coalesce(sum(greatest(coalesce(price, 0) - (select coalesce(sum(p.amount), 0) from payments p
                  where p.appointment_id = v.id and upper(trim(p.status)) = 'PAID'), 0)) filter (where st = 'COMPLETED'), 0)::int as balance,
-               coalesce(sum(price) filter (where st = 'COMPLETED' and not is_guest
-                 and exists (select 1 from appt b where b.user_id = v.user_id and b.st = 'COMPLETED' and b.d < $1)), 0)::int as returning,
+               coalesce(sum(price) filter (where st = 'COMPLETED' and not is_guest and f.first_d < $1), 0)::int as returning,
                coalesce(sum(price) filter (where st in ${CANCELLED}), 0)::int as lost
-             from appt v where d between $1 and $2 group by d`, trendSpan)
+             from appt v left join first_visit f on f.user_id = v.user_id
+             where d between $1 and $2 group by d`, trendSpan)
         : Promise.resolve([]),
       trendSpan
         ? rows<{ d: string; collected: number }>(
@@ -250,7 +264,7 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
       // week or month below, so a service booked on two days of a week counts once)
       trendSpan
         ? rows<{ d: string; services: string[]; artists: string[] }>(
-            `${APPT} select d, array_agg(distinct service_name) as services, array_agg(distinct nailist_name) as artists
+            `${APPT} select d, to_json(array_agg(distinct service_name)) as services, to_json(array_agg(distinct nailist_name)) as artists
              from appt where d between $1 and $2 and st in ${BOOKED} group by d`, trendSpan)
         : Promise.resolve([]),
     ]);

@@ -138,7 +138,7 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     expect(d.loyalty).toEqual({ stamps: 3, redeemed: 1 });
     // proofs to review: only an awaiting-proof booking whose latest upload is still pending (a12);
     // unpaid: bookings still PENDING (a11), the same list the Appointments filter shows
-    expect(d.attention).toEqual({ today: 2, proofsToReview: 1, unpaid: 1, warmLeads: 0 });
+    expect(d.attention).toEqual({ today: 2, proofsToReview: 1, toConfirm: 0, unpaid: 1, warmLeads: 0 });
     // leads: accounts made in the period; Ana and Bea both booked (September: Cara did)
     expect(d.rates.leadConversion).toEqual({ value: 1, previous: 1 });
     expect(d.leads).toEqual({ accounts: 2, booked: 2 });
@@ -404,7 +404,7 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     expect(d.monthly.every((m) => m.completed === 0 && m.cancelled === 0)).toBe(true);
     expect(d.weekdays).toHaveLength(7);
     expect([d.services, d.artists, d.next]).toEqual([[], [], []]);
-    expect(d.attention).toEqual({ today: 0, proofsToReview: 0, unpaid: 0, warmLeads: 0 });
+    expect(d.attention).toEqual({ today: 0, proofsToReview: 0, toConfirm: 0, unpaid: 0, warmLeads: 0 });
     expect(d.money).toEqual({
       balanceAtSalon: { value: 0, previous: 0 }, returningRevenue: { value: 0, previous: 0 }, lostToCancellations: { value: 0, previous: 0 },
       bookedAhead: { value: 0, visits: 0, days: expect.any(Array) },
