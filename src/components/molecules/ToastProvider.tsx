@@ -22,7 +22,10 @@ interface ToastApi {
 const ToastContext = createContext<ToastApi | null>(null);
 
 const ICONS = { success: CheckCircle2, error: AlertCircle, info: Info };
-const COLORS = { success: "text-success-ink", error: "text-danger-ink", info: "text-crimson-ink" };
+// Each kind's icon sits in a soft circle of its colour (like the cards' icons), and a thin stripe
+// of the same colour runs down the toast's left edge
+const COLORS = { success: "bg-success/15 text-success-ink", error: "bg-danger/10 text-danger-ink", info: "bg-crimson-light/40 text-berry" };
+const STRIPES = { success: "border-l-success", error: "border-l-danger", info: "border-l-crimson" };
 // Errors stay longer, since they usually need an action
 const DURATION_MS = { success: 6000, info: 6000, error: 10000 };
 
@@ -57,10 +60,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             <div
               key={t.id}
               role={t.kind === "error" ? "alert" : "status"}
-              className="drawer-panel pointer-events-auto flex w-full items-start gap-3 rounded-sm border border-crimson-light bg-light-orange p-3 shadow-xl shadow-crimson/20"
+              className={clsx(
+                "drawer-panel pointer-events-auto flex w-full items-center gap-3 rounded-2xl border border-l-4 border-crimson-light/40 bg-milk p-3 shadow-petal",
+                STRIPES[t.kind],
+              )}
             >
-              <Icon size={24} aria-hidden="true" className={clsx("shrink-0", COLORS[t.kind])} />
-              <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <span aria-hidden="true" className={clsx("flex h-9 w-9 shrink-0 items-center justify-center rounded-full", COLORS[t.kind])}>
+                <Icon size={18} strokeWidth={1.75} />
+              </span>
+              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <p className="text-sm font-bold text-gray-red">{t.title}</p>
                 {t.message && <p className="copy-note">{t.message}</p>}
               </div>
@@ -69,7 +77,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 type="button"
                 aria-label="Dismiss message"
                 onClick={() => dismiss(t.id)}
-                className="shrink-0 text-gray-red transition-colors hover:text-crimson-ink"
+                className="shrink-0 self-start rounded-full p-1.5 text-gray-red transition-colors hover:bg-crimson-light/40 hover:text-gray-red"
               >
                 <X size={16} aria-hidden="true" />
               </Button>
