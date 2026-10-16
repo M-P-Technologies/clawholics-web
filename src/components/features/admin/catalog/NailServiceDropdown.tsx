@@ -85,7 +85,7 @@ const InputField = ({ label, value, onChange, isEditing }: InputFieldProps) => {
             32
           )}px`;
         }}
-        className="w-full min-h-[38px] rounded-md border border-crimson-light bg-milk px-3 py-2 text-sm text-gray-red outline-none resize-none overflow-hidden whitespace-pre-line focus:ring-2 focus:ring-crimson disabled:cursor-not-allowed disabled:opacity-70"
+        className="w-full min-h-9.5 rounded-md border border-crimson-light bg-milk px-3 py-2 text-sm text-gray-red outline-none resize-none overflow-hidden whitespace-pre-line focus:ring-2 focus:ring-crimson disabled:cursor-not-allowed disabled:opacity-70"
       />
     </div>
   );
@@ -410,9 +410,9 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
           type="button"
           onClick={() => setIsOpen((prevState) => !prevState)}
           aria-expanded={isOpen}
-          className="flex items-center justify-between w-full gap-3 sm:gap-3 text-left min-h-[35px]"
+          className="flex items-center justify-between w-full gap-3 sm:gap-3 text-left min-h-8.75"
         >
-          <span className="block min-w-0 font-bold text-[15px] truncate text-gray-red">
+          <span className="block min-w-0 font-bold text-base truncate text-gray-red">
             {title || "Untitled Service"}
           </span>
 
@@ -471,11 +471,11 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
                 <p className="mb-2 text-[13px] text-gray-red">The starred photo is the one shown for this service on the website.</p>
               )}
 
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-3">
                 {gallery.map((image) => (
                   <div
                     key={image.id}
-                    className="flex items-center justify-between w-full min-h-[36px] bg-milk rounded-md px-3 py-1 overflow-visible border border-crimson-light"
+                    className="flex items-center justify-between w-full min-h-9 bg-milk rounded-md px-3 py-1 overflow-visible border border-crimson-light"
                   >
                     <Button
                       variant="bare"

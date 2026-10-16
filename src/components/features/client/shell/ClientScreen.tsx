@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "@/lib/router";
 import { Button } from "@/components/atoms";
-import { TopBar } from "@/components/organisms";
+import { PHONE_STICKY_TOP_BAR, TopBar } from "@/components/organisms";
 import { useIsClient } from "@/hooks/useIsClient";
 import { useMyAccount } from "@/hooks/client/useMyAccount";
 
@@ -17,7 +17,10 @@ interface ClientScreenProps {
   children: ReactNode;
 }
 
-const backClass = "flex items-center gap-1.5 text-sm font-bold text-berry underline decoration-crimson-light underline-offset-4";
+// The text link from `lg` up, where the top bar is one row; below it, a round icon before the title
+const backClass = "hidden items-center gap-1.5 text-sm font-bold text-berry underline decoration-crimson-light underline-offset-4 lg:flex";
+const backCircleClass =
+  "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-crimson-light bg-milk text-berry transition-colors hover:bg-crimson-light/30 lg:hidden";
 
 // The page frame of every client screen, shaped like the admin's AdminShell: the top bar (a welcome,
 // the title, today's date, a link to the site and who is signed in) and the content below it with
@@ -47,14 +50,31 @@ export default function ClientScreen({ title, actions, back, children }: ClientS
       </Link>
     ) : null;
 
+  const backCircle =
+    back === "history" ? (
+      <Button variant="bare" type="button" onClick={() => navigate(-1)} aria-label="Back" className={backCircleClass}>
+        <ArrowLeft size={18} aria-hidden="true" />
+      </Button>
+    ) : back ? (
+      <Link to={back} aria-label="Back" className={backCircleClass}>
+        <ArrowLeft size={18} aria-hidden="true" />
+      </Link>
+    ) : null;
+
   return (
-    <div className="flex min-w-0 flex-col gap-6 px-2 py-2 sm:px-3 sm:py-3 lg:pl-0">
+    // From `sm` the scroller around this already has the sidebar's top and bottom inset, so only
+    // the sides are padded there
+    <div className="flex min-w-0 flex-col gap-3 p-3 sm:py-0 md:gap-6 md:px-6">
       <TopBar
         title={title}
+        leading={backCircle}
+        actionsOnPhone={Boolean(actions)}
         actions={backControl || actions ? <>{backControl}{actions}</> : undefined}
         greeting={`Welcome back${firstName ? `, ${firstName}` : ""}!`}
         today={today}
         account={{ name, email: dbUser?.email ?? "", imageUrl }}
+        // On phones it stays at the top as the tab bar stays at the bottom
+        className={PHONE_STICKY_TOP_BAR}
       />
       {children}
     </div>

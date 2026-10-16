@@ -153,9 +153,9 @@ const InputField = ({
         <h3 className={`text-[13px] font-medium text-gray-red ${labelClassName}`}>{label}</h3>
 
         {isTextarea && showListButton && (
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="h-[18px] w-[1.5px] bg-crimson" />
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="h-4.5 w-[1.5px] bg-crimson" />
+            <div className="flex items-center gap-3">
               <IconButton label="Add a bullet list" icon={ListIcon} tone="plain"
                 onClick={handleInsertBullet}
                 disabled={!isEditing}
@@ -172,7 +172,7 @@ const InputField = ({
         value={value}
         onChange={onChange}
         onKeyDown={handleKeyDown}
-        className="w-full min-h-[38px] rounded-md border border-crimson-light bg-milk px-3 py-2 text-sm text-gray-red outline-none resize-none overflow-hidden whitespace-pre-line focus:ring-2 focus:ring-crimson disabled:cursor-not-allowed disabled:opacity-70"
+        className="w-full min-h-9.5 rounded-md border border-crimson-light bg-milk px-3 py-2 text-sm text-gray-red outline-none resize-none overflow-hidden whitespace-pre-line focus:ring-2 focus:ring-crimson disabled:cursor-not-allowed disabled:opacity-70"
       />
     </div>
   );
@@ -341,7 +341,7 @@ const FAQDropdown: React.FC<DropdownProps> = ({
         ].join(" ")}
       >
         {/* The drag handle sits beside the toggle, not inside it: a button can't hold a button */}
-        <div className="flex min-h-[35px] items-center gap-2 sm:gap-3">
+        <div className="flex min-h-8.75 items-center gap-3 sm:gap-3">
           {!isCreateMode && <DragHandle {...(dragHandleProps ?? {})} />}
 
           <Button
@@ -351,7 +351,7 @@ const FAQDropdown: React.FC<DropdownProps> = ({
             aria-expanded={isOpen}
             className="flex min-w-0 flex-1 items-center justify-between gap-3 text-left"
           >
-            <span className="block min-w-0 font-bold text-[15px] truncate text-gray-red">
+            <span className="block min-w-0 font-bold text-base truncate text-gray-red">
               {title || "Untitled FAQ"}
             </span>
 
@@ -373,7 +373,7 @@ const FAQDropdown: React.FC<DropdownProps> = ({
 
         <div
           className={`transition-all duration-300 ease-in-out overflow-hidden ${
-            isOpen ? "max-h-[1000px] opacity-100 mt-3" : "max-h-0 opacity-0"
+            isOpen ? "max-h-250 opacity-100 mt-3" : "max-h-0 opacity-0"
           }`}
         >
           <div className="flex flex-col gap-3">

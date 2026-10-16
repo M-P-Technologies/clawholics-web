@@ -103,7 +103,7 @@ export default function ProofReviewPanel({
 
   return (
     <section aria-label="Payment proof review" className="rounded-xl bg-crimson-light/15 px-3 py-3 text-gray-red sm:px-6">
-      <p className="mb-2 text-[14px] font-bold uppercase">Payment proof</p>
+      <p className="mb-2 text-sm font-bold uppercase">Payment proof</p>
 
       {loading && <SectionSkeleton label="Loading the payment proof" lines={2} />}
 
@@ -137,7 +137,7 @@ export default function ProofReviewPanel({
           )}
 
           {canReview && mode === "idle" && (
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <Button type="button" onClick={() => setMode("approve")} >
                 Approve
               </Button>
@@ -148,11 +148,11 @@ export default function ProofReviewPanel({
           )}
 
           {canReview && mode === "approve" && (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               <p className="text-[13px] font-bold">
                 Approving confirms this appointment and emails the client.
               </p>
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <Button type="button" onClick={() => submit({ status: "APPROVED" })} disabled={busy} >
                   Confirm approve
                 </Button>
@@ -164,8 +164,8 @@ export default function ProofReviewPanel({
           )}
 
           {canReview && mode === "reject" && (
-            <div className="flex flex-col gap-2">
-              <label htmlFor={`reject-note-${appointmentId}`} className="text-[12px] font-bold uppercase">
+            <div className="flex flex-col gap-3">
+              <label htmlFor={`reject-note-${appointmentId}`} className="text-xs font-bold uppercase">
                 Reason for rejection
               </label>
               <textarea
@@ -175,7 +175,7 @@ export default function ProofReviewPanel({
                 onChange={(e) => setRejectNote(e.target.value)}
                 className="w-full rounded-md border border-crimson-light bg-milk px-3 py-2 text-[13px] text-gray-red outline-none focus:ring-2 focus:ring-crimson"
               />
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <Button
                   type="button"
                   onClick={() => submit({ status: "REJECTED", admin_note: rejectNote.trim() })}
@@ -192,7 +192,7 @@ export default function ProofReviewPanel({
           )}
 
           {history.length > 0 && (
-            <ul className="flex flex-col gap-1 text-[12px]">
+            <ul className="flex flex-col gap-1 text-xs">
               {history.map((p) => (
                 <li key={p.id} className="rounded-md bg-milk px-3 py-1.5">
                   <span className="font-bold">{p.status}</span>

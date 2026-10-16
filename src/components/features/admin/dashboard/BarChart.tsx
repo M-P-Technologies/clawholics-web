@@ -75,7 +75,7 @@ export default function BarChart({ title, data, aLabel, bLabel, aColor, bColor, 
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <ul className="flex flex-wrap gap-x-3 gap-y-1 text-[13px] text-gray-red">
         {[[aLabel, aColor], [bLabel, bColor]].map(([label, color]) => (
-          <li key={label} className="flex items-center gap-2">
+          <li key={label} className="flex items-center gap-3">
             <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />
             {label}
           </li>

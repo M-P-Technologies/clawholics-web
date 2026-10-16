@@ -1,7 +1,9 @@
 "use client";
 
 import { Button, Card, Select } from "@/components/atoms";
-import { EmptyState, SearchBar, SectionHeader } from "@/components/molecules";
+import { EmptyState, SearchBar } from "@/components/molecules";
+import { Dialog } from "@/components/organisms";
+import ServicePanel from "@/components/features/client/explore/ServicePanel";
 import ServicesTable from "@/components/features/client/explore/ServicesTable";
 import ClientScreen from "@/components/features/client/shell/ClientScreen";
 import { useExplore } from "@/hooks/client/useExplore";
@@ -11,11 +13,15 @@ export default function Explore() {
 
   return (
     <ClientScreen title="Our services">
-      <Card className="flex flex-col gap-3">
-        <SectionHeader size="section" title="Browse services" subtitle={e.subtitle} />
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <div className="min-w-0 flex-1">
-            <SearchBar value={e.q} onChange={e.setQ} />
+      {/* As in the Admin Directory: the list (2/3) and the chosen service (1/3); below `lg` the panel
+          is hidden and a clicked row opens the service in a bottom sheet */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-6">
+      <Card className="flex min-w-0 flex-col gap-3 lg:col-span-2">
+        {/* The search and category sit on the list they filter (kept when nothing matches, to change them) */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          {/* Like the admin search: full width on phones, at most w-72 from sm */}
+          <div className="min-w-0 flex-1 sm:max-w-72">
+            <SearchBar look="outline" value={e.q} onChange={e.setQ} />
           </div>
           <Select
             aria-label="Category"
@@ -25,9 +31,7 @@ export default function Explore() {
             className="w-full sm:w-56"
           />
         </div>
-      </Card>
 
-      <Card>
         {e.loadFailed ? (
           <EmptyState kind="error" title="We couldn't load the services." message="Please check your connection and try again.">
             <Button type="button" onClick={e.retry}>Try again</Button>
@@ -37,9 +41,26 @@ export default function Explore() {
             <Button type="button" variant="secondary" onClick={e.clear}>Clear</Button>
           </EmptyState>
         ) : (
-          <ServicesTable label="Services" services={e.results} onBook={e.book} />
+          <ServicesTable label="Services" services={e.results} onBook={e.book} paginateTable onSelect={e.select} selectedId={e.selected?.id ?? null} />
         )}
       </Card>
+      {e.selected && (
+        <div className="hidden lg:block lg:h-full">
+          <ServicePanel key={e.selected.id} service={e.selected} onBook={e.book} />
+        </div>
+      )}
+      </div>
+
+      {e.selected && (
+        <Dialog
+          open={e.sheetOpen}
+          onClose={e.closeSheet}
+          title="Service details"
+          footer={<Button type="button" onClick={() => e.book(e.selected!)} className="w-full">Book now</Button>}
+        >
+          <ServicePanel key={e.selected.id} service={e.selected} onBook={e.book} inSheet />
+        </Dialog>
+      )}
     </ClientScreen>
   );
 }

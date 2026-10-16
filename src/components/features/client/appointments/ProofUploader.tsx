@@ -85,7 +85,7 @@ export default function ProofUploader({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-1">
-        <label htmlFor={inputId} className="text-[12px] text-gray-red">
+        <label htmlFor={inputId} className="text-xs text-gray-red">
           Payment screenshot
         </label>
         <input

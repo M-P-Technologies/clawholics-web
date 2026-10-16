@@ -14,7 +14,7 @@ export default function Panel({ title, children, as: Tag = "section", className 
     <Tag
       className={clsx(
         "flex flex-col gap-3",
-        "rounded-sm border border-crimson-light/80 bg-light-orange shadow-xl shadow-crimson/10 p-3 md:p-9",
+        "rounded-sm border border-crimson-light/80 bg-light-orange shadow-xl shadow-crimson/10 p-6 md:p-9",
         className,
       )}
     >

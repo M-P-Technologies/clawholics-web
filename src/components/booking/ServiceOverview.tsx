@@ -51,7 +51,7 @@ export default function ServiceOverview({ service, priceLines }: ServiceOverview
         )}
       </div>
 
-      <div className="grid grid-cols-3 gap-2 border-y border-crimson-light/80 py-3">
+      <div className="grid grid-cols-3 gap-3 border-y border-crimson-light/80 py-3">
         <Stat icon={<Clock size={28} strokeWidth={1.5} aria-hidden="true" />} value={service.duration} label="Duration" />
         <Stat icon={<Wallet size={28} strokeWidth={1.5} aria-hidden="true" />} value="₱500" label="Booking deposit" />
         <Stat icon={<ReceiptText size={28} strokeWidth={1.5} aria-hidden="true" />} value="₱400" label="Deductible" />

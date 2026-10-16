@@ -50,7 +50,7 @@ export default function ClientAppointments({ appointments, notesFor, draft, busy
               <div className="flex items-center justify-between gap-3">
                 <span className="min-w-0">
                   <span className="block font-bold">{dateLabel(a.appointment_date)}</span>
-                  <span className="block text-[12px] text-gray-red">{a.appointment_time}</span>
+                  <span className="block text-xs text-gray-red">{a.appointment_time}</span>
                 </span>
                 <Badge tone={statusOf(a.status).tone}>{statusOf(a.status).label}</Badge>
               </div>
@@ -81,9 +81,9 @@ export default function ClientAppointments({ appointments, notesFor, draft, busy
   const cell = "border-t border-dotted border-crimson-light py-3 pr-3 align-top";
   return (
     <div className="-mx-6 overflow-x-auto px-6">
-      <table aria-label="Appointments" className="w-full min-w-[880px] border-separate border-spacing-0 text-sm text-gray-red">
+      <table aria-label="Appointments" className="w-full min-w-220 border-separate border-spacing-0 text-sm text-gray-red">
         <thead>
-          <tr className="text-left text-[12px] text-gray-red">
+          <tr className="text-left text-xs text-gray-red">
             {COLUMNS.map((h) => (
               <th key={h} scope="col" className={clsx("pb-2 pr-3 font-medium", h === "Fee" && "text-right")}>
                 {h}
@@ -106,7 +106,7 @@ export default function ClientAppointments({ appointments, notesFor, draft, busy
                   <Badge tone={statusOf(a.status).tone}>{statusOf(a.status).label}</Badge>
                 </td>
                 <td className={clsx(cell, "text-right")}>{fee(a)}</td>
-                <td className={clsx(cell, "max-w-[260px]")}>
+                <td className={clsx(cell, "max-w-65")}>
                   <ReviewText appointment={a} busy={busy} onApprove={onApproveReview} />
                 </td>
                 <td className={cell}>

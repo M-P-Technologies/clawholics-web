@@ -27,7 +27,7 @@ export default function Navbar() {
   // On every page the bar is see-through at the top and turns solid once the page is scrolled
   const solid = scrolled;
   const desktopLink = (to: string) =>
-    `group relative flex items-center gap-2 whitespace-nowrap py-3 text-sm font-medium tracking-wide transition-colors hover:text-crimson-ink ${
+    `group relative flex items-center gap-3 whitespace-nowrap py-3 text-sm font-medium tracking-wide transition-colors hover:text-crimson-ink ${
       pathname === to ? "text-crimson-ink" : "text-gray-red"
     }`;
 

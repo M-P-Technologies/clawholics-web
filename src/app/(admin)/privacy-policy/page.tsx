@@ -40,7 +40,7 @@ export default function PrivacyPolicy() {
             Put back the original
           </Button>
         )}
-        <p className="text-[12px] leading-snug text-gray-red">Remember to update the &ldquo;Last updated&rdquo; date near the top when the policy changes.</p>
+        <p className="text-xs leading-snug text-gray-red">Remember to update the &ldquo;Last updated&rdquo; date near the top when the policy changes.</p>
       </PanelSection>
     </CmsEditor>
   );

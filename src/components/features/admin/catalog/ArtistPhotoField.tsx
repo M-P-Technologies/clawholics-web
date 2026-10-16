@@ -17,7 +17,7 @@ const ArtistPhotoField = ({ image, isEditing, isUploading, onPreview, onRemove, 
     <SectionHeader size="label" title="Photo" />
 
     {image && (
-      <div className="flex items-center justify-between w-full min-h-[36px] bg-milk rounded-md px-3 py-1 mt-3 mb-1 overflow-visible border border-crimson-light">
+      <div className="flex items-center justify-between w-full min-h-9 bg-milk rounded-md px-3 py-1 mt-3 mb-1 overflow-visible border border-crimson-light">
         <Button
           variant="bare"
           type="button"

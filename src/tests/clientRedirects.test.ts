@@ -12,8 +12,10 @@ describe("the client app's old addresses", () => {
     expect(to("/payment")?.destination).toBe("/my/payment");
     expect(to("/payment-confirmation")?.destination).toBe("/my/confirmation");
     expect(to("/reschedule")?.destination).toBe("/my/reschedule");
-    // Next keeps the query string on a redirect unless the destination has its own
-    expect(redirects.filter((r) => r.destination.startsWith("/my")).every((r) => !r.destination.includes("?"))).toBe(true);
+    // Next keeps the query string on a redirect unless the destination has its own (the old
+    // in-app service page, /my/explore/:id, is the one that adds ?service=)
+    expect(redirects.filter((r) => r.destination.startsWith("/my") && !r.source.startsWith("/my/")).every((r) => !r.destination.includes("?"))).toBe(true);
+    expect(to("/my/explore/:id")?.destination).toBe("/my/explore?service=:id");
   });
 
   it("brings Xendit back to the app's pages", () => {

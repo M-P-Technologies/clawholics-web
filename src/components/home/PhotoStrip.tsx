@@ -26,14 +26,14 @@ function StripCaption({ item, visible = true }: { item: StripItem; visible?: boo
         visible ? "opacity-100 duration-300" : "opacity-0 duration-150"
       }`}
     >
-      <div className="min-w-0 text-light-orange flex flex-col gap-2">
+      <div className="min-w-0 text-light-orange flex flex-col gap-3">
         <h3 className="truncate font-display text-xl font-normal uppercase tracking-widest text-light-orange md:text-3xl">
           {item.name}
         </h3>
         <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-light-orange md:text-base">
           <span>{item.price !== null ? `From ₱${item.price}` : "Price on request"}</span>
           {item.duration && (
-            <span className="inline-flex items-center gap-2">
+            <span className="inline-flex items-center gap-3">
               <Clock size={16} aria-hidden="true" />
               {item.duration}
             </span>
@@ -44,7 +44,7 @@ function StripCaption({ item, visible = true }: { item: StripItem; visible?: boo
         to={servicePath(item)}
         aria-label={`Book ${item.name}`}
         tabIndex={visible ? 0 : -1}
-        className={`${visible ? "pointer-events-auto" : "pointer-events-none"} shrink-0 rounded-md bg-crimson px-9 py-3 text-sm font-bold uppercase tracking-extrawide text-on-crimson shadow-md shadow-crimson/30 transition-colors hover:bg-gray-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-orange`}
+        className={`${visible ? "pointer-events-auto" : "pointer-events-none"} shrink-0 rounded-md bg-crimson px-3 py-2 text-sm font-semibold text-light-orange shadow-md shadow-crimson/30 transition-colors hover:bg-gray-red active:translate-y-px sm:px-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-light-orange`}
       >
         Book
       </Link>
@@ -127,9 +127,11 @@ export default function PhotoStrip({ items }: PhotoStripProps) {
     if (Math.abs(diff) > 50) go(diff > 0 ? 1 : -1);
   };
 
-  const noMotion = animate ? "" : "!transition-none";
+  const noMotion = animate ? "" : "transition-none!";
+  // The slot and the slide offset step by one narrow photo plus the gap between photos; both read
+  // --gap, the same value the list's gap uses, so the caption always sits on its photo
   const slotStyle = {
-    left: "calc(var(--lead) * (var(--narrow-w) + 16px))",
+    left: "calc(var(--lead) * (var(--narrow-w) + var(--gap)))",
     width: "var(--wide-w)",
     height: "calc(var(--wide-w) * var(--ratio))",
   };
@@ -137,9 +139,11 @@ export default function PhotoStrip({ items }: PhotoStripProps) {
   return (
     <div className="@container">
       {/* Slot sizes. Below desktop one photo fills the width; on desktop the middle
-          one is wide and its neighbours are narrow, all the same height. */}
+          one is wide and its neighbours are narrow, all the same height. --gap is the space
+          between photos (12px); the three visible photos give up 8px each (3 x 8 = 2 gaps of 12),
+          so narrow + gap + wide + gap + narrow is exactly the full width. */}
       <div
-        className="[--lead:0] [--narrow-w:100cqw] [--wide-w:100cqw] [--ratio:1] lg:[--ratio:0.5625] lg:[--lead:1] lg:[--narrow-w:calc(25cqw-11px)] lg:[--wide-w:calc(50cqw-11px)] flex flex-col gap-3 sm:gap-9"
+        className="[--gap:12px] [--lead:0] [--narrow-w:100cqw] [--wide-w:100cqw] [--ratio:1] lg:[--ratio:0.5625] lg:[--lead:1] lg:[--narrow-w:calc(25cqw-8px)] lg:[--wide-w:calc(50cqw-8px)] flex flex-col gap-3 sm:gap-9"
         style={{ "--pos": pos } as CSSProperties}
       >
         <div className="group/strip relative">
@@ -157,9 +161,10 @@ export default function PhotoStrip({ items }: PhotoStripProps) {
             <ul
               aria-label="Our services"
               onTransitionEnd={settle}
-              className={`flex gap-3 transition-transform duration-500 ease-in-out motion-reduce:transition-none ${noMotion}`}
+              className={`flex transition-transform duration-500 ease-in-out motion-reduce:transition-none ${noMotion}`}
               style={{
-                transform: "translateX(calc(-1 * (var(--pos) - var(--lead)) * (var(--narrow-w) + 16px)))",
+                gap: "var(--gap)",
+                transform: "translateX(calc(-1 * (var(--pos) - var(--lead)) * (var(--narrow-w) + var(--gap))))",
               }}
             >
               {looped.map((item, k) => (
@@ -200,7 +205,7 @@ export default function PhotoStrip({ items }: PhotoStripProps) {
           </div>
         </div>
 
-        <div className="flex items-center justify-center gap-2" aria-hidden="true">
+        <div className="flex items-center justify-center gap-3" aria-hidden="true">
           {items.map((item, i) => (
             <span
               key={item.id}

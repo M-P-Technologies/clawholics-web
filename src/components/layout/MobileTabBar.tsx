@@ -18,7 +18,7 @@ const MORE_PATHS = ["/about", "/faq", "/contact", "/login", "/signup"];
 
 const tabClass = (active: boolean) =>
   clsx(
-    "flex min-w-0 flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium tracking-wide transition-colors",
+    "flex min-w-0 flex-1 flex-col items-center justify-center gap-1 py-2 text-xs font-medium tracking-wide transition-colors",
     active ? "text-crimson-ink" : "text-gray-red hover:text-crimson-ink",
   );
 
@@ -149,9 +149,9 @@ export default function MobileTabBar() {
           <Link
             to="/services"
             aria-label="Book an appointment"
-            className="flex min-w-0 flex-1 flex-col items-center justify-center gap-1 text-[11px] font-bold tracking-wide text-crimson-ink"
+            className="flex min-w-0 flex-1 flex-col items-center justify-center gap-1 text-xs font-bold tracking-wide text-crimson-ink"
           >
-            <span className="-mt-6 flex h-12 w-12 items-center justify-center rounded-full bg-crimson text-on-crimson shadow-lg shadow-crimson/30">
+            <span className="-mt-6 flex h-12 w-12 items-center justify-center rounded-full bg-crimson text-light-orange shadow-lg shadow-crimson/30">
               <CalendarPlus size={22} aria-hidden="true" />
             </span>
             <span>Book</span>
@@ -167,7 +167,7 @@ export default function MobileTabBar() {
             aria-expanded={moreOpen}
             aria-controls="more-menu"
             onClick={() => setMoreOpen((open) => !open)}
-            className={clsx(tabClass(moreActive), "!flex-col")}
+            className={clsx(tabClass(moreActive), "flex-col!")}
           >
             <Ellipsis size={22} aria-hidden="true" />
             <span>More</span>

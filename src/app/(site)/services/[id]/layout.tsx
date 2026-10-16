@@ -5,6 +5,7 @@ import JsonLd from "@/components/seo/JsonLd";
 import { NOT_FOUND_METADATA, PAGES, seoMetadata, shortDescription } from "@/lib/seo";
 import { breadcrumbSchema, serviceSchema } from "@/server/seo";
 import { publicReads } from "@/server/publicCache";
+import { readOrNull } from "@/server/timeLimit";
 import { prefetchServicePage } from "@/server/publicPrefetch";
 import { findBySlugOrId, servicePath } from "@/utils/slug";
 import type { NailService } from "@/services/serviceService";
@@ -15,11 +16,9 @@ type Props = { params: Promise<{ id: string }> };
 // one canonical address (the name's slug, also for the old numeric /services/2 links), and its
 // schema markup with the price range
 async function findService(param: string): Promise<NailService | null> {
-  try {
-    return findBySlugOrId((await publicReads.services()) as unknown as NailService[], decodeURIComponent(param));
-  } catch {
-    return null;
-  }
+  // A slow or failed read leaves the page without its metadata, never stuck
+  const list = await readOrNull(() => publicReads.services() as unknown as Promise<NailService[]>, "Service lookup");
+  return list ? findBySlugOrId(list, decodeURIComponent(param)) : null;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

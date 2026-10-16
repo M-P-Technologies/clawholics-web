@@ -19,7 +19,7 @@ function ClientDirectory() {
 
   return (
     <AdminShell title="Clients & Bookings">
-      <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pb-2">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 md:gap-6 overflow-y-auto pb-2">
         {!directory.usersFailed && <DirectoryStats label="Client totals" stats={directory.stats} />}
 
         {directory.leadsView && (

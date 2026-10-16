@@ -36,8 +36,26 @@ function createClient(): Sql {
   return postgres(url, options);
 }
 
+/**
+ * During `next build` each query gets its own one-connection client, closed as soon as it's idle.
+ * The build prerenders the public pages one after another in one process, and a shared pool
+ * stalls there: the first page's queries answer, then every later one waits forever (a clean
+ * build's pages then shipped without their content, and sitemap.xml failed Vercel's build at
+ * Next's 60-second limit). A plain Node script with the same options never stalls, so it's
+ * specific to the build; a fresh connection per query answers every time. About a hundred short
+ * connections per build, and none once the site runs.
+ */
+const isBuild = () => process.env.NEXT_PHASE === "phase-production-build";
+
+function createBuildClient(): Sql {
+  const url = process.env.DATABASE_URL;
+  if (!url) throw new Error("DATABASE_URL is not set");
+  return postgres(url, { prepare: false, max: 1, idle_timeout: 1, connect_timeout: 10 });
+}
+
 /** Lazily created, so importing this module never needs DATABASE_URL (e.g. at build time). */
 export function getSql(): Sql {
+  if (isBuild()) return createBuildClient();
   globalForDb.clawholicsSql ??= createClient();
   return globalForDb.clawholicsSql;
 }

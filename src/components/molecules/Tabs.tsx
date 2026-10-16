@@ -22,7 +22,7 @@ export default function Tabs<T extends string>({ label, tabs, value, onChange, i
     document.getElementById(`${idPrefix}-tab-${next.value}`)?.focus();
   };
   return (
-    <div role="tablist" aria-label={label} className="flex shrink-0 overflow-x-auto overflow-y-hidden border-b border-crimson-light/50 px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div role="tablist" aria-label={label} className="flex shrink-0 overflow-x-auto overflow-y-hidden border-b border-crimson-light/50 px-2 scrollbar-none [&::-webkit-scrollbar]:hidden">
       {tabs.map((tab, index) => {
         const selected = tab.value === value;
         return (
@@ -37,12 +37,12 @@ export default function Tabs<T extends string>({ label, tabs, value, onChange, i
             onClick={() => onChange(tab.value)}
             onKeyDown={(e) => move(e, index)}
             className={clsx(
-              "shrink-0 whitespace-nowrap border-b-2 px-3 py-3 text-[14px] font-bold transition-colors",
+              "shrink-0 whitespace-nowrap border-b-2 px-3 py-3 text-sm font-bold transition-colors",
               selected ? "border-crimson text-berry" : "border-transparent text-gray-red hover:text-berry",
             )}
           >
             {tab.label}
-            {tab.count !== undefined && <span className="ml-1.5 rounded-full bg-crimson-light/50 px-1.5 text-[11px] text-berry">{tab.count}</span>}
+            {tab.count !== undefined && <span className="ml-1.5 rounded-full bg-crimson-light/50 px-1.5 text-xs text-berry">{tab.count}</span>}
           </button>
         );
       })}

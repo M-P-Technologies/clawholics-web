@@ -20,12 +20,12 @@ export default function AdminScanner() {
       <div className="flex flex-1 flex-col overflow-y-auto pb-2">
         {/* Desktop: the camera (2/3) with the result and the recent scans beside it. Phone: camera,
             result, recent scans, one under the other. */}
-        <div className="grid grid-cols-1 gap-6 max-lg:flex max-lg:flex-col xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 md:gap-6 max-lg:flex max-lg:flex-col xl:grid-cols-3">
           <div className="flex h-full flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-6 shadow-petal max-lg:order-1 xl:col-span-2">
             <SectionHeader size="card" icon={QrCode} title="Scanner" />
 
             {cameraError && (
-              <div role="alert" className="flex items-center gap-2 rounded-xl bg-danger/10 px-3 py-3 text-[13px] font-bold text-danger-ink">
+              <div role="alert" className="flex items-center gap-3 rounded-xl bg-danger/10 px-3 py-3 text-[13px] font-bold text-danger-ink">
                 <XCircle size={18} className="shrink-0" aria-hidden="true" />
                 {cameraError}
               </div>
@@ -43,7 +43,7 @@ export default function AdminScanner() {
                   styles={{ container: { width: "100%", height: "100%" } }}
                 />
               ) : (
-                <div className="flex max-w-xs flex-col items-center gap-2 px-3 text-center text-gray-red">
+                <div className="flex max-w-xs flex-col items-center gap-3 px-3 text-center text-gray-red">
                   <span aria-hidden="true" className="flex h-12 w-12 items-center justify-center rounded-full bg-crimson-light/40 text-berry">
                     <Camera size={22} />
                   </span>
@@ -72,7 +72,7 @@ export default function AdminScanner() {
             </div>
           </div>
 
-          <div className="flex min-h-0 flex-col gap-6 max-lg:contents">
+          <div className="flex min-h-0 flex-col gap-3 md:gap-6 max-lg:contents">
             <div ref={resultRef} className="flex flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-6 shadow-petal max-lg:order-2">
               <SectionHeader size="card" icon={Stamp} title="Scan result" />
 
@@ -84,7 +84,7 @@ export default function AdminScanner() {
 
               {lastScan?.error && (
                 <div role="alert" className="flex flex-col gap-3 rounded-xl bg-danger/10 p-3 text-gray-red">
-                  <p className="flex items-center gap-2 text-sm font-bold">
+                  <p className="flex items-center gap-3 text-sm font-bold">
                     <XCircle size={20} className="shrink-0 text-danger-ink" aria-hidden="true" />
                     {lastScan.error}
                   </p>
@@ -116,12 +116,12 @@ export default function AdminScanner() {
                     </span>
                     <span className="min-w-0">
                       <span className="block truncate font-display text-2xl leading-tight text-gray-red">{lastScan.client.name}</span>
-                      <span className="block truncate text-[12px] text-gray-red">ID: {lastScan.userId}</span>
+                      <span className="block truncate text-xs text-gray-red">ID: {lastScan.userId}</span>
                     </span>
                   </div>
 
                   {/* The loyalty card: ten stamps, filled for each one earned */}
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-3">
                     <p className="flex items-baseline justify-between text-[13px] font-medium text-gray-red">
                       Stamps
                       <span className="font-display text-xl text-berry">
@@ -129,7 +129,7 @@ export default function AdminScanner() {
                         <span className="text-sm text-gray-red"> / {stampTarget}</span>
                       </span>
                     </p>
-                    <ol aria-label={`${shownStamps} of ${stampTarget} stamps`} className="grid grid-cols-5 gap-2">
+                    <ol aria-label={`${shownStamps} of ${stampTarget} stamps`} className="grid grid-cols-5 gap-3">
                       {Array.from({ length: stampTarget }, (_, i) => (
                         <li
                           key={i}
@@ -145,7 +145,7 @@ export default function AdminScanner() {
                     {cardFull && <p className="text-[13px] font-bold text-berry">The card is full: the reward is ready to redeem.</p>}
                   </div>
 
-                  <div className="flex flex-col gap-2 sm:flex-row">
+                  <div className="flex flex-col gap-3 sm:flex-row">
                     <Button onClick={() => recordAction("stamp")} disabled={isProcessing} className="flex-1">
                       Award stamp
                     </Button>
@@ -173,14 +173,14 @@ export default function AdminScanner() {
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-sm font-bold text-gray-red">{h.clientName}</span>
                           <span
-                            className={`mt-0.5 inline-block rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                            className={`mt-0.5 inline-block rounded-full px-2 py-0.5 text-xs font-bold ${
                               h.action === "stamp" ? "bg-crimson-light/50 text-berry" : "bg-success/20 text-gray-red"
                             }`}
                           >
                             {h.action === "stamp" ? "Stamp" : "Reward redeemed"}
                           </span>
                         </span>
-                        <span className="shrink-0 text-[12px] text-gray-red">{h.time}</span>
+                        <span className="shrink-0 text-xs text-gray-red">{h.time}</span>
                       </li>
                     ))
                   )}

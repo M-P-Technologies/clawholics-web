@@ -33,6 +33,7 @@ const STATUS_OPTIONS: { label: string; value: AppointmentFilterStatus }[] = [
   { label: "Awaiting proof", value: "AWAITING_PROOF" },
   { label: "Proofs to review", value: "PROOF_PENDING" },
   { label: "Proof overdue", value: "PROOF_OVERDUE" },
+  { label: "Awaiting confirmation", value: "AWAITING_CONFIRMATION" },
   { label: "Confirmed", value: "CONFIRMED" },
   { label: "Completed", value: "COMPLETED" },
   { label: "Cancelled", value: "CANCELLED" },
@@ -55,13 +56,14 @@ const SORT_PARAM: Record<string, AppointmentSort> = {
 // Five to a page, like the dashboard's bookings table
 const ROWS_PER_PAGE = 5;
 
-const STATUSES: AppointmentStatus[] = ["PENDING", "AWAITING_PROOF", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUNDED"];
+const STATUSES: AppointmentStatus[] = ["PENDING", "AWAITING_PROOF", "AWAITING_CONFIRMATION", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUNDED"];
 
 // Dot beside each status, so the colour says what it means before you read it
 const statusDotClass = (status: AppointmentStatus) => {
   switch (status) {
     case "PENDING":
     case "AWAITING_PROOF":
+    case "AWAITING_CONFIRMATION":
       return "bg-warning";
     case "CONFIRMED":
       return "bg-info";
@@ -104,14 +106,14 @@ const statusOf = (a: Appointment) => (a.status?.trim().toUpperCase() || "PENDING
 // A proof waiting for review is a button: it opens the review (the client page has no proof review)
 function ProofBadge({ appointment, now, onReview }: { appointment: Appointment; now: number; onReview: () => void }) {
   const kind = isProofOverdue(appointment, now) ? "overdue" : getProofState(appointment, now).kind;
-  if (kind === "overdue") return <span className="whitespace-nowrap rounded-md bg-danger/10 px-2 py-0.5 text-[11px] font-bold text-danger-ink">Proof overdue</span>;
+  if (kind === "overdue") return <span className="whitespace-nowrap rounded-md bg-danger/10 px-2 py-0.5 text-xs font-bold text-danger-ink">Proof overdue</span>;
   if (kind === "in_review")
     return (
       <button
         type="button"
         onClick={onReview}
         aria-label={`Review the payment proof for appointment #${appointment.id}`}
-        className="whitespace-nowrap rounded-md bg-warning/15 px-2 py-0.5 text-[11px] font-bold text-warning-ink underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-crimson"
+        className="whitespace-nowrap rounded-md bg-warning/15 px-2 py-0.5 text-xs font-bold text-warning-ink underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-crimson"
       >
         Proof to review
       </button>
@@ -258,7 +260,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
               {name}
             </Link>
           )}
-          <span className="flex flex-wrap items-center gap-1.5 text-[12px] text-gray-red">
+          <span className="flex flex-wrap items-center gap-1.5 text-xs text-gray-red">
             {isWalkin(a) ? "Walk-in" : a.email || `ID #${a.id}`}
             <ProofBadge appointment={a} now={now} onReview={() => setSelected(a)} />
           </span>
@@ -293,14 +295,14 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
       value={statusOf(a)}
       onChange={(e) => changeStatus(a.id, e.target.value as AppointmentStatus)}
       options={STATUS_CHOICES}
-      className="w-[150px]"
-      triggerClassName="!h-8 !px-3 !py-0 text-[12px]"
+      className="w-37.5"
+      triggerClassName="h-8! px-3! py-0! text-xs"
     />
   );
   // Manage opens the client's page; a walk-in has none, so theirs is turned off
   const manageButton = (a: Appointment, withLabel = false) => {
     const look = clsx(
-      "inline-flex items-center justify-center gap-2 rounded-lg bg-berry text-pearl transition-colors",
+      "inline-flex items-center justify-center gap-3 rounded-lg bg-berry text-pearl transition-colors",
       withLabel ? "px-3 py-2 text-[13px] font-bold" : "h-8 w-8",
     );
     if (isWalkin(a)) {
@@ -324,13 +326,13 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
       {/* One row at every width; on a phone the button drops its icon to fit */}
       <div className="flex items-center justify-between gap-3">
         <h2 className="min-w-0 truncate font-display text-2xl font-normal text-gray-red">Appointments</h2>
-        <Button type="button" onClick={() => setCreating(true)} className="shrink-0 whitespace-nowrap !px-3 !py-2 text-[12px] sm:!px-3 sm:text-[13px]">
+        <Button type="button" onClick={() => setCreating(true)} className="shrink-0 whitespace-nowrap px-3! py-2! text-xs sm:px-3! sm:text-[13px]">
           <Plus size={14} aria-hidden="true" className="hidden sm:block" />
           New appointment
         </Button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-3">
         {asTable ? (
           filters.map((filter) => (
             <Select
@@ -340,19 +342,19 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
               onChange={(e) => filter.pick(e.target.value)}
               options={filter.options}
               className={filter.key === "artist" ? "w-40" : "w-44"}
-              triggerClassName="!h-9 !py-0 text-[13px]"
+              triggerClassName="h-9! py-0! text-[13px]"
             />
           ))
         ) : (
           // Phone: the three filters in one row, each opening its options in a bottom drawer
-          <div className="grid w-full grid-cols-3 gap-2">
+          <div className="grid w-full grid-cols-3 gap-3">
             {filters.map((filter) => (
               <button
                 key={filter.key}
                 type="button"
                 aria-label={`${filter.title}: ${filter.options.find((o) => o.value === filter.value)?.label}`}
                 onClick={() => setOpenFilter(filter.key)}
-                className="flex h-9 min-w-0 items-center justify-between gap-1 rounded-md border border-crimson-light bg-light-orange/70 px-3 text-[12px] text-gray-red focus-visible:outline-2 focus-visible:outline-crimson"
+                className="flex h-9 min-w-0 items-center justify-between gap-1 rounded-md border border-crimson-light bg-light-orange/70 px-3 text-xs text-gray-red focus-visible:outline-2 focus-visible:outline-crimson"
               >
                 <span className="min-w-0 truncate">{filter.options.find((o) => o.value === filter.value)?.label}</span>
                 <ChevronDown size={14} aria-hidden="true" className="shrink-0 text-crimson" />
@@ -432,7 +434,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
                   ["Visits", clientFacts(a).visits],
                 ]}
               />
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center justify-between gap-3">
                 {statusSelect(a)}
                 {manageButton(a, true)}
               </div>
@@ -440,9 +442,9 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
           ))}
         </RowCards>
       ) : (
-        <TableFrame label="Appointments" minWidthClass="min-w-[1220px]"
+        <TableFrame label="Appointments" minWidthClass="min-w-305"
           head={
-            <tr className="text-left text-[12px] text-gray-red">
+            <tr className="text-left text-xs text-gray-red">
               {["Client", "Phone", "Joined", "Last active", "Visits", "Service", "Artist", "Date", "Time", "Status", "Manage"].map((h) => (
                 <th key={h} scope="col" className={clsx("pb-2 pr-3 font-medium", h === "Manage" && "pr-0 text-center", h === "Visits" && "text-right")}>
                   {h}
@@ -456,7 +458,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
           const cell = "border-t border-dotted border-crimson-light py-3 pr-3";
           return (
             <tr key={a.id}>
-              <th scope="row" className={clsx(cell, "max-w-[240px] text-left font-normal")}>
+              <th scope="row" className={clsx(cell, "max-w-60 text-left font-normal")}>
                 {clientCell(a, "row")}
               </th>
               <td className={clsx(cell, "whitespace-nowrap")}>{facts.phone}</td>
@@ -465,7 +467,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
               <td className={clsx(cell, "text-right font-bold")}>{facts.visits}</td>
               <td className={cell}>
                 {a.service_name || "–"}
-                <span className="block text-[12px] text-gray-red">#{a.id}</span>
+                <span className="block text-xs text-gray-red">#{a.id}</span>
               </td>
               <td className={cell}>{a.nailist_name || "–"}</td>
               <td className={clsx(cell, "whitespace-nowrap")}>{dateLabel(a.appointment_date)}</td>
@@ -485,7 +487,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
         type="button"
         aria-label="Create appointment"
         onClick={() => setCreating(true)}
-        className="fixed bottom-20 right-4 z-30 h-14 w-14 rounded-full !p-0 shadow-lg shadow-crimson/30 lg:hidden"
+        className="fixed bottom-20 right-4 z-30 h-14 w-14 rounded-full p-0! shadow-lg shadow-crimson/30 lg:hidden"
       >
         <Plus size={24} aria-hidden="true" />
       </Button>

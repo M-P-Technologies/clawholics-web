@@ -3,6 +3,7 @@ import { readSocialLinks } from "@/lib/socialLinkData";
 import { OG_IMAGE, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/seo";
 import { servicePath, artistPath } from "@/utils/slug";
 import { publicReads } from "./publicCache";
+import { readOrNull } from "./timeLimit";
 
 // Schema.org markup (JSON-LD) for search engines, built from the content the admin edits: the
 // salon as a NailSalon (address, phone, hours, social profiles), each service, each artist, and
@@ -38,13 +39,8 @@ function openingHours(about: Row): Json[] {
   });
 }
 
-const settled = async <T>(read: () => Promise<T>): Promise<T | null> => {
-  try {
-    return await read();
-  } catch {
-    return null;
-  }
-};
+/** A read for the markup, or null when it fails or is slow (the page is built without it) */
+const settled = <T>(read: () => Promise<T>): Promise<T | null> => readOrNull(read, "Schema markup read");
 
 /** The salon: name, address, phone, hours, prices and social profiles */
 export async function salonSchema(): Promise<Json | null> {

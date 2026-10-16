@@ -24,8 +24,9 @@ export function usePaymentConfirmation() {
   // Use a ref to track if we've already sent the confirmation email
   const emailSentRef = useRef(false);
 
-  // Statuses after which nothing is going to change, so there is no reason to keep asking.
-  const FINAL_STATUSES = ["CONFIRMED", "CANCELLED", "REJECTED", "REFUNDED"];
+  // Statuses after which the payment is settled, so there is no reason to keep asking. A paid
+  // booking waits for the salon to confirm it (AWAITING_CONFIRMATION): that can take hours.
+  const FINAL_STATUSES = ["AWAITING_CONFIRMATION", "CONFIRMED", "CANCELLED", "REJECTED", "REFUNDED"];
 
   const poll = async (): Promise<boolean> => {
     try {
@@ -102,7 +103,9 @@ export function usePaymentConfirmation() {
   };
 
   const isFailed = paymentStatus === "FAILED" || data?.status === "CANCELLED";
-  const isConfirmed = data?.status === "CONFIRMED";
+  /** The downpayment is in: the booking is confirmed, or waiting for the salon to confirm it */
+  const isConfirmed = data?.status === "CONFIRMED" || data?.status === "AWAITING_CONFIRMATION";
+  const awaitingSalon = data?.status === "AWAITING_CONFIRMATION";
 
-  return { isFailed, isConfirmed, navigate, appointment_id, data, payment, loading, paymentStatus, timedOut, checkAgain };
+  return { isFailed, isConfirmed, awaitingSalon, navigate, appointment_id, data, payment, loading, paymentStatus, timedOut, checkAgain };
 }

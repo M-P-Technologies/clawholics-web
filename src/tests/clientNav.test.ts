@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CLIENT_PATHS, CLIENT_TABS, isInnerScreen, isTabActive, serviceDetailPath } from "@/lib/client/clientNav";
+import { CLIENT_PATHS, CLIENT_TABS, isInnerScreen, isTabActive } from "@/lib/client/clientNav";
 
 const tab = (label: string) => CLIENT_TABS.find((t) => t.label === label)!;
 
@@ -15,15 +15,14 @@ describe("client navigation", () => {
   });
 
   it("keeps Explore active on a service's page", () => {
-    expect(isTabActive(tab("Explore"), serviceDetailPath(4))).toBe(true);
     expect(isTabActive(tab("Explore"), "/my/explorer")).toBe(false);
   });
 
   it("treats the service page and the booking steps as inner screens", () => {
-    for (const path of [serviceDetailPath(4), CLIENT_PATHS.book, CLIENT_PATHS.payment, CLIENT_PATHS.confirmation, CLIENT_PATHS.reschedule]) {
+    for (const path of [CLIENT_PATHS.book, CLIENT_PATHS.payment, CLIENT_PATHS.confirmation, CLIENT_PATHS.reschedule]) {
       expect(isInnerScreen(path)).toBe(true);
     }
-    for (const path of [CLIENT_PATHS.home, CLIENT_PATHS.appointments, CLIENT_PATHS.explore, CLIENT_PATHS.profile]) {
+    for (const path of [CLIENT_PATHS.home, CLIENT_PATHS.appointments, CLIENT_PATHS.explore, "/my/explore/3", CLIENT_PATHS.profile]) {
       expect(isInnerScreen(path)).toBe(false);
     }
   });

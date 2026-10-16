@@ -5,7 +5,7 @@ import { ArrowRight, ChevronDown } from "lucide-react";
 import { Link } from "@/lib/router";
 import Bow from "@/assets/bow.svg";
 import emblem from "@/assets/logo/emblem-pink.png";
-import { Button, LoadingBar, Blush } from "@/components/atoms";
+import { Button, LoadingBar, Blush, Stars } from "@/components/atoms";
 import ArtistSpotlight from "@/components/home/ArtistSpotlight";
 import FaqList from "@/components/home/FaqList";
 import FloatingFacebookButton from "@/components/home/FloatingFacebookButton";
@@ -17,7 +17,6 @@ import Section from "@/components/layout/Section";
 import { FACEBOOK_URL } from "@/data/home";
 import { sectionTitleClass } from "@/components/tokens";
 import { useHomePage } from "@/hooks/useHomePage";
-import Testimonials from "@/components/home/Testimonials";
 
 export default function Home() {
   const { retryProfile, contentError, reloadContent, isBusy, content, faqs, nailists, about, profileCheckFailed, stripItems, testimonials, heroFailed, onHeroError, exploreMore, view } = useHomePage();
@@ -75,9 +74,9 @@ export default function Home() {
             <Bow
               aria-hidden="true"
               focusable="false"
-              className="-mb-15 h-14 w-14 -rotate-12 text-white md:-mb-21 drop-shadow-md"
+              className="-mb-15 h-14 w-14 -rotate-12 text-light-orange md:-mb-21 drop-shadow-md"
             />
-            <h1 className="font-display font-normal text-6xl md:text-8xl text-crimson-ink">
+            <h1 className="font-display font-normal text-6xl md:text-8xl text-crimson">
               {content.home_title}
             </h1>
             <p className="max-w-lg copy-lead">
@@ -93,7 +92,7 @@ export default function Home() {
                 Book appointment
                 <span
                   aria-hidden="true"
-                  className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-light-orange text-crimson-ink"
+                  className="absolute right-2 top-1/2 flex p-2 -translate-y-1/2 items-center justify-center rounded-full bg-light-orange text-crimson-ink"
                 >
                   <ArrowRight size={18} />
                 </span>
@@ -103,7 +102,7 @@ export default function Home() {
                 type="button"
                 onClick={exploreMore}
                 aria-label="Explore: scroll down to see more"
-                className="flex-col gap-1 text-sm text-on-crimson transition-colors hover:underline"
+                className="flex-col gap-3 text-sm text-on-crimson transition-colors hover:underline"
               >
                 Explore
                 <ChevronDown size={20} aria-hidden="true" className="animate-bounce motion-reduce:animate-none" />
@@ -136,7 +135,7 @@ export default function Home() {
             >
               <Link
                 to={link}
-                className="group flex h-full flex-col bg-light-orange p-3 md:p-9 transition-colors sm:flex-col gap-3 hover:bg-light-orange focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-crimson"
+                className="group flex h-full flex-col bg-light-orange p-6 transition-colors sm:flex-col gap-3 hover:bg-light-orange focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-crimson"
               >
                 <div className="w-full flex flex-row sm:flex-col items-center sm:items-start gap-3 sm:gap-9">
                   <div className="flex shrink-0 sm:w-full sm:items-center sm:justify-between">
@@ -169,7 +168,7 @@ export default function Home() {
             <Button
               to={t.home_offer_link}
               variant="bare" arrow
-              className="text-sm font-bold uppercase tracking-extrawide text-gray-red hover:text-crimson-ink gap-3 self-start"
+              className="text-sm font-semibold text-gray-red hover:text-crimson-ink gap-3 self-start"
             >
               {t.home_offer_link_label}
             </Button>
@@ -235,16 +234,32 @@ export default function Home() {
       {testimonials.length > 0 && (
         <Section id="reviews" innerClassName="gap-3 md:gap-9">
           <h2 className={sectionTitleClass}>{t.home_reviews_title}</h2>
-          <Testimonials reviews={testimonials} />
+          {/* What clients said about their visits: only the reviews an admin approved for the home page */}
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:gap-6 lg:grid-cols-3">
+            {testimonials.map((review) => (
+              <li key={review.id} className="flex flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-6 shadow-petal">
+                <Stars rating={review.rating} />
+                {review.comment && <blockquote className="whitespace-pre-wrap text-sm leading-relaxed text-gray-red wrap-anywhere">{review.comment}</blockquote>}
+                {review.photo_url && (
+                  // eslint-disable-next-line @next/next/no-img-element -- R2 images, sized by CSS like the rest of the site
+                  <img src={review.photo_url} alt={`${review.client_name ?? "A client"}'s nails`} loading="lazy" className="aspect-4/3 w-full rounded-xl object-cover" />
+                )}
+                <p className="mt-auto flex flex-col text-[13px] text-gray-red">
+                  <span className="font-bold text-gray-red">{review.client_name ?? "A happy client"}</span>
+                  {review.service_name}
+                </p>
+              </li>
+            ))}
+          </ul>
         </Section>
       )}
 
       {faqs.length > 0 && (
-        <Section id="faq" innerClassName="!max-w-4xl gap-3 md:gap-9">
+        <Section id="faq" innerClassName="max-w-4xl! gap-3 md:gap-9">
           <Blush className="-right-32 top-1/4 h-80 w-80" />
           <h2 className={sectionTitleClass}>{t.home_faq_title}</h2>
           <FaqList faqs={faqs} />
-          <Link to="/faq" className="inline-flex w-fit items-center gap-2 text-sm font-bold uppercase tracking-widest text-crimson-ink underline-offset-4 hover:underline">
+          <Link to="/faq" className="inline-flex w-fit items-center gap-3 text-sm font-semibold text-crimson-ink underline-offset-4 hover:underline">
             Open the FAQ page
             <ArrowRight size={16} aria-hidden="true" />
           </Link>

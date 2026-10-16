@@ -30,6 +30,9 @@ export default function ScrollToTop() {
         top: 0,
         behavior: "instant",
       });
+      // A frame whose content scrolls inside its own box (the client app from `sm`) starts at the
+      // top too
+      document.querySelectorAll<HTMLElement>("[data-scroll-root]").forEach((root) => root.scrollTo?.({ top: 0, behavior: "instant" }));
     }
   }, [pathname]);
 

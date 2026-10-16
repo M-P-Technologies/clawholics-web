@@ -31,7 +31,7 @@ export function PanelSection({ title, description, page, aside, children }: Pane
       <div className="flex flex-col gap-1">
         <div className="flex items-baseline justify-between gap-3">
           <h2 className="font-display text-xl font-normal text-gray-red">{title}</h2>
-          {aside && <span className="shrink-0 text-[12px] font-bold text-gray-red">{aside}</span>}
+          {aside && <span className="shrink-0 text-xs font-bold text-gray-red">{aside}</span>}
         </div>
         {description && <p className="text-[13px] leading-snug text-gray-red">{description}</p>}
       </div>
@@ -52,21 +52,35 @@ interface TextFieldProps {
   /** The phone keyboard to show, e.g. "numeric" for whole numbers */
   inputMode?: "numeric";
   disabled?: boolean;
+  /** The most characters allowed; the box stops there and a counter shows how many are used */
+  maxLength?: number;
 }
 
-export function TextField({ label, value, onChange, rows, hint, placeholder, type = "text", inputMode, disabled }: TextFieldProps) {
+export function TextField({ label, value, onChange, rows, hint, placeholder, type = "text", inputMode, disabled, maxLength }: TextFieldProps) {
   const id = useId();
+  const counterId = useId();
+  const limit = maxLength ? { maxLength, "aria-describedby": counterId } : {};
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className={fieldLabelClass}>
         {label}
       </label>
       {rows ? (
-        <Textarea id={id} rows={rows} value={value} placeholder={placeholder} disabled={disabled} onChange={(e) => onChange(e.target.value)} className="min-h-0! resize-y leading-relaxed" />
+        <Textarea id={id} rows={rows} value={value} placeholder={placeholder} disabled={disabled} onChange={(e) => onChange(e.target.value)} className="min-h-0! resize-y leading-relaxed" {...limit} />
       ) : (
-        <Input id={id} type={type} inputMode={inputMode} value={value} placeholder={placeholder} disabled={disabled} onChange={(e) => onChange(e.target.value)} />
+        <Input id={id} type={type} inputMode={inputMode} value={value} placeholder={placeholder} disabled={disabled} onChange={(e) => onChange(e.target.value)} {...limit} />
       )}
-      {hint && <p className="text-[12px] leading-snug text-gray-red">{hint}</p>}
+      {(hint || maxLength) && (
+        <div className="flex items-start justify-between gap-3">
+          {hint ? <p className="text-xs leading-snug text-gray-red">{hint}</p> : <span />}
+          {maxLength && (
+            // A text saved before the limit can be longer; it shows over the limit until shortened
+            <p id={counterId} className={`shrink-0 text-xs tabular-nums ${value.length > maxLength ? "font-bold text-danger-ink" : "text-gray-red"}`}>
+              {value.length}/{maxLength}
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -200,12 +214,12 @@ export function ImageField({ label, value, uploading, onUpload, onRemove, hint, 
     <div className="flex flex-col gap-1.5">
       <span className={fieldLabelClass}>{label}</span>
       {shown ? (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           <div className="relative overflow-hidden rounded-lg border border-crimson-light/60 bg-crimson-light/20">
             {/* eslint-disable-next-line @next/next/no-img-element -- R2 images, sized by CSS like the rest of the admin */}
             <img src={shown} alt={label} className={clsx("aspect-video w-full", fit === "contain" ? "object-contain p-2" : "object-cover")} />
             {!value && (
-              <span className="absolute left-2 top-2 rounded-full bg-milk/90 px-2 py-0.5 text-[11px] font-bold text-gray-red">Default</span>
+              <span className="absolute left-2 top-2 rounded-full bg-milk/90 px-2 py-0.5 text-xs font-bold text-gray-red">Default</span>
             )}
             {uploading && (
               <span className="absolute inset-0 flex items-center justify-center bg-milk/70 text-[13px] font-bold text-gray-red">
@@ -214,7 +228,7 @@ export function ImageField({ label, value, uploading, onUpload, onRemove, hint, 
               </span>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <label
               htmlFor={id}
               className={clsx(
@@ -237,7 +251,7 @@ export function ImageField({ label, value, uploading, onUpload, onRemove, hint, 
       ) : (
         <DropArea id={id} uploading={uploading} onFile={pick} input={input} />
       )}
-      {hint && <p className="text-[12px] leading-snug text-gray-red">{hint}</p>}
+      {hint && <p className="text-xs leading-snug text-gray-red">{hint}</p>}
     </div>
   );
 }
@@ -261,7 +275,7 @@ export function DropArea({ id, uploading, onFile, input, label = "Upload a photo
         {uploading ? <Loader2 size={18} className="animate-spin" /> : <ImagePlus size={18} />}
       </span>
       <span className="text-[13px] font-bold text-gray-red">{uploading ? "Uploading…" : label}</span>
-      {!uploading && <span className="text-[12px] text-gray-red">PNG, JPG or WebP. Click, or drop it here.</span>}
+      {!uploading && <span className="text-xs text-gray-red">PNG, JPG or WebP. Click, or drop it here.</span>}
       {input}
     </label>
   );
@@ -281,11 +295,11 @@ export function SaveBar({ dirty, saving, busy = false, onSave, onDiscard }: Save
   useUnsavedWarning(dirty);
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-crimson-light/40 px-3 py-3 sm:px-6">
-      <p role="status" className="flex items-center gap-2 text-[13px] font-medium text-gray-red">
+      <p role="status" className="flex items-center gap-3 text-[13px] font-medium text-gray-red">
         <span aria-hidden="true" className={clsx("h-2 w-2 rounded-full", dirty ? "bg-crimson" : "bg-success")} />
         {dirty ? "Unsaved changes" : "Live on the site"}
       </p>
-      <div className="flex gap-2">
+      <div className="flex gap-3">
         <Button type="button" variant="secondary" onClick={onDiscard} disabled={!dirty || saving} className="px-3! py-1.5! text-[13px]">
           Discard
         </Button>
@@ -319,7 +333,7 @@ function useUnsavedWarning(dirty: boolean) {
 // A block of the page that's edited on another screen, with a link there
 export function ElsewhereNote({ to, screen, children }: { to: string; screen: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col items-start gap-2 rounded-xl bg-crimson-light/20 p-3 text-[13px] leading-snug text-gray-red">
+    <div className="flex flex-col items-start gap-3 rounded-xl bg-crimson-light/20 p-3 text-[13px] leading-snug text-gray-red">
       <p className="text-[13px] leading-snug">{children}</p>
       <Link to={to} className="inline-flex items-center gap-1 font-bold text-berry underline underline-offset-4">
         Edit in {screen}

@@ -1,6 +1,6 @@
 import { Card } from "@/components/atoms";
 import { ArrowRight, CalendarHeart, Receipt, UserPlus, Wallet } from "lucide-react";
-import { describeChange, peso } from "@/lib/dashboardFormat";
+import { describeChange, peso, shortDay } from "@/lib/dashboardFormat";
 import { formatBucketLabel, granularityWord, type DayValues } from "@/lib/dashboardTrend";
 import { Link } from "@/lib/router";
 import type { BookingsLoader } from "@/hooks/admin/useReports";
@@ -10,7 +10,6 @@ import BarChart from "@/components/features/admin/dashboard/BarChart";
 import BookingsTable from "@/components/features/admin/dashboard/BookingsTable";
 import DonutChart from "@/components/features/admin/dashboard/DonutChart";
 import { StatCard, SectionHeader } from "@/components/molecules";
-import NextAppointments from "@/components/features/admin/dashboard/NextAppointments";
 import SalonNotes from "@/components/features/admin/dashboard/SalonNotes";
 import Sparkline from "@/components/features/admin/dashboard/Sparkline";
 import { OTHER_COLOR, SERIES_COLORS, STACK_COLORS } from "@/components/features/admin/dashboard/chartColors";
@@ -98,7 +97,29 @@ export default function DashboardView({ data, loading = false, failed = false, l
             <BookingsTable load={loadBookings} />
           ) : (
             <Card as="section" aria-label="Next appointments" className="flex min-w-0 flex-col gap-3"><SectionHeader size="card" title="Next appointments" />
-              <NextAppointments items={data.next} />
+              {data.next.length === 0 ? (
+                <p className="text-sm text-gray-red">No upcoming confirmed appointments.</p>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <ul className="flex flex-col gap-3">
+                    {data.next.map((item) => (
+                      <li key={item.id} className="flex items-start gap-3 rounded-2xl bg-crimson-light/20 px-3 py-3">
+                        <span className="w-28 shrink-0 text-[13px] text-gray-red">
+                          <span className="block font-display text-base text-berry">{shortDay(item.appointment_date)}</span>
+                          {item.appointment_time}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-base font-bold text-gray-red">{item.client_name}</span>
+                          <span className="block truncate text-[13px] text-gray-red">{item.service_name} · {item.nailist_name}</span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Link to="/schedule" className="self-start text-sm font-bold text-berry underline decoration-crimson-light underline-offset-4">
+                    Open the schedule
+                  </Link>
+                </div>
+              )}
             </Card>
           )}
 
@@ -112,7 +133,7 @@ export default function DashboardView({ data, loading = false, failed = false, l
               >
                 <span className="min-w-0">
                   <span className="block font-display text-lg text-gray-red">{m.label}</span>
-                  <span className="block text-[12px] text-gray-red">{m.hint}</span>
+                  <span className="block text-xs text-gray-red">{m.hint}</span>
                 </span>
                 <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-crimson-light/40 text-berry transition-transform group-hover:translate-x-0.5">
                   <ArrowRight size={16} />

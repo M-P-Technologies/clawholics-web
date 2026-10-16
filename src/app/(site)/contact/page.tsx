@@ -6,7 +6,6 @@ import { FeedbackDialog } from "@/components/organisms";
 import { ContactGroup, FormField, SectionHeader } from "@/components/molecules";
 import PageShell from "@/components/layout/PageShell";
 import Panel from "@/components/layout/Panel";
-import ImageBanner from "@/components/home/ImageBanner";
 import Section from "@/components/layout/Section";
 import { contactLinkLightClass, inputClass, labelClass } from "@/components/tokens";
 import { useContactUs } from "@/hooks/useContactUs";
@@ -85,7 +84,18 @@ export default function ContactUs() {
           </div>
         </Panel>
 
-        <ImageBanner image={heroImage} alt="Hands with freshly done soft gel nails" focus="50% 45%">
+        {/* A wide photo across the whole screen, darkened, with the contact details on it. Its
+            negative bottom margin cancels the section's padding, so it sits against the footer */}
+        <div className="relative left-1/2 -mb-15 w-screen -translate-x-1/2 overflow-hidden lg:-mb-24">
+        <img
+          src={heroImage}
+          alt="Hands with freshly done soft gel nails"
+          loading="lazy"
+          style={{ objectPosition: "50% 45%" }}
+          className="absolute inset-0 h-full w-full max-w-none object-cover"
+        />
+        <div aria-hidden="true" className="absolute inset-0 bg-gray-red/70" />
+        <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-9 px-3 py-15 md:flex-row md:justify-between md:gap-12 md:px-9 lg:py-24">
         <ContactGroup title="Connect with us on social media!">
           {/* As edited in Admin > Contact Us */}
           {socialLinks.map(({ name, href, label, Icon }, index) => (
@@ -122,7 +132,8 @@ export default function ContactUs() {
             <span>{pageData.contact_location}</span>
           </a>
         </ContactGroup>
-        </ImageBanner>
+        </div>
+        </div>
       </Section>
 
       <FeedbackDialog

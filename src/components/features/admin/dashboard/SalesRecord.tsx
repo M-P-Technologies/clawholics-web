@@ -24,7 +24,7 @@ export default function SalesRecord({ sales }: { sales: DashboardResponse["sales
 
   return (
     <section aria-label="Sales record" className="flex min-w-0 flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-6 shadow-petal">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
+      <div className="flex flex-wrap items-baseline justify-between gap-3">
         <h2 className="font-display text-xl font-normal text-gray-red">Sales record</h2>
         <p className="rounded-full bg-crimson-light/30 px-3 py-1 text-[13px] font-bold text-berry">
           {`${peso(total)} from ${sales.length} ${sales.length === 1 ? "visit" : "visits"}`}
@@ -63,9 +63,9 @@ export default function SalesRecord({ sales }: { sales: DashboardResponse["sales
               ))}
             </RowCards>
           ) : (
-          <TableFrame label="Sales record" minWidthClass="min-w-[640px]"
+          <TableFrame label="Sales record" minWidthClass="min-w-160"
             head={
-              <tr className="text-left text-[12px] text-gray-red">
+              <tr className="text-left text-xs text-gray-red">
                 {["Service", "Customer", "Artist", "Date", "Fee"].map((h) => (
                   <th key={h} scope="col" className={h === "Fee" ? "pb-2 text-right font-medium" : "pb-2 font-medium"}>
                     {h}

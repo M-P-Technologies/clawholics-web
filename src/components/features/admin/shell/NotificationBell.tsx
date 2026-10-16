@@ -77,7 +77,7 @@ export default function NotificationBell() {
       >
         <Bell size={17} aria-hidden="true" />
         {bell.unread > 0 && (
-          <span aria-hidden="true" className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-crimson px-1 text-[10px] font-bold text-on-crimson">
+          <span aria-hidden="true" className="absolute -right-1 -top-1 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-crimson px-1 text-[10px] font-bold text-on-crimson">
             {bell.unread > 9 ? "9+" : bell.unread}
           </span>
         )}
@@ -89,7 +89,7 @@ export default function NotificationBell() {
           role="region"
           aria-label="New bookings"
           style={{ top: place.top, right: place.right }}
-          className="fixed z-[60] flex w-[min(22rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-crimson-light/40 bg-milk shadow-xl shadow-crimson/20"
+          className="fixed z-60 flex w-[min(22rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-crimson-light/40 bg-milk shadow-xl shadow-crimson/20"
         >
           <p className="border-b border-crimson-light/40 px-3 py-3 font-display text-lg text-gray-red">New bookings</p>
           {bell.failed ? (
@@ -111,14 +111,14 @@ export default function NotificationBell() {
                     >
                       <Icon size={18} aria-hidden="true" className="mt-0.5 shrink-0 text-berry" />
                       <span className="min-w-0 flex-1">
-                        <span className="flex items-baseline justify-between gap-2">
+                        <span className="flex items-baseline justify-between gap-3">
                           <span className="text-[13px] font-bold text-gray-red">
                             {notificationTitle(n)}
                             {bell.isNew(n.id) && <span className="ml-2 rounded-full bg-crimson px-1.5 py-0.5 text-[10px] text-on-crimson">New</span>}
                           </span>
-                          <span className="shrink-0 text-[11px] text-gray-red">{notificationAge(n.created_at)}</span>
+                          <span className="shrink-0 text-xs text-gray-red">{notificationAge(n.created_at)}</span>
                         </span>
-                        <span className="block text-[12px] text-gray-red">{notificationLine(n)}</span>
+                        <span className="block text-xs text-gray-red">{notificationLine(n)}</span>
                       </span>
                     </Link>
                   </li>

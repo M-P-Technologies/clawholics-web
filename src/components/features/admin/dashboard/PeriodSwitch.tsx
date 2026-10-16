@@ -19,7 +19,7 @@ interface PeriodSwitchProps {
 // rest of the bar); its slim scrollbar shows only while the row is hovered
 export default function PeriodSwitch({ value, onChange }: PeriodSwitchProps) {
   return (
-    <div role="group" aria-label="Period" className="hover-scrollbar -mx-3 flex gap-2 overflow-x-auto px-3 pb-1 lg:mx-0 lg:min-w-0 lg:px-0">
+    <div role="group" aria-label="Period" className="hover-scrollbar -mx-3 flex gap-3 overflow-x-auto px-3 pb-1 lg:mx-0 lg:min-w-0 lg:px-0">
       {DASHBOARD_RANGES.map((range) => (
         <Button
           key={range}

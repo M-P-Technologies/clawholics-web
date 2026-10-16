@@ -185,7 +185,48 @@ export async function sendConfirmationEmail(data: ConfirmationData) {
   ]);
 }
 
-/** Confirmation emails after a payment (Xendit webhook or an approved payment proof). */
+/**
+ * After an online (Xendit) payment: the downpayment is in, but the booking is only confirmed when
+ * an admin confirms it. The client hears that the salon will confirm; the salon hears there's a
+ * booking to confirm. The confirmation email (sendAppointmentConfirmation) follows the admin's confirm.
+ */
+export async function sendPaymentReceived(appointmentId: number) {
+  const det = await getAppointment(appointmentId);
+  if (!det) return;
+  const clientRows = [
+    clientRow("Appointment ID", det.id),
+    clientRow("Payment ID", det.payment_id),
+    clientRow("Service", det.service_name),
+    clientRow("Nailist", det.nailist_name),
+    clientRow("Date", det.appointment_date, HIGHLIGHT),
+    clientRow("Time", det.appointment_time, HIGHLIGHT),
+    clientRow("Payment Method", det.payment_method),
+  ].join("");
+  const customerHtml = baseEmailTemplate(
+    "Downpayment Received",
+    det.client_name,
+    `Thank you, <strong>${escapeHtml(det.client_name)}</strong>! We've received your downpayment. Your booking with <strong>${escapeHtml(det.nailist_name)}</strong> is waiting for the salon to confirm it, and we'll email you as soon as it's confirmed. Your time slot is held for you meanwhile.`,
+    clientRows,
+    false,
+  );
+  const adminRows = [
+    adminRow("Status", "AWAITING CONFIRMATION", " color: #b26a00; font-weight: bold;"),
+    adminRow("Customer", escapeHtml(det.client_name)),
+    adminRow("Email", escapeHtml(det.email)),
+    adminRow("Appointment ID", escapeHtml(det.id)),
+    adminRow("Payment ID", escapeHtml(det.payment_id)),
+    adminRow("Service", escapeHtml(det.service_name)),
+    adminRow("Nailist", escapeHtml(det.nailist_name)),
+    adminRow("Date", escapeHtml(det.appointment_date), " font-weight: bold;"),
+    adminRow("Time", escapeHtml(det.appointment_time), " font-weight: bold;"),
+  ].join("");
+  await Promise.all([
+    sendEmail(det.email, "We've received your downpayment | Clawholics by Max", customerHtml),
+    sendEmail(adminEmail(), "BOOKING PAID: PLEASE CONFIRM", baseAdminEmailTemplate("Booking Paid, Waiting for Your Confirmation", adminRows)),
+  ]);
+}
+
+/** Confirmation emails once the salon confirms: an admin confirming a paid booking, or approving a payment proof. */
 export async function sendAppointmentConfirmation(appointmentId: number) {
   const det = await getAppointment(appointmentId);
   if (!det) return;

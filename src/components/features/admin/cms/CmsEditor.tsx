@@ -88,7 +88,7 @@ export default function CmsEditor({ title, pages, drafts, refreshKey = 0, header
               pane === "preview" ? "flex" : "hidden",
             )}
           >
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-crimson-light/40 px-3 py-2">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-crimson-light/40 px-3 py-2">
               {pages.length > 1 ? (
                 <Select aria-label="Page" value={current?.path ?? path} onChange={(e) => setPath(e.target.value)} className="w-44" options={pages.map((p) => ({ value: p.path, label: p.label }))} />
               ) : (
@@ -108,7 +108,7 @@ export default function CmsEditor({ title, pages, drafts, refreshKey = 0, header
                     aria-pressed={device === value}
                     onClick={() => setDevice(value)}
                     className={clsx(
-                      "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-bold transition-colors",
+                      "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition-colors",
                       device === value ? "bg-milk text-berry shadow-sm" : "text-gray-red hover:text-berry",
                     )}
                   >

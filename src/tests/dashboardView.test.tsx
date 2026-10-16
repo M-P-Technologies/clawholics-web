@@ -132,3 +132,20 @@ describe("DashboardView: bookings", () => {
   });
 });
 
+describe("DashboardView next appointments (without the bookings table)", () => {
+  const item = { id: 1, client_name: "Dana D", service_name: "Gel Manicure", nailist_name: "Maxine", appointment_date: "2026-10-14", appointment_time: "15:00-16:00" };
+
+  it("lists the next appointments with who, what and when", () => {
+    render(<DashboardView data={{ ...data, next: [item] }} />);
+    const next = within(screen.getByRole("region", { name: "Next appointments" }));
+    expect(next.getByText("Dana D")).toBeInTheDocument();
+    expect(next.getByText(/Gel Manicure · Maxine/)).toBeInTheDocument();
+    expect(next.getByText(/15:00-16:00/)).toBeInTheDocument();
+    expect(next.getByRole("link", { name: "Open the schedule" })).toHaveAttribute("href", "/schedule");
+  });
+
+  it("says so when there are none", () => {
+    render(<DashboardView data={{ ...data, next: [] }} />);
+    expect(screen.getByText("No upcoming confirmed appointments.")).toBeInTheDocument();
+  });
+});

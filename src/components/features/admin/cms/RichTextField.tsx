@@ -90,22 +90,22 @@ export default function RichTextField({ label, initialHtml, resetKey, onChange }
           ))}
         </div>
         {linkOpen && (
-          <div className="flex flex-wrap items-center gap-2 border-b border-crimson-light/60 p-2">
+          <div className="flex flex-wrap items-center gap-3 border-b border-crimson-light/60 p-2">
             <input
               aria-label="Link address"
               value={linkUrl}
               onChange={(e) => setLinkUrl(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), applyLink())}
-              className={clsx(fieldClass, "min-w-0 flex-1 !py-1.5")}
+              className={clsx(fieldClass, "min-w-0 flex-1 py-1.5!")}
               autoFocus
             />
-            <Button type="button" onClick={applyLink} className="!px-3 !py-1.5 text-[12px]">
+            <Button type="button" onClick={applyLink} className="px-3! py-1.5! text-xs">
               Add link
             </Button>
-            <Button type="button" variant="secondary" onClick={() => setLinkOpen(false)} className="!px-3 !py-1.5 text-[12px]">
+            <Button type="button" variant="secondary" onClick={() => setLinkOpen(false)} className="px-3! py-1.5! text-xs">
               Cancel
             </Button>
-            <p className="w-full text-[12px] text-gray-red">Select the words first, then type a web address (https://…) or an email (mailto:…).</p>
+            <p className="w-full text-xs text-gray-red">Select the words first, then type a web address (https://…) or an email (mailto:…).</p>
           </div>
         )}
         <div

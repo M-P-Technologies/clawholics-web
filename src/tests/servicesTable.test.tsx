@@ -13,12 +13,14 @@ const services = [
 ] as unknown as NailService[];
 
 describe("ServicesTable", () => {
-  it("is a table on a computer: the name opens the service, Book books it, with the price", () => {
+  it("is a table on a computer: the name is plain text, Book books it, with the price", () => {
     layout.table = true;
     const onBook = vi.fn();
     render(<ServicesTable label="Services" services={services} onBook={onBook} />);
     const table = screen.getByRole("table", { name: "Services" });
-    expect(within(table).getByRole("link", { name: /Hard Gel/ })).toHaveAttribute("href", "/my/explore/1");
+    expect(within(table).getByText("Hard Gel")).toBeInTheDocument();
+    expect(within(table).queryByRole("link")).toBeNull();
+    expect(within(table).queryByRole("button", { name: "Hard Gel" })).toBeNull();
     expect(table).toHaveTextContent("₱650");
     fireEvent.click(within(table).getByRole("button", { name: "Book Hard Gel" }));
     expect(onBook).toHaveBeenCalledWith(services[0]);
@@ -34,6 +36,37 @@ describe("ServicesTable", () => {
     expect(cards[1].querySelector("[data-description]")).toBeNull();
     expect(cards[0].querySelector("[data-description]")).toHaveTextContent("Strong and glossy");
     expect(within(cards[0]).getByRole("button", { name: "Book Hard Gel" })).toBeInTheDocument();
+  });
+
+  it("shows ten rows a page on a computer, and starts a new list on page 1", () => {
+    layout.table = true;
+    const many = Array.from({ length: 12 }, (_, i) => ({ ...services[0], id: 100 + i, name: `Service ${i + 1}` }));
+    const { rerender } = render(<ServicesTable label="Services" services={many} onBook={vi.fn()} paginateTable />);
+    const table = screen.getByRole("table", { name: "Services" });
+    // The header row plus ten service rows
+    expect(within(table).getAllByRole("row")).toHaveLength(11);
+    expect(within(table).getByText("Service 10")).toBeInTheDocument();
+    expect(within(table).queryByText("Service 11")).toBeNull();
+    expect(screen.getByText("Showing 1–10 of 12")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /page 2/i }));
+    // Two services, and eight hidden filler rows keeping the ten-row height (as in the Admin Directory)
+    expect(within(table).getAllByRole("row").filter((row) => !row.hasAttribute("data-filler"))).toHaveLength(3);
+    expect(table.querySelectorAll("tr[data-filler]")).toHaveLength(8);
+    expect(within(table).getByText("Service 12")).toBeInTheDocument();
+    expect(screen.getByText("Showing 11–12 of 12")).toBeInTheDocument();
+
+    // A different list (a new search) starts on page 1 again
+    rerender(<ServicesTable label="Services" services={many.slice(0, 11)} onBook={vi.fn()} paginateTable />);
+    expect(within(screen.getByRole("table", { name: "Services" })).getByText("Service 1")).toBeInTheDocument();
+  });
+
+  it("shows every row in the table unless asked to page it (Home's short list)", () => {
+    layout.table = true;
+    const many = Array.from({ length: 8 }, (_, i) => ({ ...services[0], id: 200 + i, name: `Service ${i + 1}` }));
+    render(<ServicesTable label="Services" services={many} onBook={vi.fn()} />);
+    expect(within(screen.getByRole("table", { name: "Services" })).getAllByRole("row")).toHaveLength(9);
+    expect(screen.queryByRole("button", { name: /page 2/i })).toBeNull();
   });
 
   it("shows five cards a page on a phone", () => {

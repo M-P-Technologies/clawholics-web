@@ -14,14 +14,14 @@ export default function BookingTracker({ appointments, today }: { appointments: 
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-3">
         <Select
           aria-label="Appointment to track"
           value={tracked.id}
           onChange={(e) => setChosenId(Number(e.target.value))}
           options={appointments.map((a) => ({ value: String(a.id), label: `${dateLabel(a.appointment_date)} · ${a.service_name}` }))}
           className="w-72 max-w-full"
-          triggerClassName="!h-9 !py-0 text-[13px]"
+          triggerClassName="h-9! py-0! text-[13px]"
         />
         <Badge tone={statusOf(tracked.status).tone}>{statusOf(tracked.status).label}</Badge>
       </div>

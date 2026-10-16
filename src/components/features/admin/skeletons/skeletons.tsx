@@ -29,11 +29,11 @@ function StatCardSkeleton({ bare = false }: { bare?: boolean }) {
   const body = (
     <>
       <Skeleton className="h-3.5 w-24" />
-      <Skeleton className="h-[30px] w-20 sm:h-9 lg:h-[30px] xl:h-9" />
+      <Skeleton className="h-7.5 w-20 sm:h-9 lg:h-7.5 xl:h-9" />
       <Skeleton className="h-3 w-32" />
     </>
   );
-  return bare ? <div className="flex flex-col gap-2">{body}</div> : <Card className="!gap-2 p-3 sm:p-6">{body}</Card>;
+  return bare ? <div className="flex flex-col gap-3">{body}</div> : <Card className="gap-3! p-3 sm:p-6">{body}</Card>;
 }
 
 export function StatsSkeleton({ count = 4 }: { count?: number }) {
@@ -50,7 +50,7 @@ export function StatsSkeleton({ count = 4 }: { count?: number }) {
 export function LinesSkeleton({ lines = 3, className }: { lines?: number; className?: string }) {
   const widths = ["w-full", "w-11/12", "w-4/5", "w-2/3", "w-3/4"];
   return (
-    <div className={clsx("flex flex-col gap-2", className)}>
+    <div className={clsx("flex flex-col gap-3", className)}>
       {Array.from({ length: lines }, (_, i) => (
         <Skeleton key={i} className={clsx("h-3.5", i === lines - 1 ? "w-1/2" : widths[i % widths.length])} />
       ))}
@@ -108,8 +108,8 @@ export function ReportSkeleton({ title }: { title: string }) {
 export function CmsEditorSkeleton({ title }: { title: string }) {
   return (
     <AdminShell title={title}>
-      <Loading label={`Loading ${title}`} className="!flex-row !gap-6">
-        <Card className="w-full shrink-0 !gap-6 lg:w-[380px] xl:w-[420px]">
+      <Loading label={`Loading ${title}`} className="flex-row! gap-6!">
+        <Card className="w-full shrink-0 gap-6! lg:w-95 xl:w-105">
           {/* The save bar, then sections of fields */}
           <div className="flex items-center justify-between gap-3 border-b border-crimson-light/40 pb-3">
             <Skeleton className="h-4 w-28" />
@@ -124,8 +124,8 @@ export function CmsEditorSkeleton({ title }: { title: string }) {
             </div>
           ))}
         </Card>
-        <Card className="hidden flex-1 !p-0 lg:flex">
-          <div className="flex items-center justify-between gap-2 border-b border-crimson-light/40 px-3 py-2">
+        <Card className="hidden flex-1 p-0! lg:flex">
+          <div className="flex items-center justify-between gap-3 border-b border-crimson-light/40 px-3 py-2">
             <Skeleton className="h-8 w-44 rounded-lg" />
             <Skeleton className="h-8 w-40 rounded-full" />
             <Skeleton className="h-8 w-16 rounded-full" />
@@ -164,13 +164,13 @@ export function ScheduleSkeleton() {
             <Skeleton className="h-8 w-32 rounded-full" />
             <Skeleton className="h-9 w-20 rounded-full" />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             {Array.from({ length: 7 }, (_, i) => (
               <Skeleton key={i} className="h-14 flex-1 rounded-xl" />
             ))}
           </div>
           {Array.from({ length: 4 }, (_, i) => (
-            <Card key={i} className="!gap-2 p-3">
+            <Card key={i} className="gap-3! p-3">
               <Skeleton className="h-3.5 w-24" />
               <Skeleton className="h-4 w-44" />
               <Skeleton className="h-3 w-32" />
@@ -185,7 +185,7 @@ export function ScheduleSkeleton() {
             <Skeleton className="ml-auto h-9 w-44 rounded-md" />
             <Skeleton className="h-9 w-56 rounded-full" />
           </div>
-          <Card className="!gap-0 !p-0">
+          <Card className="gap-0! p-0!">
             <div className="grid grid-cols-[160px_repeat(7,minmax(0,1fr))] border-b border-crimson-light/50">
               <span />
               {Array.from({ length: 7 }, (_, day) => (
@@ -197,7 +197,7 @@ export function ScheduleSkeleton() {
             </div>
             {Array.from({ length: 5 }, (_, artist) => (
               <div key={artist} className="grid grid-cols-[160px_repeat(7,minmax(0,1fr))] border-b border-dotted border-crimson-light last:border-b-0">
-                <div className="flex items-center gap-2 px-3 py-3">
+                <div className="flex items-center gap-3 px-3 py-3">
                   <Skeleton className="h-8 w-8 shrink-0 rounded-full" />
                   <Skeleton className="h-3.5 w-20" />
                 </div>
@@ -226,7 +226,7 @@ export function AdminDirectorySkeleton() {
           <Card className="lg:col-span-2">
             <ListSkeleton label="Loading the admin list" columns={4} quiet />
           </Card>
-          <Card className="items-center !gap-3 max-lg:hidden">
+          <Card className="items-center gap-3! max-lg:hidden">
             <Skeleton className="h-20 w-20 rounded-full" />
             <Skeleton className="h-5 w-36" />
             <Skeleton className="h-3.5 w-44" />
@@ -242,7 +242,7 @@ export function AdminDirectorySkeleton() {
 export function ScannerSkeleton() {
   return (
     <AdminShell title="Loyalty QR Scanner">
-      <Loading label="Loading the scanner" className="!grid grid-cols-1 !gap-6 max-lg:!flex xl:grid-cols-3">
+      <Loading label="Loading the scanner" className="grid! grid-cols-1 gap-6! max-lg:flex! xl:grid-cols-3">
         <Card className="xl:col-span-2">
           <Skeleton className="h-6 w-32" />
           <Skeleton className="aspect-square w-full rounded-xl md:aspect-video" />
@@ -275,11 +275,11 @@ export function ScannerSkeleton() {
 export function ClientPageSkeleton() {
   return (
     <AdminShell title="Client" actions={<Skeleton className="h-4 w-28" />}>
-      <Loading label="Loading the client" className="!grid grid-cols-1 items-start !gap-6 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
-        <Card className="!gap-6 lg:h-[80vh]">
+      <Loading label="Loading the client" className="grid! grid-cols-1 items-start gap-3! md:gap-6! lg:grid-cols-3">
+        <Card className="gap-6! lg:h-[80vh]">
           <div className="flex items-center gap-3">
             <Skeleton className="h-14 w-14 shrink-0 rounded-full" />
-            <div className="flex flex-1 flex-col gap-2">
+            <div className="flex flex-1 flex-col gap-3">
               <Skeleton className="h-6 w-36" />
               <Skeleton className="h-3.5 w-24" />
             </div>
@@ -287,7 +287,7 @@ export function ClientPageSkeleton() {
           <Skeleton className="h-28 w-full rounded-xl" />
           <LinesSkeleton lines={5} />
         </Card>
-        <Card className="!gap-0 !p-0 lg:h-[80vh]">
+        <Card className="gap-0! p-0! lg:col-span-2 lg:h-[80vh]">
           <div className="flex gap-6 border-b border-crimson-light/50 px-6 py-3">
             {["w-20", "w-32", "w-28"].map((width) => (
               <Skeleton key={width} className={clsx("h-4", width)} />

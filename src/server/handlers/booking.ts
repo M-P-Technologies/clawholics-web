@@ -17,7 +17,7 @@ import {
 } from "../appointments";
 import { canAccess, requireAdmin, requireUserRow } from "../auth";
 import { getSql } from "../db";
-import { sendCancellationEmails, sendConfirmationEmail, sendRescheduleEmails } from "../email";
+import { sendAppointmentConfirmation, sendCancellationEmails, sendConfirmationEmail, sendRescheduleEmails } from "../email";
 import { inBackground, readJson, routeNotFound, toId } from "../http";
 import { createXenditRefund, expireXenditInvoice, getXenditInvoices } from "../payments";
 import { ported } from "../worker";
@@ -309,8 +309,17 @@ export const updateAppointmentStatus = ported<IdContext>(async (req, { params })
   if (id === null) return routeNotFound();
   const { status } = await readJson<{ status?: unknown }>(req);
   const upperStatus = String(status || "").trim().toUpperCase();
+  let confirmedPaidBooking = false;
   try {
-    await getSql()`update appointments set status = ${upperStatus} where id = ${id}`;
+    // Confirming a booking the client paid online (AWAITING_CONFIRMATION) is what confirms it for
+    // them: that's when the confirmation email goes out
+    const [changed] = await getSql()<{ was: string | null }[]>`
+      update appointments a set status = ${upperStatus}
+      from (select id, status as was from appointments where id = ${id}) old
+      where a.id = old.id
+      returning old.was
+    `;
+    confirmedPaidBooking = upperStatus === "CONFIRMED" && String(changed?.was ?? "").trim().toUpperCase() === "AWAITING_CONFIRMATION";
   } catch (error) {
     // e.g. re-activating a cancelled booking whose slot was taken since
     if (isSlotConflict(error)) {
@@ -321,6 +330,7 @@ export const updateAppointmentStatus = ported<IdContext>(async (req, { params })
     }
     throw error;
   }
+  if (confirmedPaidBooking) inBackground("booking confirmation email", () => sendAppointmentConfirmation(id));
   return Response.json(await getAppointment(id));
 });
 

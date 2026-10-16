@@ -1,6 +1,7 @@
 import { useRef, useState, type UIEvent } from "react";
 import Image from "next/image";
 import clsx from "clsx";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type Photo = { id: number | string; image_url: string };
 
@@ -10,12 +11,26 @@ interface PhotoCarouselProps {
   label: string;
   /** The shape of every frame, as a Tailwind aspect class. Square by default; an artist's portrait is "aspect-3/4". */
   aspect?: string;
+  /** The cream frame around each photo (the public pages); false for edge-to-edge photos at the top
+   *  of a card, e.g. the Explore panel */
+  framed?: boolean;
+  /** next/image sizes for the photos */
+  sizes?: string;
+  /** "cover" fills the frame (cropping the edges); "contain" shows each whole photo, centred, so a
+   *  portrait or square photo isn't blown up to fill a wide frame */
+  fit?: "cover" | "contain";
+  /** Previous and next arrows over the photos (wrapping round), besides swiping and the dots */
+  arrows?: boolean;
 }
+
+// The photo strip's round arrow buttons (components/home/PhotoStrip)
+const ARROW =
+  "absolute top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-crimson-light bg-light-orange text-crimson-ink shadow-md shadow-crimson/20 transition-colors hover:bg-crimson hover:text-light-orange focus-visible:outline-2 focus-visible:outline-crimson";
 
 // A swipeable row of framed photos, one at a time, with dots. Each photo sits in a cream frame
 // like the photos on the artist page. Scroll-snap does the swiping, so it works with touch,
 // the keyboard and a mouse wheel without any script.
-export default function PhotoCarousel({ photos, label, aspect = "aspect-square" }: PhotoCarouselProps) {
+export default function PhotoCarousel({ photos, label, aspect = "aspect-square", framed = true, sizes = "(max-width: 1024px) 100vw, 560px", fit = "cover", arrows = false }: PhotoCarouselProps) {
   const [active, setActive] = useState(0);
   const trackRef = useRef<HTMLDivElement>(null);
 
@@ -32,7 +47,18 @@ export default function PhotoCarousel({ photos, label, aspect = "aspect-square" 
   };
 
   return (
-    <div role="region" aria-roledescription="carousel" aria-label={`${label} photos`} className="flex flex-col gap-3">
+    <div role="region" aria-roledescription="carousel" aria-label={`${label} photos`} className={clsx("flex flex-col", framed ? "gap-3" : "gap-1")}>
+      <div className="relative">
+      {arrows && photos.length > 1 && (
+        <>
+          <button type="button" aria-label="Previous photo" onClick={() => show((active - 1 + photos.length) % photos.length)} className={clsx(ARROW, "left-3")}>
+            <ChevronLeft size={16} aria-hidden="true" />
+          </button>
+          <button type="button" aria-label="Next photo" onClick={() => show((active + 1) % photos.length)} className={clsx(ARROW, "right-3")}>
+            <ChevronRight size={16} aria-hidden="true" />
+          </button>
+        </>
+      )}
       <div
         ref={trackRef}
         onScroll={onScroll}
@@ -40,20 +66,21 @@ export default function PhotoCarousel({ photos, label, aspect = "aspect-square" 
       >
         {photos.map((photo, index) => (
           <div key={photo.id} className="w-full shrink-0 snap-center">
-            <div className="overflow-hidden rounded-sm border border-crimson-light/80 bg-light-orange p-2 shadow-xl shadow-crimson/10">
-              <div className={clsx("relative w-full overflow-hidden rounded-sm bg-sand/50", aspect)}>
+            <div className={clsx(framed && "overflow-hidden rounded-sm border border-crimson-light/80 bg-light-orange p-2 shadow-xl shadow-crimson/10")}>
+              <div className={clsx("relative w-full overflow-hidden bg-sand/50", framed && "rounded-sm", aspect)}>
                 <Image
                   src={photo.image_url}
                   alt={`${label}, photo ${index + 1} of ${photos.length}`}
                   fill
-                  sizes="(max-width: 1024px) 100vw, 560px"
+                  sizes={sizes}
                   priority={index === 0}
-                  className="object-cover"
+                  className={fit === "contain" ? "object-contain" : "object-cover"}
                 />
               </div>
             </div>
           </div>
         ))}
+      </div>
       </div>
 
       {photos.length > 1 && (

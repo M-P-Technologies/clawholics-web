@@ -35,7 +35,7 @@ export function CardFields({ fields }: { fields: [label: string, value: ReactNod
       {fields.map(([label, value]) => (
         <div key={label} className="contents">
           <dt className="text-gray-red">{label}</dt>
-          <dd className="min-w-0 break-words text-right font-medium">{value}</dd>
+          <dd className="min-w-0 wrap-break-word text-right font-medium">{value}</dd>
         </div>
       ))}
     </dl>
@@ -44,7 +44,7 @@ export function CardFields({ fields }: { fields: [label: string, value: ReactNod
 
 interface TableFrameProps {
   label: string;
-  /** A literal Tailwind class such as "min-w-[720px]", so narrow screens scroll instead of squeezing */
+  /** A literal Tailwind class such as "min-w-180", so narrow screens scroll instead of squeezing */
   minWidthClass: string;
   /** The header row (`<tr>` with `<th scope="col">`s) */
   head: ReactNode;

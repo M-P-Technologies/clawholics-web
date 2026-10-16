@@ -46,10 +46,10 @@ export default function PhotoRow({ photos, title, instagram }: PhotoRowProps) {
           href={instagram.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex flex-col gap-2 text-gray-red sm:hidden"
+          className="flex flex-col gap-3 text-gray-red sm:hidden"
         >
           <span className="text-sm text-gray-red">Follow us on Instagram</span>
-          <span className="flex items-center gap-2">
+          <span className="flex items-center gap-3">
             <InstagramIcon className="h-5 w-5 shrink-0 text-crimson" />
             <span className="truncate text-base font-bold">{instagram.name}</span>
           </span>
@@ -74,14 +74,14 @@ export default function PhotoRow({ photos, title, instagram }: PhotoRowProps) {
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`Follow us on Instagram, ${instagram.name}`}
-            className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-sm bg-light-orange px-3 py-2 text-sm font-bold text-gray-red shadow-xl shadow-crimson/20 transition-colors hover:text-crimson-ink sm:inline-flex"
+            className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-3 rounded-sm bg-light-orange px-3 py-2 text-sm font-bold text-gray-red shadow-xl shadow-crimson/20 transition-colors hover:text-crimson-ink sm:inline-flex"
           >
             <InstagramIcon className="h-5 w-5 shrink-0 text-crimson" />
             {instagram.name}
           </a>
         )}
 
-        <div className="mt-3 flex items-center justify-center gap-2 sm:hidden" aria-hidden="true">
+        <div className="mt-3 flex items-center justify-center gap-3 sm:hidden" aria-hidden="true">
           {shown.map((photo, index) => (
             <span
               key={`${photo.id}-${index}`}

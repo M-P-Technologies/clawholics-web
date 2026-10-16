@@ -15,7 +15,7 @@ const ArtistServicesPicker = ({ services, selectedIds, disabled, onToggle }: Art
     <SectionHeader size="label" title="Services Offered" />
 
     {services.length === 0 ? (
-      <p className="text-[15px] text-gray-red">
+      <p className="text-base text-gray-red">
         No services available.
       </p>
     ) : (
@@ -23,7 +23,7 @@ const ArtistServicesPicker = ({ services, selectedIds, disabled, onToggle }: Art
         {services.map((service) => (
           <label
             key={service.id}
-            className="flex items-center gap-1 text-[14px] text-gray-red"
+            className="flex items-center gap-1 text-sm text-gray-red"
           >
             <span className="relative flex items-center justify-center">
               <input

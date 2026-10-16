@@ -37,7 +37,7 @@ export default function Settings() {
                   onChange={s.setDownpayment}
                   hint="A whole number of pesos. Bookings already paid keep the amount they paid."
                 />
-                <fieldset className="flex flex-col gap-2">
+                <fieldset className="flex flex-col gap-3">
                   <legend className="mb-1.5 text-[13px] font-medium text-gray-red">Ways to pay the downpayment</legend>
                   {PAYMENT_METHOD_CHOICES.map((choice) => (
                     <label key={choice.value} className="flex cursor-pointer items-start gap-3 rounded-xl border border-crimson-light/50 p-3">
@@ -49,7 +49,7 @@ export default function Settings() {
                       />
                       <span className="flex flex-col gap-0.5">
                         <span className="text-sm font-bold text-gray-red">{choice.label}</span>
-                        <span className="text-[12px] leading-snug text-gray-red">{choice.hint}</span>
+                        <span className="text-xs leading-snug text-gray-red">{choice.hint}</span>
                       </span>
                     </label>
                   ))}

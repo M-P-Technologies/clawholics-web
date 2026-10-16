@@ -17,7 +17,7 @@ export default function SortableDemo() {
         getItemId={(item) => item.id}
         onReorder={setItems}
         renderItem={(item, { dragHandleProps }) => (
-          <div className="flex items-center gap-2 rounded-lg border border-sand bg-white px-3 py-2">
+          <div className="flex items-center gap-3 rounded-lg border border-sand bg-white px-3 py-2">
             <DragHandle {...dragHandleProps} />
             <span className="text-sm text-berry">{item.label}</span>
           </div>

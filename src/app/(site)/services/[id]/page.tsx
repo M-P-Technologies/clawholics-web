@@ -85,7 +85,7 @@ function Appointment() {
               </dd>
 
               <dt className={infoLabelClass}>Deposit</dt>
-              <dd className="flex flex-col gap-2">
+              <dd className="flex flex-col gap-3">
                 <p>
                   To secure your slot, a <b>₱500</b> booking deposit is required at checkout.
                 </p>

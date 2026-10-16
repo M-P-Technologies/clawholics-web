@@ -24,13 +24,14 @@ const STATUS: Record<string, { label: string; className: string }> = {
   COMPLETED: { label: "Completed", className: "bg-success/20 text-gray-red" },
   PENDING: { label: "Pending", className: "bg-sand text-gray-red" },
   AWAITING_PROOF: { label: "Awaiting proof", className: "bg-sand text-gray-red" },
+  AWAITING_CONFIRMATION: { label: "To confirm", className: "bg-warning/15 text-warning-ink" },
   CANCELLED: { label: "Cancelled", className: "bg-danger/15 text-gray-red" },
   CANCELED: { label: "Cancelled", className: "bg-danger/15 text-gray-red" },
   REFUNDED: { label: "Refunded", className: "bg-danger/15 text-gray-red" },
 };
 const CANCELLED = ["CANCELLED", "CANCELED", "REFUNDED"];
 // Still to come: not cancelled, refunded or completed
-const UPCOMING = ["PENDING", "AWAITING_PROOF", "CONFIRMED"];
+const UPCOMING = ["PENDING", "AWAITING_PROOF", "AWAITING_CONFIRMATION", "CONFIRMED"];
 const statusOf = (a: Appointment) => (a.status ?? "").trim().toUpperCase();
 /** Five to a page keeps the dashboard short */
 const PAGE = 5;
@@ -135,9 +136,9 @@ export default function BookingsTable({ load }: { load: BookingsLoader }) {
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-bold">{name}</span>
-                        {a.email && !isWalkin(a) && <span className="block truncate text-[12px] text-gray-red">{a.email}</span>}
+                        {a.email && !isWalkin(a) && <span className="block truncate text-xs text-gray-red">{a.email}</span>}
                       </span>
-                      <span className={clsx("shrink-0 whitespace-nowrap rounded-full px-3 py-0.5 text-[12px] font-bold", badge.className)}>{badge.label}</span>
+                      <span className={clsx("shrink-0 whitespace-nowrap rounded-full px-3 py-0.5 text-xs font-bold", badge.className)}>{badge.label}</span>
                     </div>
                     <CardFields
                       fields={[
@@ -148,12 +149,12 @@ export default function BookingsTable({ load }: { load: BookingsLoader }) {
                       ]}
                     />
                     {isWalkin(a) ? (
-                      <span className="text-[12px] text-gray-red">Walk-in</span>
+                      <span className="text-xs text-gray-red">Walk-in</span>
                     ) : (
                       <Link
                         to={`/clients/${a.user_id}`}
                         aria-label={`Open ${name}`}
-                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-berry px-3 py-2 text-[13px] font-bold text-pearl transition-colors hover:bg-gray-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson"
+                        className="inline-flex items-center justify-center gap-3 rounded-lg bg-berry px-3 py-2 text-[13px] font-bold text-pearl transition-colors hover:bg-gray-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson"
                       >
                         <SquarePen size={15} aria-hidden="true" />
                         Client page
@@ -164,9 +165,9 @@ export default function BookingsTable({ load }: { load: BookingsLoader }) {
               })}
             </RowCards>
           ) : (
-          <TableFrame label="Bookings" minWidthClass="min-w-[720px]"
+          <TableFrame label="Bookings" minWidthClass="min-w-180"
             head={
-              <tr className="text-left text-[12px] text-gray-red">
+              <tr className="text-left text-xs text-gray-red">
                 {["Client", "Service", "Artist", "Date", "Time", "Status", "Manage"].map((h) => (
                   <th key={h} scope="col" className={clsx("pb-2 font-medium", h === "Manage" && "text-center")}>
                     {h}
@@ -188,7 +189,7 @@ export default function BookingsTable({ load }: { load: BookingsLoader }) {
                     </span>
                     <span className="min-w-0">
                       <span className="block truncate font-bold">{name}</span>
-                      {a.email && !isWalkin(a) && <span className="block truncate text-[12px] text-gray-red">{a.email}</span>}
+                      {a.email && !isWalkin(a) && <span className="block truncate text-xs text-gray-red">{a.email}</span>}
                     </span>
                   </span>
                 </th>
@@ -197,11 +198,11 @@ export default function BookingsTable({ load }: { load: BookingsLoader }) {
                 <td className={clsx(cell, "whitespace-nowrap")}>{dateLabel(a.appointment_date)}</td>
                 <td className={clsx(cell, "whitespace-nowrap")}>{a.appointment_time}</td>
                 <td className={cell}>
-                  <span className={clsx("whitespace-nowrap rounded-full px-3 py-0.5 text-[12px] font-bold", status.className)}>{status.label}</span>
+                  <span className={clsx("whitespace-nowrap rounded-full px-3 py-0.5 text-xs font-bold", status.className)}>{status.label}</span>
                 </td>
                 <td className={clsx(cell, "pr-0 text-center")}>
                   {isWalkin(a) ? (
-                    <span className="text-[12px] text-gray-red">Walk-in</span>
+                    <span className="text-xs text-gray-red">Walk-in</span>
                   ) : (
                     <Link
                       to={`/clients/${a.user_id}`}

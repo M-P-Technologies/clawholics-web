@@ -64,13 +64,13 @@ const AddAdminModal: React.FC<AddAdminModalProps> = ({
         </div>
       ) : (
         <>
-          <p className="my-3 text-center text-[18px] text-gray-red opacity-90 font-sans">
+          <p className="my-3 text-center text-lg text-gray-red opacity-90 font-sans">
             Promote an existing user to Admin.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-9 font-sans">
             <div>
-              <p className="block text-[16px] mb-2 text-gray-red font-bold opacity-80 ml-2">
+              <p className="block text-base mb-2 text-gray-red font-bold opacity-80 ml-2">
                 User's Email Address:
               </p>
               <input

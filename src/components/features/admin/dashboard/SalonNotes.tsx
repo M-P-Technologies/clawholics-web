@@ -23,7 +23,7 @@ function Group({ title, icon: Icon, tone, items }: GroupProps) {
   const style = TONES[tone];
   return (
     <section aria-label={title} className="flex flex-col gap-3">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         <span aria-hidden="true" className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${style.icon}`}>
           <Icon size={14} />
         </span>
@@ -58,6 +58,7 @@ export default function SalonNotes({ data }: { data: DashboardResponse }) {
   const insights = buildInsights(data, { repeatKpis: false });
   const todos = [
     { label: "Today's appointments", count: data.attention.today, to: "/schedule" },
+    { label: "Bookings to confirm", count: data.attention.toConfirm, to: "/clients?status=AWAITING_CONFIRMATION" },
     { label: "Proofs to review", count: data.attention.proofsToReview, to: "/clients?status=PROOF_PENDING" },
     { label: "Pending payments", count: data.attention.unpaid, to: "/clients?status=PENDING" },
     { label: "Warm leads", count: data.attention.warmLeads, to: "/clients?view=leads" },
@@ -81,7 +82,7 @@ export default function SalonNotes({ data }: { data: DashboardResponse }) {
   return (
     <section aria-label="Salon notes" className="relative flex shrink-0 flex-col overflow-hidden rounded-2xl border border-crimson-light/60 bg-milk shadow-petal">
       {/* The top part, in the pink gradient: the title and what needs doing now */}
-      <div className="relative flex flex-col gap-6 bg-gradient-to-br from-crimson-light via-light-orange to-crimson-light/60 p-6">
+      <div className="relative flex flex-col gap-6 bg-linear-to-br from-crimson-light via-light-orange to-crimson-light/60 p-6">
         {/* The brand bow, tied once in the corner (decoration only) */}
         <div aria-hidden="true" className="bow-pop pointer-events-none absolute right-4 top-3">
           <Bow className="h-12 w-10 rotate-12 text-crimson drop-shadow-[0_4px_6px_rgb(184_58_98/0.25)]" />
@@ -92,10 +93,10 @@ export default function SalonNotes({ data }: { data: DashboardResponse }) {
           <p className="text-sm text-gray-red">{PERIOD_LABELS[data.range]}</p>
         </header>
 
-        <section aria-label="Needs attention" className="flex flex-col gap-2">
+        <section aria-label="Needs attention" className="flex flex-col gap-3">
           <h3 className="text-[13px] font-medium text-gray-red">Needs attention</h3>
           {todos.length === 0 ? (
-            <p className="flex items-center gap-2 text-sm text-gray-red">
+            <p className="flex items-center gap-3 text-sm text-gray-red">
               <Check size={16} aria-hidden="true" className="shrink-0 text-success-ink" />
               All caught up.
             </p>
@@ -120,7 +121,7 @@ export default function SalonNotes({ data }: { data: DashboardResponse }) {
       <div className="flex flex-col gap-6 p-6">
         {message && <p className="text-sm text-gray-red">{message}</p>}
         {insights.status === "no-data" && (
-          <p className="-mt-3 text-[12px] text-gray-red">Insights appear once there are a few bookings to compare.</p>
+          <p className="-mt-3 text-xs text-gray-red">Insights appear once there are a few bookings to compare.</p>
         )}
 
         {groups.map((group) => (

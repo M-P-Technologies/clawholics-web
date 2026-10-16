@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import clsx from "clsx";
-import { Link } from "@/lib/router";
 import qrPhLogo from "@/assets/logo/qr_ph.png";
 import { AlertDialog } from "@/components/organisms";
 import { Button, Card, LoadingBar } from "@/components/atoms";
@@ -51,9 +50,11 @@ export default function Payment() {
   return (
     <ClientScreen title="Payment" back="history">
       <div className="flex flex-col gap-6">
-        <div className="grid grid-cols-1 items-start gap-3 md:gap-9 lg:grid-cols-2">
+        {/* As on the Book step: the form takes two thirds and the summary one third, and both cards
+            stretch to the row's height, so they always end level */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-6">
           {/* PAYMENT FORM */}
-          <Card className="flex flex-col gap-6">
+          <Card className="flex flex-col gap-6 lg:col-span-2">
             <SectionHeader
               size="section"
               title="Complete your downpayment"
@@ -85,13 +86,15 @@ export default function Payment() {
               <ChoiceRow kind="checkbox" selected={agree} onClick={toggleAgree}>
                 <span className="text-sm sm:text-base">
                   I agree with the{" "}
-                  <Link
-                    to="/terms"
+                  <a
+                    href="/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
                     className="font-bold underline"
                   >
-                    Terms & Conditions
-                  </Link>
+                    Terms & Conditions<span className="sr-only"> (opens in a new tab)</span>
+                  </a>
                 </span>
               </ChoiceRow>
             </div>

@@ -2,7 +2,7 @@ import "server-only";
 import { cancelExpiredPendingAppointments, getAppointment, isSlotConflict } from "../appointments";
 import { canAccess, requireAdmin, requireUserRow, type RequesterUser } from "../auth";
 import { getSql } from "../db";
-import { sendAppointmentConfirmation, sendPaymentProofAdminEmail } from "../email";
+import { sendAppointmentConfirmation, sendPaymentProofAdminEmail, sendPaymentReceived } from "../email";
 import { notifyAdmins } from "../notifications";
 import { inBackground, readJson, routeNotFound, toId } from "../http";
 import {
@@ -47,8 +47,8 @@ export const createPayment = ported(async (req) => {
     : await sql<{ status: string | null; user_id: number }[]>`select status, user_id from appointments where id = ${appointmentId}`;
   if (!appt) return errorBody("Appointment not found.", 404);
   if (!canAccess(requester, appt.user_id)) return errorBody("You can only pay for your own appointment.", 403);
-  if (["CONFIRMED", "COMPLETED", "PAID"].includes(String(appt.status || "").toUpperCase())) {
-    return errorBody("This appointment has already been paid for and confirmed.", 400);
+  if (["AWAITING_CONFIRMATION", "CONFIRMED", "COMPLETED", "PAID"].includes(String(appt.status || "").toUpperCase())) {
+    return errorBody("This appointment has already been paid for.", 400);
   }
 
   // One payment path at a time: a proof under review blocks a new Xendit invoice
@@ -104,7 +104,7 @@ export const xenditWebhook = ported(
     const body = await readJson<{ status?: string; external_id?: string; externalId?: string }>(req);
     const externalId = body.external_id || body.externalId;
     if (body.status === "PAID" && externalId) {
-      const confirmedId = await getSql().begin(async (tx) => {
+      const paidId = await getSql().begin(async (tx) => {
         // Skip an appointment already paid by an approved payment proof, so it isn't paid twice
         const [paid] = await tx<{ appointment_id: number }[]>`
           update payments set status = 'PAID'
@@ -116,10 +116,11 @@ export const xenditWebhook = ported(
           returning appointment_id
         `;
         if (!paid) return null;
-        // The payment is recorded either way. If the booking expired meanwhile and someone else
-        // took the slot, it can't be confirmed: it stays cancelled for the salon to refund.
+        // The payment is recorded either way. A paid booking isn't confirmed yet: it waits for an
+        // admin to confirm it (AWAITING_CONFIRMATION holds the slot meanwhile). If the booking
+        // expired meanwhile and someone else took the slot, it stays cancelled for the salon to refund.
         try {
-          await tx.savepoint((sp) => sp`update appointments set status = 'CONFIRMED' where id = ${paid.appointment_id}`);
+          await tx.savepoint((sp) => sp`update appointments set status = 'AWAITING_CONFIRMATION' where id = ${paid.appointment_id}`);
         } catch (error) {
           if (!isSlotConflict(error)) throw error;
           console.error(`[webhook] appointment ${paid.appointment_id} was paid but its slot is taken; needs a manual refund`);
@@ -127,10 +128,11 @@ export const xenditWebhook = ported(
         }
         return paid.appointment_id;
       });
-      if (confirmedId !== null) {
-        inBackground("payment confirmation email", () => sendAppointmentConfirmation(confirmedId));
+      if (paidId !== null) {
+        // "Payment received, the salon will confirm"; the confirmation email goes out when an admin confirms
+        inBackground("payment received email", () => sendPaymentReceived(paidId));
         // The admins' bell. After the payment's transaction, so a failure here can't undo it
-        inBackground("admin notification", () => notifyAdmins("booking_paid", confirmedId, confirmedId));
+        inBackground("admin notification", () => notifyAdmins("booking_paid", paidId, paidId));
       }
     }
     return new Response("OK", { status: 200 });

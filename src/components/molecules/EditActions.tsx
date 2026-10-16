@@ -31,7 +31,7 @@ export default function EditActions({
   const locked = isSaving || busy;
 
   return (
-    <div className="flex min-h-9 flex-wrap justify-end gap-2">
+    <div className="flex min-h-9 flex-wrap justify-end gap-3">
       {isEditing ? (
         <>
           <Button variant="secondary" onClick={onCancel} disabled={locked} className="px-3! py-1.5! text-[13px]">

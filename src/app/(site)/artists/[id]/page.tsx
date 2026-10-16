@@ -42,8 +42,8 @@ export default function ArtistDetail() {
 
   return (
     <PageShell>
-      <Section innerClassName="max-lg:pt-3">
-        <div className="grid grid-cols-1 items-start gap-3 md:gap-9 lg:grid-cols-2">
+      <Section>
+        <div className="grid grid-cols-1 lg:grid-cols-2 items-start gap-3 md:gap-9">
           {/* ARTIST DETAILS */}
           <div className="flex flex-col gap-3 md:gap-9">
             <BackButton to="/artists" label="All artists" />
@@ -77,7 +77,7 @@ export default function ArtistDetail() {
               {nailist.offered_services && nailist.offered_services.length > 0 && (
                 <>
                   <dt className={infoLabelClass}>Services</dt>
-                  <dd className="flex flex-wrap gap-2">
+                  <dd className="flex flex-wrap gap-3">
                     {nailist.offered_services.map((name) => (
                       <span key={name} className="rounded-md border border-crimson-light px-3 py-1 text-sm text-crimson-ink">
                         {name}

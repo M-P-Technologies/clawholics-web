@@ -76,14 +76,14 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
         </div>
         <div className="flex items-center gap-1">
           {from !== thisWeek && (
-            <Button type="button" variant="bare" onClick={() => setAnchor(today)} className="mr-1 rounded-full border border-crimson-light px-3 py-1 text-[12px] font-bold text-gray-red hover:bg-crimson-light/30">
+            <Button type="button" variant="bare" onClick={() => setAnchor(today)} className="mr-1 rounded-full border border-crimson-light px-3 py-1 text-xs font-bold text-gray-red hover:bg-crimson-light/30">
               This week
             </Button>
           )}
           <Button type="button" variant="bare" aria-label="Previous week" onClick={() => setAnchor(addDays(from, -7))} className="rounded-full p-1.5 text-gray-red hover:bg-crimson-light/30">
             <ChevronLeft size={18} aria-hidden="true" />
           </Button>
-          <span className="min-w-[9.5rem] text-center text-sm font-bold text-gray-red">{weekLabel(from, addDays(from, 6))}</span>
+          <span className="min-w-38 text-center text-sm font-bold text-gray-red">{weekLabel(from, addDays(from, 6))}</span>
           <Button type="button" variant="bare" aria-label="Next week" onClick={() => setAnchor(addDays(from, 7))} className="rounded-full p-1.5 text-gray-red hover:bg-crimson-light/30">
             <ChevronRight size={18} aria-hidden="true" />
           </Button>
@@ -112,7 +112,7 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
                       <Avatar name={artist.name} imageUrl={artist.image ?? ""} size="md" decorative={!artist.image} />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-bold">{artist.name}</span>
-                        {artist.title && <span className="block truncate text-[12px] text-gray-red">{artist.title}</span>}
+                        {artist.title && <span className="block truncate text-xs text-gray-red">{artist.title}</span>}
                       </span>
                       <span className="shrink-0 font-bold text-berry">{artist.rate === null ? "–" : percent(artist.rate)}</span>
                     </div>
@@ -126,8 +126,8 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
                             aria-label={label}
                             className={clsx("flex min-w-0 flex-col items-center gap-1 rounded-lg px-0.5 py-1.5 text-center", d.date === today && "bg-crimson-light/40")}
                           >
-                            <span aria-hidden="true" className="text-[11px] text-gray-red">{DAY_NAMES[i].slice(0, 2)}</span>
-                            <span aria-hidden="true" className={clsx("text-[12px] leading-tight", d.off && d.booked === 0 ? "text-gray-red" : "font-bold")}>{text}</span>
+                            <span aria-hidden="true" className="text-xs text-gray-red">{DAY_NAMES[i].slice(0, 2)}</span>
+                            <span aria-hidden="true" className={clsx("text-xs leading-tight", d.off && d.booked === 0 ? "text-gray-red" : "font-bold")}>{text}</span>
                             {!d.off && d.offered > 0 && (
                               <span aria-hidden="true" className="block h-1 w-full overflow-hidden rounded-full bg-crimson-light/40">
                                 <span className="block h-full rounded-full bg-berry" style={{ width: `${fill * 100}%` }} />
@@ -145,10 +145,10 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
           ) : (
           /* Wider than a phone: it scrolls sideways, with the artists' column kept in view */
           <div className="-mx-6 overflow-x-auto px-6">
-            <table className="w-full min-w-[640px] border-separate border-spacing-0 text-sm text-gray-red">
+            <table className="w-full min-w-160 border-separate border-spacing-0 text-sm text-gray-red">
               <thead>
                 <tr>
-                  <th scope="col" className="sticky left-0 z-10 w-56 bg-milk pb-2 text-left text-[12px] font-medium text-gray-red">
+                  <th scope="col" className="sticky left-0 z-10 w-56 bg-milk pb-2 text-left text-xs font-medium text-gray-red">
                     Artist
                   </th>
                   {shown.artists[0].days.map((d, i) => {
@@ -157,10 +157,10 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
                       <th
                         key={d.date}
                         scope="col"
-                        className={clsx("rounded-t-lg px-1 pb-2 pt-1 text-center text-[12px] font-medium", isToday ? "bg-crimson-light/30 text-berry" : "text-gray-red")}
+                        className={clsx("rounded-t-lg px-1 pb-2 pt-1 text-center text-xs font-medium", isToday ? "bg-crimson-light/30 text-berry" : "text-gray-red")}
                       >
                         <span className="block">{DAY_NAMES[i].slice(0, 3)}</span>
-                        <span className="block text-[11px]">{parts(d.date).day}</span>
+                        <span className="block text-xs">{parts(d.date).day}</span>
                         {isToday && <span className="block text-[10px] font-bold">Today</span>}
                       </th>
                     );
@@ -175,8 +175,8 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
                         <Avatar name={artist.name} imageUrl={artist.image ?? ""} size="md" decorative={!artist.image} />
                         <span className="min-w-0">
                           <span className="block truncate font-bold">{artist.name}</span>
-                          {artist.title && <span className="block truncate text-[12px] text-gray-red">{artist.title}</span>}
-                          <span className="block text-[12px] font-bold text-berry">{artist.rate === null ? "–" : percent(artist.rate)}</span>
+                          {artist.title && <span className="block truncate text-xs text-gray-red">{artist.title}</span>}
+                          <span className="block text-xs font-bold text-berry">{artist.rate === null ? "–" : percent(artist.rate)}</span>
                         </span>
                       </span>
                     </th>
@@ -205,7 +205,7 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
           </div>
           )}
 
-          <ul aria-label="Legend" className="flex flex-wrap gap-x-6 gap-y-1 text-[12px] text-gray-red">
+          <ul aria-label="Legend" className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-gray-red">
             <li className="flex items-center gap-1.5">
               <span aria-hidden="true" className="h-2 w-4 rounded-full bg-berry" />
               Booked

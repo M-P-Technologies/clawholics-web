@@ -5,6 +5,7 @@ import JsonLd from "@/components/seo/JsonLd";
 import { NOT_FOUND_METADATA, PAGES, seoMetadata, shortDescription } from "@/lib/seo";
 import { artistSchema, breadcrumbSchema } from "@/server/seo";
 import { publicReads } from "@/server/publicCache";
+import { readOrNull } from "@/server/timeLimit";
 import { prefetchArtistPage } from "@/server/publicPrefetch";
 import { artistPath, findBySlugOrId } from "@/utils/slug";
 import type { Nailist } from "@/services/nailistService";
@@ -14,11 +15,9 @@ type Props = { params: Promise<{ id: string }> };
 // An artist's page: their own title, description and photo for search results and link previews,
 // one canonical address (the name's slug), and their schema markup
 async function findArtist(param: string): Promise<Nailist | null> {
-  try {
-    return findBySlugOrId((await publicReads.nailists()) as unknown as Nailist[], decodeURIComponent(param));
-  } catch {
-    return null;
-  }
+  // A slow or failed read leaves the page without its metadata, never stuck
+  const list = await readOrNull(() => publicReads.nailists() as unknown as Promise<Nailist[]>, "Artist lookup");
+  return list ? findBySlugOrId(list, decodeURIComponent(param)) : null;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

@@ -53,7 +53,7 @@ export default function ScheduleAgenda({ selected, onSelect, dayData, onOpenAppo
                 aria-pressed={isSelected}
                 onClick={() => onSelect(day)}
                 className={clsx(
-                  "flex min-w-0 flex-col items-center gap-1 rounded-md py-2 text-[11px] transition-colors",
+                  "flex min-w-0 flex-col items-center gap-1 rounded-md py-2 text-xs transition-colors",
                   isSelected ? "bg-crimson text-on-crimson" : "text-gray-red hover:bg-crimson-light/30",
                   sameDay(day, today) && !isSelected && "ring-1 ring-crimson",
                 )}
@@ -89,7 +89,7 @@ export default function ScheduleAgenda({ selected, onSelect, dayData, onOpenAppo
       {appointments.length === 0 ? (
         <p className="text-sm text-gray-red">No appointments on this day.</p>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-3">
           {appointments.map((appointment) => (
             <li key={appointment.id}>
               <Button
@@ -100,7 +100,7 @@ export default function ScheduleAgenda({ selected, onSelect, dayData, onOpenAppo
               >
                 <span className="w-24 shrink-0 text-sm font-bold text-crimson-ink">{appointment.appointment_time || "No time"}</span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[15px] font-bold uppercase leading-tight text-gray-red">
+                  <span className="block truncate text-base font-bold uppercase leading-tight text-gray-red">
                     {scheduleClientName(appointment)}
                   </span>
                   <span className="block truncate text-[13px] text-gray-red">

@@ -16,7 +16,6 @@ vi.mock("@/hooks/useServicePhotos", () => ({ useServicePhotos: () => () => "" })
 vi.mock("@/components/features/client/appointments/AppointmentSheet", () => ({
   default: ({ view }: { view: { appt: { id: number } } | null }) => (view ? <div>Sheet for {view.appt.id}</div> : null),
 }));
-vi.mock("@/components/features/client/profile/RewardsSheet", () => ({ default: ({ open }: { open: boolean }) => (open ? <div>Rewards open</div> : null) }));
 vi.mock("@/components/features/client/profile/EditDetailsSheet", () => ({ default: () => null }));
 
 const base = () => ({
@@ -37,7 +36,6 @@ function Opener() {
   return (
     <>
       <button onClick={() => a.openAppointment(2)}>open 2</button>
-      <button onClick={a.openRewards}>rewards</button>
     </>
   );
 }
@@ -49,13 +47,11 @@ describe("MyAccountProvider", () => {
     expect(screen.queryByText("App")).not.toBeInTheDocument();
   });
 
-  it("opens any appointment's sheet and the rewards card from any screen", () => {
+  it("opens any appointment's sheet from any screen", () => {
     hook = base();
     render(<MyAccountProvider><Opener /></MyAccountProvider>);
     fireEvent.click(screen.getByText("open 2"));
     expect(screen.getByText("Sheet for 2")).toBeInTheDocument();
-    fireEvent.click(screen.getByText("rewards"));
-    expect(screen.getByText("Rewards open")).toBeInTheDocument();
   });
 
   it("opens the appointment the client arrived for", () => {

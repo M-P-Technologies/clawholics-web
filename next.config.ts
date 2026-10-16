@@ -65,6 +65,8 @@ const nextConfig: NextConfig = {
     return [
       // The client's pages moved into the client app (/my); the query (e.g. ?appointment_id=) is kept
       { source: "/profile", destination: "/my/profile", permanent: true },
+      // The client app's service page is gone: Explore opens the service in its panel (or phone sheet)
+      { source: "/my/explore/:id", destination: "/my/explore?service=:id", permanent: true },
       { source: "/booking", destination: "/my/book", permanent: true },
       { source: "/payment", destination: "/my/payment", permanent: true },
       { source: "/payment-confirmation", destination: "/my/confirmation", permanent: true },

@@ -7,7 +7,8 @@ import { useCreateAppointment } from "@/hooks/admin/useCreateAppointment";
 import ClientFields from "./ClientFields";
 import DateAndTimeSection from "./DateAndTimeSection";
 import ServiceFields from "./ServiceFields";
-import SummarySection from "./SummarySection";
+import { SummaryRow } from "@/components/molecules";
+import { formatSlot } from "@/lib/admin/createAppointment";
 
 interface CreateAppointmentDialogProps {
   onClose: () => void;
@@ -61,7 +62,15 @@ const CreateAppointmentDialog = ({ onClose, onCreated }: CreateAppointmentDialog
 
             {/* BOOKING SUMMARY */}
             <section className="flex flex-col gap-3 rounded-xl border border-crimson-light/50 p-3 text-gray-red">
-              <SummarySection a={a} />
+              {/* What was chosen and the price */}
+              <h4 className="font-display text-lg font-normal text-gray-red">Summary</h4>
+              <dl className="flex flex-col">
+                <SummaryRow label="Service" value={a.selectedService?.name || "–"} />
+                <SummaryRow label="Artist" value={a.selectedNailist?.name || "–"} />
+                <SummaryRow label="Date" value={a.appointmentDate || "–"} />
+                <SummaryRow label="Time" value={a.appointmentTime ? formatSlot(a.appointmentTime) : "–"} />
+                <SummaryRow label="Price" value={a.selectedPrice ? `₱${a.selectedPrice}` : "–"} strong />
+              </dl>
             </section>
           </div>
 

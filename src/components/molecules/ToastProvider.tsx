@@ -49,7 +49,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <div
         aria-live="polite"
-        className="pointer-events-none fixed inset-x-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-[200] lg:bottom-4 flex flex-col items-end gap-2 sm:left-auto sm:right-4 sm:w-96"
+        className="pointer-events-none fixed inset-x-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-200 lg:bottom-4 flex flex-col items-end gap-3 sm:left-auto sm:right-4 sm:w-96"
       >
         {toasts.map((t) => {
           const Icon = ICONS[t.kind];

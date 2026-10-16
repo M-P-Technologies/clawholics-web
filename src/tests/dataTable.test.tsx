@@ -5,12 +5,12 @@ import { CardFields, RowCard, RowCards, TableFrame } from "@/components/organism
 describe("DataTable", () => {
   it("frames a table that scrolls sideways", () => {
     render(
-      <TableFrame label="Bookings" minWidthClass="min-w-[720px]" head={<tr><th scope="col">Client</th></tr>}>
+      <TableFrame label="Bookings" minWidthClass="min-w-180" head={<tr><th scope="col">Client</th></tr>}>
         <tr><td>Ana</td></tr>
       </TableFrame>,
     );
     const table = screen.getByRole("table", { name: "Bookings" });
-    expect(table.className).toContain("min-w-[720px]");
+    expect(table.className).toContain("min-w-180");
     expect(table.parentElement?.className).toContain("overflow-x-auto");
     expect(within(table).getByRole("columnheader", { name: "Client" })).toBeInTheDocument();
   });

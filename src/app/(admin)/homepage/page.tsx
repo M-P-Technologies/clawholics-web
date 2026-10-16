@@ -11,7 +11,7 @@ import footerLogo from "@/assets/logo/logo-pink-transparent.png";
 import { useHomeEditor } from "@/hooks/admin/useHomeEditor";
 import { HOME_PREVIEW_PAGES } from "@/lib/admin/cmsPages";
 import { BIRTHDAY_BANNER_OPTIONS } from "@/lib/admin/homeEditor";
-import { FEATURE_ICONS, MAX_STRIP_SLIDES, SITE_LINK_OPTIONS } from "@/lib/homeSections";
+import { FEATURE_ICONS, FEATURE_TEXT_MAX, FEATURE_TITLE_MAX, MAX_STRIP_SLIDES, SITE_LINK_OPTIONS } from "@/lib/homeSections";
 import { BODY_FONTS, DISPLAY_FONTS, SCRIPT_FONTS } from "@/lib/siteTheme";
 
 // Everything on the home page that isn't edited elsewhere, top to bottom, and the footer of every
@@ -53,8 +53,8 @@ export default function Homepage() {
         {sections.features.map((feature, i) => (
           <SubCard key={i} title={`Card ${i + 1}`}>
             <IconPicker label="Icon" value={feature.icon} icons={FEATURE_ICONS} onChange={setFeature(i, "icon")} />
-            <TextField label="Title" value={feature.title} onChange={setFeature(i, "title")} />
-            <TextField label="Description" value={feature.text} onChange={setFeature(i, "text")} rows={3} />
+            <TextField label="Title" value={feature.title} onChange={setFeature(i, "title")} maxLength={FEATURE_TITLE_MAX} />
+            <TextField label="Description" value={feature.text} onChange={setFeature(i, "text")} rows={3} maxLength={FEATURE_TEXT_MAX} />
             <SelectField label="Opens" value={feature.link} options={SITE_LINK_OPTIONS} onChange={setFeature(i, "link")} />
           </SubCard>
         ))}
@@ -87,12 +87,11 @@ export default function Homepage() {
           <TextField label="Birthday headline" value={t.home_birthday_title} onChange={setText("home_birthday_title")} />
           <TextField label="Line under it" value={t.home_birthday_line} onChange={setText("home_birthday_line")} />
           <TextField label="Small print" value={t.home_birthday_note} onChange={setText("home_birthday_note")} />
-          <p className="text-[12px] text-gray-red">{"{name}"} becomes the client&apos;s first name. Staff apply the treat at the salon.</p>
+          <p className="text-xs text-gray-red">{"{name}"} becomes the client&apos;s first name. Staff apply the treat at the salon.</p>
         </SubCard>
         <SubCard title="Special offers">
           <OffersEditor offers={sections.offers} services={services} onChange={setOffers} upload={upload} uploading={uploading} />
         </SubCard>
-        <TextField label="Explore page subtitle" value={t.home_explore_subtitle} onChange={setText("home_explore_subtitle")} />
       </PanelSection>
 
       <PanelSection title="About us" description="The short story with a link to the About page." page="/#about-teaser">

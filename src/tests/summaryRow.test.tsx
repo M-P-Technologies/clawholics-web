@@ -24,7 +24,7 @@ describe("SummaryRow", () => {
     expect(dt).toHaveClass("text-[13px]");
     expect(dt.parentElement).toHaveClass("border-dotted", "first:border-t-0");
     const dd = screen.getByText("Maximiliana Concepcion-Dela Cruz").closest("dd")!;
-    expect(dd).toHaveClass("min-w-0", "break-words", "font-bold");
+    expect(dd).toHaveClass("min-w-0", "wrap-break-word", "font-bold");
   });
 
   it("shows a total bigger and in the brand colour", () => {

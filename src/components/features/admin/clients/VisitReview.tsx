@@ -20,10 +20,10 @@ export function ReviewText({ appointment, busy = false, onApprove }: ReviewTextP
       {appointment.review_comment && <span className="line-clamp-3 whitespace-pre-wrap text-[13px] text-gray-red">{appointment.review_comment}</span>}
       {onApprove && reviewId != null && (
         <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${approved ? "bg-success/20 text-gray-red" : "bg-sand text-gray-red"}`}>
+          <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${approved ? "bg-success/20 text-gray-red" : "bg-sand text-gray-red"}`}>
             {approved ? "On the home page" : "Not on the home page"}
           </span>
-          <Button type="button" variant="bare" disabled={busy} onClick={() => onApprove(reviewId, !approved)} className="text-[12px] font-bold text-berry underline disabled:opacity-50">
+          <Button type="button" variant="bare" disabled={busy} onClick={() => onApprove(reviewId, !approved)} className="text-xs font-bold text-berry underline disabled:opacity-50">
             {approved ? "Take it off" : "Approve for the home page"}
           </Button>
         </span>

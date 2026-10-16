@@ -49,8 +49,9 @@ export default function ClientPage() {
   return (
     <AdminShell title={page.name} actions={back}>
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-2">
-        {/* Two panels, each 80vh tall on a computer: they scroll inside, the tab bar stays put */}
-        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
+        {/* Two panels, as in the client's My profile: the profile (1/3) and the tabs (2/3), each 80vh
+            tall on a computer: they scroll inside, the tab bar stays put */}
+        <div className="grid grid-cols-1 items-start gap-3 md:gap-6 lg:grid-cols-3">
           <ProfilePanel
             label="Client profile"
             className="lg:h-[80vh] lg:overflow-y-auto"
@@ -66,7 +67,7 @@ export default function ClientPage() {
             rows={page.panelRows}
           />
 
-          <section aria-label="Client details" className="flex min-w-0 flex-col overflow-clip rounded-2xl border border-crimson-light/40 bg-milk shadow-petal lg:h-[80vh]">
+          <section aria-label="Client details" className="flex min-w-0 flex-col overflow-clip rounded-2xl border border-crimson-light/40 bg-milk shadow-petal lg:col-span-2 lg:h-[80vh]">
             <Tabs
               label="Client sections"
               idPrefix="client"
@@ -94,7 +95,7 @@ export default function ClientPage() {
               {tab === "notes" && (
                 <>
                   <TabSection title="Notes" description="Allergies, preferences, anything to remember. Only admins see these.">
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-3">
                       <label className="sr-only" htmlFor="new-client-note">
                         New note
                       </label>
@@ -114,7 +115,7 @@ export default function ClientPage() {
                     {notes.length === 0 ? (
                       <p className="text-sm text-gray-red">No notes yet.</p>
                     ) : (
-                      <ul className="flex flex-col gap-2">
+                      <ul className="flex flex-col gap-3">
                         {page.generalNotes.map((n) => (
                           <NoteItem key={n.id} note={n} onDelete={() => page.removeNote(n.id)} />
                         ))}

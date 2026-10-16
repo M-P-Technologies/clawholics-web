@@ -1,6 +1,12 @@
 import { CalendarDays, ExternalLink } from "lucide-react";
 import type { ReactNode } from "react";
+import clsx from "clsx";
 import { Avatar } from "../atoms";
+
+/** On phones the bar stays at the top as the tab bar stays at the bottom: edge to edge (out of its
+ *  frame's 12px padding), rounded below, over the page as it scrolls */
+export const PHONE_STICKY_TOP_BAR =
+  "max-sm:sticky max-sm:top-0 max-sm:z-40 max-sm:-mx-3 max-sm:-mt-3 max-sm:w-auto max-sm:rounded-none max-sm:rounded-b-3xl max-sm:border-x-0 max-sm:border-t-0 max-sm:bg-milk/95 max-sm:pt-[calc(0.75rem+env(safe-area-inset-top))] max-sm:backdrop-blur-md";
 
 interface TopBarProps {
   title: string;
@@ -8,6 +14,8 @@ interface TopBarProps {
   greeting?: string;
   /** Beside the title, e.g. a Create button */
   titleAside?: ReactNode;
+  /** Before the title, in the same row, e.g. a round back button on phones */
+  leading?: ReactNode;
   /** The screen's own controls (wrap under the title on phones) */
   actions?: ReactNode;
   account: { name: string; email: string; imageUrl: string };
@@ -17,31 +25,37 @@ interface TopBarProps {
   bell?: ReactNode;
   /** Whether the computer layout is showing, so the bell is drawn in one place only */
   wide?: boolean;
+  /** False when the actions only show on a computer (e.g. a text Back link that's an icon on
+   *  phones), so the phone layout doesn't keep an empty row under the title */
+  actionsOnPhone?: boolean;
+  className?: string;
 }
 
 // The bar across the top of every admin screen and client app tab: the greeting, title and the
 // screen's controls on the left; the date, a link to the public site, an optional bell (e.g. new
 // bookings) and who is signed in on the right.
-export default function TopBar({ title, greeting, titleAside, actions, account, today, bell, wide = true }: TopBarProps) {
+export default function TopBar({ title, greeting, titleAside, leading, actions, account, today, bell, wide = true, actionsOnPhone = true, className }: TopBarProps) {
   return (
-    <header className="flex w-full flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk/80 px-3 py-3 shadow-petal backdrop-blur-sm sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
+    <header className={clsx("flex w-full flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk/80 px-3 py-3 shadow-petal backdrop-blur-sm sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:gap-6", className)}>
       <div className="flex min-w-0 items-center justify-between gap-3 lg:shrink-0">
         <div className="flex min-w-0 flex-col gap-0.5">
           {greeting && <p className="hidden font-display text-base leading-none text-berry lg:block">{greeting}</p>}
           <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
+            {leading}
             <h1 className="font-display text-2xl font-normal normal-case leading-tight tracking-normal text-gray-red sm:text-3xl">{title}</h1>
             {titleAside}
           </div>
         </div>
         {/* On a phone the bell and the account sit beside the title */}
-        <div className="flex shrink-0 items-center gap-2 lg:hidden">
+        <div className="flex shrink-0 items-center gap-3 lg:hidden">
           {bell && !wide && bell}
           <Avatar name={account.name} imageUrl={account.imageUrl} />
         </div>
       </div>
 
       {/* One row on a computer: the screen's controls give way (and scroll sideways) before anything wraps */}
-      <div className="flex min-w-0 flex-wrap items-center gap-3 lg:flex-1 lg:flex-nowrap lg:justify-end">
+      {/* clsx, not a template string: Tailwind only finds whole words, and "lg:justify-end${" isn't one */}
+      <div className={clsx("flex min-w-0 flex-wrap items-center gap-3 lg:flex-1 lg:flex-nowrap lg:justify-end", !actionsOnPhone && "max-lg:hidden")}>
         {actions}
         {today && (
           <p className="hidden shrink-0 items-center gap-1.5 whitespace-nowrap text-[13px] font-medium text-gray-red xl:flex">
@@ -66,7 +80,7 @@ export default function TopBar({ title, greeting, titleAside, actions, account, 
           <Avatar name={account.name} imageUrl={account.imageUrl} />
           <div className="hidden min-w-0 flex-col leading-tight 2xl:flex">
             <span className="max-w-40 truncate text-[13px] font-bold text-gray-red">{account.name}</span>
-            <span className="max-w-40 truncate text-[11px] text-gray-red">{account.email}</span>
+            <span className="max-w-40 truncate text-xs text-gray-red">{account.email}</span>
           </div>
         </div>
       </div>

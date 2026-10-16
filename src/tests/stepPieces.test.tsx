@@ -74,7 +74,7 @@ describe("day calendar", () => {
   it("fills the chosen day's own button, so it shows even without focus", () => {
     render(<DayCalendar {...base} />);
     const button = screen.getByRole("button", { name: /\b20(st|nd|rd|th)?,.*selected/i });
-    expect(button.parentElement).toHaveClass("[&>button]:!bg-berry", "[&>button]:!text-pearl");
+    expect(button.parentElement).toHaveClass("[&>button]:bg-berry!", "[&>button]:text-pearl!");
   });
 
   it("marks a fully booked day", () => {

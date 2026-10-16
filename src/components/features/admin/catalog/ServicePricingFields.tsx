@@ -159,13 +159,13 @@ export default function ServicePricingFields({ draft, onChange, isEditing, categ
 
       <div className="flex flex-col gap-1.5">
         <h3 className="text-[13px] font-medium text-gray-red">Options (optional)</h3>
-        <p className="text-[14px] text-gray-red mb-2">
+        <p className="text-sm text-gray-red mb-2">
           Use options when a service has several fully priced choices, for example "Cat Eye - Volume" and "Cat Eye - Mega Volume". Clients must pick one.
         </p>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           {draft.variants.map((variant, index) => (
-            <div key={index} className="flex items-center gap-2">
+            <div key={index} className="flex items-center gap-3">
               <input
                 aria-label={`Option ${index + 1} name`}
                 className={variantInputClass}
@@ -175,7 +175,7 @@ export default function ServicePricingFields({ draft, onChange, isEditing, categ
               />
               <input
                 aria-label={`Option ${index + 1} price`}
-                className={`${variantInputClass} max-w-[110px] flex-none`}
+                className={`${variantInputClass} max-w-27.5 flex-none`}
                 disabled={!isEditing}
                 inputMode="numeric"
                 value={variant.price}

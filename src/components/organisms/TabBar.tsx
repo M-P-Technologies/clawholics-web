@@ -88,7 +88,7 @@ export default function TabBar({ label, items, isActive = (path, current) => pat
               aria-expanded={moreOpen}
               aria-controls={moreOpen ? more.id : undefined}
               onClick={() => setMoreOpen((open) => !open)}
-              className={clsx(nav.tab(moreActive), "!flex-col")}
+              className={clsx(nav.tab(moreActive), "flex-col!")}
             >
               <Ellipsis size={22} aria-hidden="true" />
               <span>More</span>

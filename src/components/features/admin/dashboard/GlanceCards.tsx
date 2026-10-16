@@ -61,7 +61,7 @@ export default function GlanceCards({ totals, granularity = "day", upcomingDays 
           key={label}
           role="group"
           aria-label={label}
-          className="relative flex min-w-0 flex-col gap-2 rounded-2xl border border-crimson-light/40 bg-milk p-3 shadow-petal sm:p-6"
+          className="relative flex min-w-0 flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-3 shadow-petal sm:p-6"
         >
           <span
             data-testid="kpi-icon"
@@ -71,9 +71,9 @@ export default function GlanceCards({ totals, granularity = "day", upcomingDays 
             <Icon className="h-4 w-4 sm:h-5 sm:w-5 lg:h-4 lg:w-4 xl:h-5 xl:w-5" strokeWidth={1.75} />
           </span>
           <p className="pr-9 text-[13px] font-medium text-gray-red">{label}</p>
-          <p className="break-words font-display text-3xl leading-none text-berry sm:text-4xl lg:text-3xl xl:text-4xl">{value}</p>
-          <div className="flex items-center justify-between gap-2 pt-1">
-            <p className="min-w-0 text-[12px] leading-snug text-gray-red">{hint}</p>
+          <p className="wrap-break-word font-display text-3xl leading-none text-berry sm:text-4xl lg:text-3xl xl:text-4xl">{value}</p>
+          <div className="flex items-center justify-between gap-3 pt-1">
+            <p className="min-w-0 text-xs leading-snug text-gray-red">{hint}</p>
             <Link
               to={to}
               aria-label={linkLabel}

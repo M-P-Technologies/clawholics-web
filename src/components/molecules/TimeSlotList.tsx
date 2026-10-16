@@ -20,12 +20,12 @@ interface TimeSlotListProps {
 // The day's times as pills: the chosen one filled and pressed, taken ones greyed out and struck through.
 export default function TimeSlotList({ slots, selected, onSelect, isBlocked, format, emptyText, columns = 1, boxed = false }: TimeSlotListProps) {
   return (
-    <div className={clsx("flex w-full min-w-0 flex-col gap-2", boxed && [surface.tint, "p-3"])}>
+    <div className={clsx("flex w-full min-w-0 flex-col gap-3", boxed && [surface.tint, "p-3"])}>
       <SectionHeader size="label" title="Time" />
       {slots.length === 0 ? (
         <p className={clsx(surface.tint, "p-3 text-center text-[13px] text-gray-red")}>{emptyText}</p>
       ) : (
-        <div className={columns === 2 ? "grid max-h-[190px] grid-cols-2 gap-2 overflow-y-auto pr-1 sm:max-h-[220px]" : "flex flex-col gap-2"}>
+        <div className={columns === 2 ? "grid max-h-47.5 grid-cols-2 gap-3 overflow-y-auto pr-1 sm:max-h-55" : "flex flex-col gap-3"}>
           {slots.map((slot) => {
             const blocked = isBlocked(slot);
             return (

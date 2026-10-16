@@ -53,9 +53,9 @@ export default function ActiveBookings({ load }: { load: BookingsLoader }) {
 
   return (
     <section aria-label="Active bookings" className="flex min-w-0 flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-6 shadow-petal">
-      <div className="flex items-baseline justify-between gap-2">
+      <div className="flex items-baseline justify-between gap-3">
         <h2 className="font-display text-xl font-normal text-gray-red">Active bookings</h2>
-        <span className="text-[12px] text-gray-red">{dayLabel(today)}</span>
+        <span className="text-xs text-gray-red">{dayLabel(today)}</span>
       </div>
       {failed ? (
         <p className="text-sm text-gray-red">We couldn&apos;t load today&apos;s bookings.</p>
@@ -64,7 +64,7 @@ export default function ActiveBookings({ load }: { load: BookingsLoader }) {
       ) : todays.length === 0 ? (
         <p className="text-sm text-gray-red">No bookings today.</p>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-3">
           {shown.map((a) => {
             const { start, end } = range(a.appointment_time);
             const done = isDone(a);
@@ -78,8 +78,8 @@ export default function ActiveBookings({ load }: { load: BookingsLoader }) {
                 )}
               >
                 <span className="min-w-0">
-                  <p className="truncate text-[14px] font-bold text-gray-red">{`${a.first_name ?? ""} ${a.last_name ?? ""}`.trim() || "Client"}</p>
-                  <span className="block truncate text-[12px] text-gray-red">{a.service_name}</span>
+                  <p className="truncate text-sm font-bold text-gray-red">{`${a.first_name ?? ""} ${a.last_name ?? ""}`.trim() || "Client"}</p>
+                  <span className="block truncate text-xs text-gray-red">{a.service_name}</span>
                 </span>
                 <span className="shrink-0 text-right">
                   <span className="flex items-center justify-end gap-1.5">
@@ -87,7 +87,7 @@ export default function ActiveBookings({ load }: { load: BookingsLoader }) {
                     {done && <span className="rounded-full bg-sand px-2 py-0.5 text-[10px] font-bold text-gray-red">Done</span>}
                     <span className="text-[13px] font-bold text-gray-red">{a.nailist_name}</span>
                   </span>
-                  <span className="block whitespace-nowrap text-[12px] text-gray-red">{`${clock(start)} – ${clock(end)}`}</span>
+                  <span className="block whitespace-nowrap text-xs text-gray-red">{`${clock(start)} – ${clock(end)}`}</span>
                 </span>
               </li>
             );

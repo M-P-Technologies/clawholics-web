@@ -36,14 +36,14 @@ export default function ProfilePanel({ label, name, imageUrl, badges, highlight,
       <div className="flex items-center gap-3">
         <Avatar name={name} imageUrl={imageUrl} size="xl" decorative />
         <div className="min-w-0">
-          <h2 className="break-words font-display text-2xl font-normal leading-tight text-gray-red">{name}</h2>
+          <h2 className="wrap-break-word font-display text-2xl font-normal leading-tight text-gray-red">{name}</h2>
           {badges && <div className="mt-1 flex flex-wrap gap-1.5">{badges}</div>}
         </div>
       </div>
 
       {highlight && (
         <div className="flex flex-col gap-1 rounded-xl border border-crimson-light/60 bg-light-orange/40 p-3">
-          <p className="flex items-center justify-between text-[12px] text-gray-red">
+          <p className="flex items-center justify-between text-xs text-gray-red">
             {highlight.title}
             {HighlightIcon && <HighlightIcon size={14} aria-hidden="true" className="text-berry" />}
           </p>
@@ -65,17 +65,17 @@ export default function ProfilePanel({ label, name, imageUrl, badges, highlight,
             .filter((row) => row.value)
             .map(({ label: rowLabel, value, icon: Icon }) => (
               <div key={rowLabel} className="flex flex-col gap-0.5">
-                <dt className="text-[12px] text-gray-red">{rowLabel}</dt>
-                <dd className="flex min-w-0 items-center gap-2 text-sm font-medium text-gray-red">
+                <dt className="text-xs text-gray-red">{rowLabel}</dt>
+                <dd className="flex min-w-0 items-center gap-3 text-sm font-medium text-gray-red">
                   {Icon && <Icon className="h-4 w-4 shrink-0 text-berry" />}
-                  <span className="min-w-0 break-words">{value}</span>
+                  <span className="min-w-0 wrap-break-word">{value}</span>
                 </dd>
               </div>
             ))}
         </dl>
       </div>
 
-      {children && <div className="flex flex-col gap-2 border-t border-crimson-light/50 pt-3">{children}</div>}
+      {children && <div className="flex flex-col gap-3 border-t border-crimson-light/50 pt-3">{children}</div>}
     </aside>
   );
 }

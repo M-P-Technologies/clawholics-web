@@ -20,14 +20,14 @@ export const nav = {
   /** A sidebar item: a pill, highlighted when it is the current screen */
   item: (active: boolean, collapsed: boolean) =>
     [
-      "w-full whitespace-normal rounded-full text-left text-[14px] leading-snug transition-colors",
-      collapsed ? "h-10 justify-center px-0" : "justify-start gap-2 px-3 py-1.5",
+      "w-full whitespace-normal rounded-full text-left text-sm leading-snug transition-colors",
+      collapsed ? "h-10 justify-center px-0" : "justify-start gap-3 px-3 py-1.5",
       active ? "bg-crimson-light/45 font-bold text-berry" : "text-gray-red hover:bg-crimson-light/25 hover:text-berry",
     ].join(" "),
   /** A phone tab */
   tab: (active: boolean) =>
     [
-      "flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-2xl py-2 text-[11px] font-medium tracking-wide transition-colors",
+      "flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-2xl py-2 text-xs font-medium tracking-wide transition-colors",
       active ? "bg-crimson-light/40 text-berry" : "text-gray-red hover:text-berry",
     ].join(" "),
 } as const;
@@ -42,10 +42,10 @@ export const inputClass =
 export const errorTextClass = "mt-1.5 text-sm text-danger-ink";
 
 export const chipClass = (active: boolean) =>
-  `cursor-pointer whitespace-nowrap rounded-md border px-3 py-2 text-sm font-bold uppercase tracking-widest transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson ${
+  `cursor-pointer whitespace-nowrap rounded-md border px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson ${
     active
-      ? "border-crimson bg-crimson text-on-crimson"
-      : "border-crimson-light text-on-crimson hover:border-crimson"
+      ? "border-crimson bg-crimson text-light-orange"
+      : "border-crimson-light text-crimson hover:border-crimson"
   }`;
 
 export const infoLabelClass = "label-caps";

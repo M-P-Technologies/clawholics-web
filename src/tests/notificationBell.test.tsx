@@ -68,14 +68,14 @@ describe("NotificationBell", () => {
     fireEvent.click(bell);
     const list = within(screen.getByRole("region", { name: "New bookings" }));
     expect(list.getByText("Payment proof to review")).toBeInTheDocument();
-    expect(list.getByText("Booking paid")).toBeInTheDocument();
+    expect(list.getByText("Booking paid, to confirm")).toBeInTheDocument();
     expect(list.getAllByText("New")).toHaveLength(2);
     expect(list.getByText("Bea Lim · Gel manicure with Maxine · Oct 20, 2:00 PM")).toBeInTheDocument();
 
     // A proof opens the proofs to review, a paid booking its client's page
     const links = list.getAllByRole("link");
     expect(links[0]).toHaveAttribute("href", "/clients?status=PROOF_PENDING");
-    expect(links[1]).toHaveAttribute("href", "/clients/7");
+    expect(links[1]).toHaveAttribute("href", "/clients?status=AWAITING_CONFIRMATION");
   });
 
   it("marks them read for this admin when opened", async () => {
@@ -111,11 +111,11 @@ describe("NotificationBell", () => {
   it("announces a booking that arrives while the screen is open, but not the ones already there", async () => {
     view();
     await screen.findByRole("button", { name: "Notifications, 2 new" });
-    expect(screen.queryByText("Booking paid")).toBeNull();
+    expect(screen.queryByText("Booking paid, to confirm")).toBeNull();
 
     answer = { unread: 3, notifications: [note(3, { client_name: "Cara Diaz" }), ...answer.notifications] };
     await act(() => client.invalidateQueries({ queryKey: adminKeys.notifications() }));
-    expect(await screen.findByText("Booking paid")).toBeInTheDocument();
+    expect(await screen.findByText("Booking paid, to confirm")).toBeInTheDocument();
     expect(screen.getByText("Cara Diaz · Gel manicure with Maxine · Oct 20, 2:00 PM")).toBeInTheDocument();
   });
 });
@@ -125,8 +125,8 @@ describe("notification wording", () => {
     expect(notificationLine(note(1, { client_name: "", nailist_name: "", appointment_time: "" }))).toBe("A client · Gel manicure · Oct 20");
   });
 
-  it("opens the proofs to review when the booking has no client page", () => {
-    expect(notificationLink(note(1, { client_user_id: null }))).toBe("/clients?status=PROOF_PENDING");
+  it("opens the bookings waiting to be confirmed for a paid booking", () => {
+    expect(notificationLink(note(1, { client_user_id: null }))).toBe("/clients?status=AWAITING_CONFIRMATION");
   });
 
   it("tells how long ago it came", () => {

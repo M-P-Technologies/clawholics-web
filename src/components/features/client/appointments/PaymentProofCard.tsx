@@ -33,8 +33,8 @@ export default function PaymentProofCard({
   );
 
   const terms = (
-    <a href="/terms" className="underline font-bold">
-      Terms &amp; Conditions
+    <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline font-bold">
+      Terms &amp; Conditions<span className="sr-only"> (opens in a new tab)</span>
     </a>
   );
 

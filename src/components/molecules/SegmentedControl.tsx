@@ -51,7 +51,7 @@ export default function SegmentedControl<T extends string>({ label, options, val
           >
             {Icon && <Icon size={14} aria-hidden="true" />}
             {option.label}
-            {option.count !== undefined && <span className="rounded-full bg-crimson-light/50 px-1.5 text-[11px] text-berry">{option.count}</span>}
+            {option.count !== undefined && <span className="rounded-full bg-crimson-light/50 px-1.5 text-xs text-berry">{option.count}</span>}
           </button>
         );
       })}

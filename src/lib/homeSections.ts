@@ -72,7 +72,8 @@ export const HOME_TEXT_DEFAULTS = {
     "Clawholics by Max was founded in 2023 with a simple dream. What began in a tiny corner of an eatery is now a nail studio built on dedication and heart.",
   home_about_link_label: "Read our story",
   home_reviews_title: "What our clients say",
-  // The client app (/my): the birthday banner on Home, and the Explore screen's subtitle
+  // The client app (/my): the birthday banner on Home. home_explore_subtitle is no longer shown
+  // (Explore has no heading card now); its saved value is simply unused
   home_birthday_enabled: "1",
   home_birthday_title: "Happy birthday, {name}!",
   home_birthday_line: "Enjoy a birthday treat this month",
@@ -196,10 +197,15 @@ export interface HomeFeature {
   link: string;
 }
 
+/** The longest a "Why choose us?" card's title and text may be (Admin > Homepage), so the four
+ *  cards stay the same size: the defaults run 11-16 and 72-74 characters */
+export const FEATURE_TITLE_MAX = 24;
+export const FEATURE_TEXT_MAX = 80;
+
 export const DEFAULT_FEATURES: HomeFeature[] = [
   { icon: "sparkles", title: "Nails and lashes", text: "Manicures, gel and softgel sets, eyelash extensions and brow lamination.", link: "/services" },
   { icon: "users", title: "Pick your artist", text: "Choose a master or junior technician and book the one whose work you love.", link: "/artists" },
-  { icon: "heart", title: "Local since 2023", text: "A Cagayan de Oro studio that started in a tiny corner of an eatery and grew into a full nail studio.", link: "/about" },
+  { icon: "heart", title: "Local since 2023", text: "Started in a tiny eatery corner, now a full nail studio in Cagayan de Oro.", link: "/about" },
   { icon: "calendar-heart", title: "Book online", text: "Choose a service and an open time, then hold your slot with a downpayment.", link: "/services" },
 ];
 
@@ -222,7 +228,7 @@ export interface HomeOffer {
   /** Empty shows the banner without a photo */
   image: string;
   buttonLabel: string;
-  /** /my/explore, /my/explore/<service id>, a page of the site, or a web address */
+  /** /my/explore, /my/explore?service=<id> (older saves: /my/explore/<id>, redirected), a page of the site, or a web address */
   link: string;
 }
 

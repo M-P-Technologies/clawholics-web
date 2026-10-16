@@ -58,7 +58,7 @@ export default function EditAdminModal({ open, form, saving, onChange, onClose, 
             <Button
               variant="bare"
               onClick={onClose}
-              className="px-9 py-2 text-[16px] rounded-md border border-crimson font-bold hover:scale-105 transition-colors hover:bg-light-orange"
+              className="px-9 py-2 text-base rounded-md border border-crimson font-bold hover:scale-105 transition-colors hover:bg-light-orange"
             >
               Cancel
             </Button>

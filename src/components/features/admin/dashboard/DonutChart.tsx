@@ -47,13 +47,13 @@ export default function DonutChart({ title, slices, centerLabel, emptyText }: Do
           </svg>
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
             <span className="font-display text-3xl text-berry">{total}</span>
-            <span className="text-[12px] text-gray-red">{centerLabel}</span>
+            <span className="text-xs text-gray-red">{centerLabel}</span>
           </div>
         </div>
 
-        <ul className="flex min-w-0 flex-1 flex-col gap-2 self-stretch text-sm text-gray-red">
+        <ul className="flex min-w-0 flex-1 flex-col gap-3 self-stretch text-sm text-gray-red">
           {slices.map((s) => (
-            <li key={s.label} className="flex items-center gap-2">
+            <li key={s.label} className="flex items-center gap-3">
               <span aria-hidden="true" className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: s.color }} />
               <span className="min-w-0 flex-1 truncate">{s.label}</span>
               <span className="shrink-0 text-gray-red">{`${s.value} (${Math.round((s.value / total) * 100)}%)`}</span>

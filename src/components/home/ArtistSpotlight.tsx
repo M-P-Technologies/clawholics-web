@@ -78,7 +78,7 @@ export default function ArtistSpotlight({ artists }: { artists: Nailist[] }) {
 
         <div className={`order-3 mt-12 flex flex-col gap-3 md:gap-9 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:min-h-72 ${fade}`}>
           <p className="copy-note">The Artist</p>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             <h3 className="font-display text-3xl font-normal uppercase tracking-widest text-gray-red md:text-5xl">
               {artist.name}
             </h3>
@@ -101,7 +101,7 @@ export default function ArtistSpotlight({ artists }: { artists: Nailist[] }) {
               <Button variant="bare" type="button" aria-label="Previous artist" onClick={() => show(index - 1)} className={ROUND_BUTTON}>
                 <ChevronLeft size={20} aria-hidden="true" />
               </Button>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 {artists.map((a, i) => (
                   <Button
                     variant="bare"

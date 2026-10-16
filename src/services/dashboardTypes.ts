@@ -45,7 +45,7 @@ export interface DashboardResponse {
   sales: { id: number; date: string; time: string; client_name: string; user_id: number | null; service_name: string; nailist_name: string; fee: number | null }[];
   loyalty: { stamps: number; redeemed: number };
   /** warmLeads: clients active in the last 60 days who haven't booked a visit (see /leads) */
-  attention: { today: number; proofsToReview: number; unpaid: number; warmLeads: number };
+  attention: { today: number; proofsToReview: number; /** Paid online, waiting for an admin to confirm */ toConfirm: number; unpaid: number; warmLeads: number };
   money: Money;
   /** One point per day, week or month of the period (up to today), for the lines on the stat cards */
   trend: Trend;

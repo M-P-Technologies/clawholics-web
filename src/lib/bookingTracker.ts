@@ -30,7 +30,7 @@ export function manilaTime(value?: string | null): string | undefined {
   return new Date(time).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", timeZone: "Asia/Manila" });
 }
 
-const ACTIVE = ["PENDING", "AWAITING_PROOF", "CONFIRMED"];
+const ACTIVE = ["PENDING", "AWAITING_PROOF", "AWAITING_CONFIRMATION", "CONFIRMED"];
 
 /** The appointment to track: the soonest one still under way, or else the latest */
 export function appointmentToTrack(appointments: ClientAppointment[], today: string): ClientAppointment | null {
@@ -57,6 +57,8 @@ export interface TrackInput {
 export function trackerSteps(a: TrackInput, { settledDetail = "Settled with the salon" }: { settledDetail?: string } = {}): TrackerStep[] {
   const status = a.status.toUpperCase();
   const confirmed = status === "CONFIRMED" || status === "COMPLETED";
+  // Paid online: the booking waits for the salon (an admin) to confirm it
+  const awaitingSalon = status === "AWAITING_CONFIRMATION";
   const visit = `${dateLabel(a.appointment_date)}, ${a.appointment_time}`;
 
   // The downpayment: paid online, a proof approved, or settled by the salon when it confirmed
@@ -64,6 +66,7 @@ export function trackerSteps(a: TrackInput, { settledDetail = "Settled with the 
   if (a.payment_status === "PAID") downpayment = { state: "done", detail: "Paid online" };
   else if (a.proof_status === "APPROVED") downpayment = { state: "done", detail: "Payment proof approved", when: manilaTime(a.proof_reviewed_at) };
   else if (confirmed) downpayment = { state: "done", detail: settledDetail };
+  else if (awaitingSalon) downpayment = { state: "done", detail: "Paid online" };
   else if (a.proof_status === "PENDING") downpayment = { state: "current", detail: "Payment proof sent, waiting for review", when: manilaTime(a.proof_sent_at) };
   else if (a.proof_status === "REJECTED") downpayment = { state: "current", detail: "Payment proof rejected, waiting for a new one", when: manilaTime(a.proof_reviewed_at) };
   else if (status === "AWAITING_PROOF") downpayment = { state: "current", detail: "Waiting for the payment proof" };
@@ -75,7 +78,7 @@ export function trackerSteps(a: TrackInput, { settledDetail = "Settled with the 
     {
       key: "confirmed",
       title: "Confirmed",
-      detail: confirmed ? `Booked for ${visit}` : "Once the downpayment is in",
+      detail: confirmed ? `Booked for ${visit}` : downpayment.state === "done" ? "Waiting for the salon to confirm" : "Once the downpayment is in, the salon confirms",
       state: confirmed ? "done" : downpayment.state === "done" ? "current" : "upcoming",
     },
     {

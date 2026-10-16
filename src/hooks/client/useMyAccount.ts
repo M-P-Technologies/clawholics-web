@@ -12,7 +12,6 @@ export type MyAccount = ReturnType<typeof useProfile> & {
   submitReview: Reviews["submit"];
   /** Opens an appointment's sheet, from any screen */
   openAppointment: (id: number) => void;
-  openRewards: () => void;
 };
 
 export const MyAccountContext = createContext<MyAccount | null>(null);

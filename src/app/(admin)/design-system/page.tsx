@@ -1,7 +1,7 @@
 "use client";
 
 import { CalendarHeart, QrCode, Trash2, Wallet } from "lucide-react";
-import { Avatar, Badge, Blush, Button, Card, Checkbox, IconButton, Input, LoadingBar, Pearls, Select, StarPicker, Stars } from "@/components/atoms";
+import { Avatar, Badge, Blush, Button, Card, Checkbox, IconButton, Input, LoadingBar, Select, StarPicker, Stars } from "@/components/atoms";
 import { EditActions, EmptyState, FormField, SectionHeader, StatCard } from "@/components/molecules";
 import { CardFields, RowCard, RowCards, SideBar, TabBar, TableFrame, TopBar } from "@/components/organisms";
 import AdminShell from "@/components/features/admin/shell/AdminShell";
@@ -55,8 +55,8 @@ export default function DesignSystem() {
             <Input aria-label="Demo disabled" placeholder="Disabled" disabled />
           </GallerySection>
           <GallerySection title="Checkbox">
-            <label className="flex items-center gap-2 text-sm text-gray-red"><Checkbox defaultChecked /> Checked</label>
-            <label className="flex items-center gap-2 text-sm text-gray-red"><Checkbox /> Unchecked</label>
+            <label className="flex items-center gap-3 text-sm text-gray-red"><Checkbox defaultChecked /> Checked</label>
+            <label className="flex items-center gap-3 text-sm text-gray-red"><Checkbox /> Unchecked</label>
           </GallerySection>
           <GallerySection title="Select">
             <Select aria-label="Example" value="a" onChange={() => {}}>
@@ -70,7 +70,6 @@ export default function DesignSystem() {
             <Stars rating={4} />
             <StarPicker value={3} onChange={() => {}} />
           </GallerySection>
-          <GallerySection title="Pearls"><Pearls className="w-40" /></GallerySection>
         </Group>
         <Group title="Molecules">
           <GallerySection title="FormField">
@@ -137,12 +136,12 @@ export default function DesignSystem() {
             <TopBar title="Example" greeting="Welcome, Ana!" today="Wednesday, Oct 14" account={{ name: "Ana Cruz", email: "ana@example.com", imageUrl: "" }} />
           </GallerySection>
           <GallerySection title="SideBar">
-            <div className="h-[480px]">
+            <div className="h-120">
               <SideBar label="Demo menu" groups={DEMO_NAV} storageKey="ds-rail" footer={() => null} />
             </div>
           </GallerySection>
           <GallerySection title="TabBar">
-            <div className="relative h-24 [&_nav]:static lg:[&>div]:!block">
+            <div className="relative h-24 [&_nav]:static lg:[&>div]:block!">
               <TabBar label="Demo tabs" items={DEMO_NAV[0].items} />
             </div>
           </GallerySection>
@@ -153,7 +152,7 @@ export default function DesignSystem() {
             </p>
           </GallerySection>
           <GallerySection title="DataTable">
-            <TableFrame label="Example bookings" minWidthClass="min-w-[480px]" head={<tr className="text-left text-[12px] text-gray-red"><th scope="col" className="pb-2 pr-3 font-medium">Client</th><th scope="col" className="pb-2 pr-3 font-medium">When</th></tr>}>
+            <TableFrame label="Example bookings" minWidthClass="min-w-120" head={<tr className="text-left text-xs text-gray-red"><th scope="col" className="pb-2 pr-3 font-medium">Client</th><th scope="col" className="pb-2 pr-3 font-medium">When</th></tr>}>
               <tr><th scope="row" className="py-2 pr-3 text-left font-normal">Ana</th><td className="py-2 pr-3">Oct 20</td></tr>
               <tr><th scope="row" className="py-2 pr-3 text-left font-normal">Bea</th><td className="py-2 pr-3">Oct 22</td></tr>
             </TableFrame>

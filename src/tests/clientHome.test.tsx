@@ -27,7 +27,7 @@ beforeEach(() => {
   account = {
     dbUser: { first_name: "Ana", dob: "1998-03-02" }, clerkUser: { firstName: "Ana" },
     nextAppointment: null, pastViews: [], appointments: [], currentTime: Date.now(), stamps: 3, stampTarget: 10,
-    payForAppointment: vi.fn(), rescheduleAppointment: vi.fn(), startCancel: vi.fn(), openRewards: vi.fn(), openAppointment: vi.fn(),
+    payForAppointment: vi.fn(), rescheduleAppointment: vi.fn(), startCancel: vi.fn(), openAppointment: vi.fn(),
   };
 });
 afterEach(() => vi.useRealTimers());
@@ -43,22 +43,26 @@ const view = (over: Record<string, unknown> = {}, apptOver: Record<string, unkno
 });
 
 describe("ClientHome", () => {
-  it("greets the client and searches in Explore", () => {
+  it("greets the client, with no search bar", () => {
     render(<ClientHome />);
     expect(screen.getByRole("banner")).toContainElement(screen.getByRole("heading", { level: 1, name: "Hi, Ana" }));
     // The app's top bar, not a page header of its own
     expect(screen.getByRole("banner")).toContainElement(screen.getByRole("link", { name: /View site/ }));
-    fireEvent.change(screen.getByRole("searchbox", { name: "Search services" }), { target: { value: "gel x" } });
-    fireEvent.submit(screen.getByRole("search"));
-    expect(navigate).toHaveBeenCalledWith("/my/explore?q=gel%20x");
+    expect(screen.queryByRole("search")).not.toBeInTheDocument();
   });
 
-  it("shows the first eight services in their admin order", async () => {
+  it("shows the first eight services in their admin order, five a page", async () => {
     render(<ClientHome />);
     await waitFor(() => expect(screen.getByText("Service 1")).toBeInTheDocument());
+    expect(screen.getByText("Service 5")).toBeInTheDocument();
+    expect(screen.queryByText("Service 6")).not.toBeInTheDocument();
+    expect(screen.getByText("Showing 1–5 of 8")).toBeInTheDocument();
+    // The rows don't open anything: only See all (to Explore) and Book do
+    expect(screen.queryByRole("link", { name: /Service 1/ })).toBeNull();
+    expect(within(screen.getByRole("region", { name: "Popular services" })).getByRole("link", { name: "See all" })).toHaveAttribute("href", "/my/explore");
+    fireEvent.click(screen.getByRole("button", { name: /next/i }));
     expect(screen.getByText("Service 8")).toBeInTheDocument();
     expect(screen.queryByText("Service 9")).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Service 1/ })).toHaveAttribute("href", "/my/explore/1");
   });
 
   it("leaves Special offers out when there are none", async () => {

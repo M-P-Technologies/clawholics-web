@@ -34,7 +34,7 @@ export default function ArtistOverview({ nailist, workCount }: ArtistOverviewPro
         {nailist.name}
       </h1>
 
-      <div className="flex justify-around gap-2 border-y border-crimson-light/80 py-3">
+      <div className="flex justify-around gap-3 border-y border-crimson-light/80 py-3">
         <Stat icon={<Award size={28} strokeWidth={1.5} aria-hidden="true" />} value={role} label={rest.join(" ") || "Artist"} />
         {services.length > 0 && <Stat icon={<Sparkles size={28} strokeWidth={1.5} aria-hidden="true" />} value={String(services.length)} label="Services" />}
         {workCount > 0 && <Stat icon={<Images size={28} strokeWidth={1.5} aria-hidden="true" />} value={String(workCount)} label="Photos of work" />}
@@ -53,9 +53,9 @@ export default function ArtistOverview({ nailist, workCount }: ArtistOverviewPro
       )}
 
       {services.length > 0 && (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           <h2 className="label-caps">Services</h2>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-3">
             {services.map((name) => (
               <span key={name} className="rounded-md border border-crimson-light px-3 py-1 text-sm text-crimson-ink">
                 {name}

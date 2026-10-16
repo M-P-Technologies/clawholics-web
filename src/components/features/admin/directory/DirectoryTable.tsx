@@ -49,7 +49,7 @@ export default function DirectoryTable({ label, users, profiles, selectedId, onS
     );
   };
   const roleBadge = (user: DirectoryUser) => (
-    <span className="rounded-full bg-crimson-light/50 px-3 py-0.5 text-[11px] font-bold text-berry">{roleOf(user.role)}</span>
+    <span className="rounded-full bg-crimson-light/50 px-3 py-0.5 text-xs font-bold text-berry">{roleOf(user.role)}</span>
   );
 
   if (!asTable) {
@@ -72,7 +72,7 @@ export default function DirectoryTable({ label, users, profiles, selectedId, onS
                     {photo(user, name)}
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-bold">{name}</span>
-                      {user.email && <span className="block truncate text-[12px] text-gray-red">{user.email}</span>}
+                      {user.email && <span className="block truncate text-xs text-gray-red">{user.email}</span>}
                     </span>
                     {!showVisits && roleBadge(user)}
                   </span>
@@ -97,9 +97,9 @@ export default function DirectoryTable({ label, users, profiles, selectedId, onS
   return (
     <section aria-label={`${label} list`} className="flex min-w-0 flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-6 shadow-petal lg:h-full">
       {/* Grows with the card beside it, keeping the pager at the bottom */}
-      <TableFrame label={label} minWidthClass="min-w-[640px]" className="flex-1"
+      <TableFrame label={label} minWidthClass="min-w-160" className="flex-1"
         head={
-          <tr className="text-left text-[12px] text-gray-red">
+          <tr className="text-left text-xs text-gray-red">
             {["Name", "Phone", "Joined", "Last active", showVisits ? "Visits" : "Role"].map((h) => (
               <th key={h} scope="col" className={clsx("pb-2 pr-3 font-medium", h === "Visits" && "text-right")}>
                 {h}
@@ -133,7 +133,7 @@ export default function DirectoryTable({ label, users, profiles, selectedId, onS
                   >
                     {name}
                   </button>
-                  {user.email && <span className="block truncate text-[12px] text-gray-red">{user.email}</span>}
+                  {user.email && <span className="block truncate text-xs text-gray-red">{user.email}</span>}
                 </span>
               </span>
             </th>

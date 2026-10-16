@@ -40,7 +40,7 @@ export default function CarouselEditor({ photos, onChange, uploading, upload }: 
           items={photos}
           getItemId={(item) => item.id}
           onReorder={(items) => onChange(normalizeCarousel(items))}
-          className="flex flex-col gap-2"
+          className="flex flex-col gap-3"
           renderItem={(item, { dragHandleProps, isDragging }) => (
             <CarouselRow item={item} dragHandle={<DragHandle {...dragHandleProps} />} faded={isDragging} onRemove={() => onChange(normalizeCarousel(photos.filter((p) => p.id !== item.id)))} />
           )}

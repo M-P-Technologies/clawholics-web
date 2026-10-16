@@ -54,7 +54,7 @@ describe("step layout", () => {
     const { container } = render(<Reschedule />);
     expect(container.querySelector(".bg-light-orange")).toBeNull();
     expect(container.querySelector(".label-caps")).toBeNull();
-    for (const t of ["Current appointment", "New selection"]) {
+    for (const t of ["Reschedule summary", "New selection"]) {
       expect(screen.getByRole("heading", { name: t }).closest(".rounded-2xl")).not.toBeNull();
     }
     expect(container.querySelector(".\\@container .\\@xl\\:flex-row")).not.toBeNull();

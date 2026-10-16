@@ -103,11 +103,11 @@ export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, 
         </p>
       ) : (
         <>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             {images.map((image) => (
               <div
                 key={image.id}
-                className="flex items-center justify-between w-full min-h-[36px] bg-milk rounded-md px-3 py-1 overflow-visible border border-crimson-light"
+                className="flex items-center justify-between w-full min-h-9 bg-milk rounded-md px-3 py-1 overflow-visible border border-crimson-light"
               >
                 <Button
                   variant="bare"
@@ -144,7 +144,7 @@ export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, 
               </div>
 
               <p className="text-[13px] text-gray-red">{busy ? "Working..." : "Click here to upload photos"}</p>
-              <p className="text-[12px] text-gray-red">Photos are saved as soon as they are uploaded or removed.</p>
+              <p className="text-xs text-gray-red">Photos are saved as soon as they are uploaded or removed.</p>
 
               <input
                 type="file"

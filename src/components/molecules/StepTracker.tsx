@@ -35,7 +35,7 @@ export default function StepTracker({ steps, label }: { steps: TrackerStep[]; la
                 {step.title}
                 <span className="sr-only">: {stepStateLabel(step.state)}</span>
               </p>
-              {step.when && <p className="text-[12px] text-gray-red sm:text-right">{step.when}</p>}
+              {step.when && <p className="text-xs text-gray-red sm:text-right">{step.when}</p>}
               {step.detail && <p className="text-[13px] text-gray-red sm:col-span-2">{step.detail}</p>}
             </div>
           </li>

@@ -7,6 +7,8 @@ const BASE_URL = `${API_BASE_URL}/booking/appointments`;
 export type AppointmentStatus =
   | "PENDING"
   | "AWAITING_PROOF"
+  /** Paid online; waiting for an admin to confirm it */
+  | "AWAITING_CONFIRMATION"
   | "CONFIRMED"
   | "COMPLETED"
   | "CANCELLED"

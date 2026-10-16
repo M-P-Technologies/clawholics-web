@@ -25,7 +25,7 @@ export function ListSkeleton({ label, columns = 8, quiet = false }: ListSkeleton
       {asTable
         ? Array.from({ length: ROWS }, (_, row) => (
             <div key={row} className="flex items-center gap-6 border-t border-dotted border-crimson-light py-3 first:border-t-0">
-              <div className="flex w-[220px] shrink-0 items-center gap-3">
+              <div className="flex w-55 shrink-0 items-center gap-3">
                 <Skeleton className="h-9 w-9 shrink-0 rounded-full" />
                 <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                   <Skeleton className={row % 2 ? "h-3.5 w-28" : "h-3.5 w-36"} />

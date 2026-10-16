@@ -44,7 +44,7 @@ export default function ImageCard({
 }: ImageCardProps) {
   return (
     <article className="group flex h-full flex-row overflow-hidden sm:flex-col rounded-sm border border-crimson-light/80 bg-light-orange shadow-xl shadow-crimson/10 transition-colors duration-300 hover:border-crimson">
-      <div className="p-2 max-sm:w-2/5 max-sm:shrink-0">
+      <div className="p-3 max-sm:w-2/5 max-sm:shrink-0">
         <div className={clsx("relative w-full overflow-hidden rounded-sm bg-crimson-light", aspect, "max-sm:aspect-9/16")}>
           <Image
             src={image}
@@ -58,8 +58,8 @@ export default function ImageCard({
         </div>
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col gap-3 p-3 max-sm:pl-2 md:p-9">
-        <div className="flex flex-col gap-2">
+      <div className="flex min-w-0 flex-1 flex-col gap-3 p-3 max-sm:pl-2 md:p-6">
+        <div className="flex flex-col gap-3">
           <h2 id={titleId} className="font-display text-xl font-normal uppercase tracking-widest text-gray-red">
             {title}
           </h2>

@@ -1,24 +1,23 @@
 import { PAGES, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/seo";
 import { publicReads } from "@/server/publicCache";
+import { readOrNull } from "@/server/timeLimit";
 import { specialtiesOf } from "@/server/seo";
 import { artistPath, servicePath } from "@/utils/slug";
 
 // /llms.txt (llmstxt.org): a plain summary of the site for AI assistants and answer engines, built
 // from the same content as the pages: what the salon is, where and when, every service with its
-// price and page, the artists, and the main pages. Rebuilt when the catalog changes, and hourly.
-export const revalidate = 3600;
+// price and page, the artists, and the main pages. Made when it's asked for, not during the build
+// (a build's database reads can stall); the reads are the cached public ones, so it's cheap.
+export const dynamic = "force-dynamic";
 
 type Row = Record<string, unknown>;
 const text = (value: unknown) => (typeof value === "string" ? value.replace(/\s+/g, " ").trim() : "");
 const peso = (n: number) => `₱${n.toLocaleString("en-PH")}`;
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
+/** A read, or the fallback when it fails or takes over 10s */
 async function read<T>(load: () => Promise<T>, fallback: T): Promise<T> {
-  try {
-    return await load();
-  } catch {
-    return fallback;
-  }
+  return (await readOrNull(load, "llms.txt read", 10_000)) ?? fallback;
 }
 
 export async function GET() {

@@ -2,6 +2,7 @@ import "server-only";
 import { dehydrate, QueryClient, type DehydratedState, type QueryKey } from "@tanstack/react-query";
 import { publicKeys } from "@/lib/publicKeys";
 import { publicReads } from "./publicCache";
+import { withTimeLimit } from "./timeLimit";
 
 // The public site's shared content, read on the server and handed to TanStack Query (the site
 // layout wraps the pages in a HydrationBoundary with it), so the first HTML already holds the
@@ -11,15 +12,10 @@ import { publicReads } from "./publicCache";
 // admin's save also rebuilds the pages that used them.
 // Whatever fails or is slow is left out, and the page fetches it in the browser as before.
 
-/** The longest the server waits for one read before leaving it to the browser */
-const WAIT_MS = 3000;
-
+/** The read with the build's time limit (server/timeLimit.ts); a failure is logged and rethrown */
 function capped<T>(read: () => Promise<T>): () => Promise<T> {
   return () =>
-    new Promise<T>((resolve, reject) => {
-      const timer = setTimeout(() => reject(new Error("Public read too slow")), WAIT_MS);
-      read().then(resolve, reject).finally(() => clearTimeout(timer));
-    }).catch((error: unknown) => {
+    withTimeLimit(read, "Public read").catch((error: unknown) => {
       console.warn("Public content left to the browser:", error instanceof Error ? error.message : error);
       throw error;
     });

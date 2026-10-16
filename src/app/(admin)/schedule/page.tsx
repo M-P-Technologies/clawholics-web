@@ -32,7 +32,7 @@ export default function Schedule() {
       <div className="flex flex-1 flex-col overflow-y-auto pb-2">
         {/* PHONE: Day | Month switch and the filter */}
         {!s.desktop && (
-          <div className="mb-3 flex items-center justify-between gap-2 lg:hidden">
+          <div className="mb-3 flex items-center justify-between gap-3 lg:hidden">
             <div role="group" aria-label="View" className="flex rounded-full border border-crimson-light p-0.5">
               {PHONE_VIEWS.map(({ value: view, label }) => (
                 <Button
@@ -47,7 +47,7 @@ export default function Schedule() {
                 </Button>
               ))}
             </div>
-            <Button variant="secondary" type="button" onClick={() => s.setFilterOpen(true)} className="relative !px-3 !py-2">
+            <Button variant="secondary" type="button" onClick={() => s.setFilterOpen(true)} className="relative px-3! py-2!">
               Filter
               {s.filterBy !== "All" && <span aria-hidden="true" className="absolute right-1 top-1 h-2 w-2 rounded-full bg-crimson" />}
             </Button>
@@ -69,7 +69,7 @@ export default function Schedule() {
                 <Button variant="bare" type="button" aria-label="Previous week" onClick={s.previousWeek} className="rounded-full p-1.5 text-gray-red hover:bg-crimson-light/30">
                   <ChevronLeft size={20} aria-hidden="true" />
                 </Button>
-                <h3 className="min-w-[12rem] text-center text-[16px] font-bold text-gray-red">{s.weekLabel}</h3>
+                <h3 className="min-w-48 text-center text-base font-bold text-gray-red">{s.weekLabel}</h3>
                 <Button variant="bare" type="button" aria-label="Next week" onClick={s.nextWeek} className="rounded-full p-1.5 text-gray-red hover:bg-crimson-light/30">
                   <ChevronRight size={20} aria-hidden="true" />
                 </Button>
@@ -135,7 +135,7 @@ export default function Schedule() {
       )}
 
       <Dialog open={s.filterOpen} title="Filter schedule" onClose={() => s.setFilterOpen(false)}>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           <p className="text-sm text-gray-red">Artist</p>
           <Select aria-label="Artist" value={s.filterBy} onChange={(e) => s.setFilterBy(e.target.value)}>
             <option value="All">All Artists</option>

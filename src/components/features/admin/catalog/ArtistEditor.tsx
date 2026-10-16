@@ -28,9 +28,9 @@ const ArtistEditor: React.FC<ArtistEditorProps> = (props) => {
           type="button"
           onClick={() => editor.setIsOpen((prevState) => !prevState)}
           aria-expanded={isOpen}
-          className="flex items-center justify-between w-full gap-3 sm:gap-3 text-left min-h-[35px]"
+          className="flex items-center justify-between w-full gap-3 sm:gap-3 text-left min-h-8.75"
         >
-          <span className="block min-w-0 font-bold text-[15px] truncate text-gray-red">
+          <span className="block min-w-0 font-bold text-base truncate text-gray-red">
             {editor.title || "Untitled Artist"}
           </span>
 

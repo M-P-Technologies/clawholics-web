@@ -26,7 +26,7 @@ type Props = {
 // Inputs and buttons share one height, so every row lines up
 const inputClass =
   "h-9 min-w-0 flex-1 bg-milk rounded-md px-3 text-sm text-gray-red outline-none focus:ring-2 focus:ring-crimson border border-crimson-light";
-const buttonClass = "!h-9 !px-3 !py-0 text-[12px]";
+const buttonClass = "h-9! px-3! py-0! text-xs";
 
 function AddonRow({ addon, run, busy }: { addon: ServiceAddon; run: Run; busy: boolean }) {
   const [name, setName] = useState(addon.name);
@@ -35,11 +35,11 @@ function AddonRow({ addon, run, busy }: { addon: ServiceAddon; run: Run; busy: b
   const valid = name.trim() !== "" && price !== "";
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-3">
       <input aria-label={`Add-on name ${addon.name}`} className={inputClass} value={name} onChange={(e) => setName(e.target.value)} />
       <input
         aria-label={`Add-on price ${addon.name}`}
-        className={`${inputClass} max-w-[110px] flex-none`}
+        className={`${inputClass} max-w-27.5 flex-none`}
         inputMode="numeric"
         value={price}
         onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ""))}
@@ -67,13 +67,13 @@ function NewAddon({ category, run, busy }: { category: ServiceCategory; run: Run
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-3">
       <input aria-label={`New add-on name for ${category.name}`} placeholder="Add-on name" className={inputClass} value={name} onChange={(e) => setName(e.target.value)} />
       <input
         aria-label={`New add-on price for ${category.name}`}
         placeholder="Price"
         inputMode="numeric"
-        className={`${inputClass} max-w-[110px] flex-none`}
+        className={`${inputClass} max-w-27.5 flex-none`}
         value={price}
         onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ""))}
       />
@@ -132,8 +132,8 @@ export default function CategoryPanel({ categories, tokenFetcher, clerkId, onCha
 
       <div className="flex flex-col gap-3">
         {categories.map((category, index) => (
-          <div key={category.id} className="flex flex-col gap-2 rounded-xl border border-crimson-light/50 p-3">
-            <div className="flex items-center gap-2">
+          <div key={category.id} className="flex flex-col gap-3 rounded-xl border border-crimson-light/50 p-3">
+            <div className="flex items-center gap-3">
               {editingId === category.id ? (
                 <>
                   <input aria-label={`Rename ${category.name}`} className={inputClass} value={editingName} onChange={(e) => setEditingName(e.target.value)} />
@@ -155,7 +155,7 @@ export default function CategoryPanel({ categories, tokenFetcher, clerkId, onCha
                 </>
               ) : (
                 <>
-                  <p className="min-w-0 flex-1 truncate text-[15px] font-bold text-gray-red">{category.name}</p>
+                  <p className="min-w-0 flex-1 truncate text-base font-bold text-gray-red">{category.name}</p>
                   <Button className={buttonClass} variant="secondary" type="button" aria-label={`Move ${category.name} up`} disabled={busy || index === 0} onClick={() => move(index, -1)}>
                     Up
                   </Button>
@@ -188,8 +188,8 @@ export default function CategoryPanel({ categories, tokenFetcher, clerkId, onCha
               )}
             </div>
 
-            <div className="flex flex-col gap-2 border-t border-crimson/20 pt-2">
-              <p className="text-[14px] text-gray-red">Add-ons offered with every service in this category</p>
+            <div className="flex flex-col gap-3 border-t border-crimson/20 pt-2">
+              <p className="text-sm text-gray-red">Add-ons offered with every service in this category</p>
               {category.addons.map((addon) => (
                 <AddonRow key={`${addon.id}-${addon.name}-${addon.price}`} addon={addon} run={run} busy={busy} />
               ))}
@@ -199,7 +199,7 @@ export default function CategoryPanel({ categories, tokenFetcher, clerkId, onCha
         ))}
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         <input aria-label="New category name" placeholder="New category name" className={inputClass} value={newName} onChange={(e) => setNewName(e.target.value)} />
         <Button className={buttonClass}
           variant="secondary"

@@ -41,14 +41,14 @@ export default function About() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-9">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-9">
           <Panel title="Location" className="min-w-0">
             <Button
               variant="bare"
               type="button"
               onClick={handleCopyLocation}
               title="Click to copy address."
-              className="flex w-full cursor-pointer items-start gap-2 whitespace-normal rounded-md text-left text-gray-red transition-colors hover:text-crimson-ink focus-visible:outline-2 focus-visible:outline-crimson"
+              className="flex w-full cursor-pointer items-center gap-3 whitespace-normal rounded-md text-left text-gray-red transition-colors hover:text-crimson-ink focus-visible:outline-2 focus-visible:outline-crimson"
             >
               <MapPin aria-hidden="true" focusable="false" size={24} className="shrink-0 text-crimson" />
               <span className="min-w-0 flex-1"><span className="sr-only">Copy salon address: </span>{data.about_location}</span>

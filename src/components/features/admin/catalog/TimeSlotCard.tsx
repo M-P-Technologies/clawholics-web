@@ -41,12 +41,12 @@ const TimeSlotCard = ({
     onChange: (value: string) => void;
   }) => {
     return disabled ? (
-      <div className="w-full h-[35px] bg-milk rounded-md px-3 flex items-center text-sm text-gray-red leading-none cursor-not-allowed border border-crimson-light">
+      <div className="w-full h-8.75 bg-milk rounded-md px-3 flex items-center text-sm text-gray-red leading-none cursor-not-allowed border border-crimson-light">
         {displayValue}
       </div>
     ) : (
       <div
-        className="relative w-full h-[35px] bg-milk rounded-md px-3 flex items-center cursor-pointer border border-crimson-light"
+        className="relative w-full h-8.75 bg-milk rounded-md px-3 flex items-center cursor-pointer border border-crimson-light"
         onClick={(e) => openTimePicker(e.currentTarget)}
       >
         <input
@@ -121,7 +121,7 @@ const TimeSlotCard = ({
               })
             ) : (
               <p
-                className={`text-[15px] text-gray-red ${
+                className={`text-base text-gray-red ${
                   disabled ? "col-span-2" : "col-span-3"
                 }`}
               >
@@ -152,7 +152,7 @@ const TimeSlotCard = ({
                 <Button
                   type="button"
                   onClick={handleAddTimeSlot}
-                  className="w-[100px]"
+                  className="w-25"
                 >
                   ADD
                 </Button>
