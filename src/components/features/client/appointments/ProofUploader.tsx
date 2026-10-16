@@ -84,9 +84,9 @@ export default function ProofUploader({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-col gap-1">
-        <label htmlFor={inputId} className="text-xs text-gray-red">
-          Payment screenshot
+      <div className="flex flex-col gap-2 rounded-xl border-2 border-dashed border-crimson-light bg-crimson-light/10 p-4">
+        <label htmlFor={inputId} className="text-[13px] font-bold text-gray-red">
+          Payment screenshot <span className="font-normal">(JPG, PNG or WEBP)</span>
         </label>
         <input
           ref={inputRef}
@@ -95,7 +95,7 @@ export default function ProofUploader({
           accept="image/jpeg,image/png,image/webp"
           onChange={handleChange}
           disabled={busy}
-          className="text-sm text-gray-red file:mr-3 file:cursor-pointer file:rounded-full file:border file:border-crimson-light file:bg-milk file:px-3 file:py-1.5 file:text-[13px] file:font-bold file:text-berry"
+          className="w-full min-w-0 text-sm text-gray-red file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-crimson file:px-4 file:py-2 file:text-[13px] file:font-bold file:text-on-crimson hover:file:bg-crimson-ink hover:file:text-pearl"
         />
       </div>
 
