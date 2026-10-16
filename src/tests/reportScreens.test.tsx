@@ -14,6 +14,7 @@ vi.mock("@/components/features/admin/shell/SideBar", () => ({ default: () => <di
 vi.mock("@/lib/router", () => ({
   Link: ({ to, children, ...rest }: { to: string; children: React.ReactNode }) => <a href={to} {...rest}>{children}</a>,
   useLocation: () => ({ pathname: "/sales" }),
+  useNavigate: () => () => {},
 }));
 vi.mock("@clerk/nextjs", () => {
   const auth = { getToken: async () => "tok", isLoaded: true };

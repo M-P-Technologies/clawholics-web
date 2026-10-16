@@ -9,6 +9,13 @@ import { ToastProvider } from "@/components/molecules";
 import { adminKeys } from "@/lib/adminQueries";
 import { notificationAge, notificationLine, notificationLink } from "@/lib/admin/notifications";
 import type { AdminNotification } from "@/services/notificationService";
+import { playChime, showDesktopAlert } from "@/lib/admin/bookingAlerts";
+
+vi.mock("@/lib/admin/bookingAlerts", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/admin/bookingAlerts")>()),
+  playChime: vi.fn(),
+  showDesktopAlert: vi.fn(),
+}));
 
 vi.mock("@clerk/nextjs", () => {
   const auth = { getToken: async () => "tok", isLoaded: true };
@@ -55,6 +62,9 @@ beforeEach(() => {
     notifications: [note(2, { kind: "proof_uploaded", client_name: "Bea Lim" }), note(1)],
   };
   fetchMock.mockClear();
+  vi.mocked(playChime).mockClear();
+  vi.mocked(showDesktopAlert).mockClear();
+  window.localStorage.clear();
   vi.stubGlobal("fetch", fetchMock);
 });
 afterEach(() => vi.unstubAllGlobals());
@@ -117,6 +127,51 @@ describe("NotificationBell", () => {
     await act(() => client.invalidateQueries({ queryKey: adminKeys.notifications() }));
     expect(await screen.findByText("Booking paid, to confirm")).toBeInTheDocument();
     expect(screen.getByText("Cara Diaz · Gel manicure with Maxine · Oct 20, 2:00 PM")).toBeInTheDocument();
+  });
+});
+
+describe("NotificationBell alerts", () => {
+  const arrive = async () => {
+    answer = { unread: 3, notifications: [note(3, { client_name: "Cara Diaz" }), ...answer.notifications] };
+    await act(() => client.invalidateQueries({ queryKey: adminKeys.notifications() }));
+    await screen.findByText("Booking paid, to confirm");
+  };
+
+  it("plays a chime for a new booking, unless the sound is turned off", async () => {
+    view();
+    await screen.findByRole("button", { name: "Notifications, 2 new" });
+    expect(playChime).not.toHaveBeenCalled();
+    await arrive();
+    expect(playChime).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByRole("button", { name: /Notifications/ }));
+    const sound = screen.getByRole("button", { name: "Sound: on" });
+    fireEvent.click(sound);
+    expect(sound).toHaveAttribute("aria-pressed", "false");
+    expect(window.localStorage.getItem("clawholics.admin.alertSound")).toBe("0");
+  });
+
+  it("keeps the sound off when it was turned off before", async () => {
+    window.localStorage.setItem("clawholics.admin.alertSound", "0");
+    view();
+    await screen.findByRole("button", { name: "Notifications, 2 new" });
+    await arrive();
+    expect(playChime).not.toHaveBeenCalled();
+  });
+
+  it("shows a desktop notification while the tab is in the background, once allowed", async () => {
+    const requestPermission = vi.fn(async () => "granted" as NotificationPermission);
+    vi.stubGlobal("Notification", Object.assign(vi.fn(), { permission: "default", requestPermission }));
+    view();
+    fireEvent.click(await screen.findByRole("button", { name: "Notifications, 2 new" }));
+    fireEvent.click(screen.getByRole("button", { name: "Desktop alerts: off" }));
+    expect(await screen.findByRole("button", { name: "Desktop alerts: on" })).toBeInTheDocument();
+    expect(requestPermission).toHaveBeenCalled();
+
+    const visibility = vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
+    await arrive();
+    expect(showDesktopAlert).toHaveBeenCalledWith("Booking paid, to confirm", expect.stringContaining("Cara Diaz"), "booking-3", expect.any(Function));
+    visibility.mockRestore();
   });
 });
 
