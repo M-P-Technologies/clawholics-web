@@ -18,6 +18,10 @@ const NAV_LINKS = [
   { to: "/contact", label: "Contact Us" },
 ];
 
+// The round account button: Log in when signed out, My account (phones) when signed in
+const ACCOUNT_ICON =
+  "flex h-9 w-9 items-center justify-center rounded-full border border-crimson text-crimson-ink transition-colors hover:bg-crimson hover:text-on-crimson focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson";
+
 export default function Navbar() {
   const { pathname } = useLocation();
   const activeLink = NAV_LINKS.find((link) => link.to === pathname)?.to;
@@ -71,12 +75,7 @@ export default function Navbar() {
 
         <div className="flex items-center justify-end gap-3">
           <Show when="signed-out">
-            <Link
-              aria-label="Log in"
-              title="Log in"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-crimson text-crimson-ink transition-colors hover:bg-crimson hover:text-on-crimson focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson"
-              to="/login"
-            >
+            <Link aria-label="Log in" title="Log in" className={ACCOUNT_ICON} to="/login">
               <User size={18} aria-hidden="true" />
             </Link>
           </Show>
@@ -97,13 +96,26 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* MOBILE: the logo, and on the right the page's back button when it has one (BackButton
-          portals into the slot). The links are in the tab bar at the bottom (MobileTabBar). */}
-      <div className="flex h-16 items-center justify-between px-3 lg:hidden">
+      {/* MOBILE: the logo on the left; on the right the page's back button when it has one (BackButton
+          portals into the slot) and the account button. The links are in the tab bar at the bottom
+          (MobileTabBar). */}
+      <div className="flex h-16 items-center justify-between gap-3 px-3 lg:hidden">
         <Link to="/" aria-label="Go to Clawholics by Max homepage">
           <Logo className="h-11 w-11 text-crimson" aria-hidden="true" focusable="false" />
         </Link>
-        <div id={BACK_SLOT_ID} className="flex items-center" />
+        <div className="flex items-center gap-3">
+          <div id={BACK_SLOT_ID} className="flex items-center" />
+          <Show when="signed-out">
+            <Link aria-label="Log in" title="Log in" className={ACCOUNT_ICON} to="/login">
+              <User size={18} aria-hidden="true" />
+            </Link>
+          </Show>
+          <Show when="signed-in">
+            <Link aria-label="My account" title="My account" className={ACCOUNT_ICON} to={CLIENT_PATHS.home}>
+              <User size={18} aria-hidden="true" />
+            </Link>
+          </Show>
+        </div>
       </div>
     </nav>
   );
