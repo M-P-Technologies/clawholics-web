@@ -116,8 +116,8 @@ const nailistsWithServices = (id: number | null) => {
   const sql = getSql();
   return sql`
     select n.id, n.name, n.category_id, nc.name as position, n.specialty, n.bio, n.image,
-      coalesce(array_agg(ns.service_id order by ns.service_id) filter (where ns.service_id is not null), '{}') as service_ids,
-      coalesce(array_agg(s.name order by ns.service_id) filter (where s.id is not null), '{}') as offered_services
+      coalesce(json_agg(ns.service_id order by ns.service_id) filter (where ns.service_id is not null), '[]') as service_ids,
+      coalesce(json_agg(s.name order by ns.service_id) filter (where s.id is not null), '[]') as offered_services
     from nailists n
     left join nailist_categories nc on n.category_id = nc.id
     left join nailist_services ns on ns.nailist_id = n.id

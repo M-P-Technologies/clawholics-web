@@ -49,13 +49,13 @@ describe("ScheduleWeekGrid", () => {
     const tuesday = within(max.getByRole("cell", { name: /Tuesday/ }));
     const blocks = tuesday.getAllByRole("button");
     expect(blocks.map((b) => b.getAttribute("aria-label"))).toEqual([
-      "Bea Lim, Hard Gel, 09:00-10:00, pending",
-      "Ana Cruz, Softgel Extensions, 10:00-11:30, confirmed",
+      "Bea Lim, Hard Gel, 9:00 AM - 10:00 AM, pending",
+      "Ana Cruz, Softgel Extensions, 10:00 AM - 11:30 AM, confirmed",
     ]);
     expect(blocks[0]).toHaveAttribute("data-status", "pending");
     expect(blocks[1]).toHaveAttribute("data-status", "confirmed");
     expect(within(blocks[1]).getByText("Ana Cruz")).toBeInTheDocument();
-    expect(within(blocks[1]).getByText("10:00 – 11:30")).toBeInTheDocument();
+    expect(within(blocks[1]).getByText("10:00 AM - 11:30 AM")).toBeInTheDocument();
     // next week's booking isn't in this week
     expect(screen.queryByText("Next Week")).toBeNull();
   });

@@ -2,7 +2,7 @@ import { Cake, CalendarClock, CalendarDays, Mail, MessageCircle, Phone, Sparkles
 import type { ComponentType } from "react";
 import { FacebookIcon, InstagramIcon, type BadgeTone } from "@/components/atoms";
 import type { ClientAppointment, ClientDetails } from "../../services/clientNotesService";
-import { parseServerTime } from "../../services/serverTime";
+import { manilaDateTime, timeRangeLabel } from "../timeFormat";
 
 // The admin client page's labels, styles and the rows of its Client info list
 
@@ -15,11 +15,8 @@ export const dateLabel = (ymd: string | null) => {
   return `${MONTHS[m - 1]} ${d}, ${y}`;
 };
 
-/** A server time (UTC) as a local date and time, e.g. "Oct 10, 2026, 1:55 PM" */
-export const whenLabel = (value: string | null | undefined) => {
-  const time = parseServerTime(value);
-  return Number.isNaN(time) ? "" : new Date(time).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
-};
+/** A server time (UTC) as Manila date and time, e.g. "Oct 10, 2026, 1:55 PM" */
+export const whenLabel = (value: string | null | undefined) => manilaDateTime(value);
 
 const STATUS: Record<string, { label: string; className: string; tone: BadgeTone }> = {
   COMPLETED: { label: "Completed", className: "bg-success/20 text-gray-red", tone: "success" },
@@ -81,7 +78,7 @@ export const nextVisitHighlight = (next?: ClientAppointment) => ({
   title: "Next visit",
   icon: CalendarClock,
   value: next ? dateLabel(next.appointment_date) : undefined,
-  detail: next ? `${next.appointment_time} · ${next.service_name} with ${next.nailist_name}` : undefined,
+  detail: next ? `${timeRangeLabel(next.appointment_time)} · ${next.service_name} with ${next.nailist_name}` : undefined,
   empty: "Nothing booked ahead.",
 });
 

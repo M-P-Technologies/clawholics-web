@@ -1,5 +1,5 @@
 import type { ClientAppointment } from "../services/clientNotesService";
-import { parseServerTime } from "../services/serverTime";
+import { manilaDateTime, timeRangeLabel } from "./timeFormat";
 
 // The client page's booking tracker: where one appointment is, from booking to the finished
 // visit. Booked, downpayment, confirmed, completed; a cancelled or refunded booking stops at the
@@ -25,9 +25,7 @@ const dateLabel = (ymd: string) => {
 
 /** A server time (UTC "YYYY-MM-DD HH:MM:SS") as Manila time, e.g. "Oct 10, 2026, 1:55 PM" */
 export function manilaTime(value?: string | null): string | undefined {
-  const time = parseServerTime(value);
-  if (Number.isNaN(time)) return undefined;
-  return new Date(time).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", timeZone: "Asia/Manila" });
+  return manilaDateTime(value) || undefined;
 }
 
 const ACTIVE = ["PENDING", "AWAITING_PROOF", "AWAITING_CONFIRMATION", "CONFIRMED"];
@@ -59,7 +57,7 @@ export function trackerSteps(a: TrackInput, { settledDetail = "Settled with the 
   const confirmed = status === "CONFIRMED" || status === "COMPLETED";
   // Paid online: the booking waits for the salon (an admin) to confirm it
   const awaitingSalon = status === "AWAITING_CONFIRMATION";
-  const visit = `${dateLabel(a.appointment_date)}, ${a.appointment_time}`;
+  const visit = `${dateLabel(a.appointment_date)}, ${timeRangeLabel(a.appointment_time)}`;
 
   // The downpayment: paid online, a proof approved, or settled by the salon when it confirmed
   let downpayment: Omit<TrackerStep, "key" | "title">;

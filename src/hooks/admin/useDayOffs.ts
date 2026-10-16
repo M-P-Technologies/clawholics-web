@@ -3,18 +3,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { bookingQueries } from "@/lib/bookingQueries";
-import { ADMIN_APPOINTMENTS_KEY, fetchAppointments } from "@/services/appointmentService";
 import type { NailistDayOffs } from "@/services/nailistService";
 import { formatDateKey } from "@/lib/admin/artistEditor";
 import { useFillForm } from "./useFillForm";
-
-// Every artist's calendar marks booked days from the same appointment list, so the cards opened
-// together share one cached query instead of each asking for all the appointments
-const allAppointmentsQuery = {
-  queryKey: [...ADMIN_APPOINTMENTS_KEY, "all"],
-  queryFn: () => fetchAppointments(),
-  staleTime: 30_000,
-};
 
 type Options = {
   nailistId?: number;
@@ -50,25 +41,18 @@ export function useDayOffs({
     if (dayOffsQuery.isError) console.error("Failed to fetch day offs:", dayOffsQuery.error);
   }, [dayOffsQuery.isError, dayOffsQuery.error]);
 
-  const appointmentsQuery = useQuery({ ...allAppointmentsQuery, enabled: !!nailistId });
+  // The booked days of the month shown, from the slot-holding bookings of this artist only (the
+  // same query as the booking calendar), not every appointment
+  const monthStart = formatDateKey(month);
+  const monthEnd = formatDateKey(new Date(month.getFullYear(), month.getMonth() + 1, 0));
+  const bookedQuery = useQuery({ ...bookingQueries.bookedRange(nailistId ?? 0, monthStart, monthEnd), enabled: !!nailistId });
   useEffect(() => {
-    if (appointmentsQuery.isError) console.error("Failed to fetch booked dates:", appointmentsQuery.error);
-  }, [appointmentsQuery.isError, appointmentsQuery.error]);
-  const bookedDates = useMemo(() => {
-    const dates = (appointmentsQuery.data ?? [])
-      .filter((appointment) => {
-        const status = appointment.status.toLowerCase();
-
-        return (
-          appointment.nailist_id === nailistId &&
-          status !== "cancelled" &&
-          status !== "canceled" &&
-          status !== "rejected"
-        );
-      })
-      .map((appointment) => appointment.appointment_date);
-    return Array.from(new Set(dates));
-  }, [appointmentsQuery.data, nailistId]);
+    if (bookedQuery.isError) console.error("Failed to fetch booked dates:", bookedQuery.error);
+  }, [bookedQuery.isError, bookedQuery.error]);
+  const bookedDates = useMemo(
+    () => new Set((bookedQuery.data ?? []).map((slot) => slot.appointment_date)),
+    [bookedQuery.data],
+  );
 
   const isDayOff = (date: Date) => {
     const dateKey = formatDateKey(date);
@@ -77,7 +61,7 @@ export function useDayOffs({
   };
 
   const isBookedDay = (date: Date) => {
-    return bookedDates.includes(formatDateKey(date));
+    return bookedDates.has(formatDateKey(date));
   };
 
   const toggleRegularDay = (day: number) => {

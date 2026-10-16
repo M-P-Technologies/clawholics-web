@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { Link } from "@/lib/router";
 import { manilaClock, manilaToday } from "@/lib/dashboardPeriods";
+import { clockLabel } from "@/lib/timeFormat";
 import { ADMIN_APPOINTMENTS_KEY, type Appointment } from "@/services/appointmentService";
 import type { BookingsLoader } from "@/hooks/admin/useReports";
 import { SectionSkeleton } from "@/components/features/admin/skeletons/skeletons";
@@ -17,11 +18,6 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 const dayLabel = (ymd: string) => {
   const date = new Date(`${ymd}T00:00:00Z`);
   return `${DAYS[date.getUTCDay()]}, ${MONTHS[date.getUTCMonth()]} ${date.getUTCDate()}`;
-};
-// "13:00" → "1:00 PM"
-const clock = (hhmm: string) => {
-  const [h, m] = hhmm.trim().split(":").map(Number);
-  return `${((h + 11) % 12) + 1}:${String(m ?? 0).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
 };
 const range = (time: string) => {
   const [start, end] = time.split("-").map((t) => t.trim().padStart(5, "0"));
@@ -101,7 +97,7 @@ export default function ActiveBookings({ load }: { load: BookingsLoader }) {
                     {done && <span className="shrink-0 rounded-full bg-sand px-2 py-0.5 text-[10px] font-bold text-gray-red">Done</span>}
                     <span className="min-w-0 truncate text-[13px] font-bold text-gray-red">{a.nailist_name}</span>
                   </span>
-                  <span className="block truncate text-xs text-gray-red">{`${clock(start)} – ${clock(end)}`}</span>
+                  <span className="block truncate text-xs text-gray-red">{`${clockLabel(start)} – ${clockLabel(end)}`}</span>
                 </span>
                 </CardBody>
               </li>

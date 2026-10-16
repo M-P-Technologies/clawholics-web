@@ -4,19 +4,31 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/molecules";
 import { adminDataChanged, adminKeys, adminQueries } from "../../lib/adminQueries";
-import { NOTIFICATIONS_POLL_MS, notificationLine, notificationTitle } from "../../lib/admin/notifications";
 import { markAdminNotificationsRead, type AdminNotifications } from "../../services/notificationService";
+import { useNavigate } from "../../lib/router";
+import { NOTIFICATIONS_POLL_MS, notificationLine, notificationLink, notificationTitle } from "../../lib/admin/notifications";
 import { useAdminSession } from "./useAdminSession";
+import { useBookingAlerts } from "./useBookingAlerts";
 
 // The admin bell: the newest notifications of new bookings (paid online, or a payment proof sent),
-// asked for every 30 seconds while an admin screen is open and the tab is visible. A new one
-// arriving while a screen is open shows a toast and refreshes the screens' appointment data;
-// opening the bell marks them all read for this admin.
+// asked for every 30 seconds while an admin screen is open (also while the tab is in the
+// background when a sound or desktop alert is on, so they reach an admin working elsewhere). A new one arriving while a screen
+// is open shows a toast, plays a chime and, when the tab isn't in front, a desktop notification
+// (each as the admin chose), and refreshes the screens' appointment data; opening the bell marks
+// them all read for this admin.
 export function useAdminNotifications() {
   const { session, ready } = useAdminSession();
   const queryClient = useQueryClient();
   const toast = useToast();
-  const query = useQuery({ ...adminQueries.notifications(session), enabled: ready, refetchInterval: NOTIFICATIONS_POLL_MS });
+  const navigate = useNavigate();
+  const alerts = useBookingAlerts();
+  const query = useQuery({
+    ...adminQueries.notifications(session),
+    enabled: ready,
+    refetchInterval: NOTIFICATIONS_POLL_MS,
+    // In the background too, while a sound or desktop alert is on to tell the admin
+    refetchIntervalInBackground: alerts.any,
+  });
   const data = query.data;
   const [open, setOpen] = useState(false);
   // The ones that were unread when the list was opened: they stay marked new while it's open
@@ -33,8 +45,14 @@ export function useAdminNotifications() {
     if (previous === null) return;
     const arrived = data.notifications.filter((n) => n.id > previous && n.unread);
     if (arrived.length === 0) return;
-    if (arrived.length === 1) toast.show("info", notificationTitle(arrived[0]), notificationLine(arrived[0]));
-    else toast.show("info", `${arrived.length} new bookings`, "Open the bell at the top to see them.");
+    const one = arrived.length === 1 ? arrived[0] : null;
+    const title = one ? notificationTitle(one) : `${arrived.length} new bookings`;
+    const line = one ? notificationLine(one) : "Open the bell at the top to see them.";
+    toast.show("info", title, line);
+    // Several of one kind open that kind's list; a mix opens every booking
+    const links = new Set(arrived.map(notificationLink));
+    const link = links.size === 1 ? [...links][0] : "/clients";
+    alerts.announce(title, line, `booking-${arrived[0].id}`, () => navigate(link));
     // The lists, the schedule and the dashboard show the new bookings
     void adminDataChanged(queryClient);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once per new answer
@@ -76,5 +94,6 @@ export function useAdminNotifications() {
       setOpen(!open);
     },
     close,
+    alerts,
   };
 }

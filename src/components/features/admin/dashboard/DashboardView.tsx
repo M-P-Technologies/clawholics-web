@@ -1,3 +1,4 @@
+import { timeRangeLabel } from "@/lib/timeFormat";
 import { Card } from "@/components/atoms";
 import { ArrowRight, CalendarHeart, Receipt, UserPlus, Wallet } from "lucide-react";
 import { describeChange, peso, shortDay } from "@/lib/dashboardFormat";
@@ -106,7 +107,7 @@ export default function DashboardView({ data, loading = false, failed = false, l
                       <li key={item.id} className="flex items-start gap-3 rounded-2xl bg-crimson-light/20 px-3 py-3">
                         <span className="w-28 shrink-0 text-[13px] text-gray-red">
                           <span className="block font-display text-base text-berry">{shortDay(item.appointment_date)}</span>
-                          {item.appointment_time}
+                          {timeRangeLabel(item.appointment_time)}
                         </span>
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-base font-bold text-gray-red">{item.client_name}</span>

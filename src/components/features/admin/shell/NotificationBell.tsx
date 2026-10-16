@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, CalendarCheck, Receipt } from "lucide-react";
+import { Bell, BellRing, CalendarCheck, Receipt, Volume2, VolumeX } from "lucide-react";
 import clsx from "clsx";
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
@@ -130,9 +130,36 @@ export default function NotificationBell() {
               })}
             </ul>
           )}
+          <div className="flex flex-wrap items-center gap-2 border-t border-crimson-light/40 px-3 py-3">
+            <AlertToggle on={bell.alerts.sound} onClick={bell.alerts.toggleSound} icon={bell.alerts.sound ? Volume2 : VolumeX} label="Sound" />
+            {!bell.alerts.desktopUnavailable && (
+              <AlertToggle on={bell.alerts.desktop} onClick={() => void bell.alerts.toggleDesktop()} icon={BellRing} label="Desktop alerts" />
+            )}
+            {bell.alerts.desktopBlocked && (
+              <p className="text-xs text-gray-red">Desktop alerts are blocked for this site in the browser&apos;s settings.</p>
+            )}
+          </div>
         </div>,
         document.body,
       )}
     </div>
+  );
+}
+
+/** A sound or desktop alerts switch at the foot of the list */
+function AlertToggle({ on, onClick, icon: Icon, label }: { on: boolean; onClick: () => void; icon: typeof Bell; label: string }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={on}
+      onClick={onClick}
+      className={clsx(
+        "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition-colors focus-visible:outline-2 focus-visible:outline-crimson",
+        on ? "border-crimson bg-crimson text-on-crimson" : "border-crimson-light text-gray-red hover:bg-crimson-light/30",
+      )}
+    >
+      <Icon size={14} aria-hidden="true" />
+      {label}: {on ? "on" : "off"}
+    </button>
   );
 }

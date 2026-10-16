@@ -6,6 +6,7 @@ import { fetchProofs, type PaymentProof } from "@/services/proofService";
 import { useNavigate, useSearchParams } from "@/lib/router";
 import { API_BASE_URL } from "@/apiConfig";
 import { usePolling } from "@/hooks/usePolling";
+import { longDateLabel, timeRangeLabel } from "@/lib/timeFormat";
 import { type Appointment, type PaymentDetails } from "@/utils/paymentConfirmation";
 
 export function usePaymentConfirmation() {
@@ -111,6 +112,9 @@ export function usePaymentConfirmation() {
   const isConfirmed = data?.status === "CONFIRMED" || data?.status === "AWAITING_CONFIRMATION";
   const awaitingSalon = data?.status === "AWAITING_CONFIRMATION";
 
+  const dateLabel = longDateLabel(data?.appointment_date);
+  const timeLabel = timeRangeLabel(data?.appointment_time);
+
   // The client's screenshot of the payment: the salon confirms a paid booking once it has one
   const appointmentNumber = Number(appointment_id);
   const proofsKey = accountKeys.proofs(userId ?? "", appointmentNumber);
@@ -128,5 +132,5 @@ export function usePaymentConfirmation() {
       }
     : null;
 
-  return { isFailed, isConfirmed, awaitingSalon, navigate, appointment_id, data, payment, loading, paymentStatus, timedOut, checkAgain, proofCard };
+  return { isFailed, isConfirmed, awaitingSalon, navigate, appointment_id, data, dateLabel, timeLabel, payment, loading, paymentStatus, timedOut, checkAgain, proofCard };
 }

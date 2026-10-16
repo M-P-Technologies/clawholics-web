@@ -11,7 +11,7 @@ import { BALANCE_METHODS, MAX_COMPLETION_PHOTOS } from "../../lib/visitCompletio
 
 // Completing a visit (admin only): the balance paid at the salon, how it was paid, the artist who
 // did it, and photos of the nails, which go to that artist's public gallery. Not on the Worker.
-// Table from migration 20261021000000_visit_completions.sql.
+// Table from migration 20261022000000_visit_completions.sql.
 
 type IdContext = { params: Promise<{ id: string }> };
 

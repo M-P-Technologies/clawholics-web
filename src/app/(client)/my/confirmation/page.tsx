@@ -9,7 +9,7 @@ import { usePaymentConfirmation } from "@/hooks/client/usePaymentConfirmation";
 import { CLIENT_PATHS } from "@/lib/client/clientNav";
 
 export default function PaymentConfirmation() {
-  const { isFailed, isConfirmed, awaitingSalon, appointment_id, data, payment, loading, timedOut, checkAgain, proofCard } = usePaymentConfirmation();
+  const { isFailed, isConfirmed, awaitingSalon, appointment_id, data, dateLabel, timeLabel, payment, loading, timedOut, checkAgain, proofCard } = usePaymentConfirmation();
 
   if (!appointment_id) {
     return (
@@ -133,8 +133,8 @@ export default function PaymentConfirmation() {
           <Card className="w-full max-w-xl text-left">
             <dl>
               <SummaryRow label="Service" value={data.service_name} />
-              <SummaryRow label="Date" value={data.appointment_date} />
-              <SummaryRow label="Time" value={data.appointment_time} />
+              <SummaryRow label="Date" value={dateLabel} />
+              <SummaryRow label="Time" value={timeLabel} />
               <SummaryRow label="Amount paid" value="₱500" />
             </dl>
           </Card>

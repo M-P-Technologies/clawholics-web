@@ -26,6 +26,7 @@ vi.mock("@/components/features/admin/shell/SideBar", () => ({ default: () => <di
 vi.mock("@/lib/router", () => ({
   Link: ({ to, children, ...rest }: { to: string; children: React.ReactNode }) => <a href={to} {...rest}>{children}</a>,
   useLocation: () => ({ pathname: "/dashboard" }),
+  useNavigate: () => () => {},
 }));
 // A stable getToken, as the real Clerk hook has; `clerk.loaded` stands for Clerk still starting up
 // and `clerk.userId` for the user arriving after the session

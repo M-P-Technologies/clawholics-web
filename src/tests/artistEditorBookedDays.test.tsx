@@ -2,8 +2,8 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import ArtistEditor from "@/components/features/admin/catalog/ArtistEditor";
 
-// Its own file: useDayOffs keeps the appointment list in a module-level cache for 30s,
-// so the list must be the first one fetched in the module.
+// The booked days come from the artist's taken times for the month shown (/booking/slots-range),
+// which the server already limits to that artist's bookings that hold their slot.
 
 const now = new Date();
 const dayKey = (day: number) => `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
@@ -24,14 +24,14 @@ vi.mock("@/services/nailistService", () => ({
   deleteNailistGalleryImage: vi.fn(),
 }));
 vi.mock("@/services/serviceService", () => ({ fetchServices: vi.fn().mockResolvedValue([{ id: 1, name: "Gel Polish" }]) }));
-vi.mock("@/services/appointmentService", () => ({
-  ADMIN_APPOINTMENTS_KEY: ["admin", "appointments"],
-  fetchAppointments: vi.fn().mockImplementation(async () => [
-    { nailist_id: 7, status: "CONFIRMED", appointment_date: dayKey(14) },
-    { nailist_id: 7, status: "Cancelled", appointment_date: dayKey(15) },
-    { nailist_id: 7, status: "rejected", appointment_date: dayKey(16) },
-    { nailist_id: 8, status: "CONFIRMED", appointment_date: dayKey(17) },
-  ]),
+const fetchBookedSlotsRange = vi.fn().mockImplementation(async () => [
+  { appointment_date: dayKey(14), appointment_time: "08:00-10:00" },
+  { appointment_date: dayKey(14), appointment_time: "10:00-12:00" },
+]);
+vi.mock("@/services/bookingService", () => ({
+  fetchBookedSlotsRange: (...args: unknown[]) => fetchBookedSlotsRange(...args),
+  fetchBookedSlotsDetailed: vi.fn(),
+  fetchNailists: vi.fn(),
 }));
 vi.mock("@/services/uploadService", () => ({
   PHOTO_UPLOAD_OPTIONS: { maxWidthOrHeight: 1600, maxSizeKB: 400 },
@@ -42,12 +42,14 @@ const artist = { id: 7, name: "Mara", position: "Master Technician", specialty: 
 const dayCell = (day: number) => screen.getByRole("button", { name: new RegExp(`\\b${day}(st|nd|rd|th)?,`) }).parentElement!;
 
 describe("artist editor day off calendar", () => {
-  it("marks only the artist's active bookings as booked", async () => {
+  it("marks the days the artist is booked in the month shown", async () => {
     render(<ArtistEditor nailist={artist} tokenFetcher={vi.fn().mockResolvedValue("tok")} clerkId="clerk_1" onNailistUpdated={vi.fn()} />);
     fireEvent.click(screen.getByRole("button", { name: /Mara/ }));
     await screen.findByText("08:00 AM");
 
     await waitFor(() => expect(dayCell(14)).toHaveClass("[&>button]:bg-danger/40!"));
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    expect(fetchBookedSlotsRange).toHaveBeenCalledWith(7, dayKey(1), dayKey(lastDay));
     for (const day of [15, 16, 17]) {
       expect(dayCell(day)).not.toHaveClass("[&>button]:bg-danger/40!");
       expect(dayCell(day)).toHaveClass("[&>button]:bg-success/50!");

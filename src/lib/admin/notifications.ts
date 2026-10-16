@@ -1,4 +1,5 @@
 import { parseServerTime } from "../../services/serverTime";
+import { timeRangeLabel } from "../timeFormat";
 import type { AdminNotification } from "../../services/notificationService";
 
 // What the admin bell says about each new booking, and where it leads
@@ -18,7 +19,7 @@ export const notificationTitle = (n: AdminNotification) => TITLES[n.kind] ?? TIT
 export function notificationLine(n: AdminNotification) {
   const who = n.client_name || "A client";
   const what = [n.service_name, n.nailist_name && `with ${n.nailist_name}`].filter(Boolean).join(" ");
-  const when = [formatDay(n.appointment_date), n.appointment_time].filter(Boolean).join(", ");
+  const when = [formatDay(n.appointment_date), timeRangeLabel(n.appointment_time)].filter(Boolean).join(", ");
   return [who, what, when].filter(Boolean).join(" · ");
 }
 

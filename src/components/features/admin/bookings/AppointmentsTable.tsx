@@ -1,3 +1,4 @@
+import { timeRangeLabel } from "@/lib/timeFormat";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { Check, ChevronDown, Plus, Search, SquarePen } from "lucide-react";
 import { useState } from "react";
@@ -450,7 +451,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
                   ["Service", a.service_name || "–"],
                   ["Artist", a.nailist_name || "–"],
                   ["Date", dateLabel(a.appointment_date)],
-                  ["Time", a.appointment_time || "–"],
+                  ["Time", timeRangeLabel(a.appointment_time) || "–"],
                   ["Phone", clientFacts(a).phone],
                   ["Joined", clientFacts(a).joined],
                   ["Last active", clientFacts(a).lastActive],
@@ -497,7 +498,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
               </td>
               <td className={cell}>{a.nailist_name || "–"}</td>
               <td className={clsx(cell, "whitespace-nowrap")}>{dateLabel(a.appointment_date)}</td>
-              <td className={clsx(cell, "whitespace-nowrap")}>{a.appointment_time || "–"}</td>
+              <td className={clsx(cell, "whitespace-nowrap")}>{timeRangeLabel(a.appointment_time) || "–"}</td>
               <td className={cell}>
                 <ProofThumb proof={a.latest_proof} appointmentId={a.id} />
               </td>

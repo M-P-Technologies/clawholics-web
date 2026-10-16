@@ -2,6 +2,7 @@ import { CalendarClock, CalendarDays, type LucideIcon } from "lucide-react";
 import { toDateKey } from "../../services/scheduleAgenda";
 import type { MonthlySchedule, NailArtist, ScheduleAppointment } from "../../services/scheduleService";
 import { isOverlapping } from "../../utils/reschedule";
+import { clockLabel } from "../timeFormat";
 
 // The admin Schedule screen's date helpers and what each artist's day holds
 
@@ -129,15 +130,10 @@ export const PHONE_VIEWS: { value: "agenda" | "month"; label: string; icon: Luci
   { value: "month", label: "Month", icon: CalendarDays },
 ];
 
-// "13:00" → "1:00 PM"
-const twelveHour = (hhmm: string) => {
-  const [h, m] = hhmm.trim().split(":").map(Number);
-  return `${((h + 11) % 12) + 1}:${String(m ?? 0).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
-};
-
 /** An appointment's "13:00-15:00" as { start: "1:00 PM", end: "3:00 PM" }; null when it can't be read */
 export const agendaTimes = (range: string | null | undefined): { start: string; end: string | null } | null => {
-  const times = range?.match(/\d{1,2}:\d{2}/g);
+  // Already "1:00 PM - 3:00 PM": keep each end as written (its hours aren't on a 24-hour clock)
+  const times = /[ap]m/i.test(range ?? "") ? range?.match(/\d{1,2}:\d{2}\s*[ap]m/gi) : range?.match(/\d{1,2}:\d{2}/g);
   if (!times?.length) return null;
-  return { start: twelveHour(times[0]), end: times[1] ? twelveHour(times[1]) : null };
+  return { start: clockLabel(times[0]), end: times[1] ? clockLabel(times[1]) : null };
 };

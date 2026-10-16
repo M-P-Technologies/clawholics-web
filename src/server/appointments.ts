@@ -212,6 +212,8 @@ export function listAppointmentsBetween(start: string, end: string) {
 // proof is waiting for review, and their pending payments are marked failed.
 // One statement (one round trip, it runs on polled reads): the CTE cancels, and the outer update
 // fails pending payments of those plus any already-cancelled appointment, as the Worker did.
+// It runs before every booking read, so both halves start from the few pending rows (the partial
+// indexes idx_appointments_pending_expiry and idx_payments_pending) instead of whole tables.
 export async function cancelExpiredPendingAppointments() {
   const now = new Date().toISOString();
   await getSql()`
@@ -221,10 +223,10 @@ export async function cancelExpiredPendingAppointments() {
         and not exists (select 1 from payment_proofs pp where pp.appointment_id = appointments.id and pp.status = 'PENDING')
       returning id
     )
-    update payments set status = 'FAILED'
-    where upper(status) = 'PENDING'
-      and (appointment_id in (select id from expired)
-        or appointment_id in (select id from appointments where upper(status) = 'CANCELLED'))
+    update payments p set status = 'FAILED'
+    where upper(p.status) = 'PENDING'
+      and (p.appointment_id in (select id from expired)
+        or exists (select 1 from appointments a where a.id = p.appointment_id and upper(a.status) = 'CANCELLED'))
   `;
 }
 

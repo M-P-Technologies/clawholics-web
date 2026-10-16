@@ -8,6 +8,7 @@ import { fetchScanHistory } from "../services/scanService";
 import { fetchNailists, type Nailist } from "../services/nailistService";
 import { fetchAdminNotifications } from "../services/notificationService";
 import type { DashboardRange } from "./dashboardPeriods";
+import { BOOKING } from "./bookingQueries";
 
 // The admin screens' data as TanStack Query queries. Screens that show the same data share one
 // request and one cached copy: the directory and its Clerk details (Clients & Bookings and the
@@ -91,11 +92,15 @@ const APPOINTMENT_VIEWS = new Set<unknown>(["appointments", "dashboard", "utiliz
 /**
  * After an admin changes an appointment or a client's stamps: what shows them (the lists, the
  * schedule, the dashboard and artist utilization, a client's page, the proofs, the warm leads) is
- * marked stale, and what's on screen is fetched again. The directory and its Clerk details aren't:
+ * marked stale, and what's on screen is fetched again, as are the artists' taken times (the artist
+ * editor's Day Off card marks booked days from them). The directory and its Clerk details aren't:
  * they don't change with an appointment, and fetching them asks Clerk.
  */
 export function adminDataChanged(queryClient: QueryClient) {
-  return queryClient.invalidateQueries({ queryKey: [ADMIN], predicate: (query) => APPOINTMENT_VIEWS.has(query.queryKey[1]) });
+  return Promise.all([
+    queryClient.invalidateQueries({ queryKey: [ADMIN], predicate: (query) => APPOINTMENT_VIEWS.has(query.queryKey[1]) }),
+    queryClient.invalidateQueries({ queryKey: [BOOKING, "booked"] }),
+  ]);
 }
 
 /** After an admin is added, edited or removed: the directory's lists are fetched again */

@@ -8,6 +8,7 @@ import { formatSlot, isOverlapping, toLocalDate, toLocalDateString } from "@/uti
 import { CLIENT_PATHS } from "@/lib/client/clientNav";
 import { rescheduleLabels } from "@/lib/client/reschedule";
 import { useArtistAvailability } from "../useArtistAvailability";
+import { longDateLabel } from "@/lib/timeFormat";
 
 export function useReschedule() {
   const navigate = useNavigate();
@@ -100,16 +101,7 @@ export function useReschedule() {
     return false;
   };
 
-  const formatDisplayDate = (dateString: string) => {
-    if (!dateString) return "";
-
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
+  const formatDisplayDate = longDateLabel;
 
   const isTimeBlocked = (slot: string) =>
     bookedSlots.some((b) => isOverlapping(b, slot));
