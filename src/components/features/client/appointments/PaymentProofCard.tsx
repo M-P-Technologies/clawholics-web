@@ -42,7 +42,7 @@ export default function PaymentProofCard({
     <section
       id={`proof-${appointment.id}`}
       aria-label="Payment proof"
-      className={`flex flex-col gap-3 rounded-xl border border-crimson-light/60 bg-light-orange/40 p-3 text-gray-red ${
+      className={`flex flex-col gap-3 rounded-xl border border-crimson-light/60 bg-white p-3 text-gray-red ${
         highlighted ? "ring-2 ring-crimson" : ""
       }`}
     >
