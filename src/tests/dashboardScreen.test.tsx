@@ -56,7 +56,7 @@ const base = (over: Partial<DashboardResponse> = {}): DashboardResponse => ({
   },
   lapsedClients: 1, leads: { accounts: 4, booked: 2 }, clientBase: { clients: 5, lifetimeValue: 1120, churn: 0.2 }, totals: { clients: 17, services: 35, artists: 5, upcoming: 7, trend: [] }, sales: [],
   loyalty: { stamps: 3, redeemed: 1 },
-  attention: { today: 2, proofsToReview: 2, toConfirm: 0, unpaid: 2, warmLeads: 0 },
+  attention: { today: 2, proofsToReview: 2, toConfirm: 0, toComplete: 0, unpaid: 2, warmLeads: 0 },
   money: { balanceAtSalon: { value: 0, previous: 0 }, returningRevenue: { value: 0, previous: 0 }, lostToCancellations: { value: 0, previous: 0 }, bookedAhead: { value: 0, visits: 0, days: [] } },
   trend: { granularity: "day", points: [] },
   monthly: [

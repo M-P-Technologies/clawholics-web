@@ -279,3 +279,14 @@ describe("completing visits from the list", () => {
     expect(await screen.findByText("Details of #5")).toBeInTheDocument();
   });
 });
+
+describe("the visits to complete filter", () => {
+  it("opens on it from the dashboard's link, and asks the server for the visits that are over", async () => {
+    params = new URLSearchParams("status=TO_COMPLETE");
+    fetchAppointments.mockResolvedValue([appt(1)]);
+    render(<AppointmentsTable />);
+    await screen.findByRole("table", { name: "Appointments" });
+    expect(parseStatusParam("TO_COMPLETE")).toBe("TO_COMPLETE");
+    expect(fetchAppointmentPage).toHaveBeenLastCalledWith(expect.objectContaining({ toComplete: true, statuses: ["CONFIRMED"] }));
+  });
+});

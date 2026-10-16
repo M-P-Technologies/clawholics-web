@@ -2,6 +2,7 @@ import "server-only";
 import { getSql } from "./db";
 import { toId } from "./http";
 import { PROOF_TO_REVIEW_SQL } from "./proofRules";
+import { TO_COMPLETE_SQL, manilaNow } from "./visitsToComplete";
 
 // Appointment queries and booking rules, ported from worker-api/src/index.ts. Same columns
 // and rules as the Worker so the frontend can't tell which backend answered.
@@ -112,6 +113,8 @@ export interface AppointmentPageQuery {
   statuses: string[];
   /** Only appointments whose payment proof is waiting for review (the dashboard's "Proofs to review") */
   proofToReview: boolean;
+  /** Only confirmed visits that are over, waiting to be completed (the dashboard's "Visits to complete") */
+  toComplete?: boolean;
   /** Only this day, or this day and later (YYYY-MM-DD) */
   on: string | null;
   from: string | null;
@@ -169,6 +172,7 @@ export async function listAppointmentPage(query: AppointmentPageQuery) {
     query.proofToReview
       ? sql.unsafe(PROOF_TO_REVIEW_SQL("a"))
       : null,
+    query.toComplete ? sql.unsafe(TO_COMPLETE_SQL("a", manilaNow().today, manilaNow().clock)) : null,
     query.on ? sql`a.appointment_date = ${query.on}` : null,
     query.from ? sql`a.appointment_date >= ${query.from}` : null,
     query.artist ? sql`coalesce(n.name, a.nailist_name) = ${query.artist}` : null,

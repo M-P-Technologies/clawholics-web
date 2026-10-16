@@ -2,6 +2,7 @@ import "server-only";
 import { getSql } from "./db";
 import { SERVICE_PRICE_SQL } from "./appointments";
 import { PROOF_TO_REVIEW_SQL } from "./proofRules";
+import { TO_COMPLETE_SQL } from "./visitsToComplete";
 import {
   LAPSED_DAYS, addDays, manilaClock, manilaToday, monthKeys, resolvePeriod,
   type DashboardRange, type Span,
@@ -169,12 +170,13 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
         `select count(*) filter (where action = 'stamp')::int as stamps,
                 count(*) filter (where action = 'redeem')::int as redeemed
          from scan_history where ${LOCAL_DATE("created_at")} between $1 and $2`, p),
-      one<{ today: number; unpaid: number; proofs_to_review: number; to_confirm: number }>(
+      one<{ today: number; unpaid: number; proofs_to_review: number; to_confirm: number; to_complete: number }>(
         `${APPT} select
            (select count(*)::int from appt where d = $1 and st = 'CONFIRMED') as today,
            (select count(*)::int from appt where st = 'PENDING') as unpaid,
            (select count(*)::int from appt where st = 'AWAITING_CONFIRMATION') as to_confirm,
-           (select count(*)::int from appointments a where ${PROOF_TO_REVIEW_SQL("a")}) as proofs_to_review`, [today]),
+           (select count(*)::int from appointments a where ${PROOF_TO_REVIEW_SQL("a")}) as proofs_to_review,
+           (select count(*)::int from appointments a where ${TO_COMPLETE_SQL("a", today, manilaClock(now))}) as to_complete`, [today]),
       one<{ n: number }>(
         `${APPT} select count(*)::int as n
          from (select user_id, max(d) as last_d from appt where st = 'COMPLETED' and not is_guest group by user_id) t
@@ -306,7 +308,7 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
     },
     trend,
     loyalty,
-    attention: { today: attention.today, proofsToReview: attention.proofs_to_review, toConfirm: attention.to_confirm, unpaid: attention.unpaid, warmLeads: warm.n },
+    attention: { today: attention.today, proofsToReview: attention.proofs_to_review, toConfirm: attention.to_confirm, toComplete: attention.to_complete, unpaid: attention.unpaid, warmLeads: warm.n },
     money: {
       balanceAtSalon: { value: current.balanceAtSalon, previous: before.balanceAtSalon },
       returningRevenue: { value: current.returningRevenue, previous: before.returningRevenue },

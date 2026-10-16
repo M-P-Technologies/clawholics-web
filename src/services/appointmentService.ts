@@ -58,6 +58,8 @@ export interface AppointmentPageParams {
   statuses?: string[];
   /** Only appointments whose payment proof waits for review */
   proofToReview?: boolean;
+  /** Only confirmed visits that are over, waiting to be completed */
+  toComplete?: boolean;
   /** Only this day, or this day and later (YYYY-MM-DD) */
   on?: string;
   from?: string;
@@ -86,6 +88,7 @@ export const fetchAppointmentPage = async (
   const query = new URLSearchParams({ page: String(params.page), pageSize: String(params.pageSize) });
   if (params.statuses?.length) query.set("status", params.statuses.join(","));
   if (params.proofToReview) query.set("proof", "review");
+  if (params.toComplete) query.set("complete", "due");
   if (params.on) query.set("on", params.on);
   if (params.from) query.set("from", params.from);
   if (params.artist) query.set("artist", params.artist);

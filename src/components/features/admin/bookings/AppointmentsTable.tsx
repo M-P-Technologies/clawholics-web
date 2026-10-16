@@ -7,6 +7,7 @@ import clsx from "clsx";
 import AppointmentDetailsModal from "@/components/features/admin/bookings/AppointmentDetailsModal";
 import CreateAppointmentDialog from "@/components/features/admin/bookings/CreateAppointmentDialog";
 import ProofThumb from "@/components/features/admin/bookings/ProofThumb";
+import { isWalkin } from "@/lib/admin/walkin";
 import { ListSkeleton } from "@/components/features/admin/skeletons/ListSkeleton";
 import { AlertDialog, CardFields, CARDS_PER_PAGE, Dialog, RowCard, RowCards, TableFrame } from "@/components/organisms";
 import { Button, Select, initialsOf } from "@/components/atoms";
@@ -35,6 +36,7 @@ const STATUS_OPTIONS: { label: string; value: AppointmentFilterStatus }[] = [
   { label: "Proofs to review", value: "PROOF_PENDING" },
   { label: "Proof overdue", value: "PROOF_OVERDUE" },
   { label: "Awaiting confirmation", value: "AWAITING_CONFIRMATION" },
+  { label: "Visits to complete", value: "TO_COMPLETE" },
   { label: "Confirmed", value: "CONFIRMED" },
   { label: "Completed", value: "COMPLETED" },
   { label: "Cancelled", value: "CANCELLED" },
@@ -122,9 +124,6 @@ function ProofBadge({ appointment, now, onReview }: { appointment: Appointment; 
   return null;
 }
 
-// A walk-in: flagged, or booked on the shared walk-in guest account
-const WALKIN_EMAIL = "walkin-guest@clawholics.local";
-const isWalkin = (a: Appointment) => Boolean(a.is_walkin) || (a.email ?? "").trim().toLowerCase() === WALKIN_EMAIL;
 
 interface AppointmentsTableProps {
   /** Each client's photo, join date and last sign-in (from Clerk), by users.id */
@@ -173,8 +172,9 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
     // A list that shrank (a status changed) keeps you on its last page rather than past it
     page: Math.min(page, pages),
     pageSize,
-    statuses: status === "ALL" || status === "PROOF_PENDING" || proofOverdue ? STATUSES : [status],
+    statuses: status === "ALL" || status === "PROOF_PENDING" || proofOverdue ? STATUSES : status === "TO_COMPLETE" ? ["CONFIRMED"] : [status],
     proofToReview: status === "PROOF_PENDING",
+    toComplete: status === "TO_COMPLETE",
     artist: artist === "All" ? undefined : artist,
     search,
     sort: SORT_PARAM[sort],

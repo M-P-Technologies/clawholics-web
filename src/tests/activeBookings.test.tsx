@@ -79,7 +79,19 @@ describe("ActiveBookings", () => {
     render(<ActiveBookings load={paged(load)} />); // Michael done, Jeff now, Jessica next
     const card = within(await screen.findByRole("region", { name: "Active bookings" }));
     expect(await card.findAllByRole("listitem")).toHaveLength(3);
-    expect(card.queryByRole("link")).toBeNull();
+    expect(card.queryByRole("link", { name: /more today/ })).toBeNull();
   });
 });
 
+describe("ActiveBookings links", () => {
+  it("opens a client's page from their card; a walk-in's card is no link", async () => {
+    load.mockResolvedValue([
+      appt(7, { appointment_time: "13:00-14:00", first_name: "Jessica", last_name: "Davis" }),
+      appt(8, { appointment_time: "15:00-16:00", first_name: "Walk", last_name: "In", email: "walkin-guest@clawholics.local" }),
+    ]);
+    render(<ActiveBookings load={paged(load)} />);
+    expect(await screen.findByRole("link", { name: /Jessica Davis/ })).toHaveAttribute("href", "/clients/7");
+    expect(screen.queryByRole("link", { name: /Walk In/ })).toBeNull();
+    expect(screen.getByText("Walk In")).toBeInTheDocument();
+  });
+});

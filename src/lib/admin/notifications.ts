@@ -6,8 +6,13 @@ import type { AdminNotification } from "../../services/notificationService";
 /** How often the bell asks for new notifications while an admin screen is open (and visible) */
 export const NOTIFICATIONS_POLL_MS = 30_000;
 
-/** "Booking paid, to confirm" or "Payment proof to review" */
-export const notificationTitle = (n: AdminNotification) => (n.kind === "proof_uploaded" ? "Payment proof to review" : "Booking paid, to confirm");
+const TITLES: Record<AdminNotification["kind"], string> = {
+  booking_paid: "Booking paid, to confirm",
+  proof_uploaded: "Payment proof to review",
+  visit_to_complete: "Visit to complete",
+};
+/** "Booking paid, to confirm", "Payment proof to review" or "Visit to complete" */
+export const notificationTitle = (n: AdminNotification) => TITLES[n.kind] ?? TITLES.booking_paid;
 
 /** "Ana Cruz · Gel manicure with Maxine · Oct 20, 2:00 PM" (whatever of it is known) */
 export function notificationLine(n: AdminNotification) {
@@ -17,9 +22,12 @@ export function notificationLine(n: AdminNotification) {
   return [who, what, when].filter(Boolean).join(" · ");
 }
 
-/** A proof opens the list of proofs to review; a paid booking the bookings waiting to be confirmed */
-export const notificationLink = (n: AdminNotification) =>
-  n.kind === "proof_uploaded" ? "/clients?status=PROOF_PENDING" : "/clients?status=AWAITING_CONFIRMATION";
+/** A proof opens the proofs to review; a paid booking the bookings to confirm; a visit to complete the client's page (a walk-in, who has none, the list of them) */
+export function notificationLink(n: AdminNotification) {
+  if (n.kind === "proof_uploaded") return "/clients?status=PROOF_PENDING";
+  if (n.kind === "visit_to_complete") return n.client_user_id ? `/clients/${n.client_user_id}` : "/clients?status=TO_COMPLETE";
+  return "/clients?status=AWAITING_CONFIRMATION";
+}
 
 /** "just now", "5 min ago", "3 h ago", "2 days ago" */
 export function notificationAge(createdAt: string, now = Date.now()) {

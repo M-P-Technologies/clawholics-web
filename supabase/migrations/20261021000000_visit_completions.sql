@@ -18,3 +18,8 @@ create table visit_completions (
   updated_at text default clawholics_utc_now()
 );
 alter table visit_completions enable row level security;
+
+-- The bell also says when a confirmed visit is over and waits to be completed
+alter table admin_notifications drop constraint admin_notifications_kind_check;
+alter table admin_notifications add constraint admin_notifications_kind_check
+  check (kind in ('booking_paid', 'proof_uploaded', 'visit_to_complete'));

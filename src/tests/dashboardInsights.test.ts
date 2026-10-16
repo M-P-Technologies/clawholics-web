@@ -21,7 +21,7 @@ const steady = (): DashboardResponse => ({
   },
   lapsedClients: 0, leads: { accounts: 4, booked: 2 }, clientBase: { clients: 5, lifetimeValue: 1120, churn: 0.2 }, totals: { clients: 17, services: 35, artists: 5, upcoming: 7, trend: [] }, sales: [],
   loyalty: { stamps: 0, redeemed: 0 },
-  attention: { today: 0, proofsToReview: 0, toConfirm: 0, unpaid: 0, warmLeads: 0 },
+  attention: { today: 0, proofsToReview: 0, toConfirm: 0, toComplete: 0, unpaid: 0, warmLeads: 0 },
   money: { balanceAtSalon: { value: 0, previous: 0 }, returningRevenue: { value: 0, previous: 0 }, lostToCancellations: { value: 0, previous: 0 }, bookedAhead: { value: 0, visits: 0, days: [] } },
   trend: { granularity: "day", points: [] },
   monthly: ["2026-05", "2026-06", "2026-07", "2026-08", "2026-09", "2026-10"].map((month) => ({ month, completed: 20, cancelled: 1 })),
@@ -69,7 +69,7 @@ describe("buildInsights: too little data", () => {
   });
 
   it("still flags things that are facts rather than comparisons", () => {
-    const i = buildInsights({ ...quiet(), attention: { today: 0, proofsToReview: 2, toConfirm: 0, unpaid: 0, warmLeads: 0 }, lapsedClients: 3 });
+    const i = buildInsights({ ...quiet(), attention: { today: 0, proofsToReview: 2, toConfirm: 0, toComplete: 0, unpaid: 0, warmLeads: 0 }, lapsedClients: 3 });
     expect(i.status).toBe("no-data");
     expect(i.watch.map((w) => w.text)).toEqual([
       "2 payment proofs are waiting for review.",
@@ -161,7 +161,7 @@ describe("buildInsights: watch-outs", () => {
   });
 
   it("uses singular and plural correctly", () => {
-    const one = buildInsights({ ...steady(), attention: { today: 0, proofsToReview: 1, toConfirm: 0, unpaid: 0, warmLeads: 0 }, lapsedClients: 1 });
+    const one = buildInsights({ ...steady(), attention: { today: 0, proofsToReview: 1, toConfirm: 0, toComplete: 0, unpaid: 0, warmLeads: 0 }, lapsedClients: 1 });
     expect(one.watch.map((w) => w.text)).toEqual(["1 payment proof is waiting for review.", "1 client hasn't visited in over 60 days."]);
   });
 
@@ -175,7 +175,7 @@ describe("buildInsights: watch-outs", () => {
 
 describe("buildInsights: suggestions", () => {
   it("puts the payment proofs first, linked to the filtered list", () => {
-    const i = buildInsights({ ...steady(), attention: { today: 0, proofsToReview: 3, toConfirm: 0, unpaid: 0, warmLeads: 0 }, lapsedClients: 2 });
+    const i = buildInsights({ ...steady(), attention: { today: 0, proofsToReview: 3, toConfirm: 0, toComplete: 0, unpaid: 0, warmLeads: 0 }, lapsedClients: 2 });
     expect(i.tips[0]).toEqual({
       id: "proofs", text: "Review 3 payment proofs so those bookings get confirmed.",
       to: "/clients?status=PROOF_PENDING", cta: "Review proofs",
@@ -213,7 +213,7 @@ describe("buildInsights: suggestions", () => {
     const weekdays = [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({ weekday, bookings: weekday === 1 ? 0 : 5 }));
     const i = buildInsights({
       ...steady(), weekdays, lapsedClients: 2,
-      attention: { today: 0, proofsToReview: 1, toConfirm: 0, unpaid: 0, warmLeads: 0 },
+      attention: { today: 0, proofsToReview: 1, toConfirm: 0, toComplete: 0, unpaid: 0, warmLeads: 0 },
       rates: { ...steady().rates, cancellation: { value: 0.3, previous: 0.05 } },
     });
     expect(i.tips.map((t) => t.id)).toEqual(["proofs", "lapsed", "reminder"]);

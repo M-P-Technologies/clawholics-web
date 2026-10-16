@@ -5,6 +5,7 @@ import { manilaClock, manilaToday } from "@/lib/dashboardPeriods";
 import { ADMIN_APPOINTMENTS_KEY, type Appointment } from "@/services/appointmentService";
 import type { BookingsLoader } from "@/hooks/admin/useReports";
 import { SectionSkeleton } from "@/components/features/admin/skeletons/skeletons";
+import { isWalkin } from "@/lib/admin/walkin";
 
 const SHOWN = ["CONFIRMED", "COMPLETED"];
 const MAX_SHOWN = 3;
@@ -26,6 +27,17 @@ const range = (time: string) => {
   const [start, end] = time.split("-").map((t) => t.trim().padStart(5, "0"));
   return { start, end: end ?? start };
 };
+
+// A card's body: a link to the client's page, or plain for a walk-in (who has none)
+function CardBody({ to, children }: { to: string | null; children: React.ReactNode }) {
+  const look = "flex min-w-0 flex-1 items-start justify-between gap-3";
+  if (!to) return <div className={look}>{children}</div>;
+  return (
+    <Link to={to} className={clsx(look, "rounded-lg hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson")}>
+      {children}
+    </Link>
+  );
+}
 
 // Today's bookings at a glance: who is in, with whom, and when; the one in the chair now is
 // marked. Confirmed and completed only (not cancelled, nor still waiting for payment).
@@ -77,6 +89,7 @@ export default function ActiveBookings({ load }: { load: BookingsLoader }) {
                   current ? "border-berry bg-crimson-light/40" : done ? "border-crimson-light bg-light-orange/40 opacity-75" : "border-crimson bg-crimson-light/20",
                 )}
               >
+                <CardBody to={isWalkin(a) ? null : `/clients/${a.user_id}`}>
                 <span className="min-w-0">
                   <p className="truncate text-sm font-bold text-gray-red">{`${a.first_name ?? ""} ${a.last_name ?? ""}`.trim() || "Client"}</p>
                   <span className="block truncate text-xs text-gray-red">{a.service_name}</span>
@@ -90,6 +103,7 @@ export default function ActiveBookings({ load }: { load: BookingsLoader }) {
                   </span>
                   <span className="block truncate text-xs text-gray-red">{`${clock(start)} – ${clock(end)}`}</span>
                 </span>
+                </CardBody>
               </li>
             );
           })}

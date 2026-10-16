@@ -125,6 +125,27 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     });
   });
 
+  it("visits to complete: the list filter and the bell's notifications match the count", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(NOW);
+    try {
+      const booking = await import("../../server/handlers/booking");
+      as("user_admin");
+      const list = await callRoute(booking.listAllAppointments, "/api/booking/appointments?page=1&complete=due");
+      expect(list.body.rows.map((r: { appointment_time: string; status: string }) => [r.appointment_time, r.status])).toEqual([["09:00-10:00", "CONFIRMED"]]);
+
+      const visits = await import("../../server/visitsToComplete");
+      await db`delete from admin_notifications`;
+      await visits.recordVisitsToComplete(NOW); // the cutoff is after these visits: none
+      expect(await db`select 1 from admin_notifications`).toHaveLength(0);
+      await visits.recordVisitsToComplete(NOW, "2026-10-01");
+      await visits.recordVisitsToComplete(NOW, "2026-10-01");
+      expect(await db`select kind from admin_notifications`).toEqual([{ kind: "visit_to_complete" }]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("the month: rates, lapsed clients, loyalty and what needs attention", async () => {
     const d = await dashboard.buildDashboard("month", NOW);
     expect(d.rates.cancellation).toEqual({ value: 2 / 9, previous: 0 });
@@ -138,7 +159,8 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     expect(d.loyalty).toEqual({ stamps: 3, redeemed: 1 });
     // proofs to review: a booking whose latest upload is still pending, paid by proof (a11, a12);
     // unpaid: bookings still PENDING (a11), the same list the Appointments filter shows
-    expect(d.attention).toEqual({ today: 2, proofsToReview: 2, unpaid: 1, toConfirm: 0, warmLeads: 0 });
+    // to complete: confirmed visits already over, the 09:00-10:00 one today (it's 10:00)
+    expect(d.attention).toEqual({ today: 2, proofsToReview: 2, unpaid: 1, toConfirm: 0, toComplete: 1, warmLeads: 0 });
     // leads: accounts made in the period; Ana and Bea both booked (September: Cara did)
     expect(d.rates.leadConversion).toEqual({ value: 1, previous: 1 });
     expect(d.leads).toEqual({ accounts: 2, booked: 2 });
@@ -404,7 +426,7 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     expect(d.monthly.every((m) => m.completed === 0 && m.cancelled === 0)).toBe(true);
     expect(d.weekdays).toHaveLength(7);
     expect([d.services, d.artists, d.next]).toEqual([[], [], []]);
-    expect(d.attention).toEqual({ today: 0, proofsToReview: 0, unpaid: 0, toConfirm: 0, warmLeads: 0 });
+    expect(d.attention).toEqual({ today: 0, proofsToReview: 0, unpaid: 0, toConfirm: 0, toComplete: 0, warmLeads: 0 });
     expect(d.money).toEqual({
       balanceAtSalon: { value: 0, previous: 0 }, returningRevenue: { value: 0, previous: 0 }, lostToCancellations: { value: 0, previous: 0 },
       bookedAhead: { value: 0, visits: 0, days: expect.any(Array) },

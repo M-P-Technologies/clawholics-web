@@ -278,6 +278,7 @@ export const listAllAppointments = ported(async (req) => {
   const result = await listAppointmentPage({
     statuses: statuses ?? [],
     proofToReview: params.get("proof") === "review",
+    toComplete: params.get("complete") === "due",
     on,
     from,
     artist: params.get("artist")?.trim() || null,
