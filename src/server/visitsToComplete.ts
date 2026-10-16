@@ -6,7 +6,7 @@ import { getSql } from "./db";
 // bell tells the admins about each once.
 
 /** Only visits ending on or after this day notify, so the ones never completed before this existed don't flood the bell */
-export const VISIT_NOTIFY_FROM = "2026-10-21";
+export const VISIT_NOTIFY_FROM = "2026-10-16";
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const CLOCK = /^\d{2}:\d{2}$/;

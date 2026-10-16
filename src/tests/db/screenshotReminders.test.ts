@@ -24,10 +24,10 @@ describe.skipIf(!TEST_DATABASE_URL)("payment screenshot reminders (Postgres)", (
   let n = 0;
 
   // A booking paid online `paidHoursAgo` hours ago, waiting for the salon
-  const paidBooking = async (paidHoursAgo: number, status = "AWAITING_CONFIRMATION") => {
+  const paidBooking = async (paidHoursAgo: number, status = "AWAITING_CONFIRMATION", date = `2099-02-${String(++n).padStart(2, "0")}`) => {
     const [{ id }] = await db<{ id: number }[]>`
       insert into appointments (user_id, service_id, service_name, nailist_id, nailist_name, appointment_date, appointment_time, status)
-      values (${userId}, 1, 'Gel Manicure', 1, 'Maxine', ${`2099-02-${String(++n).padStart(2, "0")}`}, '13:00-15:00', ${status}) returning id`;
+      values (${userId}, 1, 'Gel Manicure', 1, 'Maxine', ${date}, '13:00-15:00', ${status}) returning id`;
     await db`insert into payments (id, appointment_id, amount, status, payment_method, external_id, created_at)
              values (${crypto.randomUUID()}, ${id}, 500, 'PAID', 'QRPH', ${`x-${id}`}, ${hoursAgo(paidHoursAgo)})`;
     return id;
@@ -70,6 +70,11 @@ describe.skipIf(!TEST_DATABASE_URL)("payment screenshot reminders (Postgres)", (
     const withProof = await paidBooking(13);
     await db`insert into payment_proofs (appointment_id, user_id, image_url) values (${withProof}, ${userId}, 'x')`;
     await paidBooking(13, "CONFIRMED");
+    expect(await reminders.sendDueScreenshotReminders(NOW)).toEqual({ sent: 0 });
+  });
+
+  it("doesn't remind a booking whose day has passed", async () => {
+    await paidBooking(13, "AWAITING_CONFIRMATION", "2026-10-15");
     expect(await reminders.sendDueScreenshotReminders(NOW)).toEqual({ sent: 0 });
   });
 

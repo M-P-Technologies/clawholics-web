@@ -101,3 +101,13 @@ describe("completing a visit from the drawer", () => {
     expect(screen.getByText("₱1,000 · Cash · Miss Pring")).toBeInTheDocument();
   });
 });
+
+describe("the drawer's status menu", () => {
+  it("doesn't offer Completed: a visit is completed with its form", async () => {
+    render(<AppointmentDetailsModal appointment={appt({ status: "CONFIRMED" })} onClose={vi.fn()} onStatusChange={vi.fn()} />);
+    await userEvent.click(screen.getByRole("button", { name: "Appointment status" }));
+    const options = screen.getAllByRole("option").map((o) => o.textContent);
+    expect(options.some((o) => /Confirmed/i.test(o ?? ""))).toBe(true);
+    expect(options.some((o) => /Completed/i.test(o ?? ""))).toBe(false);
+  });
+});

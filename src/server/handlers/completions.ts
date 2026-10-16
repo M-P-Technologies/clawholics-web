@@ -15,6 +15,7 @@ import { BALANCE_METHODS, MAX_COMPLETION_PHOTOS } from "../../lib/visitCompletio
 
 type IdContext = { params: Promise<{ id: string }> };
 
+class NoLongerConfirmed extends Error {}
 const badRequest = (message: string) => Response.json({ message }, { status: 400 });
 const manilaToday = () => new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
 
@@ -67,6 +68,11 @@ export const saveCompletion = changesCatalog(ported<IdContext>(async (req, { par
   const adminRow = await requireUserRow();
   const completedBy = adminRow instanceof Response ? null : adminRow.id;
   const completion = await sql.begin(async (tx) => {
+    // Still confirmed (or completed) now that the photos are up: a booking cancelled meanwhile stays cancelled
+    const [still] = await tx`
+      update appointments set status = 'COMPLETED'
+      where id = ${id} and upper(trim(status)) in ('CONFIRMED', 'COMPLETED') returning id`;
+    if (!still) throw new NoLongerConfirmed();
     const [saved] = await tx`
       insert into visit_completions (appointment_id, balance_amount, payment_method, nailist_id, completed_by)
       values (${id}, ${balance}, ${method}, ${nailistId}, ${completedBy})
@@ -74,14 +80,23 @@ export const saveCompletion = changesCatalog(ported<IdContext>(async (req, { par
         balance_amount = excluded.balance_amount, payment_method = excluded.payment_method,
         nailist_id = excluded.nailist_id, completed_by = excluded.completed_by, updated_at = clawholics_utc_now()
       returning appointment_id, balance_amount, payment_method, nailist_id`;
-    await tx`update appointments set status = 'COMPLETED' where id = ${id}`;
     // The newest work first: each photo goes before the artist's others (the page shows the first 10)
     for (const url of urls) {
       await tx`
         insert into nailist_gallery (nailist_id, image_url, position)
         values (${nailistId}, ${url}, (select coalesce(min(position), 1) - 1 from nailist_gallery where nailist_id = ${nailistId}))`;
     }
+    // The gallery keeps its first 10 (what the page and the admin's editor show): the oldest give way
+    if (urls.length > 0) {
+      await tx`
+        delete from nailist_gallery where nailist_id = ${nailistId} and id not in (
+          select id from nailist_gallery where nailist_id = ${nailistId} order by position asc, id desc limit 10)`;
+    }
     return saved;
+  }).catch((error) => {
+    if (error instanceof NoLongerConfirmed) return null;
+    throw error;
   });
+  if (!completion) return Response.json({ message: "Only a confirmed visit can be completed." }, { status: 409 });
   return Response.json({ completion, photos: urls.length });
 }));

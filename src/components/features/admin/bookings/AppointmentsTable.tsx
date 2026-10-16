@@ -103,6 +103,15 @@ interface NailArtist {
 
 const artistName = (artist: NailArtist) => artist.name || `${artist.first_name ?? ""} ${artist.last_name ?? ""}`.trim();
 const clientName = (a: Appointment) => `${a.first_name ?? ""} ${a.last_name ?? ""}`.trim() || `User #${a.user_id}`;
+// The server's own words for a refused change ({ message } in the error's text), when it gave some
+const serverMessage = (text: string): string | null => {
+  try {
+    const body = JSON.parse(text) as { message?: unknown };
+    return typeof body.message === "string" && body.message ? body.message : null;
+  } catch {
+    return null;
+  }
+};
 const statusOf = (a: Appointment) => (a.status?.trim().toUpperCase() || "PENDING") as AppointmentStatus;
 
 // The proof badge beside a client: a proof to review, or one that's overdue
@@ -212,7 +221,12 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
       const updatedStatus = statusOf(updated);
       toast.show("success", "Appointment updated", `Appointment #${id} is now ${updatedStatus.toLowerCase().replace(/_/g, " ")}.`);
       void refresh();
-      setSelected((current) => (current?.id === id ? (matchesAppointmentFilter(updated, status, now) ? updated : null) : current));
+      // The change answers the appointment alone: what the list added (proof, downpayment, completion) is kept
+      setSelected((current) => {
+        if (current?.id !== id) return current;
+        const merged = { ...current, ...updated };
+        return matchesAppointmentFilter(merged, status, now) ? merged : null;
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : "";
       if (message.includes("SLOT_TAKEN") || message.includes("slot")) {
@@ -220,7 +234,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
         return;
       }
       console.error(error);
-      toast.show("error", "Status not changed", "The appointment status is unchanged. Please try again.");
+      toast.show("error", "Status not changed", serverMessage(message) ?? "The appointment status is unchanged. Please try again.");
     }
   };
 

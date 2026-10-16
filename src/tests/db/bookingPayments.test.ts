@@ -571,6 +571,23 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
         await Promise.all(background);
       });
 
+      it("doesn't confirm when the screenshot is rejected while confirming", async () => {
+        const id = await paidOnline("user_a");
+        const uploaded = await upload("user_a", id);
+        // Another admin rejects it just as this one confirms (the reviewer is looked up in between)
+        let calls = 0;
+        authMock.mockImplementation(async () => {
+          if (++calls === 2) await db`update payment_proofs set status = 'REJECTED' where id = ${uploaded.body.id}`;
+          return { userId: "user_admin" };
+        });
+        const res = await callRoute(booking.updateAppointmentStatus, "/x", { method: "PATCH", body: { status: "CONFIRMED" }, params: { id: String(id) } });
+        authMock.mockReset();
+        expect(res.status).toBe(409);
+        expect(res.body.code).toBe("PROOF_REQUIRED");
+        expect(await statusOf(id)).toBe("AWAITING_CONFIRMATION");
+        await Promise.all(background);
+      });
+
       it("PATCH status to COMPLETED is refused", async () => {
         const id = await paidOnline("user_a");
         await upload("user_a", id);

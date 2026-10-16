@@ -22,6 +22,8 @@ interface AppointmentDetailsModalProps {
 }
 
 const statusOptions: AppointmentStatus[] = ["PENDING", "AWAITING_PROOF", "AWAITING_CONFIRMATION", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUNDED"];
+// Completed is set by completing the visit (its form), so it's only listed while it's the status
+const statusChoices = (current: AppointmentStatus) => statusOptions.filter((s) => s !== "COMPLETED" || current === "COMPLETED");
 
 const STATUS_PILL: Record<string, string> = {
   CONFIRMED: "bg-crimson-light/50 text-berry",
@@ -110,7 +112,7 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
                 value={currentStatus}
                 onChange={(e) => onStatusChange(appointment.id, e.target.value as AppointmentStatus)}
               >
-                {statusOptions.map((status) => (
+                {statusChoices(currentStatus).map((status) => (
                   <option key={status} value={status}>
                     {label(status)}
                   </option>

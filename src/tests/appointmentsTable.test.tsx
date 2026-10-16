@@ -24,7 +24,7 @@ vi.mock("@/components/features/admin/bookings/AppointmentDetailsModal", async ()
   return {
     default: ({ appointment, onClose, onStatusChange }: { appointment: Appointment; onClose: () => void; onStatusChange: (id: number, s: string) => void }) => (
       <Dialog open onClose={onClose} title="Appointment details" placement="drawer">
-        Details of #{appointment.id}
+        Details of #{appointment.id}, paid {appointment.paid_downpayment ?? "unknown"}
         <button onClick={() => onStatusChange(appointment.id, "CONFIRMED")}>Set confirmed</button>
       </Dialog>
     ),
@@ -276,7 +276,7 @@ describe("completing visits from the list", () => {
     fetchAppointments.mockResolvedValue([appt(5, { email: "walkin-guest@clawholics.local", first_name: "Walk", last_name: "In" })]);
     render(<AppointmentsTable />);
     await userEvent.click(await screen.findByRole("button", { name: "Open Walk In's appointment #5" }));
-    expect(await screen.findByText("Details of #5")).toBeInTheDocument();
+    expect(await screen.findByText(/Details of #5/)).toBeInTheDocument();
   });
 });
 
@@ -288,5 +288,28 @@ describe("the visits to complete filter", () => {
     await screen.findByRole("table", { name: "Appointments" });
     expect(parseStatusParam("TO_COMPLETE")).toBe("TO_COMPLETE");
     expect(fetchAppointmentPage).toHaveBeenLastCalledWith(expect.objectContaining({ toComplete: true, statuses: ["CONFIRMED"] }));
+  });
+});
+
+describe("after a status change from the drawer", () => {
+  const pendingProof = { id: 9, status: "PENDING" as const, image_url: "https://img/s.webp", created_at: "2026-10-16T10:00:00Z" };
+
+  it("keeps what the list knew about the booking (its downpayment), not just what the change answered", async () => {
+    fetchAppointments.mockResolvedValue([appt(1, { status: "AWAITING_CONFIRMATION", latest_proof: pendingProof, paid_downpayment: 500 })]);
+    updateAppointmentStatus.mockResolvedValue({ id: 1, status: "CONFIRMED" });
+    params = new URLSearchParams("status=ALL");
+    render(<AppointmentsTable />);
+    await userEvent.click(await screen.findByRole("button", { name: "Review the payment proof for appointment #1" }));
+    await userEvent.click(screen.getByRole("button", { name: "Set confirmed" }));
+    expect(await screen.findByText(/Details of #1, paid 500/)).toBeInTheDocument();
+  });
+
+  it("says why the server refused a change", async () => {
+    fetchAppointments.mockResolvedValue([appt(1, { status: "AWAITING_CONFIRMATION", latest_proof: pendingProof })]);
+    updateAppointmentStatus.mockRejectedValue(new Error(JSON.stringify({ error: true, code: "PROOF_REQUIRED", message: "The client hasn't sent a screenshot of their payment yet." })));
+    render(<AppointmentsTable />);
+    await userEvent.click(await screen.findByRole("button", { name: "Review the payment proof for appointment #1" }));
+    await userEvent.click(screen.getByRole("button", { name: "Set confirmed" }));
+    await waitFor(() => expect(show).toHaveBeenCalledWith("error", "Status not changed", "The client hasn't sent a screenshot of their payment yet."));
   });
 });

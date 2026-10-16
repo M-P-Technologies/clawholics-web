@@ -107,6 +107,20 @@ describe.skipIf(!TEST_DATABASE_URL)("completing a visit (Postgres)", () => {
     const shown = await galleryOf(maxine);
     expect(shown).toHaveLength(10);
     expect(shown[0].image_url).toMatch(/^https:\/\/images\.test\//);
+    // The gallery keeps 10, so the admin's editor (which shows 10) still sees and manages every photo
+    expect(await db`select image_url from nailist_gallery where nailist_id = ${maxine}`).toHaveLength(10);
+    expect(await db`select 1 from nailist_gallery where image_url = 'https://old/10.webp'`).toHaveLength(0);
+  });
+
+  it("doesn't complete a visit cancelled while its photos were uploading", async () => {
+    const id = await appt("CONFIRMED");
+    putObject.mockImplementationOnce(async () => {
+      await db`update appointments set status = 'CANCELLED' where id = ${id}`;
+    });
+    const res = await complete(id, { balance_amount: "0", payment_method: "Cash", nailist_id: String(maxine) }, 1);
+    expect(res.status).toBe(409);
+    expect((await db`select status from appointments where id = ${id}`)[0].status).toBe("CANCELLED");
+    expect(await db`select 1 from visit_completions where appointment_id = ${id}`).toHaveLength(0);
   });
 
   it("refused for a pending booking (409), before the visit date (400), with bad fields (400), and for clients (403)", async () => {

@@ -303,6 +303,8 @@ export const getAppointmentById = ported<IdContext>(async (_req, { params }) => 
   return Response.json(appt);
 });
 
+class ScreenshotGone extends Error {}
+
 // PATCH /booking/appointments/:id/status and /appointments/:id/status (admin)
 export const updateAppointmentStatus = ported<IdContext>(async (req, { params }) => {
   const admin = await requireAdmin();
@@ -340,6 +342,13 @@ export const updateAppointmentStatus = ported<IdContext>(async (req, { params })
     // Confirming a booking the client paid online (AWAITING_CONFIRMATION) is what confirms it for
     // them: that's when the confirmation email goes out
     confirmedPaidBooking = await sql.begin(async (tx) => {
+      // The screenshot read above may have been rejected since: checked again, locked, before confirming
+      if (confirmingPaid) {
+        const [latest] = await tx<{ status: string }[]>`
+          select status from payment_proofs where appointment_id = ${id}
+          order by created_at desc, id desc limit 1 for update`;
+        if (latest?.status !== "PENDING" && latest?.status !== "APPROVED") throw new ScreenshotGone();
+      }
       const [changed] = await tx<{ was: string | null }[]>`
         update appointments a set status = ${upperStatus}
         from (select id, status as was from appointments where id = ${id}) old
@@ -361,6 +370,12 @@ export const updateAppointmentStatus = ported<IdContext>(async (req, { params })
       return confirmed;
     });
   } catch (error) {
+    if (error instanceof ScreenshotGone) {
+      return Response.json(
+        { error: true, code: "PROOF_REQUIRED", message: "The client's payment screenshot was just rejected. Ask them for a new one." },
+        { status: 409 },
+      );
+    }
     // e.g. re-activating a cancelled booking whose slot was taken since
     if (isSlotConflict(error)) {
       return Response.json(

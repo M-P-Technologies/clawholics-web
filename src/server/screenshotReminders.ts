@@ -15,6 +15,8 @@ const serverTime = (date: Date) => date.toISOString().slice(0, 19).replace("T", 
 export async function sendDueScreenshotReminders(now = new Date()): Promise<{ sent: number }> {
   const sql = getSql();
   const paidBefore = serverTime(new Date(now.getTime() - REMIND_AFTER_HOURS * 3_600_000));
+  // A booking whose day has passed (Manila) is no longer worth a reminder
+  const today = new Date(now.getTime() + 8 * 3_600_000).toISOString().slice(0, 10);
   // Taken by this run (marked first), so a run at the same time can't send them too
   const due = await sql<{ id: number; email: string; first_name: string; service_name: string; appointment_date: string; appointment_time: string }[]>`
     update appointments a set screenshot_reminder_sent_at = clawholics_utc_now()
@@ -22,6 +24,7 @@ export async function sendDueScreenshotReminders(now = new Date()): Promise<{ se
     where u.id = a.user_id
       and upper(trim(a.status)) = 'AWAITING_CONFIRMATION'
       and a.screenshot_reminder_sent_at is null
+      and a.appointment_date >= ${today}
       and coalesce(u.email, '') <> ''
       and coalesce((select pp.status from payment_proofs pp where pp.appointment_id = a.id
                     order by pp.created_at desc, pp.id desc limit 1), 'REJECTED') = 'REJECTED'
