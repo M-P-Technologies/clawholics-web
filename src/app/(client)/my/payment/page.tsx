@@ -12,7 +12,7 @@ import { usePayment } from "@/hooks/client/usePayment";
 import { CLIENT_PATHS } from "@/lib/client/clientNav";
 
 export default function Payment() {
-  const { artistLabel, priceLabel, methods, toggleAgree, method, setMethod, agree, loading, isInvalid, timeLeft, modalOpen, modalTitle, modalMessage, modalAction, modalButtonText, modalDismissible, appointment, handlePay, handleModalClose } = usePayment();
+  const { artistLabel, priceLabel, dateLabel, timeLabel, methods, toggleAgree, method, setMethod, agree, loading, isInvalid, timeLeft, modalOpen, modalTitle, modalMessage, modalAction, modalButtonText, modalDismissible, appointment, handlePay, handleModalClose } = usePayment();
 
   // If loading or invalid, show the LoadingBar (effectively hiding the pay UI)
   if (loading || isInvalid) {
@@ -111,8 +111,8 @@ export default function Payment() {
             <dl>
               <SummaryRow label="Service" value={appointment.service_name} />
               <SummaryRow label="Preferred artist" value={artistLabel} />
-              <SummaryRow label="Date" value={appointment.appointment_date} />
-              <SummaryRow label="Time" value={appointment.appointment_time} />
+              <SummaryRow label="Date" value={dateLabel} />
+              <SummaryRow label="Time" value={timeLabel} />
               <SummaryRow label="Price" value={priceLabel} />
               <SummaryRow label="Deductible from total" value="₱400" />
               <SummaryRow label="Reservation fee" value="₱100" />

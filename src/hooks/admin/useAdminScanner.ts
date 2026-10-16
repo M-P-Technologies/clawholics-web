@@ -7,6 +7,7 @@ import { useToast } from "@/components/molecules";
 import { adminDataChanged, adminKeys, adminQueries } from "../../lib/adminQueries";
 import { isDesktopWidth } from "../../lib/viewport";
 import { useStampTarget } from "../useStampTarget";
+import { manilaTimeOfDay } from "../../lib/timeFormat";
 import { fetchScannedClient, recordScanAction, type ScanRecord, type ScannedClient } from "../../services/scanService";
 
 /** What the last scanned code turned out to be: a client, or why it couldn't be used */
@@ -97,7 +98,7 @@ export function useAdminScanner() {
       userId: lastScan.userId,
       clientName: lastScan.client.name,
       action,
-      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      time: manilaTimeOfDay(),
     };
     setHistory((h) => [record, ...h].slice(0, 10));
     setLastScan({ ...lastScan, client: { ...lastScan.client, stamps: action === "stamp" ? lastScan.client.stamps + 1 : 0 } });

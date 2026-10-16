@@ -1,3 +1,4 @@
+import { timeRangeLabel } from "@/lib/timeFormat";
 import { Search, SquarePen } from "lucide-react";
 import { useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
@@ -145,7 +146,7 @@ export default function BookingsTable({ load }: { load: BookingsLoader }) {
                         ["Service", a.service_name],
                         ["Artist", a.nailist_name],
                         ["Date", dateLabel(a.appointment_date)],
-                        ["Time", a.appointment_time],
+                        ["Time", timeRangeLabel(a.appointment_time)],
                       ]}
                     />
                     {isWalkin(a) ? (
@@ -196,7 +197,7 @@ export default function BookingsTable({ load }: { load: BookingsLoader }) {
                 <td className={cell}>{a.service_name}</td>
                 <td className={cell}>{a.nailist_name}</td>
                 <td className={clsx(cell, "whitespace-nowrap")}>{dateLabel(a.appointment_date)}</td>
-                <td className={clsx(cell, "whitespace-nowrap")}>{a.appointment_time}</td>
+                <td className={clsx(cell, "whitespace-nowrap")}>{timeRangeLabel(a.appointment_time)}</td>
                 <td className={cell}>
                   <span className={clsx("whitespace-nowrap rounded-full px-3 py-0.5 text-xs font-bold", status.className)}>{status.label}</span>
                 </td>

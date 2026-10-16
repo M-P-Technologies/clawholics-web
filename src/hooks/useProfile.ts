@@ -13,6 +13,7 @@ import { pickNext, sortSoonest } from "../utils/profileView";
 import { useStampTarget } from "./useStampTarget";
 import type { AppointmentView } from "@/types/profile";
 import { CLIENT_PATHS } from "../lib/client/clientNav";
+import { longDateLabel, timeRangeLabel } from "../lib/timeFormat";
 
 export function useProfile() {
   const { isLoaded, isSignedIn, user: clerkUser } = useUser();
@@ -105,16 +106,7 @@ export function useProfile() {
     year: "numeric",
   });
 
-  const formatDisplayDate = (dateString: string) => {
-    if (!dateString) return "";
-
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
+  const formatDisplayDate = longDateLabel;
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -370,16 +362,7 @@ export function useProfile() {
     }
   };
 
-  const formatSlot = (slot: string) => {
-    const [start, end] = slot.split("-");
-    const format = (t: string) => {
-      const [h24, m] = t.split(":").map(Number);
-      const ampm = h24 >= 12 ? "PM" : "AM";
-      const h = h24 % 12 || 12;
-      return `${h}:${m.toString().padStart(2, "0")} ${ampm}`;
-    };
-    return `${format(start)} - ${format(end)}`;
-  };
+  const formatSlot = timeRangeLabel;
 
   const todayIso = new Date().toISOString().split("T")[0];
 

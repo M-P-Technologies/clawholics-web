@@ -1,3 +1,4 @@
+import { timeRangeLabel } from "@/lib/timeFormat";
 import { useState } from "react";
 import clsx from "clsx";
 import { useTableLayout } from "@/hooks/useMinWidth";
@@ -50,7 +51,7 @@ export default function ClientAppointments({ appointments, notesFor, draft, busy
               <div className="flex items-center justify-between gap-3">
                 <span className="min-w-0">
                   <span className="block font-bold">{dateLabel(a.appointment_date)}</span>
-                  <span className="block text-xs text-gray-red">{a.appointment_time}</span>
+                  <span className="block text-xs text-gray-red">{timeRangeLabel(a.appointment_time)}</span>
                 </span>
                 <Badge tone={statusOf(a.status).tone}>{statusOf(a.status).label}</Badge>
               </div>
@@ -100,7 +101,7 @@ export default function ClientAppointments({ appointments, notesFor, draft, busy
                 <th scope="row" className={clsx(cell, "text-left font-bold")}>
                   {dateLabel(a.appointment_date)}
                 </th>
-                <td className={cell}>{a.appointment_time}</td>
+                <td className={cell}>{timeRangeLabel(a.appointment_time)}</td>
                 <td className={cell}>{a.service_name}</td>
                 <td className={cell}>{a.nailist_name}</td>
                 <td className={cell}>

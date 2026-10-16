@@ -49,7 +49,7 @@ describe("BookingsTable", () => {
     expect(row.getByText("c1@x.test")).toBeInTheDocument();
     expect(row.getByText("Gel")).toBeInTheDocument();
     expect(row.getByText("Maxine")).toBeInTheDocument();
-    expect(row.getByText("10:00-11:00".replace("10", "09"))).toBeInTheDocument();
+    expect(row.getByText("9:00 AM - 11:00 AM")).toBeInTheDocument();
     expect(row.getByText("Confirmed")).toBeInTheDocument();
     expect(row.getByRole("link", { name: "Open Client1 Cruz" })).toHaveAttribute("href", "/clients/101");
   });

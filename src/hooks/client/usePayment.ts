@@ -10,6 +10,7 @@ import { fetchAppointmentById } from "@/services/appointmentService";
 import { type AppointmentState, explainPaymentFailure, explainStatusChange } from "@/utils/payment";
 import { CLIENT_PATHS } from "@/lib/client/clientNav";
 import { paymentArtistLabel, paymentPriceLabel } from "@/lib/client/payment";
+import { longDateLabel, timeRangeLabel } from "@/lib/timeFormat";
 
 export function usePayment() {
   const navigate = useNavigate();
@@ -235,5 +236,8 @@ export function usePayment() {
   const artistLabel = appointment ? paymentArtistLabel(appointment) : "";
   const priceLabel = appointment ? paymentPriceLabel(appointment) : "";
 
-  return { artistLabel, priceLabel, methods, toggleAgree, navigate, method, setMethod, agree, setAgree, loading, isInvalid, timeLeft, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, modalDismissible, appointment, handlePay, handleModalClose };
+  const dateLabel = longDateLabel(appointment?.appointment_date);
+  const timeLabel = timeRangeLabel(appointment?.appointment_time);
+
+  return { artistLabel, priceLabel, dateLabel, timeLabel, methods, toggleAgree, navigate, method, setMethod, agree, setAgree, loading, isInvalid, timeLeft, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, modalDismissible, appointment, handlePay, handleModalClose };
 }

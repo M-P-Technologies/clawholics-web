@@ -13,6 +13,7 @@ import { accountKeys, accountQueries } from "@/lib/accountQueries";
 import { estimateTotal } from "@/services/pricing";
 import { type Nailist, type BookingState, parseTimeRange } from "@/utils/booking";
 import { CLIENT_PATHS } from "@/lib/client/clientNav";
+import { timeRangeLabel } from "@/lib/timeFormat";
 
 export function useBooking() {
   const navigate = useNavigate();
@@ -196,18 +197,7 @@ export function useBooking() {
     });
   };
 
-  const formatSlot = (slot: string) => {
-    const [start, end] = slot.split("-");
-
-    const format = (t: string) => {
-      const [h24, m] = t.split(":").map(Number);
-      const ampm = h24 >= 12 ? "PM" : "AM";
-      const h = h24 % 12 || 12;
-      return `${h}:${m.toString().padStart(2, "0")} ${ampm}`;
-    };
-
-    return `${format(start)} - ${format(end)}`;
-  };
+  const formatSlot = timeRangeLabel;
 
   const showModal = (
     title: string,

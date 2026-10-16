@@ -1,3 +1,4 @@
+import { longDateLabel, timeRangeLabel } from "@/lib/timeFormat";
 import { X as XIcon } from "lucide-react";
 import { formatScheduleDate, getArtistStatus, getStatusPillClass, type ArtistSchedule } from "@/lib/admin/schedule";
 import { scheduleClientName } from "@/services/scheduleAgenda";
@@ -54,7 +55,7 @@ export default function ScheduleDayDetails({ date, artists, onClose, onOpenAppoi
                         </div>
                         <p className="text-[13px] lg:text-sm leading-tight text-gray-red">
                           {appointment.service_name || "No service"} <span className="mx-1">•</span>
-                          {appointment.appointment_date || date} | {appointment.appointment_time || "No time"}
+                          {longDateLabel(appointment.appointment_date || date)} | {timeRangeLabel(appointment.appointment_time) || "No time"}
                         </p>
                       </div>
                     </Button>
