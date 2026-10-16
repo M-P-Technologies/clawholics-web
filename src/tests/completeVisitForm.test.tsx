@@ -12,7 +12,12 @@ vi.mock("@clerk/nextjs", () => {
 const show = vi.fn();
 vi.mock("@/components/molecules", async (orig) => ({ ...(await orig<object>()), useToast: () => ({ show }) }));
 const saveCompletion = vi.fn();
-vi.mock("@/services/completionService", () => ({ saveCompletion: (...a: unknown[]) => saveCompletion(...a) }));
+const uploadVisitPhoto = vi.fn();
+vi.mock("@/services/completionService", async (orig) => ({
+  ...(await orig<object>()),
+  saveCompletion: (...a: unknown[]) => saveCompletion(...a),
+  uploadVisitPhoto: (...a: unknown[]) => uploadVisitPhoto(...a),
+}));
 
 const ARTISTS = [{ id: 1, name: "Miss Max" }, { id: 2, name: "Miss Jean" }];
 const visit = (over: Partial<VisitToComplete> = {}): VisitToComplete => ({
@@ -65,10 +70,10 @@ describe("the Complete visit form", () => {
     await user.click(screen.getByRole("option", { name: "GCash" }));
     await user.click(screen.getByRole("button", { name: "Done by" }));
     await user.click(screen.getByRole("option", { name: "Miss Jean" }));
-    const photo = new File(["x"], "nails.jpg", { type: "image/jpeg" });
-    await user.upload(screen.getByLabelText(/Photos of the nails/), photo);
     await user.click(screen.getByRole("button", { name: "Complete visit" }));
-    expect(saveCompletion).toHaveBeenCalledWith(7, { balance_amount: 1300, payment_method: "GCash", nailist_id: 2, arrived_at: "", photos: [photo] }, { token: "tok", clerkId: "admin_1" });
+    expect(saveCompletion).toHaveBeenCalledWith(7, { balance_amount: 1300, payment_method: "GCash", nailist_id: 2, arrived_at: "", photos: [] }, { token: "tok", clerkId: "admin_1" });
+    // The photo is added afterwards, from its own window
+    expect(screen.queryByLabelText(/Photos of the nails/)).toBeNull();
     expect(onSaved).toHaveBeenCalled();
   });
 
@@ -107,9 +112,11 @@ describe("the Complete visit form", () => {
     expect(onCancelLate).toHaveBeenCalled();
   });
 
-  it("asks for the nail photos when a visit was completed without them", () => {
-    renderForm(visit({ status: "COMPLETED", completion: { balance_amount: 1000, payment_method: "Cash", nailist_id: 1, nailist_name: "Miss Max", photos_added: 0 } }));
-    expect(screen.getByText(/Nail photos still to add/)).toBeInTheDocument();
+  it("asks for the visit's photo when it was completed without one, with a link that opens the upload window", async () => {
+    const { user } = renderForm(visit({ status: "COMPLETED", completion: { balance_amount: 1000, payment_method: "Cash", nailist_id: 1, nailist_name: "Miss Max", photos_added: 0 } }));
+    expect(screen.getByText(/Nail photo still to add/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Add photo" }));
+    expect(screen.getByRole("dialog", { name: "Add a visit photo" })).toBeInTheDocument();
   });
 
   it("shows what was recorded once completed, with Edit reopening the form", async () => {

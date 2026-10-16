@@ -3,7 +3,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/molecules";
 import { adminDataChanged } from "../../lib/adminQueries";
-import { BALANCE_METHODS, MAX_COMPLETION_PHOTOS, expectedBalance, lateFee, minutesLate, type BalanceMethod } from "../../lib/visitCompletion";
+import { BALANCE_METHODS, expectedBalance, lateFee, minutesLate, type BalanceMethod } from "../../lib/visitCompletion";
 import { saveCompletion, type VisitToComplete } from "../../services/completionService";
 
 const peso = (n: number) => `₱${n.toLocaleString("en-US")}`;
@@ -32,7 +32,8 @@ export function useCompleteVisit(visit: VisitToComplete, onSaved?: () => void) {
   const [typedBalance, setTypedBalance] = useState<string | null>(saved ? String(saved.balance_amount) : null);
   const [method, setMethod] = useState<BalanceMethod>(saved?.payment_method ?? "Cash");
   const [artistId, setArtistId] = useState(String(saved?.nailist_id ?? visit.nailist_id ?? ""));
-  const [photos, setPhotos] = useState<File[]>([]);
+  // The visit's photo is added afterwards, in its own window (VisitPhotoDialog)
+  const [photoOpen, setPhotoOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -47,12 +48,6 @@ export function useCompleteVisit(visit: VisitToComplete, onSaved?: () => void) {
   const locked = confirmed && visit.appointment_date > manilaToday();
   const formOpen = confirmed || (completed && editing);
 
-  const addPhotos = (files: FileList | null) => {
-    const picked = [...photos, ...Array.from(files ?? [])];
-    setPhotos(picked.slice(0, MAX_COMPLETION_PHOTOS));
-    setError(picked.length > MAX_COMPLETION_PHOTOS ? `Up to ${MAX_COMPLETION_PHOTOS} photos at a time.` : "");
-  };
-
   const submit = async () => {
     if (locked) return;
     if (!/^\d+$/.test(balance.trim())) return setError("Enter the balance in whole pesos, 0 or more.");
@@ -62,17 +57,11 @@ export function useCompleteVisit(visit: VisitToComplete, onSaved?: () => void) {
     try {
       await saveCompletion(
         visit.id,
-        { balance_amount: Number(balance.trim()), payment_method: method, nailist_id: Number(artistId), arrived_at: arrivedAt.trim(), photos },
+        { balance_amount: Number(balance.trim()), payment_method: method, nailist_id: Number(artistId), arrived_at: arrivedAt.trim(), photos: [] },
         { token: await getToken(), clerkId: userId },
       );
-      const added = photos.length;
-      setPhotos([]);
       setEditing(false);
-      toast.show(
-        "success",
-        "Visit completed",
-        added ? `Saved, and ${added} photo${added === 1 ? "" : "s"} added to the artist's gallery.` : "Saved. Add the nail photos when you have them.",
-      );
+      toast.show("success", "Visit completed", saved?.photo_url ? "Saved." : "Saved. Add the nail photo when you have it.");
       void adminDataChanged(queryClient);
       onSaved?.();
     } catch (e) {
@@ -89,8 +78,12 @@ export function useCompleteVisit(visit: VisitToComplete, onSaved?: () => void) {
     completed,
     /** What was recorded, e.g. "₱1,300 · GCash · Miss Jean" */
     summary: saved ? [peso(saved.balance_amount), saved.payment_method, saved.nailist_name].filter(Boolean).join(" · ") : "",
-    /** Completed without nail photos: they can be added with Edit */
-    photosMissing: completed && Boolean(saved) && (saved?.photos_added ?? 0) === 0,
+    /** Completed without its nail photo yet: added with the photo window */
+    photosMissing: completed && Boolean(saved) && !saved?.photo_url && (saved?.photos_added ?? 0) === 0,
+    hasPhoto: Boolean(saved?.photo_url),
+    photoOpen,
+    openPhoto: () => setPhotoOpen(true),
+    closePhoto: () => setPhotoOpen(false),
     startEditing: () => setEditing(true),
     cancelEditing: () => setEditing(false),
     arrivedAt,
@@ -109,9 +102,6 @@ export function useCompleteVisit(visit: VisitToComplete, onSaved?: () => void) {
     methods: BALANCE_METHODS,
     artistId,
     setArtistId,
-    photos,
-    addPhotos,
-    removePhoto: (index: number) => setPhotos((list) => list.filter((_, i) => i !== index)),
     busy,
     error,
     submit,

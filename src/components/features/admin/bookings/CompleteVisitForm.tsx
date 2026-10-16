@@ -1,8 +1,9 @@
 import { useId } from "react";
-import { Clock, X } from "lucide-react";
+import { Clock } from "lucide-react";
 import { Button, Input, Select } from "@/components/atoms";
 import { useCompleteVisit } from "@/hooks/admin/useCompleteVisit";
 import type { VisitToComplete } from "@/services/completionService";
+import VisitPhotoDialog from "@/components/features/admin/bookings/VisitPhotoDialog";
 
 interface CompleteVisitFormProps {
   visit: VisitToComplete;
@@ -15,8 +16,8 @@ interface CompleteVisitFormProps {
 
 // Completing a visit: when the client came in (a late fee by the salon's terms), the balance paid
 // at the salon (prefilled with the menu price less the downpayment, plus that fee, editable), how
-// it was paid, who did the nails, and photos for that artist's gallery (optional, added later if
-// need be). Shown locked before the visit's day; once completed it shows what was recorded, with Edit.
+// it was paid and who did the nails. Shown locked before the visit's day; once completed it shows
+// what was recorded, with Edit, and the visit's photo is added from its own window (optional).
 export default function CompleteVisitForm({ visit, artists, onSaved, onCancelLate }: CompleteVisitFormProps) {
   const form = useCompleteVisit(visit, onSaved);
   const id = useId();
@@ -32,7 +33,13 @@ export default function CompleteVisitForm({ visit, artists, onSaved, onCancelLat
             Edit
           </Button>
         </div>
-        {form.photosMissing && <p className="text-xs font-bold text-warning-ink">Nail photos still to add, for the artist&apos;s gallery.</p>}
+        <div className="flex flex-wrap items-center gap-2">
+          {form.photosMissing && <p className="text-xs font-bold text-warning-ink">Nail photo still to add, for the artist&apos;s gallery.</p>}
+          <button type="button" onClick={form.openPhoto} className="text-xs font-bold text-crimson-ink underline underline-offset-2">
+            {form.hasPhoto ? "Change photo" : "Add photo"}
+          </button>
+        </div>
+        <VisitPhotoDialog appointmentId={visit.id} open={form.photoOpen} onClose={form.closePhoto} />
       </div>
     );
   }
@@ -109,35 +116,6 @@ export default function CompleteVisitForm({ visit, artists, onSaved, onCancelLat
             disabled={disabled}
             triggerClassName="h-9! py-0! text-[13px]"
           />
-        </div>
-        <div className="flex flex-col gap-1 sm:col-span-2">
-          <label htmlFor={`${id}-photos`} className="text-xs font-bold text-gray-red">
-            Photos of the nails (optional, for the artist&apos;s gallery: you can add them later)
-          </label>
-          <input
-            id={`${id}-photos`}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            multiple
-            disabled={disabled}
-            onChange={(e) => {
-              form.addPhotos(e.target.files);
-              e.target.value = "";
-            }}
-            className="text-xs text-gray-red file:mr-3 file:rounded-full file:border-0 file:bg-crimson file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-on-crimson"
-          />
-          {form.photos.length > 0 && (
-            <ul className="flex flex-wrap gap-1.5">
-              {form.photos.map((photo, i) => (
-                <li key={`${photo.name}-${i}`} className="flex items-center gap-1 rounded-md bg-milk px-2 py-0.5 text-xs text-gray-red">
-                  {photo.name}
-                  <button type="button" aria-label={`Remove ${photo.name}`} onClick={() => form.removePhoto(i)} className="text-crimson-ink">
-                    <X size={12} aria-hidden="true" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
         </div>
       </div>
       {form.lateCancel && !form.completed && (

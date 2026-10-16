@@ -13,6 +13,8 @@ export interface Completion {
   late_fee?: number;
   /** Nail photos added to the gallery; 0 means they're still to add */
   photos_added?: number;
+  /** The visit's one nail photo, once added */
+  photo_url?: string | null;
 }
 
 /** What completing a visit needs to know about it */
@@ -48,4 +50,15 @@ export const saveCompletion = async (appointmentId: number, form: CompletionForm
   body.set("arrived_at", form.arrived_at);
   for (const photo of form.photos) body.append("file", await compressImageToWebp(photo, PHOTO_UPLOAD_OPTIONS));
   return call<{ completion: Completion; photos: number }>(`/appointments/${appointmentId}/completion`, { method: "PUT", body }, auth);
+};
+
+/** The largest photo the admin can pick: it's made much smaller in the browser before upload */
+export const MAX_VISIT_PHOTO_MB = 5;
+
+// The visit's one nail photo, after it was completed: shrunk to a small WEBP first (R2 space is
+// tight), then it replaces the visit's earlier photo in the artist's gallery
+export const uploadVisitPhoto = async (appointmentId: number, photo: File, auth: Auth) => {
+  const body = new FormData();
+  body.set("file", await compressImageToWebp(photo, PHOTO_UPLOAD_OPTIONS));
+  return call<{ photo_url: string }>(`/appointments/${appointmentId}/photo`, { method: "PUT", body }, auth);
 };
