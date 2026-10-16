@@ -20,6 +20,7 @@ import { getSql } from "../db";
 import { sendAppointmentConfirmation, sendCancellationEmails, sendConfirmationEmail, sendRescheduleEmails } from "../email";
 import { inBackground, readJson, routeNotFound, toId } from "../http";
 import { createXenditRefund, expireXenditInvoice, getXenditInvoices } from "../payments";
+import { usableProof } from "../proofRules";
 import { ported } from "../worker";
 
 // Booking and appointment routes, ported from worker-api/src/index.ts (~lines 1705-2022).
@@ -309,17 +310,51 @@ export const updateAppointmentStatus = ported<IdContext>(async (req, { params })
   if (id === null) return routeNotFound();
   const { status } = await readJson<{ status?: unknown }>(req);
   const upperStatus = String(status || "").trim().toUpperCase();
+  const sql = getSql();
+  const [current] = await sql<{ status: string | null }[]>`select status from appointments where id = ${id}`;
+  if (!current) return Response.json({ message: "Appointment not found" }, { status: 404 });
+  const was = String(current.status ?? "").trim().toUpperCase();
+
+  // A visit is completed through its completion record (what was paid, who did it), not here
+  if (upperStatus === "COMPLETED" && was !== "COMPLETED") {
+    return Response.json(
+      { error: true, code: "USE_COMPLETION", message: "Complete a visit from its Complete visit form." },
+      { status: 409 },
+    );
+  }
+  // Confirming a booking paid online needs the client's screenshot of the payment; confirming
+  // approves it
+  const confirmingPaid = upperStatus === "CONFIRMED" && was === "AWAITING_CONFIRMATION";
+  const proof = confirmingPaid ? await usableProof(id) : null;
+  if (confirmingPaid && !proof) {
+    return Response.json(
+      { error: true, code: "PROOF_REQUIRED", message: "The client hasn't sent a screenshot of their payment yet." },
+      { status: 409 },
+    );
+  }
+  const reviewer = proof?.status === "PENDING" ? await requireUserRow() : null;
+
   let confirmedPaidBooking = false;
   try {
     // Confirming a booking the client paid online (AWAITING_CONFIRMATION) is what confirms it for
     // them: that's when the confirmation email goes out
-    const [changed] = await getSql()<{ was: string | null }[]>`
-      update appointments a set status = ${upperStatus}
-      from (select id, status as was from appointments where id = ${id}) old
-      where a.id = old.id
-      returning old.was
-    `;
-    confirmedPaidBooking = upperStatus === "CONFIRMED" && String(changed?.was ?? "").trim().toUpperCase() === "AWAITING_CONFIRMATION";
+    confirmedPaidBooking = await sql.begin(async (tx) => {
+      const [changed] = await tx<{ was: string | null }[]>`
+        update appointments a set status = ${upperStatus}
+        from (select id, status as was from appointments where id = ${id}) old
+        where a.id = old.id
+        returning old.was
+      `;
+      const confirmed = upperStatus === "CONFIRMED" && String(changed?.was ?? "").trim().toUpperCase() === "AWAITING_CONFIRMATION";
+      if (confirmed && proof?.status === "PENDING") {
+        await tx`
+          update payment_proofs set status = 'APPROVED', reviewed_by = ${reviewer instanceof Response ? null : reviewer?.id ?? null},
+            updated_at = clawholics_utc_now()
+          where id = ${proof.id} and status = 'PENDING'
+        `;
+      }
+      return confirmed;
+    });
   } catch (error) {
     // e.g. re-activating a cancelled booking whose slot was taken since
     if (isSlotConflict(error)) {

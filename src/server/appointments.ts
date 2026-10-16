@@ -1,6 +1,7 @@
 import "server-only";
 import { getSql } from "./db";
 import { toId } from "./http";
+import { PROOF_TO_REVIEW_SQL } from "./proofRules";
 
 // Appointment queries and booking rules, ported from worker-api/src/index.ts. Same columns
 // and rules as the Worker so the frontend can't tell which backend answered.
@@ -157,9 +158,9 @@ export async function listAppointmentPage(query: AppointmentPageQuery) {
   const like = query.search ? `%${query.search.replace(/[\\%_]/g, (c) => `\\${c}`)}%` : null;
   const conditions = [
     query.statuses.length > 0 ? sql`upper(trim(a.status)) in ${sql(query.statuses)}` : null,
-    // As the dashboard counts them: waiting for proof, with the latest proof still pending
+    // As the dashboard counts them: the latest proof still pending (proofRules)
     query.proofToReview
-      ? sql`upper(trim(a.status)) = 'AWAITING_PROOF' and (select pp.status from payment_proofs pp where pp.appointment_id = a.id order by pp.created_at desc, pp.id desc limit 1) = 'PENDING'`
+      ? sql.unsafe(PROOF_TO_REVIEW_SQL("a"))
       : null,
     query.on ? sql`a.appointment_date = ${query.on}` : null,
     query.from ? sql`a.appointment_date >= ${query.from}` : null,

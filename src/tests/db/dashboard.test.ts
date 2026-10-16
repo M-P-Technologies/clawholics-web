@@ -118,7 +118,7 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     expect(d.period).toEqual({ from: "2026-10-01", to: "2026-10-31" });
     expect(d.previous).toEqual({ from: "2026-09-01", to: "2026-09-30" });
     expect(d.kpis).toEqual({
-      collected: { value: 2000, previous: 1000 }, // p1+p2+p3+p5; p6+p7 (p8 is November)
+      collected: { value: 2000, previous: 1000 }, // completed visits' downpayments, by visit date: p1+p2+p3+p8 (not p5, cancelled); p6+p7
       estimatedSales: { value: 3100, previous: 1700 }, // 800+500+1500+300; 500+1200 (+ a service with no price)
       bookings: { value: 7, previous: 3 }, // 4 completed + 3 confirmed; 3 completed
       newClients: { value: 2, previous: 1 }, // Ana, Bea (not the walk-in guest); Cara
@@ -136,9 +136,9 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     // with no price), Eve 800 = 5,600 over 5 clients; Eve has lapsed
     expect(d.clientBase).toEqual({ clients: 5, lifetimeValue: 1120, churn: 1 / 5 });
     expect(d.loyalty).toEqual({ stamps: 3, redeemed: 1 });
-    // proofs to review: only an awaiting-proof booking whose latest upload is still pending (a12);
+    // proofs to review: a booking whose latest upload is still pending, paid by proof (a11, a12);
     // unpaid: bookings still PENDING (a11), the same list the Appointments filter shows
-    expect(d.attention).toEqual({ today: 2, proofsToReview: 1, unpaid: 1, warmLeads: 0 });
+    expect(d.attention).toEqual({ today: 2, proofsToReview: 2, unpaid: 1, toConfirm: 0, warmLeads: 0 });
     // leads: accounts made in the period; Ana and Bea both booked (September: Cara did)
     expect(d.rates.leadConversion).toEqual({ value: 1, previous: 1 });
     expect(d.leads).toEqual({ accounts: 2, booked: 2 });
@@ -263,13 +263,13 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     expect(month.granularity).toBe("day");
     expect(month.points).toHaveLength(14); // 1 to 14 Oct: the line stops today
     const day = (date: string) => month.points.find((p) => p.date === date);
-    expect(day("2026-10-01")).toMatchObject({ date: "2026-10-01", collected: 1000, estimatedSales: 800, bookings: 1, newClients: 1 }); // two payments and Bea, all 1 Oct in Manila
-    expect(day("2026-10-02")).toMatchObject({ date: "2026-10-02", collected: 500, estimatedSales: 500, bookings: 1, newClients: 0 });
-    expect(day("2026-10-03")).toMatchObject({ date: "2026-10-03", collected: 500, estimatedSales: 0, bookings: 0, newClients: 1 });
-    expect(day("2026-10-06")).toMatchObject({ estimatedSales: 1500, bookings: 1 });
-    expect(day("2026-10-08")).toMatchObject({ estimatedSales: 300, bookings: 1 });
+    expect(day("2026-10-01")).toMatchObject({ date: "2026-10-01", collected: 500, estimatedSales: 800, bookings: 1, newClients: 1 }); // a1's downpayment and Bea, 1 Oct in Manila
+    expect(day("2026-10-02")).toMatchObject({ date: "2026-10-02", collected: 500, estimatedSales: 500, bookings: 1, newClients: 0 }); // a2, though paid on 1 Oct
+    expect(day("2026-10-03")).toMatchObject({ date: "2026-10-03", collected: 0, estimatedSales: 0, bookings: 0, newClients: 1 }); // p3 was paid today, for a3 on the 6th
+    expect(day("2026-10-06")).toMatchObject({ collected: 500, estimatedSales: 1500, bookings: 1 });
+    expect(day("2026-10-08")).toMatchObject({ collected: 500, estimatedSales: 300, bookings: 1 }); // p8, paid in November
     expect(day("2026-10-14")).toMatchObject({ bookings: 2, estimatedSales: 0 });
-    // the confirmed booking on 20 Oct and the payment that is 1 Nov in Manila are not in the line
+    // the confirmed booking on 20 Oct is not in the line
     expect(month.points.reduce((sum, p) => sum + p.bookings, 0)).toBe(6);
     expect(month.points.reduce((sum, p) => sum + p.collected, 0)).toBe(2000);
 
@@ -404,7 +404,7 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     expect(d.monthly.every((m) => m.completed === 0 && m.cancelled === 0)).toBe(true);
     expect(d.weekdays).toHaveLength(7);
     expect([d.services, d.artists, d.next]).toEqual([[], [], []]);
-    expect(d.attention).toEqual({ today: 0, proofsToReview: 0, unpaid: 0, warmLeads: 0 });
+    expect(d.attention).toEqual({ today: 0, proofsToReview: 0, unpaid: 0, toConfirm: 0, warmLeads: 0 });
     expect(d.money).toEqual({
       balanceAtSalon: { value: 0, previous: 0 }, returningRevenue: { value: 0, previous: 0 }, lostToCancellations: { value: 0, previous: 0 },
       bookedAhead: { value: 0, visits: 0, days: expect.any(Array) },
