@@ -142,3 +142,16 @@ describe("isActiveAppointmentStatus", () => {
     }
   });
 });
+
+describe("getProofState for a booking paid online, waiting for the salon", () => {
+  const paid = (over: Partial<ProofAppointment> = {}) => appt({ status: "AWAITING_CONFIRMATION", proof_due_at: null, ...over });
+
+  it("asks for the screenshot, with no deadline", () => {
+    expect(getProofState(paid(), NOW)).toEqual({ kind: "needs_proof", msLeft: null });
+  });
+
+  it("follows the screenshot once sent: in review, then rejected with its note", () => {
+    expect(getProofState(paid({ latest_proof: proof("PENDING") }), NOW).kind).toBe("in_review");
+    expect(getProofState(paid({ latest_proof: proof("REJECTED", "Blurry") }), NOW)).toMatchObject({ kind: "rejected", note: "Blurry" });
+  });
+});

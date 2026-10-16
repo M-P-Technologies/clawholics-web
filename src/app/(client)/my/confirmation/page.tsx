@@ -2,13 +2,14 @@
 
 import { CircleCheckBig as CheckIcon } from "lucide-react";
 import { Button, Card, LoadingBar } from "@/components/atoms";
+import PaymentProofCard from "@/components/features/client/appointments/PaymentProofCard";
 import { SectionHeader, EmptyState, SummaryRow } from "@/components/molecules";
 import ClientScreen from "@/components/features/client/shell/ClientScreen";
 import { usePaymentConfirmation } from "@/hooks/client/usePaymentConfirmation";
 import { CLIENT_PATHS } from "@/lib/client/clientNav";
 
 export default function PaymentConfirmation() {
-  const { isFailed, isConfirmed, awaitingSalon, appointment_id, data, payment, loading, timedOut, checkAgain } = usePaymentConfirmation();
+  const { isFailed, isConfirmed, awaitingSalon, appointment_id, data, payment, loading, timedOut, checkAgain, proofCard } = usePaymentConfirmation();
 
   if (!appointment_id) {
     return (
@@ -107,6 +108,25 @@ export default function PaymentConfirmation() {
             confirmed your booking. Please check your email <b>({payment?.email ?? "your email"})</b> for
             your complete appointment details and a few reminders. We look forward to pampering you soon!
           </p>
+        )}
+
+        {proofCard && (
+          <div className="flex w-full max-w-xl flex-col gap-3 text-left">
+            {(!proofCard.appointment.latest_proof || proofCard.appointment.latest_proof.status === "REJECTED") && (
+              <Card role="note" className="border-warning/40 bg-warning/10">
+                <p className="text-sm font-bold text-warning-ink">
+                  Important: send a screenshot of your payment. The salon can&apos;t confirm your booking until it has it.
+                </p>
+              </Card>
+            )}
+            <PaymentProofCard
+              appointment={proofCard.appointment}
+              now={0}
+              tokenFetcher={proofCard.tokenFetcher}
+              clerkId={proofCard.clerkId}
+              onUploaded={proofCard.onUploaded}
+            />
+          </div>
         )}
 
         {data ? (

@@ -560,6 +560,17 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
         await Promise.all(background);
       });
 
+      it("the client's own appointments carry the latest screenshot", async () => {
+        const users = await import("../../server/handlers/users");
+        const id = await paidOnline("user_a");
+        await upload("user_a", id);
+        as("user_a");
+        const mine = await callRoute(users.getUserAppointments, "/api/users/appointments?clerk_id=user_a");
+        const row = mine.body.find((a: { id: number }) => a.id === id);
+        expect(row.latest_proof).toMatchObject({ status: "PENDING", image_url: expect.stringContaining("payment-proofs/") });
+        await Promise.all(background);
+      });
+
       it("PATCH status to COMPLETED is refused", async () => {
         const id = await paidOnline("user_a");
         await upload("user_a", id);

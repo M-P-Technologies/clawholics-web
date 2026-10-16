@@ -1,6 +1,6 @@
 import "server-only";
 import type { TransactionSql } from "postgres";
-import { cancelExpiredPendingAppointments } from "../appointments";
+import { LATEST_PROOF, cancelExpiredPendingAppointments } from "../appointments";
 import { requireAdmin, requireUser } from "../auth";
 import {
   clerkRole,
@@ -439,8 +439,10 @@ export const getUserAppointments = ported(async (req) => {
   if (clerkId !== requester.clerkId && requester.role !== "admin") {
     return Response.json({ error: "Forbidden: You can only view your own appointments." }, { status: 403 });
   }
-  const rows = await getSql()`
-    select a.* from appointments a join users u on a.user_id = u.id
+  const sql = getSql();
+  // latest_proof: the screenshot of the payment the client sent, for their appointment's card
+  const rows = await sql`
+    select a.*, ${sql.unsafe(LATEST_PROOF)} as latest_proof from appointments a join users u on a.user_id = u.id
     where u.clerk_id = ${clerkId} order by a.appointment_date desc, a.id desc
   `;
   return Response.json(rows);

@@ -19,6 +19,7 @@ export const accountKeys = {
   profile: (clerkId: string) => [ACCOUNT, clerkId, "profile"] as const,
   appointments: (clerkId: string) => [ACCOUNT, clerkId, "appointments"] as const,
   reviews: (clerkId: string) => [ACCOUNT, clerkId, "reviews"] as const,
+  proofs: (clerkId: string, appointmentId: number) => [ACCOUNT, clerkId, "proofs", appointmentId] as const,
   birthdayVoucher: (clerkId: string) => [ACCOUNT, clerkId, "birthday-voucher"] as const,
 };
 

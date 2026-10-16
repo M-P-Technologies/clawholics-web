@@ -31,7 +31,9 @@ export function getProofState(appt: ProofAppointment, now: number): ProofUiState
   if (status === "confirmed") {
     return proof?.status === "APPROVED" ? { kind: "approved", proof } : { kind: "none" };
   }
-  if (status !== "awaiting_proof") return { kind: "none" };
+  // Waiting for a proof: paid by proof, or paid online and waiting for the salon, which checks a
+  // screenshot of the payment before confirming (no deadline then)
+  if (status !== "awaiting_proof" && status !== "awaiting_confirmation") return { kind: "none" };
 
   if (proof) {
     if (proof.status === "PENDING") return { kind: "in_review", proof };

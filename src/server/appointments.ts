@@ -125,7 +125,7 @@ export interface AppointmentPageQuery {
 }
 
 /** The latest proof, as the proof badge reads it (latest_proof on the frontend's Appointment) */
-const LATEST_PROOF = `(
+export const LATEST_PROOF = `(
   select json_build_object('id', pp.id, 'status', pp.status, 'image_url', pp.image_url, 'admin_note', pp.admin_note, 'created_at', pp.created_at)
   from payment_proofs pp where pp.appointment_id = a.id order by pp.created_at desc, pp.id desc limit 1
 )`;
