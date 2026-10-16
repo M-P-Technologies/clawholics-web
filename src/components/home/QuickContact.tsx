@@ -35,7 +35,7 @@ export default function QuickContact({ about }: { about: AboutContent }) {
           )}
           <div className="flex w-full items-center justify-between gap-3">
             <p className="min-w-0 copy-body">{about.about_location}</p>
-            <Button href={directionsUrl} variant="bare" arrow className="text-sm md:text-base font-semibold text-gray-red hover:text-crimson-ink gap-3 shrink-0 whitespace-nowrap">
+            <Button href={directionsUrl} variant="bare" arrow className="text-base font-semibold text-gray-red hover:text-crimson-ink gap-3 shrink-0 whitespace-nowrap">
               Directions
             </Button>
           </div>

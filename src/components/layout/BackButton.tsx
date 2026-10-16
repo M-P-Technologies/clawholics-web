@@ -29,7 +29,7 @@ export default function BackButton({ label = "Back", to }: BackButtonProps) {
       type="button"
       onClick={() => (to ? navigate(to) : navigate(-1))}
       className={clsx(
-        "inline-flex w-fit items-center gap-3 text-sm md:text-base font-semibold text-gray-red transition-colors hover:text-crimson-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-crimson",
+        "inline-flex w-fit items-center gap-3 text-base font-semibold text-gray-red transition-colors hover:text-crimson-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-crimson",
         className,
       )}
     >
