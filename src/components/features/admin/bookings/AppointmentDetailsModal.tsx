@@ -1,10 +1,10 @@
 import { timeRangeLabel } from "@/lib/timeFormat";
 import { ArrowUpRight, X as CloseIconLucide } from "lucide-react";
-import { useId, type ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
 import type { Appointment, AppointmentStatus } from "@/services/appointmentService";
 import { Link } from "@/lib/router";
 import { Avatar, Button, Select } from "@/components/atoms";
-import { Dialog } from "@/components/organisms";
+import { ConfirmDialog, Dialog } from "@/components/organisms";
 import { SummaryRow } from "@/components/molecules";
 import ClientNotesPanel from "@/components/features/admin/clients/ClientNotesPanel";
 import ProofReviewPanel from "@/components/features/admin/bookings/ProofReviewPanel";
@@ -20,9 +20,11 @@ interface AppointmentDetailsModalProps {
   onProofReviewed?: () => void;
   /** The artists, for the Complete visit form. Without them the form is left out. */
   artists?: { id: number; name: string }[];
+  /** "Allow anyway": confirms a paid booking whose client sent no screenshot. Without it there's no such button. */
+  onConfirmWithoutScreenshot?: (id: number) => void;
 }
 
-const statusOptions: AppointmentStatus[] = ["PENDING", "AWAITING_PROOF", "AWAITING_CONFIRMATION", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUNDED"];
+const statusOptions: AppointmentStatus[] = ["PENDING", "AWAITING_PROOF", "AWAITING_CONFIRMATION", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUNDED", "NO_SHOW"];
 // Completed is set by completing the visit (its form), so it's only listed while it's the status
 const statusChoices = (current: AppointmentStatus) => statusOptions.filter((s) => s !== "COMPLETED" || current === "COMPLETED");
 
@@ -34,6 +36,7 @@ const STATUS_PILL: Record<string, string> = {
   AWAITING_CONFIRMATION: "bg-warning/15 text-warning-ink",
   CANCELLED: "bg-danger/15 text-gray-red",
   REFUNDED: "bg-danger/15 text-gray-red",
+  NO_SHOW: "bg-danger/15 text-gray-red",
 };
 
 const label = (status: string) => status.charAt(0) + status.slice(1).toLowerCase().replace(/_/g, " ");
@@ -48,7 +51,8 @@ const dateLabel = (ymd?: string) => {
 // One appointment's details, in a modal on a computer and a bottom sheet below `lg` (as in the
 // client app): the client, the appointment (with its status), the
 // payment, the proof review and the private notes. The Dialog handles focus, Escape and a click outside.
-const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFetcher, clerkId, onProofReviewed, artists }: AppointmentDetailsModalProps) => {
+const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFetcher, clerkId, onProofReviewed, artists, onConfirmWithoutScreenshot }: AppointmentDetailsModalProps) => {
+  const [allowing, setAllowing] = useState(false);
   const titleId = useId();
   const customerName = `${appointment.first_name ?? ""} ${appointment.last_name ?? ""}`.trim() || `User #${appointment.user_id}`;
   const currentStatus = (appointment.status?.trim().toUpperCase() || "PENDING") as AppointmentStatus;
@@ -138,6 +142,24 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
               >
                 Confirm booking
               </Button>
+              {!hasScreenshot && onConfirmWithoutScreenshot && (
+                <Button type="button" variant="secondary" onClick={() => setAllowing(true)} className="w-full sm:w-auto sm:self-start">
+                  Allow anyway
+                </Button>
+              )}
+              <ConfirmDialog
+                open={allowing}
+                title="Confirm without a screenshot?"
+                confirmLabel="Confirm booking"
+                loadingLabel="Confirming…"
+                onConfirm={() => {
+                  setAllowing(false);
+                  onConfirmWithoutScreenshot?.(appointment.id);
+                }}
+                onClose={() => setAllowing(false)}
+              >
+                Only if you&apos;ve checked that the downpayment reached the salon. The client gets the confirmation email.
+              </ConfirmDialog>
             </div>
           )}
 
@@ -157,6 +179,7 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
                   id: appointment.id,
                   status: currentStatus,
                   appointment_date: appointment.appointment_date,
+                  appointment_time: appointment.appointment_time ?? "",
                   nailist_id: appointment.nailist_id ?? null,
                   price: appointment.service_price ?? null,
                   paid_downpayment: appointment.paid_downpayment ?? 0,
@@ -164,6 +187,7 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
                 }}
                 artists={artists}
                 onSaved={onClose}
+                onCancelLate={() => onStatusChange(appointment.id, "CANCELLED")}
               />
             </Section>
           )}

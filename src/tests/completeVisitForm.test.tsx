@@ -16,15 +16,15 @@ vi.mock("@/services/completionService", () => ({ saveCompletion: (...a: unknown[
 
 const ARTISTS = [{ id: 1, name: "Miss Max" }, { id: 2, name: "Miss Jean" }];
 const visit = (over: Partial<VisitToComplete> = {}): VisitToComplete => ({
-  id: 7, status: "CONFIRMED", appointment_date: "2026-01-10", nailist_id: 1, price: 1500, paid_downpayment: 500, completion: null, ...over,
+  id: 7, status: "CONFIRMED", appointment_date: "2026-01-10", appointment_time: "13:00-15:00", nailist_id: 1, price: 1500, paid_downpayment: 500, completion: null, ...over,
 });
-const renderForm = (v: VisitToComplete, onSaved = vi.fn()) => {
+const renderForm = (v: VisitToComplete, onSaved = vi.fn(), onCancelLate = vi.fn()) => {
   render(
     <QueryClientProvider client={new QueryClient()}>
-      <CompleteVisitForm visit={v} artists={ARTISTS} onSaved={onSaved} />
+      <CompleteVisitForm visit={v} artists={ARTISTS} onSaved={onSaved} onCancelLate={onCancelLate} />
     </QueryClientProvider>,
   );
-  return { onSaved, user: userEvent.setup() };
+  return { onSaved, onCancelLate, user: userEvent.setup() };
 };
 
 beforeEach(() => {
@@ -68,7 +68,7 @@ describe("the Complete visit form", () => {
     const photo = new File(["x"], "nails.jpg", { type: "image/jpeg" });
     await user.upload(screen.getByLabelText(/Photos of the nails/), photo);
     await user.click(screen.getByRole("button", { name: "Complete visit" }));
-    expect(saveCompletion).toHaveBeenCalledWith(7, { balance_amount: 1300, payment_method: "GCash", nailist_id: 2, photos: [photo] }, { token: "tok", clerkId: "admin_1" });
+    expect(saveCompletion).toHaveBeenCalledWith(7, { balance_amount: 1300, payment_method: "GCash", nailist_id: 2, arrived_at: "", photos: [photo] }, { token: "tok", clerkId: "admin_1" });
     expect(onSaved).toHaveBeenCalled();
   });
 
@@ -82,9 +82,34 @@ describe("the Complete visit form", () => {
     expect(saveCompletion).not.toHaveBeenCalled();
   });
 
-  it("isn't offered before the visit's day, or before the booking is confirmed", () => {
+  it("is shown locked before the visit's day", () => {
     renderForm(visit({ appointment_date: "2099-01-01" }));
-    expect(screen.queryByRole("form", { name: "Complete visit" })).toBeNull();
+    expect(screen.getByText(/You can complete this visit from Jan 1, 2099/)).toBeInTheDocument();
+    expect(screen.getByLabelText("Balance paid at the salon (₱)")).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Complete visit" })).toBeDisabled();
+  });
+
+  it("adds the late fee for the time the client came in, by the terms", async () => {
+    const { user } = renderForm(visit());
+    await user.type(screen.getByLabelText("Time they came in"), "13:17");
+    expect(screen.getByText("Late fee (17 min late): ₱100")).toBeInTheDocument();
+    expect(screen.getByLabelText("Balance paid at the salon (₱)")).toHaveValue("1200");
+    await user.click(screen.getByRole("button", { name: "Complete visit" }));
+    expect(saveCompletion).toHaveBeenCalledWith(7, expect.objectContaining({ balance_amount: 1200, arrived_at: "13:17" }), expect.anything());
+  });
+
+  it("suggests cancelling from 25 minutes late, keeping the downpayment, but still lets the admin serve them", async () => {
+    const { user, onCancelLate } = renderForm(visit());
+    await user.type(screen.getByLabelText("Time they came in"), "13:30");
+    expect(screen.getByText(/25 minutes or more late/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Complete visit" })).toBeEnabled();
+    await user.click(screen.getByRole("button", { name: "Cancel the visit (late)" }));
+    expect(onCancelLate).toHaveBeenCalled();
+  });
+
+  it("asks for the nail photos when a visit was completed without them", () => {
+    renderForm(visit({ status: "COMPLETED", completion: { balance_amount: 1000, payment_method: "Cash", nailist_id: 1, nailist_name: "Miss Max", photos_added: 0 } }));
+    expect(screen.getByText(/Nail photos still to add/)).toBeInTheDocument();
   });
 
   it("shows what was recorded once completed, with Edit reopening the form", async () => {

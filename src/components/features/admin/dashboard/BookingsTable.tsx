@@ -29,8 +29,9 @@ const STATUS: Record<string, { label: string; className: string }> = {
   CANCELLED: { label: "Cancelled", className: "bg-danger/15 text-gray-red" },
   CANCELED: { label: "Cancelled", className: "bg-danger/15 text-gray-red" },
   REFUNDED: { label: "Refunded", className: "bg-danger/15 text-gray-red" },
+  NO_SHOW: { label: "No-show", className: "bg-danger/15 text-gray-red" },
 };
-const CANCELLED = ["CANCELLED", "CANCELED", "REFUNDED"];
+const CANCELLED = ["CANCELLED", "CANCELED", "REFUNDED", "NO_SHOW"];
 // Still to come: not cancelled, refunded or completed
 const UPCOMING = ["PENDING", "AWAITING_PROOF", "AWAITING_CONFIRMATION", "CONFIRMED"];
 const statusOf = (a: Appointment) => (a.status ?? "").trim().toUpperCase();

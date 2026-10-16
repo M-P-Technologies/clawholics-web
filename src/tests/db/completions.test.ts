@@ -169,6 +169,47 @@ describe.skipIf(!TEST_DATABASE_URL)("completing a visit (Postgres)", () => {
     });
 
     await complete(id, { balance_amount: "1300", payment_method: "Maya", nailist_id: String(jun) });
-    expect((await clientRow(id)).completion).toEqual({ balance_amount: 1300, payment_method: "Maya", nailist_id: jun, nailist_name: "Jun" });
+    expect((await clientRow(id)).completion).toEqual({ balance_amount: 1300, payment_method: "Maya", nailist_id: jun, nailist_name: "Jun", arrived_at: null, late_fee: 0, photos_added: 0 });
+  });
+
+  it("records when the client arrived and the late fee the terms set", async () => {
+    const id = await appt("CONFIRMED");
+    const saved = await complete(id, { balance_amount: "1200", payment_method: "Cash", nailist_id: String(maxine), arrived_at: "13:17" });
+    expect(saved.status).toBe(200);
+    expect(await db`select arrived_at, late_fee from visit_completions where appointment_id = ${id}`).toEqual([{ arrived_at: "13:17", late_fee: 100 }]);
+    expect((await complete(id, { balance_amount: "1200", payment_method: "Cash", nailist_id: String(maxine), arrived_at: "25:00" })).status).toBe(400);
+    expect((await complete(id, { balance_amount: "1100", payment_method: "Cash", nailist_id: String(maxine), arrived_at: "" })).status).toBe(200);
+    expect(await db`select arrived_at, late_fee from visit_completions where appointment_id = ${id}`).toEqual([{ arrived_at: null, late_fee: 0 }]);
+  });
+
+  it("photos can come later: a completion without them is a visit with photos to add, until some are added", async () => {
+    const { buildDashboard } = await import("../../server/dashboard");
+    const id = await appt("CONFIRMED");
+    const before = (await buildDashboard("month")).attention.photosToAdd;
+    await complete(id, { balance_amount: "0", payment_method: "Cash", nailist_id: String(maxine) });
+    expect((await buildDashboard("month")).attention.photosToAdd).toBe(before + 1);
+    as("user_admin");
+    const list = await callRoute(booking.listAllAppointments, "/api/booking/appointments?page=1&pageSize=50&complete=photos");
+    expect(list.body.rows.map((r: { id: number }) => r.id)).toContain(id);
+
+    await complete(id, { balance_amount: "0", payment_method: "Cash", nailist_id: String(maxine) }, 2);
+    expect(await db`select photos_added from visit_completions where appointment_id = ${id}`).toEqual([{ photos_added: 2 }]);
+    expect((await buildDashboard("month")).attention.photosToAdd).toBe(before);
+  });
+
+  it("marks a confirmed visit as a no-show (the downpayment is kept), and counts it on the client page", async () => {
+    const id = await appt("CONFIRMED");
+    const pending = await appt("PENDING");
+    as("user_admin");
+    const patch = (appointmentId: number) =>
+      callRoute(booking.updateAppointmentStatus, "/x", { method: "PATCH", body: { status: "NO_SHOW" }, params: { id: String(appointmentId) } });
+    expect((await patch(id)).status).toBe(200);
+    expect((await db`select status from appointments where id = ${id}`)[0].status).toBe("NO_SHOW");
+    const refused = await patch(pending);
+    expect(refused.status).toBe(409);
+    expect(refused.body.code).toBe("NOT_CONFIRMED");
+    as("user_admin");
+    const page = await callRoute(clients.getClient, "/x", { params: { id: String(ana) } });
+    expect(page.body.summary.noShows).toBeGreaterThanOrEqual(1);
   });
 });

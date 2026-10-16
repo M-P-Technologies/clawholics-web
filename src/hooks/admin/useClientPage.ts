@@ -10,7 +10,7 @@ import { useParams } from "../../lib/router";
 import { useStampTarget } from "../useStampTarget";
 import { addNote, deleteNote, saveNextSteps, type ClientDetails, type ClientNote } from "../../services/clientNotesService";
 import { setReviewApproval } from "../../services/reviewService";
-import { updateAppointmentStatus } from "../../services/appointmentService";
+import { updateAppointmentStatus, type AppointmentStatus } from "../../services/appointmentService";
 
 /** The note being written about one appointment */
 export interface VisitDraft {
@@ -97,12 +97,19 @@ export function useClientPage() {
       current && { ...current, appointments: current.appointments.map((a) => (a.review_id === reviewId ? { ...a, review_approved: approved ? 1 : 0 } : a)) },
     );
   };
-  /** Confirms a booking paid online: approves the client's screenshot, emails the client */
-  const confirmBooking = async (appointmentId: number) => {
-    if (await run(async () => updateAppointmentStatus(appointmentId, "CONFIRMED", await getToken(), user?.id), "Booking confirmed")) {
+  // A status change from the tracker, then everything that shows it loads again
+  const changeStatus = async (appointmentId: number, status: AppointmentStatus, done: string, options: { withoutScreenshot?: boolean } = {}) => {
+    if (await run(async () => updateAppointmentStatus(appointmentId, status, await getToken(), user?.id, options), done)) {
       await adminDataChanged(queryClient);
     }
   };
+  /** Confirms a booking paid online: approves the client's screenshot (or, with withoutScreenshot, goes without), emails the client */
+  const confirmBooking = (appointmentId: number, options: { withoutScreenshot?: boolean } = {}) =>
+    changeStatus(appointmentId, "CONFIRMED", "Booking confirmed", options);
+  /** The client didn't come (the downpayment is kept) */
+  const markNoShow = (appointmentId: number) => changeStatus(appointmentId, "NO_SHOW", "Marked as a no-show");
+  /** Cancelled for coming 25+ minutes late (the downpayment is kept) */
+  const cancelLate = (appointmentId: number) => changeStatus(appointmentId, "CANCELLED", "Visit cancelled for coming late");
   const saveSteps = () =>
     run(async () => {
       await saveNextSteps(clientId, steps, await auth());
@@ -138,6 +145,8 @@ export function useClientPage() {
     /** The artists, for the Complete visit form's "Done by" */
     artists: (artistsQuery.data ?? []).map((n) => ({ id: n.id, name: n.name })),
     confirmBooking,
+    markNoShow,
+    cancelLate,
     highlight: nextVisitHighlight(nextAppointment),
     panelRows: details ? clientPanelRows(details) : [],
     /** Notes about the client in general, and those about one visit with what they're about */

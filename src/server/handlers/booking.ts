@@ -279,6 +279,7 @@ export const listAllAppointments = ported(async (req) => {
     statuses: statuses ?? [],
     proofToReview: params.get("proof") === "review",
     toComplete: params.get("complete") === "due",
+    photosToAdd: params.get("complete") === "photos",
     on,
     from,
     artist: params.get("artist")?.trim() || null,
@@ -311,7 +312,7 @@ export const updateAppointmentStatus = ported<IdContext>(async (req, { params })
   if (admin instanceof Response) return admin;
   const id = toId((await params).id);
   if (id === null) return routeNotFound();
-  const { status } = await readJson<{ status?: unknown }>(req);
+  const { status, without_screenshot } = await readJson<{ status?: unknown; without_screenshot?: unknown }>(req);
   const upperStatus = String(status || "").trim().toUpperCase();
   const sql = getSql();
   const [current] = await sql<{ status: string | null }[]>`select status from appointments where id = ${id}`;
@@ -325,9 +326,17 @@ export const updateAppointmentStatus = ported<IdContext>(async (req, { params })
       { status: 409 },
     );
   }
+  // A no-show is a confirmed visit the client didn't come to (the downpayment is kept)
+  if (upperStatus === "NO_SHOW" && was !== "CONFIRMED" && was !== "NO_SHOW") {
+    return Response.json(
+      { error: true, code: "NOT_CONFIRMED", message: "Only a confirmed visit can be marked as a no-show." },
+      { status: 409 },
+    );
+  }
   // Confirming a booking paid online needs the client's screenshot of the payment; confirming
   // approves it
-  const confirmingPaid = upperStatus === "CONFIRMED" && was === "AWAITING_CONFIRMATION";
+  // "Allow anyway": the admin checked the payment arrived though the client sent no screenshot
+  const confirmingPaid = upperStatus === "CONFIRMED" && was === "AWAITING_CONFIRMATION" && without_screenshot !== true;
   const proof = confirmingPaid ? await usableProof(id) : null;
   if (confirmingPaid && !proof) {
     return Response.json(

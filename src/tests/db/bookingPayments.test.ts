@@ -588,6 +588,18 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
         await Promise.all(background);
       });
 
+      it("an admin can confirm without a screenshot when they've checked the payment arrived (Allow anyway)", async () => {
+        const id = await paidOnline("user_a");
+        as("user_admin");
+        const res = await callRoute(booking.updateAppointmentStatus, "/x", {
+          method: "PATCH", body: { status: "CONFIRMED", without_screenshot: true }, params: { id: String(id) },
+        });
+        expect(res.status).toBe(200);
+        expect(await statusOf(id)).toBe("CONFIRMED");
+        // only for a booking paid online: an unpaid one still can't be confirmed this way past its checks
+        await Promise.all(background);
+      });
+
       it("PATCH status to COMPLETED is refused", async () => {
         const id = await paidOnline("user_a");
         await upload("user_a", id);

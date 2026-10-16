@@ -8,6 +8,11 @@ export interface Completion {
   payment_method: BalanceMethod;
   nailist_id: number;
   nailist_name?: string | null;
+  /** When the client came in ("13:17"), and the late fee the terms set */
+  arrived_at?: string | null;
+  late_fee?: number;
+  /** Nail photos added to the gallery; 0 means they're still to add */
+  photos_added?: number;
 }
 
 /** What completing a visit needs to know about it */
@@ -15,6 +20,8 @@ export interface VisitToComplete {
   id: number;
   status: string;
   appointment_date: string;
+  /** "13:00-15:00", for how late the client came */
+  appointment_time: string;
   nailist_id: number | null;
   /** The booked service's menu price with the booked artist */
   price: number | null;
@@ -27,6 +34,8 @@ export interface CompletionForm {
   balance_amount: number;
   payment_method: BalanceMethod;
   nailist_id: number;
+  /** "13:17", or empty when they came on time */
+  arrived_at: string;
   photos: File[];
 }
 
@@ -36,6 +45,7 @@ export const saveCompletion = async (appointmentId: number, form: CompletionForm
   body.set("balance_amount", String(form.balance_amount));
   body.set("payment_method", form.payment_method);
   body.set("nailist_id", String(form.nailist_id));
+  body.set("arrived_at", form.arrived_at);
   for (const photo of form.photos) body.append("file", await compressImageToWebp(photo, PHOTO_UPLOAD_OPTIONS));
   return call<{ completion: Completion; photos: number }>(`/appointments/${appointmentId}/completion`, { method: "PUT", body }, auth);
 };

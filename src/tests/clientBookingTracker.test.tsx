@@ -16,13 +16,13 @@ const appt = (over: Partial<ClientAppointment> = {}): ClientAppointment => ({
   nailist_id: 2, status: "CONFIRMED", price: 1500, paid_downpayment: 500, expected_balance: 1100, completion: null,
   payment_status: "PAID", proof_status: "APPROVED", proof_image_url: "https://img/s.webp", ...over,
 });
-const renderTracker = (a: ClientAppointment, onConfirm = vi.fn()) => {
+const renderTracker = (a: ClientAppointment, onConfirm = vi.fn(), onNoShow = vi.fn()) => {
   render(
     <QueryClientProvider client={new QueryClient()}>
-      <BookingTracker appointments={[a]} today="2026-01-10" artists={ARTISTS} onConfirm={onConfirm} />
+      <BookingTracker appointments={[a]} today="2026-01-10" artists={ARTISTS} onConfirm={onConfirm} onNoShow={onNoShow} onCancelLate={vi.fn()} />
     </QueryClientProvider>,
   );
-  return { onConfirm, user: userEvent.setup() };
+  return { onConfirm, onNoShow, user: userEvent.setup() };
 };
 const step = (title: string) => screen.getAllByRole("listitem").find((li) => li.textContent?.includes(`${title}:`))!;
 
@@ -44,6 +44,21 @@ describe("the client page's booking tracker", () => {
     expect(within(confirmed).getByRole("button", { name: "Confirm booking" })).toBeDisabled();
     expect(within(confirmed).getByText("Waiting for the client's payment screenshot.")).toBeInTheDocument();
     expect(within(step("Downpayment")).getByText("None yet")).toBeInTheDocument();
+  });
+
+  it("can confirm anyway, after a confirming click, when the payment came through without a screenshot", async () => {
+    const { user, onConfirm } = renderTracker(appt({ status: "AWAITING_CONFIRMATION", proof_status: null, proof_image_url: null }));
+    await user.click(within(step("Confirmed")).getByRole("button", { name: "Allow anyway" }));
+    const dialog = screen.getByRole("alertdialog", { name: "Confirm without a screenshot?" });
+    await user.click(within(dialog).getByRole("button", { name: "Confirm booking" }));
+    expect(onConfirm).toHaveBeenCalledWith(7, { withoutScreenshot: true });
+  });
+
+  it("marks a confirmed visit as a no-show, after a confirming click", async () => {
+    const { user, onNoShow } = renderTracker(appt());
+    await user.click(within(step("Completed")).getByRole("button", { name: "Didn't show up" }));
+    await user.click(within(screen.getByRole("alertdialog", { name: "Mark as a no-show?" })).getByRole("button", { name: "Mark as no-show" }));
+    expect(onNoShow).toHaveBeenCalledWith(7);
   });
 
   it("offers the Complete visit form on the Completed step of a confirmed visit", () => {

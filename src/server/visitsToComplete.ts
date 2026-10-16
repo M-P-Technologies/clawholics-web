@@ -23,6 +23,10 @@ export function TO_COMPLETE_SQL(alias: string, today: string, clock: string): st
   return `(upper(trim(${alias}.status)) = 'CONFIRMED' and (${alias}.appointment_date < '${today}' or (${alias}.appointment_date = '${today}' and ${end} <= '${clock}')))`;
 }
 
+/** SQL: a completed visit whose record has no nail photos yet (they can be added later) */
+export const PHOTOS_TO_ADD_SQL = (alias: string) =>
+  `(upper(trim(${alias}.status)) = 'COMPLETED' and exists (select 1 from visit_completions vc where vc.appointment_id = ${alias}.id and vc.photos_added = 0))`;
+
 const MANILA_MS = 8 * 3600 * 1000;
 /** Today and the time in Manila, as TO_COMPLETE_SQL takes them */
 export function manilaNow(now: Date = new Date()) {

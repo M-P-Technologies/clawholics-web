@@ -83,7 +83,7 @@ export interface ClientAppointment {
 }
 export interface ClientDetails {
   client: ClientProfile;
-  summary: { visits: number; totalSpent: number; lastVisit: string | null; nextVisit: string | null; stamps: number };
+  summary: { visits: number; totalSpent: number; lastVisit: string | null; nextVisit: string | null; stamps: number; /** Confirmed visits they didn't come to */ noShows?: number };
   appointments: ClientAppointment[];
 }
 

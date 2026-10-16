@@ -13,7 +13,9 @@ export type AppointmentStatus =
   | "CONFIRMED"
   | "COMPLETED"
   | "CANCELLED"
-  | "REFUNDED";
+  | "REFUNDED"
+  /** A confirmed visit the client didn't come to (the downpayment is kept) */
+  | "NO_SHOW";
 
 export interface Appointment {
   id: number;
@@ -60,6 +62,8 @@ export interface AppointmentPageParams {
   proofToReview?: boolean;
   /** Only confirmed visits that are over, waiting to be completed */
   toComplete?: boolean;
+  /** Only completed visits whose nail photos are still to add */
+  photosToAdd?: boolean;
   /** Only this day, or this day and later (YYYY-MM-DD) */
   on?: string;
   from?: string;
@@ -89,6 +93,7 @@ export const fetchAppointmentPage = async (
   if (params.statuses?.length) query.set("status", params.statuses.join(","));
   if (params.proofToReview) query.set("proof", "review");
   if (params.toComplete) query.set("complete", "due");
+  if (params.photosToAdd) query.set("complete", "photos");
   if (params.on) query.set("on", params.on);
   if (params.from) query.set("from", params.from);
   if (params.artist) query.set("artist", params.artist);
@@ -159,12 +164,14 @@ export const updateAppointmentStatus = async (
   id: number,
   status: AppointmentStatus,
   token?: string | null,
-  clerkId?: string | null
+  clerkId?: string | null,
+  /** withoutScreenshot: "Allow anyway", confirming a paid booking whose client sent no screenshot */
+  options: { withoutScreenshot?: boolean } = {},
 ): Promise<Appointment> => {
   const res = await fetch(`${BASE_URL}/${id}/status`, {
     method: "PATCH",
     headers: getHeaders(token, clerkId),
-    body: JSON.stringify({ status }),
+    body: JSON.stringify(options.withoutScreenshot ? { status, without_screenshot: true } : { status }),
   });
 
   if (!res.ok) {

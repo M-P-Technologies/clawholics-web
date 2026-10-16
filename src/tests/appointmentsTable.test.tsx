@@ -87,7 +87,7 @@ describe("Appointments table", () => {
       pageSize: 5,
       proofToReview: true,
       sort: "upcoming",
-      statuses: ["PENDING", "AWAITING_PROOF", "AWAITING_CONFIRMATION", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUNDED"],
+      statuses: ["PENDING", "AWAITING_PROOF", "AWAITING_CONFIRMATION", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUNDED", "NO_SHOW"],
     });
   });
 
@@ -142,7 +142,7 @@ describe("Appointments table", () => {
     await user.click(screen.getByRole("button", { name: /Status of appointment #2/ }));
     expect(screen.getByRole("option", { name: "Awaiting proof" })).toBeInTheDocument();
     await user.click(screen.getByRole("option", { name: "Confirmed" }));
-    await waitFor(() => expect(updateAppointmentStatus).toHaveBeenCalledWith(2, "CONFIRMED", "tok", "admin_1"));
+    await waitFor(() => expect(updateAppointmentStatus).toHaveBeenCalledWith(2, "CONFIRMED", "tok", "admin_1", {}));
     expect(show).toHaveBeenCalledWith("success", "Appointment updated", "Appointment #2 is now confirmed.");
   });
 

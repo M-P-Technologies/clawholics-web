@@ -2,7 +2,7 @@ import "server-only";
 import { getSql } from "./db";
 import { SERVICE_PRICE_SQL } from "./appointments";
 import { PROOF_TO_REVIEW_SQL } from "./proofRules";
-import { TO_COMPLETE_SQL } from "./visitsToComplete";
+import { PHOTOS_TO_ADD_SQL, TO_COMPLETE_SQL } from "./visitsToComplete";
 import {
   LAPSED_DAYS, addDays, manilaClock, manilaToday, monthKeys, resolvePeriod,
   type DashboardRange, type Span,
@@ -14,9 +14,10 @@ import type { DashboardResponse } from "../services/dashboardTypes";
 // created_at is UTC, so it is shifted to Manila's day (+8h) before it is compared.
 const LOCAL_DATE = (column: string) => `to_char(${column}::timestamp + interval '8 hours', 'YYYY-MM-DD')`;
 
-const CANCELLED = "('CANCELLED','CANCELED','REFUNDED')";
+// A no-show counts with the cancellations: the visit didn't happen
+const CANCELLED = "('CANCELLED','CANCELED','REFUNDED','NO_SHOW')";
 const BOOKED = "('CONFIRMED','COMPLETED')";
-const DECIDED = "('CONFIRMED','COMPLETED','CANCELLED','CANCELED','REFUNDED')";
+const DECIDED = "('CONFIRMED','COMPLETED','CANCELLED','CANCELED','REFUNDED','NO_SHOW')";
 
 // The appointments with a normalised status, a price, and who the client is. The shared
 // walk-in guest (clients without an account) is flagged so client metrics can skip it.
@@ -189,13 +190,14 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
                 count(*) filter (where action = 'redeem')::int as redeemed
          from scan_history where ${LOCAL_DATE("created_at")} between $1 and $2`, p),
       // One pass over the appointments (#25), with the screenshot and visit-to-complete rules
-      one<{ today: number; unpaid: number; proofs_to_review: number; to_confirm: number; to_complete: number }>(
+      one<{ today: number; unpaid: number; proofs_to_review: number; to_confirm: number; to_complete: number; photos_to_add: number }>(
         `select
            count(*) filter (where a.appointment_date = $1 and upper(trim(a.status)) = 'CONFIRMED')::int as today,
            count(*) filter (where upper(trim(a.status)) = 'PENDING')::int as unpaid,
            count(*) filter (where upper(trim(a.status)) = 'AWAITING_CONFIRMATION')::int as to_confirm,
            count(*) filter (where ${PROOF_TO_REVIEW_SQL("a")})::int as proofs_to_review,
-           count(*) filter (where ${TO_COMPLETE_SQL("a", today, manilaClock(now))})::int as to_complete
+           count(*) filter (where ${TO_COMPLETE_SQL("a", today, manilaClock(now))})::int as to_complete,
+           count(*) filter (where ${PHOTOS_TO_ADD_SQL("a")})::int as photos_to_add
          from appointments a`, [today]),
       one<{ n: number }>(
         `${APPT} select count(*)::int as n
@@ -328,7 +330,7 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
     },
     trend,
     loyalty,
-    attention: { today: attention.today, proofsToReview: attention.proofs_to_review, toConfirm: attention.to_confirm, toComplete: attention.to_complete, unpaid: attention.unpaid, warmLeads: warm.n },
+    attention: { today: attention.today, proofsToReview: attention.proofs_to_review, toConfirm: attention.to_confirm, toComplete: attention.to_complete, photosToAdd: attention.photos_to_add, unpaid: attention.unpaid, warmLeads: warm.n },
     money: {
       balanceAtSalon: { value: current.balanceAtSalon, previous: before.balanceAtSalon },
       returningRevenue: { value: current.returningRevenue, previous: before.returningRevenue },
