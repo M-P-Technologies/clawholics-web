@@ -8,6 +8,7 @@ import { Dialog } from "@/components/organisms";
 import { SummaryRow } from "@/components/molecules";
 import ClientNotesPanel from "@/components/features/admin/clients/ClientNotesPanel";
 import ProofReviewPanel from "@/components/features/admin/bookings/ProofReviewPanel";
+import CompleteVisitForm from "@/components/features/admin/bookings/CompleteVisitForm";
 
 interface AppointmentDetailsModalProps {
   appointment: Appointment;
@@ -17,9 +18,13 @@ interface AppointmentDetailsModalProps {
   tokenFetcher?: () => Promise<string | null>;
   clerkId?: string | null;
   onProofReviewed?: () => void;
+  /** The artists, for the Complete visit form. Without them the form is left out. */
+  artists?: { id: number; name: string }[];
 }
 
 const statusOptions: AppointmentStatus[] = ["PENDING", "AWAITING_PROOF", "AWAITING_CONFIRMATION", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUNDED"];
+// Completed is set by completing the visit (its form), so it's only listed while it's the status
+const statusChoices = (current: AppointmentStatus) => statusOptions.filter((s) => s !== "COMPLETED" || current === "COMPLETED");
 
 const STATUS_PILL: Record<string, string> = {
   CONFIRMED: "bg-crimson-light/50 text-berry",
@@ -43,11 +48,13 @@ const dateLabel = (ymd?: string) => {
 // One appointment's details, in a modal on a computer and a bottom sheet below `lg` (as in the
 // client app): the client, the appointment (with its status), the
 // payment, the proof review and the private notes. The Dialog handles focus, Escape and a click outside.
-const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFetcher, clerkId, onProofReviewed }: AppointmentDetailsModalProps) => {
+const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFetcher, clerkId, onProofReviewed, artists }: AppointmentDetailsModalProps) => {
   const titleId = useId();
   const customerName = `${appointment.first_name ?? ""} ${appointment.last_name ?? ""}`.trim() || `User #${appointment.user_id}`;
   const currentStatus = (appointment.status?.trim().toUpperCase() || "PENDING") as AppointmentStatus;
   const showProofPanel = currentStatus === "AWAITING_PROOF" || Boolean(appointment.latest_proof);
+  // Confirming a booking paid online needs the client's screenshot (pending or approved)
+  const hasScreenshot = appointment.latest_proof?.status === "PENDING" || appointment.latest_proof?.status === "APPROVED";
   // Walk-in bookings have no real client account, so there is nobody to keep notes on.
   const isWalkin = Boolean(appointment.is_walkin);
 
@@ -106,7 +113,7 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
                 value={currentStatus}
                 onChange={(e) => onStatusChange(appointment.id, e.target.value as AppointmentStatus)}
               >
-                {statusOptions.map((status) => (
+                {statusChoices(currentStatus).map((status) => (
                   <option key={status} value={status}>
                     {label(status)}
                   </option>
@@ -120,9 +127,15 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
           {currentStatus === "AWAITING_CONFIRMATION" && (
             <div role="group" aria-label="Confirm this booking" className="flex flex-col gap-3 rounded-xl border border-warning/40 bg-warning/10 p-3">
               <p className="text-sm text-gray-red">
-                The client paid the downpayment online. Confirm the booking to let them know it&apos;s set: they get the confirmation email then.
+                The client paid the downpayment online. Check their screenshot of the payment, then confirm the booking to let them know it&apos;s set: they get the confirmation email then.
               </p>
-              <Button type="button" onClick={() => onStatusChange(appointment.id, "CONFIRMED")} className="w-full sm:w-auto sm:self-start">
+              {!hasScreenshot && <p className="text-sm font-bold text-warning-ink">Waiting for the client&apos;s payment screenshot.</p>}
+              <Button
+                type="button"
+                disabled={!hasScreenshot}
+                onClick={() => onStatusChange(appointment.id, "CONFIRMED")}
+                className="w-full sm:w-auto sm:self-start"
+              >
                 Confirm booking
               </Button>
             </div>
@@ -134,6 +147,26 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
             <SummaryRow label="Method" value={appointment.payment_method || "No payment method"} />
             <SummaryRow label="Reference" value={appointment.payment_reference || "No reference"} />
           </Section>
+
+          {/* Completing the visit here too: a walk-in guest has no client page */}
+          {artists && (currentStatus === "CONFIRMED" || currentStatus === "COMPLETED") && (
+            <Section title="Visit">
+              <CompleteVisitForm
+                key={`${appointment.id}-${currentStatus}`}
+                visit={{
+                  id: appointment.id,
+                  status: currentStatus,
+                  appointment_date: appointment.appointment_date,
+                  nailist_id: appointment.nailist_id ?? null,
+                  price: appointment.service_price ?? null,
+                  paid_downpayment: appointment.paid_downpayment ?? 0,
+                  completion: appointment.completion ?? null,
+                }}
+                artists={artists}
+                onSaved={onClose}
+              />
+            </Section>
+          )}
 
           {tokenFetcher && showProofPanel && (
             <ProofReviewPanel

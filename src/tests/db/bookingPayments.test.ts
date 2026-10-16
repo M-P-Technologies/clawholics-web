@@ -425,6 +425,8 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       // Paid, but only the salon confirms a booking
       expect(await statusOf(body.appointment_id)).toBe("AWAITING_CONFIRMATION");
 
+      // The client's screenshot of the payment, which confirming needs
+      await db`insert into payment_proofs (appointment_id, user_id, image_url) select id, user_id, 'x' from appointments where id = ${body.appointment_id}`;
       as("user_admin");
       const confirmed = await callRoute(booking.updateAppointmentStatus, "/x", { method: "PATCH", body: { status: "CONFIRMED" }, params: { id: String(body.appointment_id) } });
       expect(confirmed.status).toBe(200);
@@ -441,9 +443,11 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       }
     });
 
+    // A real PNG signature: uploads check the first bytes, not just the type
+    const PNG_BYTES = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, ...new Array(92).fill(0)]);
     const proofForm = (appointmentId: number) => {
       const form = new FormData();
-      form.set("file", new File([new Uint8Array(100)], "proof.png", { type: "image/png" }));
+      form.set("file", new File([PNG_BYTES], "proof.png", { type: "image/png" }));
       form.set("appointment_id", String(appointmentId));
       return form;
     };
@@ -484,6 +488,128 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       await webhook("cb-token", { external_id: invoice.body.external_id, status: "PAID" });
       expect((await db`select status from payments where external_id = ${invoice.body.external_id}`)[0].status).toBe("FAILED");
       await Promise.all(background);
+    });
+
+    describe("payment screenshots for bookings paid online", () => {
+      // Booked and paid through Xendit, with the payment-proof option switched off
+      const paidOnline = async (clerkId: string) => {
+        await db`update site_settings set value = '["GCASH"]' where key = 'payment_methods'`;
+        const { body } = await book(clerkId, nextDate());
+        as(clerkId);
+        const invoice = await callRoute(payments.createPayment, "/api/payment/create", { method: "POST", body: { appointment_id: body.appointment_id, payment_method: "GCASH" } });
+        await webhook("cb-token", { external_id: invoice.body.external_id, status: "PAID" });
+        expect(await statusOf(body.appointment_id)).toBe("AWAITING_CONFIRMATION");
+        await Promise.all(background);
+        return body.appointment_id as number;
+      };
+      const upload = (clerkId: string, id: number) => {
+        as(clerkId);
+        return callRoute(payments.uploadPaymentProof, "/api/payment/proofs", { method: "POST", body: proofForm(id) });
+      };
+      const review = (proofId: number, status: string) => {
+        as("user_admin");
+        return callRoute(payments.reviewPaymentProof, "/x", { method: "PUT", body: { status }, params: { id: String(proofId) } });
+      };
+      const setStatus = (id: number, status: string) => {
+        as("user_admin");
+        return callRoute(booking.updateAppointmentStatus, "/x", { method: "PATCH", body: { status }, params: { id: String(id) } });
+      };
+      const paymentCount = async (id: number) => (await db<{ n: number }[]>`select count(*)::int as n from payments where appointment_id = ${id}`)[0].n;
+
+      it("the client can upload a screenshot for a booking awaiting confirmation, with MANUAL off", async () => {
+        const id = await paidOnline("user_a");
+        await db`delete from admin_notifications`;
+        const uploaded = await upload("user_a", id);
+        expect(uploaded.status).toBe(201);
+        await Promise.all(background);
+        expect(await db`select kind from admin_notifications where appointment_id = ${id}`).toEqual([{ kind: "proof_uploaded" }]);
+      });
+
+      it("approving the screenshot of a booking awaiting confirmation confirms it without a new payment", async () => {
+        const id = await paidOnline("user_a");
+        const before = await paymentCount(id);
+        const uploaded = await upload("user_a", id);
+        const approved = await review(uploaded.body.id, "APPROVED");
+        expect(approved.status).toBe(200);
+        expect(approved.body.status).toBe("APPROVED");
+        expect(await statusOf(id)).toBe("CONFIRMED");
+        expect(await paymentCount(id)).toBe(before);
+        await Promise.all(background);
+      });
+
+      it("rejecting a screenshot keeps the booking awaiting confirmation and allows a new upload", async () => {
+        const id = await paidOnline("user_a");
+        const uploaded = await upload("user_a", id);
+        expect((await review(uploaded.body.id, "REJECTED")).status).toBe(200);
+        expect(await statusOf(id)).toBe("AWAITING_CONFIRMATION");
+        expect((await upload("user_a", id)).status).toBe(201);
+        await Promise.all(background);
+      });
+
+      it("PATCH status AWAITING_CONFIRMATION → CONFIRMED is refused without a screenshot", async () => {
+        const id = await paidOnline("user_a");
+        const refused = await setStatus(id, "CONFIRMED");
+        expect(refused.status).toBe(409);
+        expect(refused.body.code).toBe("PROOF_REQUIRED");
+        expect(await statusOf(id)).toBe("AWAITING_CONFIRMATION");
+
+        const uploaded = await upload("user_a", id);
+        expect((await setStatus(id, "CONFIRMED")).status).toBe(200);
+        expect(await statusOf(id)).toBe("CONFIRMED");
+        expect((await db`select status from payment_proofs where id = ${uploaded.body.id}`)[0].status).toBe("APPROVED");
+        await Promise.all(background);
+      });
+
+      it("the client's own appointments carry the latest screenshot", async () => {
+        const users = await import("../../server/handlers/users");
+        const id = await paidOnline("user_a");
+        await upload("user_a", id);
+        as("user_a");
+        const mine = await callRoute(users.getUserAppointments, "/api/users/appointments?clerk_id=user_a");
+        const row = mine.body.find((a: { id: number }) => a.id === id);
+        expect(row.latest_proof).toMatchObject({ status: "PENDING", image_url: expect.stringContaining("payment-proofs/") });
+        await Promise.all(background);
+      });
+
+      it("doesn't confirm when the screenshot is rejected while confirming", async () => {
+        const id = await paidOnline("user_a");
+        const uploaded = await upload("user_a", id);
+        // Another admin rejects it just as this one confirms (the reviewer is looked up in between)
+        let calls = 0;
+        authMock.mockImplementation(async () => {
+          if (++calls === 2) await db`update payment_proofs set status = 'REJECTED' where id = ${uploaded.body.id}`;
+          return { userId: "user_admin" };
+        });
+        const res = await callRoute(booking.updateAppointmentStatus, "/x", { method: "PATCH", body: { status: "CONFIRMED" }, params: { id: String(id) } });
+        authMock.mockReset();
+        expect(res.status).toBe(409);
+        expect(res.body.code).toBe("PROOF_REQUIRED");
+        expect(await statusOf(id)).toBe("AWAITING_CONFIRMATION");
+        await Promise.all(background);
+      });
+
+      it("PATCH status to COMPLETED is refused", async () => {
+        const id = await paidOnline("user_a");
+        await upload("user_a", id);
+        await setStatus(id, "CONFIRMED");
+        const refused = await setStatus(id, "COMPLETED");
+        expect(refused.status).toBe(409);
+        expect(refused.body.code).toBe("USE_COMPLETION");
+        expect(await statusOf(id)).toBe("CONFIRMED");
+        await Promise.all(background);
+      });
+
+      it("proofs to review counts a pending proof on a PENDING (manual) booking", async () => {
+        const { buildDashboard } = await import("../../server/dashboard");
+        await db`update site_settings set value = '["GCASH","MANUAL"]' where key = 'payment_methods'`;
+        const { body } = await book("user_b", nextDate());
+        expect((await upload("user_b", body.appointment_id)).status).toBe(201);
+        as("user_admin");
+        const list = await callRoute(booking.listAllAppointments, "/api/booking/appointments?page=1&proof=review");
+        expect(list.body.rows.map((r: { id: number }) => r.id)).toContain(body.appointment_id);
+        expect((await buildDashboard("month")).attention.proofsToReview).toBeGreaterThanOrEqual(1);
+        await Promise.all(background);
+      });
     });
 
     it("TC-PAY-05: refund: unpaid → CANCELLED, manual payment 72h+ ahead → REFUNDED; owner only", async () => {

@@ -60,6 +60,7 @@ export default function SalonNotes({ data }: { data: DashboardResponse }) {
     { label: "Today's appointments", count: data.attention.today, to: "/schedule" },
     { label: "Bookings to confirm", count: data.attention.toConfirm, to: "/clients?status=AWAITING_CONFIRMATION" },
     { label: "Proofs to review", count: data.attention.proofsToReview, to: "/clients?status=PROOF_PENDING" },
+    { label: "Visits to complete", count: data.attention.toComplete, to: "/clients?status=TO_COMPLETE" },
     { label: "Pending payments", count: data.attention.unpaid, to: "/clients?status=PENDING" },
     { label: "Warm leads", count: data.attention.warmLeads, to: "/clients?view=leads" },
   ].filter((todo) => todo.count > 0);

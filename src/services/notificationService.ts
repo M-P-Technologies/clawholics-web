@@ -3,7 +3,7 @@ import { API_BASE_URL } from "../apiConfig";
 /** A new booking the admins hear about: paid online, or a payment proof sent for review */
 export interface AdminNotification {
   id: number;
-  kind: "booking_paid" | "proof_uploaded";
+  kind: "booking_paid" | "proof_uploaded" | "visit_to_complete";
   appointment_id: number | null;
   /** The booking's client (users.id), for the link to their page */
   client_user_id: number | null;

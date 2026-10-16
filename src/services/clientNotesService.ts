@@ -1,3 +1,4 @@
+import type { Completion } from "./completionService";
 // ADMIN ONLY. Private notes must never reach a client-facing page: do not
 // import this file from anything under pages/ or from a non-admin service.
 import { ApiError, call, type Auth } from "./catalogService";
@@ -57,8 +58,15 @@ export interface ClientAppointment {
   appointment_time: string;
   service_name: string;
   nailist_name: string;
+  nailist_id?: number | null;
   status: string;
   price: number | null;
+  /** For completing the visit: the downpayments paid, the balance the form starts with, and the record once completed */
+  paid_downpayment?: number;
+  expected_balance?: number;
+  completion?: Completion | null;
+  /** The latest payment screenshot */
+  proof_image_url?: string | null;
   /** For the booking tracker (server times, UTC "YYYY-MM-DD HH:MM:SS") */
   booked_at?: string | null;
   proof_sent_at?: string | null;

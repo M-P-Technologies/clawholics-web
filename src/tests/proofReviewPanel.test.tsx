@@ -117,3 +117,15 @@ describe("ProofReviewPanel", () => {
     expect(screen.getByRole("button", { name: "Confirm approve" })).toBeEnabled();
   });
 });
+
+describe("reviewing a screenshot of a payment made online", () => {
+  it("offers Approve while the booking waits for the salon, and for a manual booking still pending", async () => {
+    setup({ status: "AWAITING_CONFIRMATION", proofDueAt: null });
+    expect(await screen.findByRole("button", { name: /Approve/ })).toBeInTheDocument();
+  });
+
+  it("offers Approve for a proof on a PENDING booking", async () => {
+    setup({ status: "PENDING", proofDueAt: null });
+    expect(await screen.findByRole("button", { name: /Approve/ })).toBeInTheDocument();
+  });
+});

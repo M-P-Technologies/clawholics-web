@@ -24,7 +24,7 @@ vi.mock("@/components/features/admin/bookings/AppointmentDetailsModal", async ()
   return {
     default: ({ appointment, onClose, onStatusChange }: { appointment: Appointment; onClose: () => void; onStatusChange: (id: number, s: string) => void }) => (
       <Dialog open onClose={onClose} title="Appointment details" placement="drawer">
-        Details of #{appointment.id}
+        Details of #{appointment.id}, paid {appointment.paid_downpayment ?? "unknown"}
         <button onClick={() => onStatusChange(appointment.id, "CONFIRMED")}>Set confirmed</button>
       </Dialog>
     ),
@@ -71,7 +71,7 @@ describe("Appointments table", () => {
     expect(await screen.findByRole("table", { name: "Appointments" })).toBeInTheDocument();
     expect(rows()).toHaveLength(4);
     const headers = within(screen.getByRole("table", { name: "Appointments" })).getAllByRole("columnheader").map((h) => h.textContent);
-    expect(headers).toEqual(["Client", "Phone", "Joined", "Last active", "Visits", "Service", "Artist", "Date", "Time", "Status", "Manage"]);
+    expect(headers).toEqual(["Client", "Phone", "Joined", "Last active", "Visits", "Service", "Artist", "Date", "Time", "Proof", "Status", "Manage"]);
     expect(within(rows()[0]).getByText("Nov 20, 2026")).toBeInTheDocument();
     const table = within(screen.getByRole("table", { name: "Appointments" }));
     expect(table.getByText("Proof overdue")).toBeInTheDocument();
@@ -167,11 +167,10 @@ describe("Appointments table", () => {
     expect(drawer.compareDocumentPosition(alert.parentElement!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it("turns Manage off for a walk-in, who has no client page", async () => {
+  it("has no client page link for a walk-in, who has none", async () => {
     fetchAppointments.mockResolvedValue([appt(9, { first_name: "Walk", last_name: "In", email: "walkin-guest@clawholics.local", is_walkin: 1 })]);
     render(<AppointmentsTable />);
     await screen.findByRole("table", { name: "Appointments" });
-    expect(screen.getByRole("img", { name: "Walk-ins have no client page" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /client page/ })).toBeNull();
   });
 
@@ -245,5 +244,72 @@ describe("parseStatusParam", () => {
     expect(parseStatusParam("PROOF_PENDING")).toBe("PROOF_PENDING");
     expect(parseStatusParam("nope")).toBe("ALL");
     expect(parseStatusParam(null)).toBe("ALL");
+  });
+});
+
+describe("the payment screenshot column", () => {
+  it("shows the latest screenshot as a thumbnail that opens it, or None yet", async () => {
+    fetchAppointments.mockResolvedValue([
+      appt(1, { status: "AWAITING_CONFIRMATION", latest_proof: { id: 9, status: "PENDING", image_url: "https://img/s.webp", created_at: "2026-10-16T10:00:00Z" } }),
+      appt(2),
+    ]);
+    render(<AppointmentsTable />);
+    expect(await screen.findByRole("columnheader", { name: "Proof" })).toBeInTheDocument();
+    const thumb = screen.getByRole("button", { name: "View payment screenshot for appointment #1" });
+    expect(screen.getAllByText("None yet").length).toBeGreaterThan(0);
+    await userEvent.click(thumb);
+    expect(await screen.findByRole("img", { name: "Payment screenshot for appointment #1" })).toHaveAttribute("src", "https://img/s.webp");
+  });
+});
+
+describe("completing visits from the list", () => {
+  it("doesn't offer Completed in the status menu: a visit is completed with its form", async () => {
+    fetchAppointments.mockResolvedValue([appt(1)]);
+    render(<AppointmentsTable />);
+    await userEvent.click(await screen.findByRole("button", { name: "Status of appointment #1" }));
+    const options = screen.getAllByRole("option").map((o) => o.textContent);
+    expect(options).toContain("Confirmed");
+    expect(options).not.toContain("Completed");
+  });
+
+  it("opens a walk-in's details from Manage, since they have no client page", async () => {
+    fetchAppointments.mockResolvedValue([appt(5, { email: "walkin-guest@clawholics.local", first_name: "Walk", last_name: "In" })]);
+    render(<AppointmentsTable />);
+    await userEvent.click(await screen.findByRole("button", { name: "Open Walk In's appointment #5" }));
+    expect(await screen.findByText(/Details of #5/)).toBeInTheDocument();
+  });
+});
+
+describe("the visits to complete filter", () => {
+  it("opens on it from the dashboard's link, and asks the server for the visits that are over", async () => {
+    params = new URLSearchParams("status=TO_COMPLETE");
+    fetchAppointments.mockResolvedValue([appt(1)]);
+    render(<AppointmentsTable />);
+    await screen.findByRole("table", { name: "Appointments" });
+    expect(parseStatusParam("TO_COMPLETE")).toBe("TO_COMPLETE");
+    expect(fetchAppointmentPage).toHaveBeenLastCalledWith(expect.objectContaining({ toComplete: true, statuses: ["CONFIRMED"] }));
+  });
+});
+
+describe("after a status change from the drawer", () => {
+  const pendingProof = { id: 9, status: "PENDING" as const, image_url: "https://img/s.webp", created_at: "2026-10-16T10:00:00Z" };
+
+  it("keeps what the list knew about the booking (its downpayment), not just what the change answered", async () => {
+    fetchAppointments.mockResolvedValue([appt(1, { status: "AWAITING_CONFIRMATION", latest_proof: pendingProof, paid_downpayment: 500 })]);
+    updateAppointmentStatus.mockResolvedValue({ id: 1, status: "CONFIRMED" });
+    params = new URLSearchParams("status=ALL");
+    render(<AppointmentsTable />);
+    await userEvent.click(await screen.findByRole("button", { name: "Review the payment proof for appointment #1" }));
+    await userEvent.click(screen.getByRole("button", { name: "Set confirmed" }));
+    expect(await screen.findByText(/Details of #1, paid 500/)).toBeInTheDocument();
+  });
+
+  it("says why the server refused a change", async () => {
+    fetchAppointments.mockResolvedValue([appt(1, { status: "AWAITING_CONFIRMATION", latest_proof: pendingProof })]);
+    updateAppointmentStatus.mockRejectedValue(new Error(JSON.stringify({ error: true, code: "PROOF_REQUIRED", message: "The client hasn't sent a screenshot of their payment yet." })));
+    render(<AppointmentsTable />);
+    await userEvent.click(await screen.findByRole("button", { name: "Review the payment proof for appointment #1" }));
+    await userEvent.click(screen.getByRole("button", { name: "Set confirmed" }));
+    await waitFor(() => expect(show).toHaveBeenCalledWith("error", "Status not changed", "The client hasn't sent a screenshot of their payment yet."));
   });
 });

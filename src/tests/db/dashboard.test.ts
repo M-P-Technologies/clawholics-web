@@ -86,6 +86,8 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     await pay(a7, "PAID", "2026-09-14 05:00:00", "p6");
     await pay(a13, "PAID", "2026-09-20 05:00:00", "p7");
     await pay(a4, "PAID", "2026-10-31 16:30:00", "p8"); // 00:30 on 1 Nov in Manila: November
+    // a3 was completed with its balance recorded: 1,200 at the salon (so it sold for 500 + 1,200)
+    await db`insert into visit_completions (appointment_id, balance_amount, payment_method, nailist_id) values (${a3}, 1200, 'GCash', ${N1.id})`;
 
     const scan = (action: string, createdAt: string) =>
       db`insert into scan_history (admin_clerk_id, client_clerk_id, action, created_at) values ('user_admin', 'user_a', ${action}, ${createdAt})`;
@@ -118,11 +120,34 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     expect(d.period).toEqual({ from: "2026-10-01", to: "2026-10-31" });
     expect(d.previous).toEqual({ from: "2026-09-01", to: "2026-09-30" });
     expect(d.kpis).toEqual({
-      collected: { value: 2000, previous: 1000 }, // p1+p2+p3+p5; p6+p7 (p8 is November)
-      estimatedSales: { value: 3100, previous: 1700 }, // 800+500+1500+300; 500+1200 (+ a service with no price)
+      collected: { value: 2000, previous: 1000 }, // completed visits' downpayments, by visit date: p1+p2+p3+p8 (not p5, cancelled); p6+p7
+      // what completed visits sold for: the downpayment + the balance recorded (a3: 500 + 1,200),
+      // else the list price: 800+500+1700+300; 500+1200 (+ a service with no price)
+      estimatedSales: { value: 3300, previous: 1700 },
       bookings: { value: 7, previous: 3 }, // 4 completed + 3 confirmed; 3 completed
       newClients: { value: 2, previous: 1 }, // Ana, Bea (not the walk-in guest); Cara
     });
+  });
+
+  it("visits to complete: the list filter and the bell's notifications match the count", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(NOW);
+    try {
+      const booking = await import("../../server/handlers/booking");
+      as("user_admin");
+      const list = await callRoute(booking.listAllAppointments, "/api/booking/appointments?page=1&complete=due");
+      expect(list.body.rows.map((r: { appointment_time: string; status: string }) => [r.appointment_time, r.status])).toEqual([["09:00-10:00", "CONFIRMED"]]);
+
+      const visits = await import("../../server/visitsToComplete");
+      await db`delete from admin_notifications`;
+      await visits.recordVisitsToComplete(NOW); // the cutoff is after these visits: none
+      expect(await db`select 1 from admin_notifications`).toHaveLength(0);
+      await visits.recordVisitsToComplete(NOW, "2026-10-01");
+      await visits.recordVisitsToComplete(NOW, "2026-10-01");
+      expect(await db`select kind from admin_notifications`).toEqual([{ kind: "visit_to_complete" }]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("the month: rates, lapsed clients, loyalty and what needs attention", async () => {
@@ -130,15 +155,16 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     expect(d.rates.cancellation).toEqual({ value: 2 / 9, previous: 0 });
     expect(d.rates.conversion).toEqual({ value: 2 / 6, previous: 1 });
     expect(d.rates.returning).toEqual({ value: 1 / 3, previous: 0 });
-    expect(d.rates.averageSale).toEqual({ value: 775, previous: 567 });
+    expect(d.rates.averageSale).toEqual({ value: 825, previous: 567 });
     expect(d.lapsedClients).toBe(1); // Eve, last seen 1 June
     // everyone with a completed visit: Ana 800+1500, Bea 500, Cara 300+500, Dana 1200 (+ a service
     // with no price), Eve 800 = 5,600 over 5 clients; Eve has lapsed
-    expect(d.clientBase).toEqual({ clients: 5, lifetimeValue: 1120, churn: 1 / 5 });
+    expect(d.clientBase).toEqual({ clients: 5, lifetimeValue: 1160, churn: 1 / 5 });
     expect(d.loyalty).toEqual({ stamps: 3, redeemed: 1 });
-    // proofs to review: only an awaiting-proof booking whose latest upload is still pending (a12);
+    // proofs to review: a booking whose latest upload is still pending, paid by proof (a11, a12);
     // unpaid: bookings still PENDING (a11), the same list the Appointments filter shows
-    expect(d.attention).toEqual({ today: 2, proofsToReview: 1, toConfirm: 0, unpaid: 1, warmLeads: 0 });
+    // to complete: confirmed visits already over, the 09:00-10:00 one today (it's 10:00)
+    expect(d.attention).toEqual({ today: 2, proofsToReview: 2, unpaid: 1, toConfirm: 0, toComplete: 1, warmLeads: 0 });
     // leads: accounts made in the period; Ana and Bea both booked (September: Cara did)
     expect(d.rates.leadConversion).toEqual({ value: 1, previous: 1 });
     expect(d.leads).toEqual({ accounts: 2, booked: 2 });
@@ -185,7 +211,7 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     const d = await dashboard.buildDashboard("month", NOW);
     expect(d.sales.map((s) => [s.date, s.client_name, s.service_name, s.nailist_name, s.fee])).toEqual([
       ["2026-10-08", "Cara C", "Nail Art", "Jun", 300],
-      ["2026-10-06", "Ana A", "Soft Gel Extensions", "Maxine", 1500],
+      ["2026-10-06", "Ana A", "Soft Gel Extensions", "Maxine", 1700],
       ["2026-10-02", "Bea B", "Gel Manicure", "Jun", 500],
       ["2026-10-01", "Ana A", "Gel Manicure", "Maxine", 800],
     ]);
@@ -216,10 +242,11 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
   it("the month: money worked out from list prices and downpayments", async () => {
     const d = await dashboard.buildDashboard("month", NOW);
     expect(d.money).toEqual({
-      // completed visits' list price less their paid downpayments, never below 0 per visit:
-      // a1 800-500, a2 500-500, a3 1500-500, a4 300-500 (its downpayment was paid in November);
-      // September: a7 500-500, a13 1200-500, and the service with no price counts as 0
-      balanceAtSalon: { value: 1300, previous: 700 },
+      // the balance recorded when the visit was completed (a3: 1,200), else the list price less the
+      // paid downpayments, never below 0 per visit: a1 800-500, a2 500-500, a4 300-500 (its
+      // downpayment was paid in November); September: a7 500-500, a13 1200-500, and the service
+      // with no price counts as 0
+      balanceAtSalon: { value: 1500, previous: 700 },
       // completed visits by clients with a completed visit before the period: Cara's Nail Art
       // (she came in September); in September nobody had come before
       returningRevenue: { value: 300, previous: 0 },
@@ -242,7 +269,7 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     ]);
     expect(d.services).toEqual([
       { name: "Gel Manicure", bookings: 3, estimatedSales: 1300 },
-      { name: "Soft Gel Extensions", bookings: 2, estimatedSales: 1500 },
+      { name: "Soft Gel Extensions", bookings: 2, estimatedSales: 1700 },
       { name: "Nail Art", bookings: 2, estimatedSales: 300 },
     ]);
     expect(d.weekdays).toEqual([
@@ -263,13 +290,13 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     expect(month.granularity).toBe("day");
     expect(month.points).toHaveLength(14); // 1 to 14 Oct: the line stops today
     const day = (date: string) => month.points.find((p) => p.date === date);
-    expect(day("2026-10-01")).toMatchObject({ date: "2026-10-01", collected: 1000, estimatedSales: 800, bookings: 1, newClients: 1 }); // two payments and Bea, all 1 Oct in Manila
-    expect(day("2026-10-02")).toMatchObject({ date: "2026-10-02", collected: 500, estimatedSales: 500, bookings: 1, newClients: 0 });
-    expect(day("2026-10-03")).toMatchObject({ date: "2026-10-03", collected: 500, estimatedSales: 0, bookings: 0, newClients: 1 });
-    expect(day("2026-10-06")).toMatchObject({ estimatedSales: 1500, bookings: 1 });
-    expect(day("2026-10-08")).toMatchObject({ estimatedSales: 300, bookings: 1 });
+    expect(day("2026-10-01")).toMatchObject({ date: "2026-10-01", collected: 500, estimatedSales: 800, bookings: 1, newClients: 1 }); // a1's downpayment and Bea, 1 Oct in Manila
+    expect(day("2026-10-02")).toMatchObject({ date: "2026-10-02", collected: 500, estimatedSales: 500, bookings: 1, newClients: 0 }); // a2, though paid on 1 Oct
+    expect(day("2026-10-03")).toMatchObject({ date: "2026-10-03", collected: 0, estimatedSales: 0, bookings: 0, newClients: 1 }); // p3 was paid today, for a3 on the 6th
+    expect(day("2026-10-06")).toMatchObject({ collected: 500, estimatedSales: 1700, balanceAtSalon: 1200, bookings: 1 });
+    expect(day("2026-10-08")).toMatchObject({ collected: 500, estimatedSales: 300, bookings: 1 }); // p8, paid in November
     expect(day("2026-10-14")).toMatchObject({ bookings: 2, estimatedSales: 0 });
-    // the confirmed booking on 20 Oct and the payment that is 1 Nov in Manila are not in the line
+    // the confirmed booking on 20 Oct is not in the line
     expect(month.points.reduce((sum, p) => sum + p.bookings, 0)).toBe(6);
     expect(month.points.reduce((sum, p) => sum + p.collected, 0)).toBe(2000);
 
@@ -286,14 +313,14 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     expect(monthPoint("2026-03-01")).toMatchObject({ date: "2026-03-01", collected: 0, estimatedSales: 0, bookings: 0, newClients: 0 });
     expect(monthPoint("2026-06-01")).toMatchObject({ bookings: 1, estimatedSales: 800 });
     expect(monthPoint("2026-09-01")).toMatchObject({ date: "2026-09-01", collected: 1000, estimatedSales: 1700, bookings: 3, newClients: 1 });
-    expect(monthPoint("2026-10-01")).toMatchObject({ date: "2026-10-01", collected: 2000, estimatedSales: 3100, bookings: 6, newClients: 2 });
+    expect(monthPoint("2026-10-01")).toMatchObject({ date: "2026-10-01", collected: 2000, estimatedSales: 3300, bookings: 6, newClients: 2 });
   });
 
   it("the week runs Monday to Sunday and is compared with the week before", async () => {
     const d = await dashboard.buildDashboard("week", NOW);
     expect(d.period).toEqual({ from: "2026-10-12", to: "2026-10-18" });
     expect(d.kpis.bookings).toEqual({ value: 2, previous: 2 });
-    expect(d.kpis.estimatedSales).toEqual({ value: 0, previous: 1800 });
+    expect(d.kpis.estimatedSales).toEqual({ value: 0, previous: 2000 });
   });
 
   it("warm leads: accounts that haven't booked, active in the last 60 days, and the list behind them", async () => {
@@ -404,7 +431,7 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     expect(d.monthly.every((m) => m.completed === 0 && m.cancelled === 0)).toBe(true);
     expect(d.weekdays).toHaveLength(7);
     expect([d.services, d.artists, d.next]).toEqual([[], [], []]);
-    expect(d.attention).toEqual({ today: 0, proofsToReview: 0, toConfirm: 0, unpaid: 0, warmLeads: 0 });
+    expect(d.attention).toEqual({ today: 0, proofsToReview: 0, unpaid: 0, toConfirm: 0, toComplete: 0, warmLeads: 0 });
     expect(d.money).toEqual({
       balanceAtSalon: { value: 0, previous: 0 }, returningRevenue: { value: 0, previous: 0 }, lostToCancellations: { value: 0, previous: 0 },
       bookedAhead: { value: 0, visits: 0, days: expect.any(Array) },

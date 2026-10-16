@@ -3,8 +3,10 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import AppointmentDetailsModal from "@/components/features/admin/bookings/AppointmentDetailsModal";
 import type { Appointment } from "@/services/appointmentService";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 vi.mock("@/components/features/admin/clients/ClientNotesPanel", () => ({ default: () => <div>Private notes</div> }));
+vi.mock("@clerk/nextjs", () => ({ useAuth: () => ({ getToken: async () => "tok", userId: "admin_1" }) }));
 vi.mock("@/components/features/admin/bookings/ProofReviewPanel", () => ({ default: () => <div>Proof review</div> }));
 
 const appt = (over: Partial<Appointment> = {}): Appointment => ({
@@ -46,5 +48,66 @@ describe("appointment details drawer", () => {
     render(<AppointmentDetailsModal appointment={appt({ is_walkin: 1 })} onClose={vi.fn()} onStatusChange={vi.fn()} tokenFetcher={async () => "tok"} />);
     expect(screen.queryByRole("link", { name: /Client page/ })).toBeNull();
     expect(screen.queryByText("Private notes")).toBeNull();
+  });
+});
+
+describe("confirming a booking paid online", () => {
+  it("waits for the client's screenshot", () => {
+    render(<AppointmentDetailsModal appointment={appt({ status: "AWAITING_CONFIRMATION", latest_proof: null })} onClose={vi.fn()} onStatusChange={vi.fn()} />);
+    expect(screen.getByRole("button", { name: "Confirm booking" })).toBeDisabled();
+    expect(screen.getByText("Waiting for the client's payment screenshot.")).toBeInTheDocument();
+  });
+
+  it("confirms once the screenshot is in", async () => {
+    const onStatusChange = vi.fn();
+    render(
+      <AppointmentDetailsModal
+        appointment={appt({ status: "AWAITING_CONFIRMATION", latest_proof: { id: 9, status: "PENDING", image_url: "https://img/s.webp", created_at: "2026-10-16T10:00:00Z" } })}
+        onClose={vi.fn()}
+        onStatusChange={onStatusChange}
+      />,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Confirm booking" }));
+    expect(onStatusChange).toHaveBeenCalledWith(24, "CONFIRMED");
+  });
+});
+
+describe("completing a visit from the drawer", () => {
+  const withQueries = (ui: React.ReactNode) => render(<QueryClientProvider client={new QueryClient()}>{ui}</QueryClientProvider>);
+  const artists = [{ id: 1, name: "Miss Pring" }];
+
+  it("offers the Complete visit form for a confirmed visit, a walk-in's too", () => {
+    withQueries(
+      <AppointmentDetailsModal
+        appointment={appt({ status: "CONFIRMED", nailist_id: 1, service_price: 1500, paid_downpayment: 0, completion: null, is_walkin: 1 })}
+        artists={artists}
+        onClose={vi.fn()}
+        onStatusChange={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole("form", { name: "Complete visit" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Balance paid at the salon (₱)")).toHaveValue("1500");
+  });
+
+  it("shows what was recorded for a completed visit", () => {
+    withQueries(
+      <AppointmentDetailsModal
+        appointment={appt({ status: "COMPLETED", completion: { balance_amount: 1000, payment_method: "Cash", nailist_id: 1, nailist_name: "Miss Pring" } })}
+        artists={artists}
+        onClose={vi.fn()}
+        onStatusChange={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("₱1,000 · Cash · Miss Pring")).toBeInTheDocument();
+  });
+});
+
+describe("the drawer's status menu", () => {
+  it("doesn't offer Completed: a visit is completed with its form", async () => {
+    render(<AppointmentDetailsModal appointment={appt({ status: "CONFIRMED" })} onClose={vi.fn()} onStatusChange={vi.fn()} />);
+    await userEvent.click(screen.getByRole("button", { name: "Appointment status" }));
+    const options = screen.getAllByRole("option").map((o) => o.textContent);
+    expect(options.some((o) => /Confirmed/i.test(o ?? ""))).toBe(true);
+    expect(options.some((o) => /Completed/i.test(o ?? ""))).toBe(false);
   });
 });

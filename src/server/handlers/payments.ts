@@ -212,9 +212,13 @@ export const uploadPaymentProof = ported(async (req) => {
     return Response.json({ error: "You can only upload a proof for your own appointment." }, { status: 403 });
   }
 
-  const { payment_methods } = await getPaymentSettings();
-  if (!payment_methods.includes("MANUAL")) return Response.json({ error: "Manual payment is not available." }, { status: 400 });
-  if (String(appt.status || "").toUpperCase() !== "PENDING") {
+  // Paid by proof (PENDING, while MANUAL is on), or paid online and waiting for the salon, which
+  // checks the client's screenshot of the payment before confirming
+  const apptStatus = String(appt.status || "").toUpperCase();
+  if (apptStatus === "PENDING") {
+    const { payment_methods } = await getPaymentSettings();
+    if (!payment_methods.includes("MANUAL")) return Response.json({ error: "Manual payment is not available." }, { status: 400 });
+  } else if (apptStatus !== "AWAITING_CONFIRMATION") {
     return Response.json({ error: "This appointment is not awaiting payment." }, { status: 400 });
   }
 
@@ -294,9 +298,14 @@ export const reviewPaymentProof = ported<IdContext>(async (req, { params }) => {
   if (!proof) return Response.json({ error: "Payment proof not found." }, { status: 404 });
   if (proof.status !== "PENDING") return Response.json({ error: "This payment proof has already been reviewed." }, { status: 409 });
 
+  // A screenshot of a payment made online: approving it is the admin's confirmation, and the
+  // payment is already recorded
+  let paidOnline = false;
   if (status === "APPROVED") {
     const [appt] = await sql<{ status: string | null }[]>`select status from appointments where id = ${proof.appointment_id}`;
-    if (String(appt?.status || "").toUpperCase() !== "PENDING") {
+    const apptStatus = String(appt?.status || "").toUpperCase();
+    paidOnline = apptStatus === "AWAITING_CONFIRMATION";
+    if (apptStatus !== "PENDING" && !paidOnline) {
       return Response.json({ error: "The appointment is no longer awaiting payment." }, { status: 409 });
     }
   }
@@ -315,10 +324,12 @@ export const reviewPaymentProof = ported<IdContext>(async (req, { params }) => {
     if (status !== "APPROVED") return [] as string[];
 
     const [confirmed] = await tx`
-      update appointments set status = 'CONFIRMED' where id = ${proof.appointment_id} and upper(status) = 'PENDING' returning id
+      update appointments set status = 'CONFIRMED'
+      where id = ${proof.appointment_id} and upper(status) = ${paidOnline ? "AWAITING_CONFIRMATION" : "PENDING"} returning id
     `;
     // Rolls the review back too
     if (!confirmed) throw new AppointmentNotAwaitingPayment();
+    if (paidOnline) return [] as string[];
 
     const openPayments = await tx<{ external_id: string }[]>`
       select external_id from payments where appointment_id = ${proof.appointment_id} and upper(status) = 'PENDING'

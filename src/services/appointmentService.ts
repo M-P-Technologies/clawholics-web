@@ -1,3 +1,4 @@
+import type { Completion } from "./completionService";
 import { ADMIN } from "@/lib/adminQueries";
 import { API_BASE_URL } from "../apiConfig";
 import type { ProofSummary } from "./proofService";
@@ -37,6 +38,11 @@ export interface Appointment {
 
   proof_due_at?: string | null;
   latest_proof?: ProofSummary | null;
+  /** The booked service's menu price with the booked artist */
+  service_price?: number | null;
+  /** The downpayments paid, and the completed visit's record (paged admin list) */
+  paid_downpayment?: number;
+  completion?: Completion | null;
   is_walkin?: boolean | number | null;
   /** The client's completed appointments (on rows of a page from fetchAppointmentPage) */
   client_visits?: number;
@@ -52,6 +58,8 @@ export interface AppointmentPageParams {
   statuses?: string[];
   /** Only appointments whose payment proof waits for review */
   proofToReview?: boolean;
+  /** Only confirmed visits that are over, waiting to be completed */
+  toComplete?: boolean;
   /** Only this day, or this day and later (YYYY-MM-DD) */
   on?: string;
   from?: string;
@@ -80,6 +88,7 @@ export const fetchAppointmentPage = async (
   const query = new URLSearchParams({ page: String(params.page), pageSize: String(params.pageSize) });
   if (params.statuses?.length) query.set("status", params.statuses.join(","));
   if (params.proofToReview) query.set("proof", "review");
+  if (params.toComplete) query.set("complete", "due");
   if (params.on) query.set("on", params.on);
   if (params.from) query.set("from", params.from);
   if (params.artist) query.set("artist", params.artist);

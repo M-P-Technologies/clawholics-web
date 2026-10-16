@@ -16,7 +16,7 @@ describe("MoneyCards", () => {
     const card = within(screen.getByRole("group", { name: "Balance at the salon" }));
     expect(card.getByText("₱1,300")).toBeInTheDocument();
     expect(card.getByText("+86%")).toBeInTheDocument();
-    expect(card.getByText("estimated: list price minus downpayments")).toBeInTheDocument();
+    expect(card.getByText("as recorded when completed")).toBeInTheDocument();
   });
 
   it("shows what confirmed upcoming visits are worth", () => {
@@ -37,7 +37,7 @@ describe("MoneyCards", () => {
     const card = within(screen.getByRole("group", { name: "From returning clients" }));
     expect(card.getByText("₱300")).toBeInTheDocument();
     expect(card.getByText("new")).toBeInTheDocument();
-    expect(card.getByText("25% of estimated sales, from clients who visited before")).toBeInTheDocument();
+    expect(card.getByText("25% of sales, from clients who visited before")).toBeInTheDocument();
   });
 
   it("leaves the share out when there were no sales", () => {

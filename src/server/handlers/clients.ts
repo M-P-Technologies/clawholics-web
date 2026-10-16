@@ -1,6 +1,7 @@
 import "server-only";
 import { requireAdmin } from "../auth";
 import { SERVICE_PRICE_SQL } from "../appointments";
+import { expectedBalance } from "../../lib/visitCompletion";
 import { getSql } from "../db";
 import { readJson, toId } from "../http";
 import { ported } from "../worker";
@@ -54,15 +55,22 @@ export const getClient = ported<IdContext>(async (_req, { params }) => {
         cp.preferred_contact_method, cp.facebook_handle, cp.instagram_handle, coalesce(cp.stamps, 0)::int as stamps
       from users u left join customer_profiles cp on cp.user_id = u.id
       where u.id = ${id}`,
-    sql.unsafe<{ id: number; appointment_date: string; status: string; price: number | null }[]>(
-      `select a.id, a.appointment_date, a.appointment_time, a.service_name,
+    sql.unsafe<{ id: number; appointment_date: string; status: string; price: number | null; paid_downpayment: number }[]>(
+      `select a.id, a.appointment_date, a.appointment_time, a.service_name, a.nailist_id,
          coalesce(n.name, a.nailist_name) as nailist_name, upper(trim(a.status)) as status,
          ${SERVICE_PRICE_SQL} as price,
          -- For the booking tracker: when it was booked, the latest payment proof and payment
          a.created_at as booked_at,
          lp.created_at as proof_sent_at, lp.status as proof_status,
          case when lp.status in ('APPROVED', 'REJECTED') then lp.updated_at end as proof_reviewed_at,
-         upper(lpay.status) as payment_status,
+         upper(lpay.status) as payment_status, lp.image_url as proof_image_url,
+         -- For completing the visit: the downpayments paid, and the record once completed
+         (select coalesce(sum(p.amount), 0)::int from payments p
+          where p.appointment_id = a.id and upper(trim(p.status)) = 'PAID') as paid_downpayment,
+         (select json_build_object('balance_amount', vc.balance_amount, 'payment_method', vc.payment_method,
+                   'nailist_id', vc.nailist_id, 'nailist_name', vn.name)
+          from visit_completions vc left join nailists vn on vn.id = vc.nailist_id
+          where vc.appointment_id = a.id) as completion,
          -- The client's review of the visit, if they left one
          r.id as review_id, r.rating as review_rating, r.comment as review_comment, r.photo_url as review_photo_url,
          r.approved as review_approved
@@ -71,7 +79,7 @@ export const getClient = ported<IdContext>(async (_req, { params }) => {
        left join nailist_categories nc on nc.id = n.category_id
        left join services s on s.id = a.service_id
        left join lateral (
-         select pp.created_at, pp.status, pp.updated_at from payment_proofs pp
+         select pp.created_at, pp.status, pp.updated_at, pp.image_url from payment_proofs pp
          where pp.appointment_id = a.id order by pp.created_at desc, pp.id desc limit 1
        ) lp on true
        left join lateral (
@@ -97,7 +105,7 @@ export const getClient = ported<IdContext>(async (_req, { params }) => {
       nextVisit: upcoming[upcoming.length - 1]?.appointment_date ?? null,
       stamps,
     },
-    appointments,
+    appointments: appointments.map((a) => ({ ...a, expected_balance: expectedBalance(a.price, a.paid_downpayment) })),
   });
 });
 

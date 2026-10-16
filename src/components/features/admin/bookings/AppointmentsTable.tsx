@@ -7,6 +7,8 @@ import { adminDataChanged, adminQueries } from "@/lib/adminQueries";
 import clsx from "clsx";
 import AppointmentDetailsModal from "@/components/features/admin/bookings/AppointmentDetailsModal";
 import CreateAppointmentDialog from "@/components/features/admin/bookings/CreateAppointmentDialog";
+import ProofThumb from "@/components/features/admin/bookings/ProofThumb";
+import { isWalkin } from "@/lib/admin/walkin";
 import { ListSkeleton } from "@/components/features/admin/skeletons/ListSkeleton";
 import { AlertDialog, CardFields, CARDS_PER_PAGE, Dialog, RowCard, RowCards, TableFrame } from "@/components/organisms";
 import { Button, Select, initialsOf } from "@/components/atoms";
@@ -35,6 +37,7 @@ const STATUS_OPTIONS: { label: string; value: AppointmentFilterStatus }[] = [
   { label: "Proofs to review", value: "PROOF_PENDING" },
   { label: "Proof overdue", value: "PROOF_OVERDUE" },
   { label: "Awaiting confirmation", value: "AWAITING_CONFIRMATION" },
+  { label: "Visits to complete", value: "TO_COMPLETE" },
   { label: "Confirmed", value: "CONFIRMED" },
   { label: "Completed", value: "COMPLETED" },
   { label: "Cancelled", value: "CANCELLED" },
@@ -101,6 +104,15 @@ interface NailArtist {
 
 const artistName = (artist: NailArtist) => artist.name || `${artist.first_name ?? ""} ${artist.last_name ?? ""}`.trim();
 const clientName = (a: Appointment) => `${a.first_name ?? ""} ${a.last_name ?? ""}`.trim() || `User #${a.user_id}`;
+// The server's own words for a refused change ({ message } in the error's text), when it gave some
+const serverMessage = (text: string): string | null => {
+  try {
+    const body = JSON.parse(text) as { message?: unknown };
+    return typeof body.message === "string" && body.message ? body.message : null;
+  } catch {
+    return null;
+  }
+};
 const statusOf = (a: Appointment) => (a.status?.trim().toUpperCase() || "PENDING") as AppointmentStatus;
 
 // The proof badge beside a client: a proof to review, or one that's overdue
@@ -122,9 +134,6 @@ function ProofBadge({ appointment, now, onReview }: { appointment: Appointment; 
   return null;
 }
 
-// A walk-in: flagged, or booked on the shared walk-in guest account
-const WALKIN_EMAIL = "walkin-guest@clawholics.local";
-const isWalkin = (a: Appointment) => Boolean(a.is_walkin) || (a.email ?? "").trim().toLowerCase() === WALKIN_EMAIL;
 
 interface AppointmentsTableProps {
   /** Each client's photo, join date and last sign-in (from Clerk), by users.id */
@@ -173,8 +182,9 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
     // A list that shrank (a status changed) keeps you on its last page rather than past it
     page: Math.min(page, pages),
     pageSize,
-    statuses: status === "ALL" || status === "PROOF_PENDING" || proofOverdue ? STATUSES : [status],
+    statuses: status === "ALL" || status === "PROOF_PENDING" || proofOverdue ? STATUSES : status === "TO_COMPLETE" ? ["CONFIRMED"] : [status],
     proofToReview: status === "PROOF_PENDING",
+    toComplete: status === "TO_COMPLETE",
     artist: artist === "All" ? undefined : artist,
     search,
     sort: SORT_PARAM[sort],
@@ -212,7 +222,12 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
       const updatedStatus = statusOf(updated);
       toast.show("success", "Appointment updated", `Appointment #${id} is now ${updatedStatus.toLowerCase().replace(/_/g, " ")}.`);
       void refresh();
-      setSelected((current) => (current?.id === id ? (matchesAppointmentFilter(updated, status, now) ? updated : null) : current));
+      // The change answers the appointment alone: what the list added (proof, downpayment, completion) is kept
+      setSelected((current) => {
+        if (current?.id !== id) return current;
+        const merged = { ...current, ...updated };
+        return matchesAppointmentFilter(merged, status, now) ? merged : null;
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : "";
       if (message.includes("SLOT_TAKEN") || message.includes("slot")) {
@@ -220,7 +235,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
         return;
       }
       console.error(error);
-      toast.show("error", "Status not changed", "The appointment status is unchanged. Please try again.");
+      toast.show("error", "Status not changed", serverMessage(message) ?? "The appointment status is unchanged. Please try again.");
     }
   };
 
@@ -295,7 +310,8 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
       aria-label={`Status of appointment #${a.id}`}
       value={statusOf(a)}
       onChange={(e) => changeStatus(a.id, e.target.value as AppointmentStatus)}
-      options={STATUS_CHOICES}
+      // Completed is set by completing the visit (its form), not picked here
+      options={statusOf(a) === "COMPLETED" ? STATUS_CHOICES : STATUS_CHOICES.filter((c) => c.value !== "COMPLETED")}
       className="w-37.5"
       triggerClassName="h-8! px-3! py-0! text-xs"
     />
@@ -306,12 +322,18 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
       "inline-flex items-center justify-center gap-3 rounded-lg bg-berry text-pearl transition-colors",
       withLabel ? "px-3 py-2 text-[13px] font-bold" : "h-8 w-8",
     );
+    // A walk-in has no client page: Manage opens the appointment's details (to confirm or complete it)
     if (isWalkin(a)) {
       return (
-        <span role="img" aria-label="Walk-ins have no client page" title="Walk-ins have no client page" className={clsx(look, "cursor-not-allowed opacity-40")}>
+        <button
+          type="button"
+          onClick={() => setSelected(a)}
+          aria-label={`Open ${clientName(a)}'s appointment #${a.id}`}
+          className={clsx(look, "hover:bg-gray-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson")}
+        >
           <SquarePen size={15} aria-hidden="true" />
           {withLabel && "Manage"}
-        </span>
+        </button>
       );
     }
     return (
@@ -436,6 +458,9 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
                   ["Visits", clientFacts(a).visits],
                 ]}
               />
+              <div className="flex items-center gap-3 text-xs text-gray-red">
+                Payment screenshot <ProofThumb proof={a.latest_proof} appointmentId={a.id} />
+              </div>
               <div className="flex items-center justify-between gap-3">
                 {statusSelect(a)}
                 {manageButton(a, true)}
@@ -444,10 +469,10 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
           ))}
         </RowCards>
       ) : (
-        <TableFrame label="Appointments" minWidthClass="min-w-305"
+        <TableFrame label="Appointments" minWidthClass="min-w-320"
           head={
             <tr className="text-left text-xs text-gray-red">
-              {["Client", "Phone", "Joined", "Last active", "Visits", "Service", "Artist", "Date", "Time", "Status", "Manage"].map((h) => (
+              {["Client", "Phone", "Joined", "Last active", "Visits", "Service", "Artist", "Date", "Time", "Proof", "Status", "Manage"].map((h) => (
                 <th key={h} scope="col" className={clsx("pb-2 pr-3 font-medium", h === "Manage" && "pr-0 text-center", h === "Visits" && "text-right")}>
                   {h}
                 </th>
@@ -474,6 +499,9 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
               <td className={cell}>{a.nailist_name || "–"}</td>
               <td className={clsx(cell, "whitespace-nowrap")}>{dateLabel(a.appointment_date)}</td>
               <td className={clsx(cell, "whitespace-nowrap")}>{timeRangeLabel(a.appointment_time) || "–"}</td>
+              <td className={cell}>
+                <ProofThumb proof={a.latest_proof} appointmentId={a.id} />
+              </td>
               <td className={cell}>{statusSelect(a)}</td>
               <td className={clsx(cell, "pr-0 text-center")}>{manageButton(a)}</td>
             </tr>
@@ -502,6 +530,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
           onStatusChange={changeStatus}
           tokenFetcher={getToken}
           clerkId={currentUser?.id}
+          artists={(artistList ?? []).map((n) => ({ id: n.id, name: artistName(n) }))}
           onProofReviewed={async () => {
             setSelected(null);
             await refresh();

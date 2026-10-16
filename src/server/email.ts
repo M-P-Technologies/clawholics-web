@@ -205,7 +205,8 @@ export async function sendPaymentReceived(appointmentId: number) {
   const customerHtml = baseEmailTemplate(
     "Downpayment Received",
     det.client_name,
-    `Thank you, <strong>${escapeHtml(det.client_name)}</strong>! We've received your downpayment. Your booking with <strong>${escapeHtml(det.nailist_name)}</strong> is waiting for the salon to confirm it, and we'll email you as soon as it's confirmed. Your time slot is held for you meanwhile.`,
+    `Thank you, <strong>${escapeHtml(det.client_name)}</strong>! We've received your downpayment. Your booking with <strong>${escapeHtml(det.nailist_name)}</strong> is waiting for the salon to confirm it, and we'll email you as soon as it's confirmed. Your time slot is held for you meanwhile.<br/><br/>
+     <strong>Important:</strong> please <a href="${screenshotLink(det.id)}" style="color: #CC798B; font-weight: bold;">send a screenshot of your payment</a> in My account › Appointments. The salon confirms your booking once it has it.`,
     clientRows,
     false,
   );
@@ -393,6 +394,35 @@ export async function sendBirthdayVoucherEmails(
         ].join(""),
         false,
         "Your Birthday Voucher",
+      ),
+    })),
+  );
+}
+
+const SITE = (process.env.NEXT_PUBLIC_SITE_URL || "https://clawholicsbymax.com").replace(/\/+$/, "");
+/** The client app's appointment, where the client sends the screenshot of their payment */
+const screenshotLink = (appointmentId: unknown) => `${SITE}/my/appointments?appointment_id=${encodeURIComponent(String(appointmentId))}`;
+
+/** The reminder for clients who haven't sent the screenshot of their payment, one email each. */
+export async function sendScreenshotReminders(
+  bookings: { id: number; email: string; first_name: string; service_name: string; appointment_date: string; appointment_time: string }[],
+) {
+  await sendEmailBatch(
+    bookings.map((b) => ({
+      to: b.email,
+      subject: "Send your payment screenshot | Clawholics by Max",
+      html: baseEmailTemplate(
+        "One More Step",
+        b.first_name,
+        `We've received your downpayment, but we still need a <strong>screenshot of your payment</strong> before we can confirm your booking.
+         Please <a href="${screenshotLink(b.id)}" style="color: #CC798B; font-weight: bold;">send it in My account › Appointments</a>. Your time slot is held for you meanwhile.`,
+        [
+          clientRow("Service", b.service_name),
+          clientRow("Date", b.appointment_date, HIGHLIGHT),
+          clientRow("Time", b.appointment_time, HIGHLIGHT),
+        ].join(""),
+        false,
+        "Your Booking",
       ),
     })),
   );

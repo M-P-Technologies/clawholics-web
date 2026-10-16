@@ -115,7 +115,7 @@ export function buildInsights(data: DashboardResponse, { repeatKpis = true }: In
   const clientsPct = pct(kpis.newClients.value, kpis.newClients.previous);
 
   if (collectedPct !== null && collectedPct >= MOVE_PCT) wins.push({ id: "collected", text: `Collected ${peso(kpis.collected.value)}, up ${collectedPct}% on ${words.prev}.` });
-  if (salesPct !== null && salesPct >= MOVE_PCT) wins.push({ id: "sales", text: `Estimated sales reached ${peso(kpis.estimatedSales.value)}, up ${salesPct}%.` });
+  if (salesPct !== null && salesPct >= MOVE_PCT) wins.push({ id: "sales", text: `Sales reached ${peso(kpis.estimatedSales.value)}, up ${salesPct}%.` });
   if (bookingsPct !== null && bookingsPct >= MOVE_PCT) wins.push({ id: "bookings", text: `${kpis.bookings.value} bookings, up ${bookingsPct}% on ${words.prev}.` });
   if (clientsPct !== null && clientsPct >= MOVE_PCT) wins.push({ id: "clients", text: `${kpis.newClients.value} new clients, up ${clientsPct}% on ${words.prev}.` });
 
@@ -151,7 +151,7 @@ export function buildInsights(data: DashboardResponse, { repeatKpis = true }: In
 
   // ---- watch-outs
   if (collectedPct !== null && collectedPct <= -MOVE_PCT) watch.push({ id: "collected", text: `Collected is down ${-collectedPct}% on ${words.prev} (${peso(kpis.collected.value)} vs ${peso(kpis.collected.previous)}).` });
-  if (salesPct !== null && salesPct <= -MOVE_PCT) watch.push({ id: "sales", text: `Estimated sales are down ${-salesPct}% on ${words.prev} (${peso(kpis.estimatedSales.value)} vs ${peso(kpis.estimatedSales.previous)}).` });
+  if (salesPct !== null && salesPct <= -MOVE_PCT) watch.push({ id: "sales", text: `Sales are down ${-salesPct}% on ${words.prev} (${peso(kpis.estimatedSales.value)} vs ${peso(kpis.estimatedSales.previous)}).` });
   if (bookingsPct !== null && bookingsPct <= -MOVE_PCT) watch.push({ id: "bookings", text: `Bookings are down ${-bookingsPct}% on ${words.prev} (${kpis.bookings.value} vs ${kpis.bookings.previous}).` });
   if (clientsPct !== null && clientsPct <= -MOVE_PCT) watch.push({ id: "clients", text: `New clients are down ${-clientsPct}% on ${words.prev} (${kpis.newClients.value} vs ${kpis.newClients.previous}).` });
 

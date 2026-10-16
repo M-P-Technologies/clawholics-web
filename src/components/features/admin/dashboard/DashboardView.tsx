@@ -60,8 +60,8 @@ export default function DashboardView({ data, loading = false, failed = false, l
   return (
     <ViewBody loading={loading} failed={failed}>
       <div className="grid grid-cols-2 gap-3 md:gap-6 xl:grid-cols-4">
-        <StatCard icon={Wallet} label="Collected" value={peso(kpis.collected.value)} change={describeChange(kpis.collected.value, kpis.collected.previous)} hint="downpayments received" sparkline={spark("Collected", "collected", peso)} />
-        <StatCard icon={Receipt} label="Estimated sales" value={peso(kpis.estimatedSales.value)} change={describeChange(kpis.estimatedSales.value, kpis.estimatedSales.previous)} hint="list price of completed services" sparkline={spark("Estimated sales", "estimatedSales", peso)} />
+        <StatCard icon={Wallet} label="Collected" value={peso(kpis.collected.value)} change={describeChange(kpis.collected.value, kpis.collected.previous)} hint="downpayments from completed visits" sparkline={spark("Collected", "collected", peso)} />
+        <StatCard icon={Receipt} label="Sales" value={peso(kpis.estimatedSales.value)} change={describeChange(kpis.estimatedSales.value, kpis.estimatedSales.previous)} hint="downpayments + balance of completed visits" sparkline={spark("Sales", "estimatedSales", peso)} />
         <StatCard icon={CalendarHeart} label="Bookings" value={String(kpis.bookings.value)} change={describeChange(kpis.bookings.value, kpis.bookings.previous)} hint="confirmed and completed" sparkline={spark("Bookings", "bookings", String)} />
         <StatCard icon={UserPlus} label="New clients" value={String(kpis.newClients.value)} change={describeChange(kpis.newClients.value, kpis.newClients.previous)} hint="new accounts" sparkline={spark("New clients", "newClients", String)} />
       </div>

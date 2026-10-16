@@ -6,12 +6,15 @@ import Dialog from "./Dialog";
 type ImagePreviewDialogProps = {
   imageUrl: string | null;
   title?: string;
+  /** The image's alt text */
+  alt?: string;
   onClose: () => void;
 };
 
 const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({
   imageUrl,
   title = "Image Preview",
+  alt = "Preview",
   onClose,
 }) => {
   return (
@@ -42,7 +45,7 @@ const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({
       <div className="flex max-h-[75vh] items-center justify-center overflow-hidden rounded-xl bg-crimson-light/15">
         <img
           src={imageUrl ?? undefined}
-          alt="Preview"
+          alt={alt}
           className="max-h-[75vh] w-full object-contain"
         />
       </div>

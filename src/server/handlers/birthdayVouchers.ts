@@ -1,6 +1,6 @@
 import "server-only";
-import { timingSafeEqual } from "node:crypto";
 import { requireUserRow } from "../auth";
+import { isCronCall } from "../cron";
 import { claimVoucher, getCurrentVoucher, issueBirthdayVouchers } from "../birthdayVouchers";
 import { nextApiEnabled, ported } from "../worker";
 
@@ -34,20 +34,13 @@ export const claimMyBirthdayVoucher = ported(async () => {
   return Response.json(result);
 });
 
-const sameSecret = (given: string, expected: string) => {
-  const [a, b] = [Buffer.from(given), Buffer.from(expected)];
-  return a.length === b.length && timingSafeEqual(a, b);
-};
 
 // GET /cron/birthday-vouchers: Vercel Cron, daily at 00:00 Manila (vercel.json). Vercel sends
 // `Authorization: Bearer $CRON_SECRET`; without CRON_SECRET set, every call is refused.
 // Not wrapped in ported(): it would start a second run of a stalled GET and answer 503 at 30s
 // while emails are still going out. The run is safe to repeat, so a failed one waits for the next day.
 export async function runBirthdayVoucherCron(req: Request): Promise<Response> {
-  const secret = process.env.CRON_SECRET;
-  if (!secret || !sameSecret(req.headers.get("authorization") ?? "", `Bearer ${secret}`)) {
-    return errorBody("Unauthorized", 401);
-  }
+  if (!isCronCall(req)) return errorBody("Unauthorized", 401);
   if (!nextApiEnabled()) return errorBody("API_BACKEND is not next", 503);
   try {
     const result = await issueBirthdayVouchers();
