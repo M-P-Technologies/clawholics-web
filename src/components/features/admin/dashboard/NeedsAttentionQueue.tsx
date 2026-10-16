@@ -72,8 +72,11 @@ export default function NeedsAttentionQueue({ load }: { load: (tab: AttentionTab
 
   return (
     <Card as="section" aria-label="To act on" className="flex min-w-0 flex-col gap-3">
-      <SectionHeader size="card" title="To act on" />
-      <SegmentedControl label="What to show" options={ATTENTION_TABS} value={tab} onChange={(value) => setTab(value as AttentionTab)} className="self-start" />
+      {/* The title and the tabs share a row, at either end; the tabs wrap under it when it's narrow */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <SectionHeader size="card" title="To act on" />
+        <SegmentedControl label="What to show" options={ATTENTION_TABS} value={tab} onChange={(value) => setTab(value as AttentionTab)} />
+      </div>
 
       {query.isError && !data ? (
         <p className="text-sm text-gray-red">We couldn&apos;t load what needs attention.</p>
