@@ -136,7 +136,8 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
       const booking = await import("../../server/handlers/booking");
       as("user_admin");
       const list = await callRoute(booking.listAllAppointments, "/api/booking/appointments?page=1&complete=due");
-      expect(list.body.rows.map((r: { appointment_time: string; status: string }) => [r.appointment_time, r.status])).toEqual([["09:00-10:00", "CONFIRMED"]]);
+      // before the cut-off, so not listed (the queue's own tests cover visits after it)
+      expect(list.body.rows).toEqual([]);
 
       const visits = await import("../../server/visitsToComplete");
       await db`delete from admin_notifications`;
@@ -163,8 +164,9 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     expect(d.loyalty).toEqual({ stamps: 3, redeemed: 1 });
     // proofs to review: a booking whose latest upload is still pending, paid by proof (a11, a12);
     // unpaid: bookings still PENDING (a11), the same list the Appointments filter shows
-    // to complete: confirmed visits already over, the 09:00-10:00 one today (it's 10:00)
-    expect(d.attention).toEqual({ today: 2, proofsToReview: 2, unpaid: 1, toConfirm: 0, toComplete: 1, photosToAdd: 1, warmLeads: 0 }); // photos: a3 was completed without any
+    // to complete: the 09:00-10:00 visit today is over, but it's before the 16 Oct cut-off (visits
+    // from before visit completion existed aren't to-dos); photos: a3 was completed without any
+    expect(d.attention).toEqual({ today: 2, proofsToReview: 2, unpaid: 1, toConfirm: 0, toComplete: 0, photosToAdd: 1, warmLeads: 0 });
     // leads: accounts made in the period; Ana and Bea both booked (September: Cara did)
     expect(d.rates.leadConversion).toEqual({ value: 1, previous: 1 });
     expect(d.leads).toEqual({ accounts: 2, booked: 2 });

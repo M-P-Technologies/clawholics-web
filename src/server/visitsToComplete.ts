@@ -16,12 +16,19 @@ const CLOCK = /^\d{2}:\d{2}$/;
  * (Manila). Its end is the second half of appointment_time ("13:00-15:00"), or its start without one.
  * The day and clock are worked out on the server and checked here, so they can go in as text.
  */
-export function TO_COMPLETE_SQL(alias: string, today: string, clock: string): string {
-  if (!DAY.test(today) || !CLOCK.test(clock)) throw new Error("TO_COMPLETE_SQL needs YYYY-MM-DD and HH:MM");
-  const t = `${alias}.appointment_time`;
-  const end = `lpad(trim(coalesce(nullif(split_part(${t}, '-', 2), ''), split_part(${t}, '-', 1))), 5, '0')`;
-  return `(upper(trim(${alias}.status)) = 'CONFIRMED' and (${alias}.appointment_date < '${today}' or (${alias}.appointment_date = '${today}' and ${end} <= '${clock}')))`;
+export function TO_COMPLETE_SQL(alias: string, today: string, clock: string, from: string = VISIT_NOTIFY_FROM): string {
+  if (!DAY.test(today) || !CLOCK.test(clock) || !DAY.test(from)) throw new Error("TO_COMPLETE_SQL needs YYYY-MM-DD and HH:MM");
+  const end = END_CLOCK_SQL(alias);
+  // Only visits from `from` on: the ones never completed before this existed aren't to-dos
+  return `(upper(trim(${alias}.status)) = 'CONFIRMED' and ${alias}.appointment_date >= '${from}'
+    and (${alias}.appointment_date < '${today}' or (${alias}.appointment_date = '${today}' and ${end} <= '${clock}')))`;
 }
+
+/** SQL: when the visit ends ("15:00"), the second half of appointment_time, or its start without one */
+export const END_CLOCK_SQL = (alias: string) => {
+  const t = `${alias}.appointment_time`;
+  return `lpad(trim(coalesce(nullif(split_part(${t}, '-', 2), ''), split_part(${t}, '-', 1))), 5, '0')`;
+};
 
 /** SQL: a completed visit whose record has no nail photos yet (they can be added later) */
 export const PHOTOS_TO_ADD_SQL = (alias: string) =>
@@ -40,8 +47,8 @@ export async function recordVisitsToComplete(now: Date = new Date(), from: strin
   await getSql().unsafe(
     `insert into admin_notifications (kind, ref_id, appointment_id)
      select 'visit_to_complete', a.id, a.id from appointments a
-     where ${TO_COMPLETE_SQL("a", today, clock)} and a.appointment_date >= $1
+     where ${TO_COMPLETE_SQL("a", today, clock, from)}
      on conflict (kind, ref_id) do nothing`,
-    [from],
+    [],
   );
 }

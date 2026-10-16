@@ -89,3 +89,24 @@ export interface Utilization {
   /** The same, for all artists together */
   overall: number | null;
 }
+
+/** The dashboard's queue of what to act on (GET /attention) */
+export type AttentionTab = "all" | "confirm" | "complete" | "leads";
+export interface AttentionResponse {
+  items: {
+    kind: "confirm" | "review" | "complete" | "photos" | "lead";
+    appointment_id: number | null;
+    /** The client's users.id; null for the walk-in guest, who has no page */
+    user_id: number | null;
+    client_name: string;
+    email: string | null;
+    service_name: string | null;
+    nailist_name: string | null;
+    appointment_date: string | null;
+    appointment_time: string | null;
+    /** Waiting since (UTC "YYYY-MM-DD HH:MM:SS") */
+    since: string;
+    has_screenshot?: boolean;
+  }[];
+  counts: { confirm: number; review: number; complete: number; photos: number; leads: number };
+}

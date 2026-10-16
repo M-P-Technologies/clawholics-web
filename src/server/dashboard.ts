@@ -66,7 +66,7 @@ const CLIENT_ACCOUNT = `coalesce(u.role, 'customer') = 'customer' and u.clerk_id
 // Warm leads: client accounts that haven't booked, whose last sign of interest (making the account
 // or starting a booking) is on or after $1. Used for the count and for the Client Directory's list.
 // Appointments are read once, grouped by client, rather than twice per user in correlated subqueries.
-const WARM_LEADS = `
+export const WARM_LEADS = `
   select u.clerk_id from users u
   left join (
     select user_id, bool_or(upper(trim(status)) in ${BOOKED}) as booked,
@@ -75,7 +75,7 @@ const WARM_LEADS = `
   ) a on a.user_id = u.id
   where ${CLIENT_ACCOUNT} and not coalesce(a.booked, false)
     and ${LOCAL_DATE("greatest(u.created_at::timestamp, a.last_started)")} >= $1`;
-const warmSince = (today: string) => addDays(today, -LAPSED_DAYS);
+export const warmSince = (today: string) => addDays(today, -LAPSED_DAYS);
 
 // Each client's first completed visit, for "returning" (a completed visit before the period). Read
 // from appointments directly so the APPT query it's joined to is used once, and stays filtered by
