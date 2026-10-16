@@ -4,12 +4,13 @@ import { useAuth, useUser } from "@clerk/nextjs";
 import { useCallback, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/molecules";
-import { adminKeys, adminQueries } from "../../lib/adminQueries";
+import { adminDataChanged, adminKeys, adminQueries } from "../../lib/adminQueries";
 import { CLIENT_TABS, clientName, clientPanelRows, manilaToday, nextVisitHighlight, stampsLabel, visitNoteLabel, type ClientTab } from "../../lib/admin/clientPage";
 import { useParams } from "../../lib/router";
 import { useStampTarget } from "../useStampTarget";
 import { addNote, deleteNote, saveNextSteps, type ClientDetails, type ClientNote } from "../../services/clientNotesService";
 import { setReviewApproval } from "../../services/reviewService";
+import { updateAppointmentStatus } from "../../services/appointmentService";
 
 /** The note being written about one appointment */
 export interface VisitDraft {
@@ -38,6 +39,7 @@ export function useClientPage() {
   });
   const notesQuery = useQuery({ ...adminQueries.clientNotes(clientId, session), enabled: isLoaded });
   const stepsQuery = useQuery({ ...adminQueries.clientNextSteps(clientId, session), enabled: isLoaded });
+  const artistsQuery = useQuery(adminQueries.nailists());
   const details: ClientDetails | null = clientQuery.data ?? null;
   const notFound = !details && (clientQuery.error as { status?: number } | null)?.status === 404;
   // A failed refresh keeps the page already loaded
@@ -95,6 +97,12 @@ export function useClientPage() {
       current && { ...current, appointments: current.appointments.map((a) => (a.review_id === reviewId ? { ...a, review_approved: approved ? 1 : 0 } : a)) },
     );
   };
+  /** Confirms a booking paid online: approves the client's screenshot, emails the client */
+  const confirmBooking = async (appointmentId: number) => {
+    if (await run(async () => updateAppointmentStatus(appointmentId, "CONFIRMED", await getToken(), user?.id), "Booking confirmed")) {
+      await adminDataChanged(queryClient);
+    }
+  };
   const saveSteps = () =>
     run(async () => {
       await saveNextSteps(clientId, steps, await auth());
@@ -127,6 +135,9 @@ export function useClientPage() {
     /** The profile panel: the name, the stamps badge, the next visit and the Client info rows */
     name: details ? clientName(details.client) : "",
     stampsLabel: stampsLabel(details?.summary.stamps ?? 0),
+    /** The artists, for the Complete visit form's "Done by" */
+    artists: (artistsQuery.data ?? []).map((n) => ({ id: n.id, name: n.name })),
+    confirmBooking,
     highlight: nextVisitHighlight(nextAppointment),
     panelRows: details ? clientPanelRows(details) : [],
     /** Notes about the client in general, and those about one visit with what they're about */

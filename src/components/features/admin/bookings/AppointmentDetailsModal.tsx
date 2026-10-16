@@ -7,6 +7,7 @@ import { Dialog } from "@/components/organisms";
 import { SummaryRow } from "@/components/molecules";
 import ClientNotesPanel from "@/components/features/admin/clients/ClientNotesPanel";
 import ProofReviewPanel from "@/components/features/admin/bookings/ProofReviewPanel";
+import CompleteVisitForm from "@/components/features/admin/bookings/CompleteVisitForm";
 
 interface AppointmentDetailsModalProps {
   appointment: Appointment;
@@ -16,6 +17,8 @@ interface AppointmentDetailsModalProps {
   tokenFetcher?: () => Promise<string | null>;
   clerkId?: string | null;
   onProofReviewed?: () => void;
+  /** The artists, for the Complete visit form. Without them the form is left out. */
+  artists?: { id: number; name: string }[];
 }
 
 const statusOptions: AppointmentStatus[] = ["PENDING", "AWAITING_PROOF", "AWAITING_CONFIRMATION", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUNDED"];
@@ -42,7 +45,7 @@ const dateLabel = (ymd?: string) => {
 // One appointment's details, in a modal on a computer and a bottom sheet below `lg` (as in the
 // client app): the client, the appointment (with its status), the
 // payment, the proof review and the private notes. The Dialog handles focus, Escape and a click outside.
-const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFetcher, clerkId, onProofReviewed }: AppointmentDetailsModalProps) => {
+const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFetcher, clerkId, onProofReviewed, artists }: AppointmentDetailsModalProps) => {
   const titleId = useId();
   const customerName = `${appointment.first_name ?? ""} ${appointment.last_name ?? ""}`.trim() || `User #${appointment.user_id}`;
   const currentStatus = (appointment.status?.trim().toUpperCase() || "PENDING") as AppointmentStatus;
@@ -141,6 +144,26 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
             <SummaryRow label="Method" value={appointment.payment_method || "No payment method"} />
             <SummaryRow label="Reference" value={appointment.payment_reference || "No reference"} />
           </Section>
+
+          {/* Completing the visit here too: a walk-in guest has no client page */}
+          {artists && (currentStatus === "CONFIRMED" || currentStatus === "COMPLETED") && (
+            <Section title="Visit">
+              <CompleteVisitForm
+                key={`${appointment.id}-${currentStatus}`}
+                visit={{
+                  id: appointment.id,
+                  status: currentStatus,
+                  appointment_date: appointment.appointment_date,
+                  nailist_id: appointment.nailist_id ?? null,
+                  price: appointment.service_price ?? null,
+                  paid_downpayment: appointment.paid_downpayment ?? 0,
+                  completion: appointment.completion ?? null,
+                }}
+                artists={artists}
+                onSaved={onClose}
+              />
+            </Section>
+          )}
 
           {tokenFetcher && showProofPanel && (
             <ProofReviewPanel

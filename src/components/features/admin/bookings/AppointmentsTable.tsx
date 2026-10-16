@@ -295,7 +295,8 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
       aria-label={`Status of appointment #${a.id}`}
       value={statusOf(a)}
       onChange={(e) => changeStatus(a.id, e.target.value as AppointmentStatus)}
-      options={STATUS_CHOICES}
+      // Completed is set by completing the visit (its form), not picked here
+      options={statusOf(a) === "COMPLETED" ? STATUS_CHOICES : STATUS_CHOICES.filter((c) => c.value !== "COMPLETED")}
       className="w-37.5"
       triggerClassName="h-8! px-3! py-0! text-xs"
     />
@@ -306,12 +307,18 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
       "inline-flex items-center justify-center gap-3 rounded-lg bg-berry text-pearl transition-colors",
       withLabel ? "px-3 py-2 text-[13px] font-bold" : "h-8 w-8",
     );
+    // A walk-in has no client page: Manage opens the appointment's details (to confirm or complete it)
     if (isWalkin(a)) {
       return (
-        <span role="img" aria-label="Walk-ins have no client page" title="Walk-ins have no client page" className={clsx(look, "cursor-not-allowed opacity-40")}>
+        <button
+          type="button"
+          onClick={() => setSelected(a)}
+          aria-label={`Open ${clientName(a)}'s appointment #${a.id}`}
+          className={clsx(look, "hover:bg-gray-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson")}
+        >
           <SquarePen size={15} aria-hidden="true" />
           {withLabel && "Manage"}
-        </span>
+        </button>
       );
     }
     return (
@@ -508,6 +515,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
           onStatusChange={changeStatus}
           tokenFetcher={getToken}
           clerkId={currentUser?.id}
+          artists={(artistList ?? []).map((n) => ({ id: n.id, name: artistName(n) }))}
           onProofReviewed={async () => {
             setSelected(null);
             await refresh();

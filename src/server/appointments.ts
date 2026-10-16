@@ -145,7 +145,14 @@ const COUNT_FROM = `
   left join admin_profiles ap on u.id = ap.user_id
   left join customer_profiles cp on a.user_id = cp.user_id
 `;
-const PAGE_SELECT = `${APPOINTMENT_SELECT.slice(0, FROM_START)}, ${LATEST_PROOF} as latest_proof, ${CLIENT_VISITS} as client_visits
+/** For completing a visit from the list: the downpayments paid, and the record once completed */
+const PAID_DOWNPAYMENT = `(select coalesce(sum(p.amount), 0)::int from payments p where p.appointment_id = a.id and upper(trim(p.status)) = 'PAID')`;
+const COMPLETION = `(
+  select json_build_object('balance_amount', vc.balance_amount, 'payment_method', vc.payment_method, 'nailist_id', vc.nailist_id, 'nailist_name', vn.name)
+  from visit_completions vc left join nailists vn on vn.id = vc.nailist_id where vc.appointment_id = a.id
+)`;
+const PAGE_SELECT = `${APPOINTMENT_SELECT.slice(0, FROM_START)}, ${LATEST_PROOF} as latest_proof, ${CLIENT_VISITS} as client_visits,
+  ${PAID_DOWNPAYMENT} as paid_downpayment, ${COMPLETION} as completion
   ${APPOINTMENT_FROM}`;
 
 /**

@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Check, X } from "lucide-react";
 import clsx from "clsx";
 import type { StepState, TrackerStep } from "@/lib/bookingTracker";
@@ -16,7 +17,8 @@ export const stepStateLabel = (state: StepState) =>
 
 // Where something is, step by step (a booking from booked to the finished visit): numbered dots
 // joined by a line, the done ones ticked, the current one ringed, a stopped one crossed.
-export default function StepTracker({ steps, label }: { steps: TrackerStep[]; label: string }) {
+// renderExtra: anything a screen adds under a step's words (a button, a form)
+export default function StepTracker({ steps, label, renderExtra }: { steps: TrackerStep[]; label: string; renderExtra?: (step: TrackerStep) => ReactNode }) {
   return (
     <ol aria-label={label} className="flex flex-col">
       {steps.map((step, i) => {
@@ -37,6 +39,7 @@ export default function StepTracker({ steps, label }: { steps: TrackerStep[]; la
               </p>
               {step.when && <p className="text-xs text-gray-red sm:text-right">{step.when}</p>}
               {step.detail && <p className="text-[13px] text-gray-red sm:col-span-2">{step.detail}</p>}
+              {renderExtra && <div className="sm:col-span-2">{renderExtra(step)}</div>}
             </div>
           </li>
         );

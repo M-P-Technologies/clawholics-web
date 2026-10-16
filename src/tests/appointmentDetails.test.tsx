@@ -3,8 +3,10 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import AppointmentDetailsModal from "@/components/features/admin/bookings/AppointmentDetailsModal";
 import type { Appointment } from "@/services/appointmentService";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 vi.mock("@/components/features/admin/clients/ClientNotesPanel", () => ({ default: () => <div>Private notes</div> }));
+vi.mock("@clerk/nextjs", () => ({ useAuth: () => ({ getToken: async () => "tok", userId: "admin_1" }) }));
 vi.mock("@/components/features/admin/bookings/ProofReviewPanel", () => ({ default: () => <div>Proof review</div> }));
 
 const appt = (over: Partial<Appointment> = {}): Appointment => ({
@@ -67,5 +69,35 @@ describe("confirming a booking paid online", () => {
     );
     await userEvent.click(screen.getByRole("button", { name: "Confirm booking" }));
     expect(onStatusChange).toHaveBeenCalledWith(24, "CONFIRMED");
+  });
+});
+
+describe("completing a visit from the drawer", () => {
+  const withQueries = (ui: React.ReactNode) => render(<QueryClientProvider client={new QueryClient()}>{ui}</QueryClientProvider>);
+  const artists = [{ id: 1, name: "Miss Pring" }];
+
+  it("offers the Complete visit form for a confirmed visit, a walk-in's too", () => {
+    withQueries(
+      <AppointmentDetailsModal
+        appointment={appt({ status: "CONFIRMED", nailist_id: 1, service_price: 1500, paid_downpayment: 0, completion: null, is_walkin: 1 })}
+        artists={artists}
+        onClose={vi.fn()}
+        onStatusChange={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole("form", { name: "Complete visit" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Balance paid at the salon (₱)")).toHaveValue("1500");
+  });
+
+  it("shows what was recorded for a completed visit", () => {
+    withQueries(
+      <AppointmentDetailsModal
+        appointment={appt({ status: "COMPLETED", completion: { balance_amount: 1000, payment_method: "Cash", nailist_id: 1, nailist_name: "Miss Pring" } })}
+        artists={artists}
+        onClose={vi.fn()}
+        onStatusChange={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("₱1,000 · Cash · Miss Pring")).toBeInTheDocument();
   });
 });

@@ -167,11 +167,10 @@ describe("Appointments table", () => {
     expect(drawer.compareDocumentPosition(alert.parentElement!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it("turns Manage off for a walk-in, who has no client page", async () => {
+  it("has no client page link for a walk-in, who has none", async () => {
     fetchAppointments.mockResolvedValue([appt(9, { first_name: "Walk", last_name: "In", email: "walkin-guest@clawholics.local", is_walkin: 1 })]);
     render(<AppointmentsTable />);
     await screen.findByRole("table", { name: "Appointments" });
-    expect(screen.getByRole("img", { name: "Walk-ins have no client page" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /client page/ })).toBeNull();
   });
 
@@ -260,5 +259,23 @@ describe("the payment screenshot column", () => {
     expect(screen.getAllByText("None yet").length).toBeGreaterThan(0);
     await userEvent.click(thumb);
     expect(await screen.findByRole("img", { name: "Payment screenshot for appointment #1" })).toHaveAttribute("src", "https://img/s.webp");
+  });
+});
+
+describe("completing visits from the list", () => {
+  it("doesn't offer Completed in the status menu: a visit is completed with its form", async () => {
+    fetchAppointments.mockResolvedValue([appt(1)]);
+    render(<AppointmentsTable />);
+    await userEvent.click(await screen.findByRole("button", { name: "Status of appointment #1" }));
+    const options = screen.getAllByRole("option").map((o) => o.textContent);
+    expect(options).toContain("Confirmed");
+    expect(options).not.toContain("Completed");
+  });
+
+  it("opens a walk-in's details from Manage, since they have no client page", async () => {
+    fetchAppointments.mockResolvedValue([appt(5, { email: "walkin-guest@clawholics.local", first_name: "Walk", last_name: "In" })]);
+    render(<AppointmentsTable />);
+    await userEvent.click(await screen.findByRole("button", { name: "Open Walk In's appointment #5" }));
+    expect(await screen.findByText("Details of #5")).toBeInTheDocument();
   });
 });
