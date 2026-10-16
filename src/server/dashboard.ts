@@ -27,13 +27,16 @@ const APPT = `
       a.service_name, coalesce(n.name, a.nailist_name) as nailist_name,
       ${SERVICE_PRICE_SQL} as price,
       coalesce(u.clerk_id = 'walkin_guest', false) as is_guest,
-      trim(coalesce(a.walkin_first_name, cp.first_name, '') || ' ' || coalesce(a.walkin_last_name, cp.last_name, '')) as client_name
+      trim(coalesce(a.walkin_first_name, cp.first_name, '') || ' ' || coalesce(a.walkin_last_name, cp.last_name, '')) as client_name,
+      (select coalesce(sum(p.amount), 0) from payments p where p.appointment_id = a.id and upper(trim(p.status)) = 'PAID') as paid,
+      vc.balance_amount as recorded_balance
     from appointments a
     left join nailists n on n.id = a.nailist_id
     left join nailist_categories nc on nc.id = n.category_id
     left join services s on s.id = a.service_id
     left join users u on u.id = a.user_id
     left join customer_profiles cp on cp.user_id = a.user_id
+    left join visit_completions vc on vc.appointment_id = a.id
   )`;
 
 // Values go in as positional parameters (the pooler runs without prepared statements)
@@ -44,9 +47,11 @@ async function one<T>(text: string, params: string[]): Promise<T> {
   return (await rows<T>(text, params))[0];
 }
 
-// The paid downpayments of one appointment (`alias` is the appointment row)
-const PAID_ON = (alias: string) =>
-  `(select coalesce(sum(p.amount), 0) from payments p where p.appointment_id = ${alias}.id and upper(trim(p.status)) = 'PAID')`;
+// What a completed visit sold for: its downpayments and the balance recorded when it was
+// completed; a visit completed before balances were recorded counts at its list price
+const SALE = "(case when recorded_balance is not null then paid + recorded_balance else price end)";
+// The balance paid at the salon: as recorded, else the list price less the downpayments (never below 0)
+const BALANCE = "coalesce(recorded_balance, greatest(coalesce(price, 0) - paid, 0))";
 
 const rate = (part: number, whole: number) => (whole === 0 ? null : part / whole);
 
@@ -100,9 +105,9 @@ async function spanMetrics(span: Span) {
     one<{ bookings: number; estimated_sales: number; collected: number; balance_at_salon: number; lost: number; completed: number; cancelled: number; decided: number }>(
       `${APPT} select
          count(*) filter (where st in ${BOOKED})::int as bookings,
-         coalesce(sum(price) filter (where st = 'COMPLETED'), 0)::int as estimated_sales,
-         coalesce(sum(${PAID_ON("appt")}) filter (where st = 'COMPLETED'), 0)::int as collected,
-         coalesce(sum(greatest(coalesce(price, 0) - ${PAID_ON("appt")}, 0)) filter (where st = 'COMPLETED'), 0)::int as balance_at_salon,
+         coalesce(sum(${SALE}) filter (where st = 'COMPLETED'), 0)::int as estimated_sales,
+         coalesce(sum(paid) filter (where st = 'COMPLETED'), 0)::int as collected,
+         coalesce(sum(${BALANCE}) filter (where st = 'COMPLETED'), 0)::int as balance_at_salon,
          coalesce(sum(price) filter (where st in ${CANCELLED}), 0)::int as lost,
          count(*) filter (where st = 'COMPLETED')::int as completed,
          count(*) filter (where st in ${CANCELLED})::int as cancelled,
@@ -125,7 +130,7 @@ async function spanMetrics(span: Span) {
        from users u where ${CLIENT_ACCOUNT} and ${LOCAL_DATE("u.created_at")} between $1 and $2`, p),
     // the same "returning" as the rate: a client with a completed visit before the period
     one<{ value: number }>(
-      `${APPT} select coalesce(sum(price), 0)::int as value from appt v
+      `${APPT} select coalesce(sum(${SALE}), 0)::int as value from appt v
        where v.st = 'COMPLETED' and not v.is_guest and v.d between $1 and $2
          and exists (select 1 from appt b where b.user_id = v.user_id and b.st = 'COMPLETED' and b.d < $1)`, p),
   ]);
@@ -188,7 +193,7 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
          from appt where d >= $1 and d <= $2 group by 1`, [`${months[0]}-01`, `${months[months.length - 1]}-31`]),
       rows<{ name: string; bookings: number; estimated_sales: number }>(
         `${APPT} select service_name as name, count(*)::int as bookings,
-           coalesce(sum(price) filter (where st = 'COMPLETED'), 0)::int as estimated_sales
+           coalesce(sum(${SALE}) filter (where st = 'COMPLETED'), 0)::int as estimated_sales
          from appt where d between $1 and $2 and st in ${BOOKED}
          group by service_name order by bookings desc, estimated_sales desc, service_name`, p),
       rows<{ weekday: number; bookings: number }>(
@@ -210,10 +215,10 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
       trendSpan
         ? rows<{ d: string; bookings: number; sales: number; collected: number; balance: number; returning: number; lost: number }>(
             `${APPT} select d, count(*) filter (where st in ${BOOKED})::int as bookings,
-               coalesce(sum(price) filter (where st = 'COMPLETED'), 0)::int as sales,
-               coalesce(sum(${PAID_ON("v")}) filter (where st = 'COMPLETED'), 0)::int as collected,
-               coalesce(sum(greatest(coalesce(price, 0) - ${PAID_ON("v")}, 0)) filter (where st = 'COMPLETED'), 0)::int as balance,
-               coalesce(sum(price) filter (where st = 'COMPLETED' and not is_guest
+               coalesce(sum(${SALE}) filter (where st = 'COMPLETED'), 0)::int as sales,
+               coalesce(sum(paid) filter (where st = 'COMPLETED'), 0)::int as collected,
+               coalesce(sum(${BALANCE}) filter (where st = 'COMPLETED'), 0)::int as balance,
+               coalesce(sum(${SALE}) filter (where st = 'COMPLETED' and not is_guest
                  and exists (select 1 from appt b where b.user_id = v.user_id and b.st = 'COMPLETED' and b.d < $1)), 0)::int as returning,
                coalesce(sum(price) filter (where st in ${CANCELLED}), 0)::int as lost
              from appt v where d between $1 and $2 group by d`, trendSpan)
@@ -230,7 +235,7 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
       one<{ n: number }>(`select count(*)::int as n from (${WARM_LEADS}) w`, [warmSince(today)]),
       // the same clients as Lapsed clients: anyone but the walk-in guest with a completed visit
       one<{ clients: number; spent: number }>(
-        `${APPT} select count(distinct user_id)::int as clients, coalesce(sum(price), 0)::int as spent
+        `${APPT} select count(distinct user_id)::int as clients, coalesce(sum(${SALE}), 0)::int as spent
          from appt where st = 'COMPLETED' and not is_guest`, []),
       one<{ clients: number; services: number; artists: number }>(
         `select (select count(*)::int from users u where ${CLIENT_ACCOUNT}) as clients,
@@ -238,7 +243,7 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
            (select count(*)::int from nailists) as artists`, []),
       rows<DashboardResponse["sales"][number]>(
         `${APPT} select id, d as date, t as time, coalesce(nullif(client_name, ''), 'Client') as client_name,
-           case when is_guest then null else user_id end as user_id, service_name, nailist_name, price as fee
+           case when is_guest then null else user_id end as user_id, service_name, nailist_name, ${SALE}::int as fee
          from appt where st = 'COMPLETED' and d between $1 and $2
          order by d desc, lpad(split_part(t, '-', 1), 5, '0') desc, id desc`, p),
       // Booked ahead, day by day for the next 14 days, for its line

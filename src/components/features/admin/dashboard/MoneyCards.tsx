@@ -9,7 +9,7 @@ const visits = (n: number) => `${n} confirmed ${n === 1 ? "visit" : "visits"} fr
 
 interface MoneyCardsProps {
   money: Money;
-  /** The period's estimated sales, for the returning clients' share of it */
+  /** The period's sales, for the returning clients' share of it */
   revenue?: number;
   /** The period day by day (or week, or month), for the cards' lines */
   trend?: Trend;
@@ -19,7 +19,7 @@ interface MoneyCardsProps {
 // card has a small line like the stat cards: over the period, except Booked ahead, which looks
 // forward over the next days.
 export default function MoneyCards({ money, revenue = 0, trend }: MoneyCardsProps) {
-  const share = revenue > 0 ? `${Math.round((money.returningRevenue.value / revenue) * 100)}% of estimated sales, ` : "";
+  const share = revenue > 0 ? `${Math.round((money.returningRevenue.value / revenue) * 100)}% of sales, ` : "";
 
   const line = (label: string, key: keyof DayValues) => {
     const points = trend?.points ?? [];
@@ -50,7 +50,7 @@ export default function MoneyCards({ money, revenue = 0, trend }: MoneyCardsProp
         label="Balance at the salon"
         value={peso(money.balanceAtSalon.value)}
         change={describeChange(money.balanceAtSalon.value, money.balanceAtSalon.previous)}
-        hint="estimated: list price minus downpayments"
+        hint="as recorded when completed"
         sparkline={line("Balance at the salon", "balanceAtSalon")}
       />
       <StatCard

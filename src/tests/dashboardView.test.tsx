@@ -55,7 +55,7 @@ describe("DashboardView layout", () => {
     const grid = screen.getByRole("group", { name: "Collected" }).parentElement as HTMLElement;
     expect(grid.className).toContain("grid-cols-2");
     expect(grid.className).toContain("xl:grid-cols-4");
-    for (const name of ["Collected", "Estimated sales", "Bookings", "New clients"]) {
+    for (const name of ["Collected", "Sales", "Bookings", "New clients"]) {
       const card = screen.getByRole("group", { name });
       expect(card.parentElement).toBe(grid);
       expect(card.className).not.toContain("col-span");
@@ -65,7 +65,7 @@ describe("DashboardView layout", () => {
   it("draws a small line on each stat card, described in words", () => {
     render(<DashboardView data={data} />);
     expect(screen.getByRole("img", { name: "Collected per day, from ₱0 to ₱500" })).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "Estimated sales per day, from ₱0 to ₱800" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Sales per day, from ₱0 to ₱800" })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "Bookings per day, from 1 to 2" })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "New clients per day, from 0 to 1" })).toBeInTheDocument();
   });
@@ -88,7 +88,7 @@ describe("DashboardView layout", () => {
 
   it("gives each of the four stat cards an icon", () => {
     render(<DashboardView data={data} />);
-    for (const name of ["Collected", "Estimated sales", "Bookings", "New clients"]) {
+    for (const name of ["Collected", "Sales", "Bookings", "New clients"]) {
       expect(within(screen.getByRole("group", { name })).getByTestId("kpi-icon")).toBeInTheDocument();
     }
   });
@@ -102,7 +102,7 @@ describe("DashboardView layout", () => {
     for (const name of ["Money", "Sales record", "Top services", "How bookings ended", "Key rates", "Salon at a glance", "Busiest weekdays", "Bookings per artist", "Artist utilization"]) {
       expect(screen.queryByRole("region", { name })).toBeNull();
     }
-    expect(screen.getAllByRole("group").map((g) => g.getAttribute("aria-label"))).toEqual(["Collected", "Estimated sales", "Bookings", "New clients"]);
+    expect(screen.getAllByRole("group").map((g) => g.getAttribute("aria-label"))).toEqual(["Collected", "Sales", "Bookings", "New clients"]);
   });
 
   it("links to the Sales and Performance pages for the rest", () => {
@@ -145,5 +145,12 @@ describe("DashboardView next appointments (without the bookings table)", () => {
   it("says so when there are none", () => {
     render(<DashboardView data={{ ...data, next: [] }} />);
     expect(screen.getByText("No upcoming confirmed appointments.")).toBeInTheDocument();
+  });
+});
+
+describe("the Sales card", () => {
+  it("says what it adds up: the downpayments and balances of completed visits", () => {
+    render(<DashboardView data={data} />);
+    expect(within(screen.getByRole("group", { name: "Sales" })).getByText("downpayments + balance of completed visits")).toBeInTheDocument();
   });
 });

@@ -85,7 +85,7 @@ describe("Dashboard", () => {
     const collected = await screen.findByRole("group", { name: "Collected" });
     expect(within(collected).getByText("₱2,000")).toBeInTheDocument();
     expect(within(collected).getByText("+100%")).toBeInTheDocument();
-    expect(within(screen.getByRole("group", { name: "Estimated sales" })).getByText("₱3,100")).toBeInTheDocument();
+    expect(within(screen.getByRole("group", { name: "Sales" })).getByText("₱3,100")).toBeInTheDocument();
     expect(within(screen.getByRole("group", { name: "Bookings" })).getByText("new")).toBeInTheDocument(); // previous was 0
     expect(await screen.findByText("Dana D")).toBeInTheDocument();
     // the written summary of the period sits above the numbers

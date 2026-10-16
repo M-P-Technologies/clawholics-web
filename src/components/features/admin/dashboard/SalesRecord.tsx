@@ -12,8 +12,9 @@ const dateLabel = (ymd: string) => {
   return `${MONTHS[m - 1]} ${d}, ${y}`;
 };
 
-// The period's sales, one row per completed visit: the service, the customer and the fee (its
-// list price), with the total above. It adds up to Estimated sales. On a phone each sale is a
+// The period's sales, one row per completed visit: the service, the customer and the fee (what
+// the visit sold for: the downpayment and the balance recorded, or its list price before those
+// were recorded), with the total above. It adds up to Sales. On a phone each sale is a
 // card, five to a page.
 export default function SalesRecord({ sales }: { sales: DashboardResponse["sales"] }) {
   const [page, setPage] = useState(1);

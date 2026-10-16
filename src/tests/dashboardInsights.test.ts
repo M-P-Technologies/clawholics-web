@@ -89,7 +89,7 @@ describe("buildInsights: wins", () => {
     }));
     expect(i.wins.map((w) => w.text)).toEqual([
       "Collected ₱2,000, up 100% on last month.",
-      "Estimated sales reached ₱3,300, up 10%.",
+      "Sales reached ₱3,300, up 10%.",
       "22 bookings, up 10% on last month.",
     ]);
   });
