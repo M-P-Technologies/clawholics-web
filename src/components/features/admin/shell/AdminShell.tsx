@@ -35,7 +35,6 @@ export default function AdminShell({ title, titleAside, actions, children }: Adm
         titleAside={titleAside}
         actions={actions}
         greeting={`Welcome, ${account.firstName}!`}
-        today={account.today}
         account={{ name: account.name, email: account.email || "Admin", imageUrl: account.imageUrl }}
         bell={
           <div className="flex items-center gap-3">
