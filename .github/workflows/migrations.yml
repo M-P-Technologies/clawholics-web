@@ -43,13 +43,19 @@ jobs:
           fi
 
       - name: List pending migrations
+        # The CLI prints the list on stderr, so both streams go to the file the next step reads
         run: |
-          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run | tee pending.txt
+          set -o pipefail
+          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run 2>&1 | tee pending.txt
 
       # A database whose schema was made outside the CLI (copy-from-d1.mjs, the SQL editor) has no
       # migration history, so the CLI would run every file again from init. Stop instead.
       - name: Refuse to re-run init on an existing schema
         run: |
+          if [ ! -s pending.txt ]; then
+            echo "::error::The dry run printed nothing, so it can't be checked for init."
+            exit 1
+          fi
           if grep -q "20261010000000_init.sql" pending.txt &&
              [ "$(psql "$SUPABASE_DB_URL" -Atc "select to_regclass('public.content') is not null")" = "t" ]; then
             echo "::error::The database already has the schema but no migration history. Record what's already applied first: supabase migration repair --db-url \"\$SUPABASE_DB_URL\" --status applied <version>..."
