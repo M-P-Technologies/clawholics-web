@@ -353,6 +353,10 @@ export const updateAppointmentStatus = ported<IdContext>(async (req, { params })
           where id = ${proof.id} and status = 'PENDING'
         `;
       }
+      // Leaving COMPLETED: the visit's record (what was paid, who did it) no longer stands
+      if (was === "COMPLETED" && upperStatus !== "COMPLETED") {
+        await tx`delete from visit_completions where appointment_id = ${id}`;
+      }
       return confirmed;
     });
   } catch (error) {
