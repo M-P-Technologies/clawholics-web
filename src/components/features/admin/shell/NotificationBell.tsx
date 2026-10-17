@@ -130,7 +130,7 @@ export default function NotificationBell() {
               })}
             </ul>
           )}
-          <div className="flex flex-wrap items-center gap-2 border-t border-crimson-light/40 px-3 py-3">
+          <div className="flex flex-wrap items-center gap-3 border-t border-crimson-light/40 px-3 py-3">
             <AlertToggle on={bell.alerts.sound} onClick={bell.alerts.toggleSound} icon={bell.alerts.sound ? Volume2 : VolumeX} label="Sound" />
             {!bell.alerts.desktopUnavailable && (
               <AlertToggle on={bell.alerts.desktop} onClick={() => void bell.alerts.toggleDesktop()} icon={BellRing} label="Desktop alerts" />

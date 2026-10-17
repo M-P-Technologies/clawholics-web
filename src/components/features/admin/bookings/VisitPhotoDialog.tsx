@@ -27,8 +27,8 @@ export default function VisitPhotoDialog({ appointmentId, open, onClose, onDone 
         <p className="text-sm text-gray-red">
           One photo, up to {photo.maxMb} MB. It&apos;s made smaller before it&apos;s saved, and goes first in the artist&apos;s gallery.
         </p>
-        <div className="flex flex-col gap-2 rounded-xl border-2 border-dashed border-crimson-light bg-crimson-light/10 p-4">
-          <label htmlFor={`${id}-photo`} className="flex items-center gap-2 text-[13px] font-bold text-gray-red">
+        <div className="flex flex-col gap-3 rounded-xl border-2 border-dashed border-crimson-light bg-crimson-light/10 p-4">
+          <label htmlFor={`${id}-photo`} className="flex items-center gap-3 text-[13px] font-bold text-gray-red">
             <ImageUp size={16} aria-hidden="true" className="text-crimson-ink" />
             Nail photo
           </label>

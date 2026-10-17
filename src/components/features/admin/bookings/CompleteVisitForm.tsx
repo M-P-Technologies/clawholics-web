@@ -33,7 +33,7 @@ export default function CompleteVisitForm({ visit, artists, onSaved, onCancelLat
             Edit
           </Button>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-3">
           {form.photosMissing && <p className="text-xs font-bold text-warning-ink">Nail photo still to add, for the artist&apos;s gallery.</p>}
           <button type="button" onClick={form.openPhoto} className="text-xs font-bold text-crimson-ink underline underline-offset-2">
             {form.hasPhoto ? "Change photo" : "Add photo"}
@@ -56,7 +56,7 @@ export default function CompleteVisitForm({ visit, artists, onSaved, onCancelLat
       }}
     >
       {form.locked && (
-        <p className="flex items-center gap-2 text-xs font-bold text-gray-red">
+        <p className="flex items-center gap-3 text-xs font-bold text-gray-red">
           <Clock size={14} aria-hidden="true" className="text-crimson-ink" />
           {form.lockedNote}
         </p>
@@ -119,7 +119,7 @@ export default function CompleteVisitForm({ visit, artists, onSaved, onCancelLat
         </div>
       </div>
       {form.lateCancel && !form.completed && (
-        <div role="note" className="flex flex-col gap-2 rounded-lg border border-warning/40 bg-warning/10 p-3">
+        <div role="note" className="flex flex-col gap-3 rounded-lg border border-warning/40 bg-warning/10 p-3">
           <p className="text-xs font-bold text-warning-ink">
             25 minutes or more late: the terms cancel this visit and keep the downpayment. You can still serve them and complete it.
           </p>

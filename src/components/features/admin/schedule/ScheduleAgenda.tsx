@@ -92,7 +92,7 @@ export default function ScheduleAgenda({ selected, onSelect, dayData, onOpenAppo
       </div>
 
       {artistOff.length > 0 && (
-        <ul aria-label="Artists off" className="flex flex-wrap gap-2">
+        <ul aria-label="Artists off" className="flex flex-wrap gap-3">
           {artistOff.map((artist) => (
             <li key={artist.id} className="flex items-center gap-1.5 rounded-full bg-sand px-3 py-1 text-xs font-medium text-gray-red">
               <Moon size={12} aria-hidden="true" className="shrink-0" />
