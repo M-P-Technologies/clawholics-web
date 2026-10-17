@@ -135,10 +135,11 @@ describe("the Complete visit form", () => {
   it("applies a birthday voucher: checked with the server, its discount comes off the balance, and it's sent with the visit", async () => {
     checkVoucherForVisit.mockResolvedValue({ id: 3, code: "BDAY-ABC", discount_pct: 20, valid_until: "2026-01-31", discount: 300 });
     const { user } = renderForm(visit());
-    await user.type(screen.getByLabelText("Birthday voucher (optional)"), "bday-abc");
+    await user.type(screen.getByLabelText("Voucher (optional)"), "bday-abc");
     await user.click(screen.getByRole("button", { name: "Apply" }));
     expect(checkVoucherForVisit).toHaveBeenCalledWith("bday-abc", 7, expect.anything());
-    expect(screen.getByText("BDAY-ABC applied: −₱300 off the service price")).toBeInTheDocument();
+    expect(screen.getByText("BDAY-ABC applied: 20% off, −₱300 off the service price")).toBeInTheDocument();
+    expect(screen.getByLabelText("Balance breakdown")).toHaveTextContent("Voucher (20% off)−₱300");
     // ₱1,500 less ₱300, less the ₱400 credited from the downpayment
     expect(screen.getByLabelText("Balance paid at the salon (₱)")).toHaveValue("800");
     await user.click(screen.getByRole("button", { name: "Complete visit" }));
@@ -151,11 +152,36 @@ describe("the Complete visit form", () => {
   it("shows why a code was refused, and won't save with a code typed but not applied", async () => {
     checkVoucherForVisit.mockRejectedValue(new Error("This voucher was already used on another visit."));
     const { user } = renderForm(visit());
-    await user.type(screen.getByLabelText("Birthday voucher (optional)"), "BDAY-USED");
+    await user.type(screen.getByLabelText("Voucher (optional)"), "BDAY-USED");
     await user.click(screen.getByRole("button", { name: "Apply" }));
     expect(await screen.findByText("This voucher was already used on another visit.")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Complete visit" }));
     expect(screen.getByText("Apply the voucher code first, or clear it.")).toBeInTheDocument();
     expect(saveCompletion).not.toHaveBeenCalled();
+  });
+
+  it("works the late fee out from the time they came in, even when editing a saved visit, and shows the breakdown", async () => {
+    const saved = { balance_amount: 1100, payment_method: "Cash" as const, nailist_id: 1, arrived_at: null, late_fee: 0 };
+    const { user } = renderForm(visit({ status: "COMPLETED", completion: saved }));
+    await user.click(screen.getByRole("button", { name: "Edit" }));
+    await user.type(screen.getByLabelText("Time they came in"), "13:21");
+    expect(screen.getByLabelText("Balance paid at the salon (₱)")).toHaveValue("1250");
+    const breakdown = screen.getByLabelText("Balance breakdown");
+    expect(breakdown).toHaveTextContent("Service price₱1,500");
+    expect(breakdown).toHaveTextContent("Downpayment (less the ₱100 reservation fee)−₱400");
+    expect(breakdown).toHaveTextContent("Late fee (21 min late)+₱150");
+    expect(breakdown).toHaveTextContent("Balance to pay₱1,250");
+  });
+
+  it("keeps a balance the admin put in themselves when the voucher or arrival time changes", async () => {
+    checkVoucherForVisit.mockResolvedValue({ id: 3, code: "K7MX4QPA", discount_pct: 20, valid_until: "2026-01-31", discount: 300 });
+    const saved = { balance_amount: 1450, payment_method: "Cash" as const, nailist_id: 1, arrived_at: null, late_fee: 0 };
+    const { user } = renderForm(visit({ status: "COMPLETED", completion: saved }));
+    await user.click(screen.getByRole("button", { name: "Edit" }));
+    await user.type(screen.getByLabelText("Voucher (optional)"), "K7MX4QPA");
+    await user.click(screen.getByRole("button", { name: "Apply" }));
+    await user.type(screen.getByLabelText("Time they came in"), "13:21");
+    expect(screen.getByLabelText("Balance paid at the salon (₱)")).toHaveValue("1450");
+    expect(screen.getByLabelText("Balance breakdown")).toHaveTextContent("Balance to pay₱950");
   });
 });

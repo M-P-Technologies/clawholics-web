@@ -2,6 +2,7 @@ import "server-only";
 import type { TransactionSql } from "postgres";
 import { SERVICE_PRICE_SQL } from "./appointments";
 import { getSql } from "./db";
+import { pgErrorCode } from "./http";
 import { sendBirthdayVoucherEmails } from "./email";
 
 // Birthday vouchers (table from migration 20261018000000_birthday_vouchers.sql): one a year for
@@ -26,6 +27,13 @@ export interface BirthdayVoucher {
 export const DEFAULT_BIRTHDAY_DISCOUNT_PCT = 20;
 
 const MANILA_OFFSET_MS = 8 * 3600 * 1000;
+/**
+ * Voucher codes: 8 characters from letters and digits that can't be misread (no 0/O, 1/I/L), so
+ * they're easy to read out at the salon. 31^8 codes; a code can only be used on its own client's visit.
+ */
+const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+const CODE_LENGTH = 8;
+
 /** Resend's batch endpoint takes at most 100 emails a call */
 const EMAIL_BATCH_SIZE = 100;
 
@@ -60,9 +68,12 @@ export async function issueBirthdayVouchers(now = new Date()) {
 
   const pct = await getBirthdayDiscountPct();
   // Clients (not admins) with a full YYYY-MM-DD birthday in this month and an email to send to
-  const issued = await sql`
+  const issue = () => sql`
     insert into birthday_vouchers (user_id, year, code, discount_pct, valid_from, valid_until)
-    select u.id, ${year}, 'BDAY-' || upper(substr(md5(random()::text || u.id::text || clock_timestamp()::text), 1, 10)),
+    select u.id, ${year},
+      -- A new code per client (the subquery reads u.id, so it isn't run once for every row)
+      (select string_agg(substr(${CODE_ALPHABET}, 1 + floor(random() * ${CODE_ALPHABET.length})::int, 1), '')
+       from generate_series(1, ${CODE_LENGTH}) where u.id is not null),
       ${pct}, ${firstDay}, ${lastDay}
     from users u
     join customer_profiles cp on cp.user_id = u.id
@@ -71,6 +82,16 @@ export async function issueBirthdayVouchers(now = new Date()) {
       and substr(cp.dob, 6, 2) = ${month}
       and coalesce(u.email, '') <> ''
     on conflict (user_id, year) do nothing`;
+  // A new code that (rarely) matches an existing one fails the whole insert: try again with new codes
+  let issued: Awaited<ReturnType<typeof issue>> | undefined;
+  for (let attempt = 1; !issued; attempt++) {
+    try {
+      issued = await issue();
+    } catch (error) {
+      const constraint = (error as { constraint_name?: string }).constraint_name;
+      if (pgErrorCode(error) !== "23505" || constraint !== "birthday_vouchers_code_key" || attempt >= 3) throw error;
+    }
+  }
 
   // This month's vouchers not emailed yet, taken by this run so a run at the same time can't send them too
   const toEmail = await sql<{ id: number; email: string; first_name: string; code: string; discount_pct: number; valid_until: string }[]>`
@@ -159,8 +180,8 @@ export async function checkVoucherForVisit(db: Db, code: string, appointmentId: 
     from birthday_vouchers v
     left join appointments a on a.id = ${appointmentId}
     where v.code = ${wanted}`;
-  if (!row) return { error: "No birthday voucher has this code." };
-  if (row.user_id !== row.visit_user) return { error: "This code isn't this client's birthday voucher." };
+  if (!row) return { error: "No voucher has this code." };
+  if (row.user_id !== row.visit_user) return { error: "This voucher isn't this client's." };
   // USED without a visit (its appointment was deleted) stays used
   if (row.used_by !== appointmentId && (row.used_by !== null || row.status === "USED")) {
     return { error: "This voucher was already used on another visit." };
@@ -198,9 +219,11 @@ export async function releaseVoucherOf(db: Db, appointmentId: number, now = new 
 export async function useVoucherOn(db: Db, voucherId: number, appointmentId: number, now = new Date()): Promise<boolean> {
   const [current] = await db<{ id: number }[]>`select id from birthday_vouchers where appointment_id = ${appointmentId}`;
   if (current && current.id !== voucherId) await releaseVoucherOf(db, appointmentId, now);
+  // Not on another visit, and not left USED by a deleted one, as checked: the check ran before the transaction
   const [used] = await db`
     update birthday_vouchers set status = 'USED', used_at = coalesce(used_at, clawholics_utc_now()), appointment_id = ${appointmentId}
-    where id = ${voucherId} and (appointment_id is null or appointment_id = ${appointmentId})
+    where id = ${voucherId}
+      and (appointment_id = ${appointmentId} or (appointment_id is null and status <> 'USED'))
     returning id`;
   return Boolean(used);
 }

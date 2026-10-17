@@ -23,5 +23,7 @@ export function useBirthdayVoucher() {
   });
 
   const voucher = isClient && isLiveVoucher(query.data) ? query.data : null;
-  return { voucher, claim: claim.mutateAsync, isClaiming: claim.isPending, claimError: claim.error };
+  /** This year's voucher was used at the salon */
+  const used = isClient && query.data?.status === "USED";
+  return { voucher, used, claim: claim.mutateAsync, isClaiming: claim.isPending, claimError: claim.error };
 }

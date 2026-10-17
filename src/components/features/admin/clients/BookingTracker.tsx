@@ -7,6 +7,7 @@ import { appointmentToTrack, trackerSteps, type TrackerStep } from "@/lib/bookin
 import type { ClientAppointment } from "@/services/clientNotesService";
 import { Badge, Button, Select } from "@/components/atoms";
 import { StepTracker } from "@/components/molecules";
+import CompleteVisitDialog from "@/components/features/admin/bookings/CompleteVisitDialog";
 import CompleteVisitForm from "@/components/features/admin/bookings/CompleteVisitForm";
 import ProofThumb from "@/components/features/admin/bookings/ProofThumb";
 
@@ -24,15 +25,26 @@ interface BookingTrackerProps {
 }
 
 // Where one appointment is, from booking to the finished visit, with what the admin does at each
-// step: the payment screenshot, Confirm booking, and the Complete visit form
+// step: the payment screenshot, Confirm booking, and Complete visit (its form in a dialog) or Didn't show up
 export default function BookingTracker({ appointments, today, artists, onConfirm, onNoShow, onCancelLate }: BookingTrackerProps) {
   const [chosenId, setChosenId] = useState<number | null>(null);
   const [asking, setAsking] = useState<"allow" | "no-show" | null>(null);
+  const [completing, setCompleting] = useState(false);
   const tracked = appointments.find((a) => a.id === chosenId) ?? appointmentToTrack(appointments, today);
   if (!tracked) return <p className="text-sm text-gray-red">No bookings to track yet.</p>;
   const steps = trackerSteps(tracked);
   const status = tracked.status.toUpperCase();
   const hasScreenshot = tracked.proof_status === "PENDING" || tracked.proof_status === "APPROVED";
+  const visit = {
+    id: tracked.id,
+    status: tracked.status,
+    appointment_date: tracked.appointment_date,
+    appointment_time: tracked.appointment_time,
+    nailist_id: tracked.nailist_id ?? null,
+    price: tracked.price,
+    paid_downpayment: tracked.paid_downpayment ?? 0,
+    completion: tracked.completion ?? null,
+  };
 
   const extra = (step: TrackerStep) => {
     if (step.key === "downpayment") {
@@ -70,32 +82,28 @@ export default function BookingTracker({ appointments, today, artists, onConfirm
         </div>
       );
     }
-    if (step.key === "completed" && (status === "CONFIRMED" || status === "COMPLETED")) {
+    if (step.key === "completed" && status === "CONFIRMED") {
+      const beforeDay = tracked.appointment_date > today;
       return (
-        <div className="flex flex-col gap-3">
-        <CompleteVisitForm
-          key={tracked.id}
-          visit={{
-            id: tracked.id,
-            status: tracked.status,
-            appointment_date: tracked.appointment_date,
-            appointment_time: tracked.appointment_time,
-            nailist_id: tracked.nailist_id ?? null,
-            price: tracked.price,
-            paid_downpayment: tracked.paid_downpayment ?? 0,
-            completion: tracked.completion ?? null,
-          }}
-          artists={artists}
-          onCancelLate={() => onCancelLate(tracked.id)}
-        />
-        {/* From the visit's day: the client never came */}
-        {status === "CONFIRMED" && tracked.appointment_date <= today && (
-          <Button type="button" size="sm" variant="secondary" onClick={() => setAsking("no-show")} className="self-start">
-            Didn&apos;t show up
-          </Button>
-        )}
+        <div className="mt-1 flex flex-col gap-1.5">
+          {beforeDay && <p className="text-xs font-bold text-gray-red">You can complete this visit from {dateLabel(tracked.appointment_date)}.</p>}
+          <div className="flex flex-wrap gap-3">
+            <Button type="button" size="sm" disabled={beforeDay} onClick={() => setCompleting(true)}>
+              Complete visit
+            </Button>
+            {/* From the visit's day: the client never came */}
+            {!beforeDay && (
+              <Button type="button" size="sm" variant="secondary" onClick={() => setAsking("no-show")}>
+                Didn&apos;t show up
+              </Button>
+            )}
+          </div>
         </div>
       );
+    }
+    // Completed: what was recorded, with Edit opening the dialog, and the visit's photo
+    if (step.key === "completed" && status === "COMPLETED") {
+      return <CompleteVisitForm key={tracked.id} visit={visit} artists={artists} onEdit={() => setCompleting(true)} />;
     }
     return null;
   };
@@ -116,6 +124,13 @@ export default function BookingTracker({ appointments, today, artists, onConfirm
 
       <StepTracker label="Booking progress" steps={steps} renderExtra={extra} />
 
+      <CompleteVisitDialog
+        open={completing}
+        onClose={() => setCompleting(false)}
+        visit={visit}
+        artists={artists}
+        onCancelLate={() => onCancelLate(tracked.id)}
+      />
       <ConfirmDialog
         open={asking === "allow"}
         title="Confirm without a screenshot?"

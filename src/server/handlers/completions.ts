@@ -103,6 +103,7 @@ export const saveCompletion = changesCatalog(ported<IdContext>(async (req, { par
     }
     await tx`update visit_completions set voucher_discount = ${voucher?.discount ?? 0} where appointment_id = ${id}`;
     saved.voucher_code = voucher?.code ?? null;
+    saved.voucher_pct = voucher?.discount_pct ?? null;
     saved.voucher_discount = voucher?.discount ?? 0;
     // The newest work first: each photo goes before the artist's others (the page shows the first 10)
     for (const url of urls) {

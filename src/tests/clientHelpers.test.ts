@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { artistsFact, priceLabel, shortPriceLabel } from "@/lib/client/servicePrice";
 import { fillName, isBirthdayMonth } from "@/lib/client/birthday";
-import { homeOffers } from "@/lib/client/offers";
+import { BIRTHDAY_USED_LINE, homeOffers } from "@/lib/client/offers";
 import { readHomeSections } from "@/lib/homeSections";
 
 const tiered = { pricing_type: "tiered" as const, master_price: 900, junior_price: 600, price: 0, variants: [] };
@@ -64,6 +64,10 @@ describe("home offers", () => {
   it("leaves the birthday banner out in other months, or when switched off", () => {
     expect(homeOffers({ sections: sections(), dob: "1998-03-02", firstName: "Ana", now }).map((o) => o.title)).toEqual(["20% off"]);
     expect(homeOffers({ sections: sections({ home_birthday_enabled: "0" }), dob: "1998-10-25", firstName: "Ana", now }).map((o) => o.title)).toEqual(["20% off"]);
+  });
+  it("thanks the client instead of offering it once the birthday voucher was used", () => {
+    const [banner] = homeOffers({ sections: sections(), dob: "1998-10-25", firstName: "Ana", now, birthdayUsed: true });
+    expect(banner).toMatchObject({ title: "Happy birthday, Ana!", line: BIRTHDAY_USED_LINE, note: "", buttonLabel: "", birthday: true });
   });
   it("is empty with no offers and no birthday", () => {
     expect(homeOffers({ sections: readHomeSections({}), dob: null, firstName: "Ana", now })).toEqual([]);

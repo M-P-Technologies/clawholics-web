@@ -3,7 +3,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/molecules";
 import { adminDataChanged } from "../../lib/adminQueries";
-import { BALANCE_METHODS, expectedBalance, lateFee, minutesLate, type BalanceMethod } from "../../lib/visitCompletion";
+import { BALANCE_METHODS, RESERVATION_FEE, expectedBalance, lateFee, minutesLate, type BalanceMethod } from "../../lib/visitCompletion";
 import { saveCompletion, type VisitToComplete } from "../../services/completionService";
 import { checkVoucherForVisit } from "../../services/voucherService";
 
@@ -40,14 +40,16 @@ export function useCompleteVisit(visit: VisitToComplete, onSaved?: () => void) {
   const [error, setError] = useState("");
   // The birthday voucher: the code typed, and the one applied once the server accepted it
   const [voucherInput, setVoucherInput] = useState(saved?.voucher_code ?? "");
-  const [voucher, setVoucher] = useState<{ code: string; discount: number } | null>(
-    saved?.voucher_code ? { code: saved.voucher_code, discount: saved.voucher_discount ?? 0 } : null,
+  const [voucher, setVoucher] = useState<{ code: string; discount: number; pct: number | null } | null>(
+    saved?.voucher_code ? { code: saved.voucher_code, discount: saved.voucher_discount ?? 0, pct: saved.voucher_pct ?? null } : null,
   );
   const [checkingVoucher, setCheckingVoucher] = useState(false);
   const [voucherError, setVoucherError] = useState("");
 
   const discount = voucher?.discount ?? 0;
   const base = expectedBalance(visit.price === null ? null : Math.max(0, visit.price - discount), visit.paid_downpayment);
+  /** The downpayment taken off the bill (without the reservation fee), up to the price less the voucher */
+  const credit = Math.min(Math.max(0, visit.paid_downpayment - RESERVATION_FEE), Math.max(0, (visit.price ?? 0) - discount));
 
   const minutes = minutesLate(visit.appointment_time, arrivedAt);
   const late = lateFee(minutes);
@@ -60,16 +62,21 @@ export function useCompleteVisit(visit: VisitToComplete, onSaved?: () => void) {
   const locked = confirmed && visit.appointment_date > manilaToday();
   const formOpen = confirmed || (completed && editing);
 
+  // A new voucher or arrival time changes the suggestion: the balance follows it, unless the admin
+  // had put in their own amount (e.g. extras added), which stays
+  const followSuggestion = () => {
+    if (balance === String(auto)) setTypedBalance(null);
+  };
+
   const applyVoucher = async () => {
     if (!voucherInput.trim()) return setVoucherError("Enter the code the client shows you.");
     setCheckingVoucher(true);
     setVoucherError("");
     try {
       const found = await checkVoucherForVisit(voucherInput, visit.id, { token: await getToken(), clerkId: userId });
-      setVoucher({ code: found.code, discount: found.discount });
+      setVoucher({ code: found.code, discount: found.discount, pct: found.discount_pct });
       setVoucherInput(found.code);
-      // The balance follows the new discount, even one typed or saved before
-      setTypedBalance(null);
+      followSuggestion();
     } catch (e) {
       setVoucher(null);
       setVoucherError(e instanceof Error && e.message ? e.message : "The code couldn't be checked. Please try again.");
@@ -81,7 +88,7 @@ export function useCompleteVisit(visit: VisitToComplete, onSaved?: () => void) {
     setVoucher(null);
     setVoucherInput("");
     setVoucherError("");
-    setTypedBalance(null);
+    followSuggestion();
   };
 
   const submit = async () => {
@@ -116,7 +123,7 @@ export function useCompleteVisit(visit: VisitToComplete, onSaved?: () => void) {
     completed,
     /** What was recorded, e.g. "₱1,300 · GCash · Miss Jean" */
     summary: saved
-      ? [peso(saved.balance_amount), saved.payment_method, saved.nailist_name, saved.voucher_code && `Voucher −${peso(saved.voucher_discount ?? 0)}`]
+      ? [peso(saved.balance_amount), saved.payment_method, saved.nailist_name, saved.voucher_code && `Voucher${saved.voucher_pct ? ` ${saved.voucher_pct}%` : ""} −${peso(saved.voucher_discount ?? 0)}`]
           .filter(Boolean)
           .join(" · ")
       : "",
@@ -129,15 +136,34 @@ export function useCompleteVisit(visit: VisitToComplete, onSaved?: () => void) {
     startEditing: () => setEditing(true),
     cancelEditing: () => setEditing(false),
     arrivedAt,
-    setArrivedAt,
+    /** A new arrival time sets the late fee, and the balance follows it again */
+    setArrivedAt: (value: string) => {
+      setArrivedAt(value);
+      followSuggestion();
+    },
+    /** How the suggested balance is made up: the service, the voucher, the downpayment, the late fee */
+    breakdown: [
+      { label: "Service price", value: peso(visit.price ?? 0) },
+      discount > 0 && { label: voucher?.pct ? `Voucher (${voucher.pct}% off)` : "Voucher", value: `−${peso(discount)}` },
+      // Never more than what's left of the price, as the balance counts it
+      credit > 0 && {
+        label: `Downpayment (less the ${peso(RESERVATION_FEE)} reservation fee)`,
+        value: `−${peso(credit)}`,
+      },
+      late.fee > 0 && { label: `Late fee (${minutes} min late)`, value: `+${peso(late.fee)}` },
+    ].filter((row): row is { label: string; value: string } => Boolean(row)),
+    /** The suggested balance: what the breakdown adds up to */
+    suggested: peso(auto),
     /** "Late fee (17 min late): ₱100", or empty when on time */
     lateLine: late.fee > 0 && minutes !== null ? `Late fee (${minutes} min late): ${peso(late.fee)}` : "",
     /** 25 minutes or more late: the terms cancel the visit */
     lateCancel: late.cancel,
     voucherInput,
     setVoucherInput,
-    /** "BDAY-… applied: −₱300 off the service price", once the server accepted the code */
-    voucherLine: voucher ? `${voucher.code} applied: −${peso(voucher.discount)} off the service price` : "",
+    /** "K7MX4QPA applied: 20% off, −₱300 off the service price", once the server accepted the code */
+    voucherLine: voucher
+      ? `${voucher.code} applied: ${voucher.pct ? `${voucher.pct}% off, ` : ""}−${peso(voucher.discount)} off the service price`
+      : "",
     voucherApplied: Boolean(voucher),
     applyVoucher,
     removeVoucher,

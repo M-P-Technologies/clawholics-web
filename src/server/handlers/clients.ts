@@ -74,7 +74,8 @@ export const getClient = ported<IdContext>(async (_req, { params }) => {
          (select json_build_object('balance_amount', vc.balance_amount, 'payment_method', vc.payment_method,
                    'nailist_id', vc.nailist_id, 'nailist_name', vn.name,
                    'arrived_at', vc.arrived_at, 'late_fee', vc.late_fee, 'photos_added', vc.photos_added, 'photo_url', vc.photo_url,
-                   'voucher_discount', vc.voucher_discount, 'voucher_code', (select bv.code from birthday_vouchers bv where bv.appointment_id = a.id))
+                   'voucher_discount', vc.voucher_discount, 'voucher_code', (select bv.code from birthday_vouchers bv where bv.appointment_id = a.id),
+                   'voucher_pct', (select bv.discount_pct from birthday_vouchers bv where bv.appointment_id = a.id))
           from visit_completions vc left join nailists vn on vn.id = vc.nailist_id
           where vc.appointment_id = a.id) as completion,
          -- The client's review of the visit, if they left one

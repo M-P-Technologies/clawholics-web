@@ -169,7 +169,7 @@ describe.skipIf(!TEST_DATABASE_URL)("completing a visit (Postgres)", () => {
     });
 
     await complete(id, { balance_amount: "1300", payment_method: "Maya", nailist_id: String(jun) });
-    expect((await clientRow(id)).completion).toEqual({ balance_amount: 1300, payment_method: "Maya", nailist_id: jun, nailist_name: "Jun", arrived_at: null, late_fee: 0, photos_added: 0, photo_url: null, voucher_code: null, voucher_discount: 0 });
+    expect((await clientRow(id)).completion).toEqual({ balance_amount: 1300, payment_method: "Maya", nailist_id: jun, nailist_name: "Jun", arrived_at: null, late_fee: 0, photos_added: 0, photo_url: null, voucher_code: null, voucher_pct: null, voucher_discount: 0 });
   });
 
   it("records when the client arrived and the late fee the terms set", async () => {
@@ -281,7 +281,7 @@ describe.skipIf(!TEST_DATABASE_URL)("completing a visit (Postgres)", () => {
       expect(ok.status).toBe(200);
       expect(ok.body).toMatchObject({ code: "BDAY-ANA0000001", discount_pct: 20, discount: Math.round(price * 0.2) });
       expect((await check("BDAY-BEA0000001", id)).body.message).toMatch(/isn't this client's/);
-      expect((await check("BDAY-NOPE", id)).body.message).toMatch(/No birthday voucher/);
+      expect((await check("BDAY-NOPE", id)).body.message).toMatch(/No voucher has this code/);
       expect((await check("BDAY-ANA0000001", await appt("CONFIRMED", "2026-04-02"))).body.message).toMatch(/only for visits from Mar 1, 2026/);
       as("user_ana");
       expect((await callRoute(vouchersHandlers.checkVoucher, `/x?code=BDAY-ANA0000001&appointment_id=${id}`)).status).toBe(403);
@@ -292,7 +292,7 @@ describe.skipIf(!TEST_DATABASE_URL)("completing a visit (Postgres)", () => {
       const price = (await clientRow(id)).price as number;
       const saved = await complete(id, { ...fields, voucher_code: "BDAY-ANA0000001" });
       expect(saved.status).toBe(200);
-      expect(saved.body.completion).toMatchObject({ voucher_code: "BDAY-ANA0000001", voucher_discount: Math.round(price * 0.2) });
+      expect(saved.body.completion).toMatchObject({ voucher_code: "BDAY-ANA0000001", voucher_pct: 20, voucher_discount: Math.round(price * 0.2) });
       expect(await voucherRow("BDAY-ANA0000001")).toMatchObject({ status: "USED", appointment_id: id });
       expect((await clientRow(id)).completion).toMatchObject({ voucher_code: "BDAY-ANA0000001", voucher_discount: Math.round(price * 0.2) });
 

@@ -17,6 +17,8 @@ export interface Completion {
   photo_url?: string | null;
   /** The birthday voucher used on it, and what it took off the service price */
   voucher_code?: string | null;
+  /** The voucher's percentage off */
+  voucher_pct?: number | null;
   voucher_discount?: number;
 }
 

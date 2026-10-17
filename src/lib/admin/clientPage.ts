@@ -48,7 +48,7 @@ export const CLIENT_TABS: { value: ClientTab; label: string }[] = [
 export const birthdayLabel = (dob?: string | null) => (dob && /^\d{4}-\d{2}-\d{2}/.test(dob) ? dateLabel(dob.slice(0, 10)) : null);
 
 /**
- * This year's birthday voucher, for the client info: "BDAY-… · 20% off · claimed, until Oct 31, 2026",
+ * This year's birthday voucher, for the client info: "K7MX4QPA · 20% off · claimed, until Oct 31, 2026",
  * "… · used on Oct 12, 2026" or "… · expired"; null when they have none
  */
 export const voucherLabel = (voucher: ClientDetails["birthday_voucher"]) => {

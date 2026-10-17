@@ -61,15 +61,30 @@ describe("the client page's booking tracker", () => {
     expect(onNoShow).toHaveBeenCalledWith(7);
   });
 
-  it("offers the Complete visit form on the Completed step of a confirmed visit", () => {
-    renderTracker(appt());
-    expect(within(step("Completed")).getByRole("form", { name: "Complete visit" })).toBeInTheDocument();
-    expect(within(step("Completed")).getByLabelText("Balance paid at the salon (₱)")).toHaveValue("1100");
+  it("shows Complete visit and Didn't show up on the Completed step; Complete visit opens the form in a dialog", async () => {
+    const { user } = renderTracker(appt());
+    expect(within(step("Completed")).queryByRole("form")).toBeNull();
+    expect(within(step("Completed")).getByRole("button", { name: "Didn't show up" })).toBeInTheDocument();
+    await user.click(within(step("Completed")).getByRole("button", { name: "Complete visit" }));
+    const dialog = screen.getByRole("dialog", { name: "Complete visit" });
+    expect(within(dialog).getByLabelText("Balance paid at the salon (₱)")).toHaveValue("1100");
+    await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it("shows what was recorded once completed", () => {
-    renderTracker(appt({ status: "COMPLETED", completion: { balance_amount: 1300, payment_method: "GCash", nailist_id: 2, nailist_name: "Miss Jean" } }));
+  it("before the visit's day, Complete visit is locked and there's no Didn't show up", () => {
+    renderTracker(appt({ appointment_date: "2026-01-12" }));
+    expect(within(step("Completed")).getByRole("button", { name: "Complete visit" })).toBeDisabled();
+    expect(within(step("Completed")).getByText("You can complete this visit from Jan 12, 2026.")).toBeInTheDocument();
+    expect(within(step("Completed")).queryByRole("button", { name: "Didn't show up" })).toBeNull();
+  });
+
+  it("shows what was recorded once completed, with Edit opening the dialog", async () => {
+    const { user } = renderTracker(appt({ status: "COMPLETED", completion: { balance_amount: 1300, payment_method: "GCash", nailist_id: 2, nailist_name: "Miss Jean" } }));
     expect(within(step("Completed")).getByText("₱1,300 · GCash · Miss Jean")).toBeInTheDocument();
-    expect(within(step("Completed")).getByRole("button", { name: "Edit" })).toBeInTheDocument();
+    await user.click(within(step("Completed")).getByRole("button", { name: "Edit" }));
+    const dialog = screen.getByRole("dialog", { name: "Edit the completed visit" });
+    expect(within(dialog).getByLabelText("Balance paid at the salon (₱)")).toHaveValue("1300");
+    expect(within(dialog).getByRole("button", { name: "Save changes" })).toBeInTheDocument();
   });
 });

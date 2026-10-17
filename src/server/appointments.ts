@@ -155,7 +155,8 @@ const PAID_DOWNPAYMENT = `(select coalesce(sum(p.amount), 0)::int from payments 
 const COMPLETION = `(
   select json_build_object('balance_amount', vc.balance_amount, 'payment_method', vc.payment_method, 'nailist_id', vc.nailist_id, 'nailist_name', vn.name,
     'arrived_at', vc.arrived_at, 'late_fee', vc.late_fee, 'photos_added', vc.photos_added, 'photo_url', vc.photo_url,
-                   'voucher_discount', vc.voucher_discount, 'voucher_code', (select bv.code from birthday_vouchers bv where bv.appointment_id = a.id))
+                   'voucher_discount', vc.voucher_discount, 'voucher_code', (select bv.code from birthday_vouchers bv where bv.appointment_id = a.id),
+                   'voucher_pct', (select bv.discount_pct from birthday_vouchers bv where bv.appointment_id = a.id))
   from visit_completions vc left join nailists vn on vn.id = vc.nailist_id where vc.appointment_id = a.id
 )`;
 const PAGE_SELECT = `${APPOINTMENT_SELECT.slice(0, FROM_START)}, ${LATEST_PROOF} as latest_proof, ${CLIENT_VISITS} as client_visits,
