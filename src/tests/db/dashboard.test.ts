@@ -167,7 +167,9 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     const d = await dashboard.buildDashboard("month", NOW);
     expect(d.rates.cancellation).toEqual({ value: 2 / 9, previous: 0 });
     expect(d.rates.conversion).toEqual({ value: 2 / 6, previous: 1 });
-    expect(d.rates.returning).toEqual({ value: 1 / 3, previous: 0 });
+    // repeat rate, by the tracker: October's clients Ana and Bea had nothing completed before 1 Oct;
+    // September's Cara and Dana neither
+    expect(d.rates.returning).toEqual({ value: 0, previous: 0 });
     expect(d.rates.averageSale).toEqual({ value: 1000, previous: 850 }); // Sales over the visits completed with the tracker
     expect(d.lapsedClients).toBe(1); // Eve, last seen 1 June
     // everyone with a completed visit: Ana 800+1500, Bea 500, Cara 300+500, Dana 1200 (+ a service
@@ -193,9 +195,9 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
       clients: 5, // Ana, Bea, Cara, Dana, Eve: not the walk-in guest or the admin
       services, // the inactive one left out
       artists,
-      upcoming: 3, // confirmed from today to the period's end, the same as Booked ahead
+      noShows: 0, // none in the fixture's week
     });
-    expect(d.totals.upcoming).toBe(d.money.bookedAhead.visits);
+    expect(d.totals.trend.every((p) => p.noShows === 0)).toBe(true);
   });
 
   it("the salon at a glance: lines for clients, services and artists booked, and upcoming visits per day", async () => {
@@ -212,7 +214,7 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     const days = d.money.bookedAhead.days;
     expect(days.find((x) => x.date === "2026-10-14")?.visits).toBe(2);
     expect(days.find((x) => x.date === "2026-10-20")?.visits).toBe(1);
-    expect(days.reduce((n, x) => n + x.visits, 0)).toBe(d.totals.upcoming);
+    expect(days.reduce((n, x) => n + x.visits, 0)).toBe(d.money.bookedAhead.visits);
   });
 
   it("the salon at a glance over a year: services and artists counted once per month", async () => {

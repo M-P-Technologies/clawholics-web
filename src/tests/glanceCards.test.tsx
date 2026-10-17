@@ -7,13 +7,12 @@ vi.mock("@/lib/router", () => ({
 }));
 
 const totals = {
-  clients: 17, services: 35, artists: 5, upcoming: 7,
+  clients: 17, services: 35, artists: 5, noShows: 2,
   trend: [
-    { date: "2026-10-12", clients: 15, services: 2, artists: 1 },
-    { date: "2026-10-13", clients: 17, services: 4, artists: 3 },
+    { date: "2026-10-12", clients: 15, services: 2, artists: 1, noShows: 0 },
+    { date: "2026-10-13", clients: 17, services: 4, artists: 3, noShows: 2 },
   ],
 };
-const upcomingDays = [{ date: "2026-10-14", value: 1600, visits: 2 }, { date: "2026-10-15", value: 0, visits: 0 }, { date: "2026-10-16", value: 800, visits: 1 }];
 
 describe("GlanceCards", () => {
   it("shows the four counts, each opening its screen", () => {
@@ -26,8 +25,8 @@ describe("GlanceCards", () => {
     expect(card("Services").getByRole("link", { name: "Open services" })).toHaveAttribute("href", "/nail-services");
     expect(card("Artists").getByText("5")).toBeInTheDocument();
     expect(card("Artists").getByRole("link", { name: "Open artists" })).toHaveAttribute("href", "/nail-artists");
-    expect(card("Appointments").getByText("7")).toBeInTheDocument();
-    expect(card("Appointments").getByRole("link", { name: "Open appointments" })).toHaveAttribute("href", "/clients?status=CONFIRMED");
+    expect(card("No-shows").getByText("2")).toBeInTheDocument();
+    expect(card("No-shows").getByRole("link", { name: "Open no-shows" })).toHaveAttribute("href", "/clients?status=NO_SHOW");
   });
 
   it("says what each count is", () => {
@@ -35,7 +34,7 @@ describe("GlanceCards", () => {
     expect(screen.getByText("client accounts")).toBeInTheDocument();
     expect(screen.getByText("on the menu")).toBeInTheDocument();
     expect(screen.getByText("nail artists")).toBeInTheDocument();
-    expect(screen.getByText("confirmed, to the period's end")).toBeInTheDocument();
+    expect(screen.getByText("in the period")).toBeInTheDocument();
   });
 
   it("looks like the stat cards: a milk card, the small icon badge, the number in berry", () => {
@@ -48,16 +47,16 @@ describe("GlanceCards", () => {
   });
 
   it("draws a small line on each card, described in words", () => {
-    render(<GlanceCards totals={totals} granularity="day" upcomingDays={upcomingDays} />);
+    render(<GlanceCards totals={totals} granularity="day" />);
     expect(screen.getByRole("img", { name: "Total clients per day, from 15 to 17" })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "Different services booked per day, from 2 to 4" })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "Artists with bookings per day, from 1 to 3" })).toBeInTheDocument();
-    const ahead = screen.getByRole("img", { name: "Upcoming appointments per day to the period's end, from 2 to 1" });
-    expect([...ahead.querySelectorAll("title")].map((t) => t.textContent)).toEqual(["Oct 14: 2", "Oct 15: 0", "Oct 16: 1"]);
+    const noShows = screen.getByRole("img", { name: "No-shows per day, from 0 to 2" });
+    expect([...noShows.querySelectorAll("title")].map((t) => t.textContent)).toEqual(["Oct 12: 0", "Oct 13: 2"]);
   });
 
   it("draws no lines without points", () => {
-    render(<GlanceCards totals={{ ...totals, trend: [] }} granularity="day" upcomingDays={[]} />);
+    render(<GlanceCards totals={{ ...totals, trend: [] }} granularity="day" />);
     expect(screen.queryByRole("img")).toBeNull();
   });
 });

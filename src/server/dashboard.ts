@@ -107,7 +107,7 @@ const FIRST_VISIT = `first_visit as (
 
 // The glance cards' lines, one point per trend bucket: client accounts at the bucket's end (today's
 // count less the accounts made after it), and the different services and artists booked in it
-function glanceTrend(points: TrendPoint[], buckets: Span[], dayMix: { d: string; services: string[]; artists: string[] }[], clientsNow: number) {
+function glanceTrend(points: TrendPoint[], buckets: Span[], dayMix: { d: string; services: string[]; artists: string[] }[], clientsNow: number, noShowDays: { d: string; no_shows: number }[]) {
   let madeLater = 0;
   const clientsAtEnd = points.map(() => 0);
   for (let i = points.length - 1; i >= 0; i--) {
@@ -121,6 +121,7 @@ function glanceTrend(points: TrendPoint[], buckets: Span[], dayMix: { d: string;
       clients: clientsAtEnd[i],
       services: new Set(days.flatMap((r) => r.services)).size,
       artists: new Set(days.flatMap((r) => r.artists)).size,
+      noShows: noShowDays.filter((r) => r.d >= bucket.from && r.d <= bucket.to).reduce((sum, r) => sum + r.no_shows, 0),
     };
   });
 }
@@ -137,7 +138,7 @@ async function spanMetrics(span: Span) {
     // The money (Collected, Sales, Balance at the salon): the visits an admin completed with the
     // booking tracker in the period, dated by that day (tracked_d), so never a refunded one, and
     // always with the balance recorded. Cancellations and the outcome counts stay by the visit's day.
-    one<{ estimated_sales: number; collected: number; balance_at_salon: number; sold: number; lost: number; completed: number; cancelled: number; decided: number }>(
+    one<{ estimated_sales: number; collected: number; balance_at_salon: number; sold: number; lost: number; completed: number; cancelled: number; no_shows: number; decided: number }>(
       `${APPT} select
          coalesce(sum(${SALE}) filter (where tracked_d between $1 and $2), 0)::int as estimated_sales,
          coalesce(sum(paid) filter (where tracked_d between $1 and $2), 0)::int as collected,
@@ -146,6 +147,7 @@ async function spanMetrics(span: Span) {
          coalesce(sum(price) filter (where st in ${CANCELLED} and d between $1 and $2), 0)::int as lost,
          count(*) filter (where st = 'COMPLETED' and d between $1 and $2)::int as completed,
          count(*) filter (where st in ${CANCELLED} and d between $1 and $2)::int as cancelled,
+         count(*) filter (where st = 'NO_SHOW' and d between $1 and $2)::int as no_shows,
          count(*) filter (where st in ${DECIDED} and d between $1 and $2)::int as decided
        from appt where d between $1 and $2 or tracked_d between $1 and $2`, p),
     // Bookings: confirmed and completed (the tracker's last step) in the period, dated by the completion
@@ -157,10 +159,12 @@ async function spanMetrics(span: Span) {
     one<{ created: number; converted: number }>(
       `${APPT} select count(*)::int as created, count(*) filter (where st in ${BOOKED})::int as converted
        from appt where not is_guest and created_d between $1 and $2`, p),
+    // Repeat rate: of the clients with a visit completed with the tracker in the period, those who
+    // had one completed before it (the same "returning" as Returning clients and its revenue)
     one<{ clients: number; returning: number }>(
       `${APPT} select count(*)::int as clients, count(*) filter (where prior)::int as returning
-       from (select user_id, bool_or(d < $1) as prior, bool_or(d between $1 and $2) as inside
-             from appt where st = 'COMPLETED' and not is_guest group by user_id) t
+       from (select user_id, bool_or(tracked_d < $1) as prior, bool_or(tracked_d between $1 and $2) as inside
+             from appt where tracked_d is not null and not is_guest group by user_id) t
        where inside`, p),
     one<{ leads: number; booked: number }>(
       `select count(*)::int as leads, count(*) filter (where ${HAS_BOOKED})::int as booked
@@ -179,6 +183,7 @@ async function spanMetrics(span: Span) {
     completed: counts.completed,
     cancelled: counts.cancelled,
     decided: counts.decided,
+    noShows: counts.no_shows,
     collected: counts.collected,
     newClients: newClients.n,
     cancellation: rate(counts.cancelled, counts.decided),
@@ -269,10 +274,10 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
              from appt v left join first_visit f on f.user_id = v.user_id
              where tracked_d between $1 and $2 group by tracked_d`, trendSpan)
         : Promise.resolve([]),
-      // What cancellations cost, by the visit's day like its card
+      // What cancellations cost, and the no-shows, by the visit's day like their cards
       trendSpan
-        ? rows<{ d: string; n: number }>(
-            `${APPT} select d, coalesce(sum(price), 0)::int as n from appt
+        ? rows<{ d: string; n: number; no_shows: number }>(
+            `${APPT} select d, coalesce(sum(price), 0)::int as n, count(*) filter (where st = 'NO_SHOW')::int as no_shows from appt
              where st in ${CANCELLED} and d between $1 and $2 group by d`, trendSpan)
         : Promise.resolve([]),
       // Returning clients: the day each client's second confirmed and completed visit was completed
@@ -383,8 +388,8 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
       clients: counts.clients,
       services: counts.services,
       artists: counts.artists,
-      upcoming: aheadTotal.visits,
-      trend: glanceTrend(trend.points, buckets, dayMix as { d: string; services: string[]; artists: string[] }[], counts.clients),
+      noShows: current.noShows,
+      trend: glanceTrend(trend.points, buckets, dayMix as { d: string; services: string[]; artists: string[] }[], counts.clients, dayLost as { d: string; no_shows: number }[]),
     },
     clientBase: {
       clients: base.clients,

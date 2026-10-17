@@ -35,15 +35,16 @@ export interface DashboardResponse {
   /** Every client with a completed visit, as of today (not the period): what an average one has
    * spent so far (list price), and the share who have lapsed (no visit in 60 days) */
   clientBase: { clients: number; lifetimeValue: number | null; churn: number | null };
-  /** As of today: client accounts, active services on the menu, artists, and confirmed appointments from today on */
+  /** As of today: client accounts, active services on the menu and artists; and the period's no-shows */
   totals: {
     clients: number;
     services: number;
     artists: number;
-    upcoming: number;
+    /** The period's no-shows, by the visit's day (not as of today, unlike the others) */
+    noShows: number;
     /** For the cards' lines, on the same days (or weeks, or months) as `trend`: client accounts at the
-     * end of each, and how many different services and artists were booked in each */
-    trend: { date: string; clients: number; services: number; artists: number }[];
+     * end of each, how many different services and artists were booked in each, and its no-shows */
+    trend: { date: string; clients: number; services: number; artists: number; noShows: number }[];
   };
   /** Every visit completed with the booking tracker in the period, latest completed first. date:
    * the visit's day; fee: what it sold for (downpayment + recorded balance); user_id: null for a walk-in */
