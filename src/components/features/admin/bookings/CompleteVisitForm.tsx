@@ -117,6 +117,39 @@ export default function CompleteVisitForm({ visit, artists, onSaved, onCancelLat
             triggerClassName="h-9! py-0! text-[13px]"
           />
         </div>
+        <div className="flex flex-col gap-1 sm:col-span-2">
+          <label htmlFor={`${id}-voucher`} className="text-xs font-bold text-gray-red">
+            Birthday voucher (optional)
+          </label>
+          {form.voucherApplied ? (
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="text-xs font-bold text-success-ink">{form.voucherLine}</p>
+              <button type="button" onClick={form.removeVoucher} disabled={disabled} className="text-xs font-bold text-crimson-ink underline underline-offset-2">
+                Remove
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-3">
+              <Input
+                id={`${id}-voucher`}
+                value={form.voucherInput}
+                onChange={(e) => form.setVoucherInput(e.target.value)}
+                placeholder="BDAY-…"
+                autoComplete="off"
+                disabled={disabled}
+                className="h-9 font-mono text-[13px] uppercase"
+              />
+              <Button type="button" size="sm" variant="secondary" onClick={() => void form.applyVoucher()} disabled={disabled || form.checkingVoucher} className="shrink-0">
+                {form.checkingVoucher ? "Checking…" : "Apply"}
+              </Button>
+            </div>
+          )}
+          {form.voucherError && (
+            <p role="alert" className="text-xs font-bold text-danger-ink">
+              {form.voucherError}
+            </p>
+          )}
+        </div>
       </div>
       {form.lateCancel && !form.completed && (
         <div role="note" className="flex flex-col gap-3 rounded-lg border border-warning/40 bg-warning/10 p-3">

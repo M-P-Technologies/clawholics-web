@@ -2,6 +2,7 @@ import "server-only";
 import { requireAdmin } from "../auth";
 import { SERVICE_PRICE_SQL } from "../appointments";
 import { expectedBalance } from "../../lib/visitCompletion";
+import { voucherForClientPage } from "../birthdayVouchers";
 import { getSql } from "../db";
 import { readJson, toId } from "../http";
 import { ported } from "../worker";
@@ -49,13 +50,16 @@ export const getClient = ported<IdContext>(async (_req, { params }) => {
   if (!(await clientExists(id))) return notFound();
 
   const sql = getSql();
-  const [[client], appointments] = await Promise.all([
+  const [[client], appointments, birthdayVoucher] = await Promise.all([
     sql`
       select u.id, u.clerk_id, u.email, u.created_at, cp.first_name, cp.last_name, cp.phone, cp.alt_phone, cp.dob,
         cp.preferred_contact_method, cp.facebook_handle, cp.instagram_handle, coalesce(cp.stamps, 0)::int as stamps
       from users u left join customer_profiles cp on cp.user_id = u.id
       where u.id = ${id}`,
-    sql.unsafe<{ id: number; appointment_date: string; status: string; price: number | null; paid_downpayment: number }[]>(
+    sql.unsafe<{
+      id: number; appointment_date: string; status: string; price: number | null; paid_downpayment: number;
+      completion: { voucher_discount?: number } | null;
+    }[]>(
       `select a.id, a.appointment_date, a.appointment_time, a.service_name, a.nailist_id,
          coalesce(n.name, a.nailist_name) as nailist_name, upper(trim(a.status)) as status,
          ${SERVICE_PRICE_SQL} as price,
@@ -69,7 +73,8 @@ export const getClient = ported<IdContext>(async (_req, { params }) => {
           where p.appointment_id = a.id and upper(trim(p.status)) = 'PAID') as paid_downpayment,
          (select json_build_object('balance_amount', vc.balance_amount, 'payment_method', vc.payment_method,
                    'nailist_id', vc.nailist_id, 'nailist_name', vn.name,
-                   'arrived_at', vc.arrived_at, 'late_fee', vc.late_fee, 'photos_added', vc.photos_added, 'photo_url', vc.photo_url)
+                   'arrived_at', vc.arrived_at, 'late_fee', vc.late_fee, 'photos_added', vc.photos_added, 'photo_url', vc.photo_url,
+                   'voucher_discount', vc.voucher_discount, 'voucher_code', (select bv.code from birthday_vouchers bv where bv.appointment_id = a.id))
           from visit_completions vc left join nailists vn on vn.id = vc.nailist_id
           where vc.appointment_id = a.id) as completion,
          -- The client's review of the visit, if they left one
@@ -91,6 +96,8 @@ export const getClient = ported<IdContext>(async (_req, { params }) => {
        order by a.appointment_date desc, a.appointment_time desc, a.id desc`,
       [String(id)],
     ),
+    // This year's birthday voucher, and the visit it was used on
+    voucherForClientPage(id as number),
   ]);
 
   const completed = appointments.filter((a) => a.status === "COMPLETED");
@@ -108,7 +115,12 @@ export const getClient = ported<IdContext>(async (_req, { params }) => {
       nextVisit: upcoming[upcoming.length - 1]?.appointment_date ?? null,
       stamps,
     },
-    appointments: appointments.map((a) => ({ ...a, expected_balance: expectedBalance(a.price, a.paid_downpayment) })),
+    // Less the birthday voucher's discount, when one was used on the visit
+    appointments: appointments.map((a) => {
+      const discount = a.completion?.voucher_discount ?? 0;
+      return { ...a, expected_balance: expectedBalance(a.price === null ? null : Math.max(0, a.price - discount), a.paid_downpayment) };
+    }),
+    birthday_voucher: birthdayVoucher,
   });
 });
 

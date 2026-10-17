@@ -18,6 +18,11 @@ vi.mock("@/services/completionService", async (orig) => ({
   saveCompletion: (...a: unknown[]) => saveCompletion(...a),
   uploadVisitPhoto: (...a: unknown[]) => uploadVisitPhoto(...a),
 }));
+const checkVoucherForVisit = vi.fn();
+vi.mock("@/services/voucherService", async (orig) => ({
+  ...(await orig<object>()),
+  checkVoucherForVisit: (...a: unknown[]) => checkVoucherForVisit(...a),
+}));
 
 const ARTISTS = [{ id: 1, name: "Miss Max" }, { id: 2, name: "Miss Jean" }];
 const visit = (over: Partial<VisitToComplete> = {}): VisitToComplete => ({
@@ -71,7 +76,7 @@ describe("the Complete visit form", () => {
     await user.click(screen.getByRole("button", { name: "Done by" }));
     await user.click(screen.getByRole("option", { name: "Miss Jean" }));
     await user.click(screen.getByRole("button", { name: "Complete visit" }));
-    expect(saveCompletion).toHaveBeenCalledWith(7, { balance_amount: 1300, payment_method: "GCash", nailist_id: 2, arrived_at: "", photos: [] }, { token: "tok", clerkId: "admin_1" });
+    expect(saveCompletion).toHaveBeenCalledWith(7, { balance_amount: 1300, payment_method: "GCash", nailist_id: 2, arrived_at: "", voucher_code: "", photos: [] }, { token: "tok", clerkId: "admin_1" });
     // The photo is added afterwards, from its own window
     expect(screen.queryByLabelText(/Photos of the nails/)).toBeNull();
     expect(onSaved).toHaveBeenCalled();
@@ -125,5 +130,32 @@ describe("the Complete visit form", () => {
     await user.click(screen.getByRole("button", { name: "Edit" }));
     expect(screen.getByLabelText("Balance paid at the salon (₱)")).toHaveValue("1300");
     expect(screen.getByRole("button", { name: "Save changes" })).toBeInTheDocument();
+  });
+
+  it("applies a birthday voucher: checked with the server, its discount comes off the balance, and it's sent with the visit", async () => {
+    checkVoucherForVisit.mockResolvedValue({ id: 3, code: "BDAY-ABC", discount_pct: 20, valid_until: "2026-01-31", discount: 300 });
+    const { user } = renderForm(visit());
+    await user.type(screen.getByLabelText("Birthday voucher (optional)"), "bday-abc");
+    await user.click(screen.getByRole("button", { name: "Apply" }));
+    expect(checkVoucherForVisit).toHaveBeenCalledWith("bday-abc", 7, expect.anything());
+    expect(screen.getByText("BDAY-ABC applied: −₱300 off the service price")).toBeInTheDocument();
+    // ₱1,500 less ₱300, less the ₱400 credited from the downpayment
+    expect(screen.getByLabelText("Balance paid at the salon (₱)")).toHaveValue("800");
+    await user.click(screen.getByRole("button", { name: "Complete visit" }));
+    expect(saveCompletion).toHaveBeenCalledWith(7, expect.objectContaining({ balance_amount: 800, voucher_code: "BDAY-ABC" }), expect.anything());
+
+    await user.click(screen.getByRole("button", { name: "Remove" }));
+    expect(screen.getByLabelText("Balance paid at the salon (₱)")).toHaveValue("1100");
+  });
+
+  it("shows why a code was refused, and won't save with a code typed but not applied", async () => {
+    checkVoucherForVisit.mockRejectedValue(new Error("This voucher was already used on another visit."));
+    const { user } = renderForm(visit());
+    await user.type(screen.getByLabelText("Birthday voucher (optional)"), "BDAY-USED");
+    await user.click(screen.getByRole("button", { name: "Apply" }));
+    expect(await screen.findByText("This voucher was already used on another visit.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Complete visit" }));
+    expect(screen.getByText("Apply the voucher code first, or clear it.")).toBeInTheDocument();
+    expect(saveCompletion).not.toHaveBeenCalled();
   });
 });

@@ -7,8 +7,9 @@ import { useLocation } from "@/lib/router";
 import { useBirthdayVoucher } from "../../hooks/useBirthdayVoucher";
 import { CLAIMED_HINT, voucherUntil } from "./voucherText";
 
-// Pages where the pop-up would be in the way (the profile shows the voucher itself)
-const QUIET_PATHS = ["/login", "/signup", "/onboarding", "/booking", "/payment", "/reschedule", "/profile"];
+// Pages where the pop-up would be in the way (booking and the profile are in the client app, /my,
+// which shows the voucher on its Home)
+const QUIET_PATHS = ["/login", "/signup", "/onboarding"];
 
 const seenKey = (voucherId: number) => `birthday-voucher-popup:${voucherId}`;
 const wasSeen = (voucherId: number) => {

@@ -24,6 +24,7 @@ import { getBookingHoldMinutes } from "../bookingHold";
 import { usableProof } from "../proofRules";
 import { checkSlot, hasStarted, normalizeSlot } from "../slotRules";
 import { ported } from "../worker";
+import { releaseVoucherOf } from "../birthdayVouchers";
 
 // Booking and appointment routes, ported from worker-api/src/index.ts (~lines 1705-2022).
 // Bodies, status codes and messages match the Worker. What's new is who may call them: the
@@ -417,6 +418,7 @@ export const updateAppointmentStatus = ported<IdContext>(async (req, { params })
       // Leaving COMPLETED: the visit's record (what was paid, who did it) no longer stands
       if (was === "COMPLETED" && upperStatus !== "COMPLETED") {
         await tx`delete from visit_completions where appointment_id = ${id}`;
+        await releaseVoucherOf(tx, id);
       }
       return confirmed;
     });

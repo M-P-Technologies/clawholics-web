@@ -1,11 +1,14 @@
 import "server-only";
+import type { TransactionSql } from "postgres";
+import { SERVICE_PRICE_SQL } from "./appointments";
 import { getSql } from "./db";
 import { sendBirthdayVoucherEmails } from "./email";
 
 // Birthday vouchers (table from migration 20261018000000_birthday_vouchers.sql): one a year for
 // each client whose birthday is this month, valid for the month. The daily cron issues and
-// emails them (issueBirthdayVouchers); the client claims theirs from the pop-up or their profile.
-// Months and days are Manila's.
+// emails them (issueBirthdayVouchers); the client claims theirs from the pop-up or their profile,
+// and the admin redeems it when completing the visit (checkVoucherForVisit, useVoucherOn), which
+// marks it USED by that appointment. Months and days are Manila's.
 
 export type VoucherStatus = "ISSUED" | "CLAIMED" | "USED" | "EXPIRED";
 
@@ -115,4 +118,99 @@ export async function claimVoucher(userId: number, now = new Date()): Promise<Bi
     returning id, code, discount_pct, valid_from, valid_until, status, claimed_at`;
   if (row) return row;
   return (await getCurrentVoucher(userId, now)) ? "not-claimable" : "none";
+}
+
+type Db = ReturnType<typeof getSql> | TransactionSql;
+
+/** A voucher that can go on a visit, and the pesos it takes off the visit's service price */
+export interface VoucherForVisit {
+  id: number;
+  code: string;
+  discount_pct: number;
+  valid_until: string;
+  discount: number;
+}
+
+const DATE_LABEL = (ymd: string) =>
+  new Date(`${ymd}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+
+/**
+ * Whether `code` can go on this visit: the visit's client's own voucher, not used on another
+ * visit, and the visit falls in the voucher's month (so a visit completed after the month ends
+ * still counts, and an EXPIRED one is fine if the visit was in time). The discount is the
+ * voucher's percentage of the service's menu price, in whole pesos.
+ */
+export async function checkVoucherForVisit(db: Db, code: string, appointmentId: number): Promise<VoucherForVisit | { error: string }> {
+  const wanted = code.trim().toUpperCase();
+  if (!wanted) return { error: "Enter the voucher code." };
+  const [row] = await db<
+    (VoucherForVisit & {
+      user_id: number; status: VoucherStatus; valid_from: string; used_by: number | null; visit_user: number | null; visit_date: string | null;
+      price: number | null; saved_discount: number | null;
+    })[]
+  >`
+    select v.id, v.code, v.discount_pct, v.valid_from, v.valid_until, v.user_id, v.status, v.appointment_id as used_by,
+      a.user_id as visit_user, a.appointment_date as visit_date,
+      (select vc.voucher_discount from visit_completions vc where vc.appointment_id = a.id) as saved_discount,
+      (select ${db.unsafe(SERVICE_PRICE_SQL)} from services s
+        left join nailists n on n.id = a.nailist_id
+        left join nailist_categories nc on nc.id = n.category_id
+        where s.id = a.service_id) as price
+    from birthday_vouchers v
+    left join appointments a on a.id = ${appointmentId}
+    where v.code = ${wanted}`;
+  if (!row) return { error: "No birthday voucher has this code." };
+  if (row.user_id !== row.visit_user) return { error: "This code isn't this client's birthday voucher." };
+  // USED without a visit (its appointment was deleted) stays used
+  if (row.used_by !== appointmentId && (row.used_by !== null || row.status === "USED")) {
+    return { error: "This voucher was already used on another visit." };
+  }
+  if (!row.visit_date || row.visit_date < row.valid_from || row.visit_date > row.valid_until) {
+    return { error: `This voucher is only for visits from ${DATE_LABEL(row.valid_from)} to ${DATE_LABEL(row.valid_until)}.` };
+  }
+  if (row.price === null) return { error: "This visit's service has no price to take the discount from." };
+  // Already on this visit: keeps the discount it was given, even if the menu price changed since
+  const kept = row.used_by === appointmentId && row.saved_discount ? row.saved_discount : null;
+  return {
+    id: row.id,
+    code: row.code,
+    discount_pct: row.discount_pct,
+    valid_until: row.valid_until,
+    discount: kept ?? Math.round((Number(row.price) * row.discount_pct) / 100),
+  };
+}
+
+/** Frees the voucher this visit used, if any (the visit was edited without it, or is no longer completed) */
+export async function releaseVoucherOf(db: Db, appointmentId: number, now = new Date()) {
+  const { today } = manilaMonth(now);
+  // Back to what it was: claimed or not, or expired if its month is over
+  await db`
+    update birthday_vouchers
+    set status = case when valid_until < ${today} then 'EXPIRED' when claimed_at is not null then 'CLAIMED' else 'ISSUED' end,
+      used_at = null, appointment_id = null
+    where appointment_id = ${appointmentId}`;
+}
+
+/**
+ * Puts the voucher on the visit: USED by it, and any other voucher it had is freed. False when
+ * another visit took the voucher meanwhile.
+ */
+export async function useVoucherOn(db: Db, voucherId: number, appointmentId: number, now = new Date()): Promise<boolean> {
+  const [current] = await db<{ id: number }[]>`select id from birthday_vouchers where appointment_id = ${appointmentId}`;
+  if (current && current.id !== voucherId) await releaseVoucherOf(db, appointmentId, now);
+  const [used] = await db`
+    update birthday_vouchers set status = 'USED', used_at = coalesce(used_at, clawholics_utc_now()), appointment_id = ${appointmentId}
+    where id = ${voucherId} and (appointment_id is null or appointment_id = ${appointmentId})
+    returning id`;
+  return Boolean(used);
+}
+
+/** The client's voucher this year, for the client page: with the visit it was used on */
+export async function voucherForClientPage(userId: number, now = new Date()) {
+  const voucher = await getCurrentVoucher(userId, now);
+  if (!voucher) return null;
+  const [row] = await getSql()<{ used_at: string | null; appointment_id: number | null; appointment_date: string | null }[]>`
+    select v.used_at, v.appointment_id, a.appointment_date
+    from birthday_vouchers v left join appointments a on a.id = v.appointment_id where v.id = ${voucher.id}`;
+  return { ...voucher, used_at: row?.used_at ?? null, used_on: row?.appointment_date ?? null };
 }

@@ -198,6 +198,10 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
     expect((await db`select first_name, instagram_handle from customer_profiles where user_id = ${customerId}`)[0]).toEqual({ first_name: "Carla", instagram_handle: "carla" });
     expect(clerkUsers.updateUser).toHaveBeenCalledWith("user_cust", { firstName: "Carla", lastName: "C" });
 
+    // The birthday is set once: a new one is ignored (it would move the birthday voucher)
+    await call(users.updateProfile, "/api/users/profile", { method: "PUT", body: { firstName: "Carla", lastName: "C", phone: "0917", dob: "2000-10-01" } });
+    expect((await db`select dob from customer_profiles where user_id = ${customerId}`)[0].dob).toBe("2000-01-01");
+
     // The email comes from Clerk, never the body (it can't be used to claim another identity)
     clerkUsers.getUser.mockResolvedValueOnce({ id: "user_cust", emailAddresses: [{ emailAddress: "cust@x.test" }] });
     await call(users.updateProfile, "/api/users/profile", { method: "PUT", body: { firstName: "Carla", lastName: "C", email: "victim@x.test" } });

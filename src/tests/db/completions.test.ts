@@ -169,7 +169,7 @@ describe.skipIf(!TEST_DATABASE_URL)("completing a visit (Postgres)", () => {
     });
 
     await complete(id, { balance_amount: "1300", payment_method: "Maya", nailist_id: String(jun) });
-    expect((await clientRow(id)).completion).toEqual({ balance_amount: 1300, payment_method: "Maya", nailist_id: jun, nailist_name: "Jun", arrived_at: null, late_fee: 0, photos_added: 0, photo_url: null });
+    expect((await clientRow(id)).completion).toEqual({ balance_amount: 1300, payment_method: "Maya", nailist_id: jun, nailist_name: "Jun", arrived_at: null, late_fee: 0, photos_added: 0, photo_url: null, voucher_code: null, voucher_discount: 0 });
   });
 
   it("records when the client arrived and the late fee the terms set", async () => {
@@ -246,5 +246,99 @@ describe.skipIf(!TEST_DATABASE_URL)("completing a visit (Postgres)", () => {
     const body = new FormData();
     body.set("file", photos(1)[0]);
     expect((await callRoute(completions.saveVisitPhoto, "/x", { method: "PUT", body, params: { id: String(id) } })).status).toBe(409);
+  });
+
+  describe("birthday vouchers at the salon", () => {
+    let bea: number;
+    const voucher = async (userId: number, code: string, status = "CLAIMED") => {
+      await db`
+        insert into birthday_vouchers (user_id, year, code, discount_pct, valid_from, valid_until, status, claimed_at)
+        values (${userId}, 2026, ${code}, 20, '2026-03-01', '2026-03-31', ${status}, '2026-03-01 08:00:00')`;
+    };
+    const voucherRow = async (code: string) =>
+      (await db<{ status: string; appointment_id: number | null; used_at: string | null }[]>`
+        select status, appointment_id, used_at from birthday_vouchers where code = ${code}`)[0];
+    const check = (code: string, appointmentId: number) => {
+      as("user_admin");
+      return callRoute(vouchersHandlers.checkVoucher, `/api/vouchers/check?code=${encodeURIComponent(code)}&appointment_id=${appointmentId}`);
+    };
+    const fields = { balance_amount: "500", payment_method: "Cash", nailist_id: "" };
+    let vouchersHandlers: typeof import("../../server/handlers/birthdayVouchers");
+
+    beforeAll(async () => {
+      [{ id: bea }] = await db<{ id: number }[]>`insert into users (clerk_id, email, role) values ('user_bea', 'bea@x.test', 'customer') returning id`;
+      await db`insert into customer_profiles (user_id, first_name, last_name) values (${bea}, 'Bea', 'Lim')`;
+      await voucher(ana, "BDAY-ANA0000001");
+      await voucher(bea, "BDAY-BEA0000001");
+      vouchersHandlers = await import("../../server/handlers/birthdayVouchers");
+      fields.nailist_id = String(maxine);
+    });
+
+    it("checks a code: the client's own, for a visit in its month, 20% of the menu price", async () => {
+      const id = await appt("CONFIRMED", "2026-03-10");
+      const price = (await clientRow(id)).price as number;
+      const ok = await check("bday-ana0000001 ", id);
+      expect(ok.status).toBe(200);
+      expect(ok.body).toMatchObject({ code: "BDAY-ANA0000001", discount_pct: 20, discount: Math.round(price * 0.2) });
+      expect((await check("BDAY-BEA0000001", id)).body.message).toMatch(/isn't this client's/);
+      expect((await check("BDAY-NOPE", id)).body.message).toMatch(/No birthday voucher/);
+      expect((await check("BDAY-ANA0000001", await appt("CONFIRMED", "2026-04-02"))).body.message).toMatch(/only for visits from Mar 1, 2026/);
+      as("user_ana");
+      expect((await callRoute(vouchersHandlers.checkVoucher, `/x?code=BDAY-ANA0000001&appointment_id=${id}`)).status).toBe(403);
+    });
+
+    it("completing with the code marks it USED by the visit, once; saving without it frees it again", async () => {
+      const id = await appt("CONFIRMED", "2026-03-11");
+      const price = (await clientRow(id)).price as number;
+      const saved = await complete(id, { ...fields, voucher_code: "BDAY-ANA0000001" });
+      expect(saved.status).toBe(200);
+      expect(saved.body.completion).toMatchObject({ voucher_code: "BDAY-ANA0000001", voucher_discount: Math.round(price * 0.2) });
+      expect(await voucherRow("BDAY-ANA0000001")).toMatchObject({ status: "USED", appointment_id: id });
+      expect((await clientRow(id)).completion).toMatchObject({ voucher_code: "BDAY-ANA0000001", voucher_discount: Math.round(price * 0.2) });
+
+      // Not on a second visit
+      const other = await appt("CONFIRMED", "2026-03-12");
+      const refused = await complete(other, { ...fields, voucher_code: "BDAY-ANA0000001" });
+      expect(refused.status).toBe(400);
+      expect(refused.body.message).toMatch(/already used on another visit/);
+      expect((await db`select status from appointments where id = ${other}`)[0].status).toBe("CONFIRMED");
+
+      // Saved again without it, still in March: back to claimed, and the visit has no discount
+      vi.useFakeTimers({ now: new Date("2026-03-15T02:00:00Z"), toFake: ["Date"] });
+      try {
+        expect((await complete(id, fields)).status).toBe(200);
+      } finally {
+        vi.useRealTimers();
+      }
+      expect(await voucherRow("BDAY-ANA0000001")).toMatchObject({ status: "CLAIMED", appointment_id: null, used_at: null });
+      expect((await db`select voucher_discount from visit_completions where appointment_id = ${id}`)[0].voucher_discount).toBe(0);
+    });
+
+    it("moving a visit off COMPLETED frees its voucher; a lapsed one goes back to EXPIRED", async () => {
+      await db`update birthday_vouchers set status = 'EXPIRED' where code = 'BDAY-BEA0000001'`;
+      const [{ id }] = await db<{ id: number }[]>`
+        insert into appointments (user_id, service_id, service_name, nailist_id, nailist_name, appointment_date, appointment_time, status)
+        values (${bea}, ${gel}, 'Gel Manicure', ${maxine}, 'Maxine', '2026-03-20', '13:00-15:00', 'CONFIRMED') returning id`;
+      // Expired since, but the visit was in its month
+      expect((await complete(id, { ...fields, voucher_code: "BDAY-BEA0000001" })).status).toBe(200);
+      expect(await voucherRow("BDAY-BEA0000001")).toMatchObject({ status: "USED", appointment_id: id });
+      as("user_admin");
+      const res = await callRoute(booking.updateAppointmentStatus, "/x", { method: "PATCH", body: { status: "CONFIRMED" }, params: { id: String(id) } });
+      expect(res.status).toBe(200);
+      expect(await voucherRow("BDAY-BEA0000001")).toMatchObject({ status: "EXPIRED", appointment_id: null });
+    });
+
+    it("GET /clients/:id shows the voucher and the visit it was used on", async () => {
+      const id = await appt("CONFIRMED", "2026-03-13");
+      expect((await complete(id, { ...fields, voucher_code: "BDAY-ANA0000001" })).status).toBe(200);
+      as("user_admin");
+      vi.useFakeTimers({ now: new Date("2026-03-15T02:00:00Z"), toFake: ["Date"] });
+      try {
+        const res = await callRoute(clients.getClient, "/x", { params: { id: String(ana) } });
+        expect(res.body.birthday_voucher).toMatchObject({ code: "BDAY-ANA0000001", status: "USED", used_on: "2026-03-13" });
+      } finally {
+        vi.useRealTimers();
+      }
+    });
   });
 });

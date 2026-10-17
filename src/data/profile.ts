@@ -17,6 +17,7 @@ export const PROFILE_FIELDS: ProfileFieldConfig[] = [
   { id: "last_name", key: "last_name", label: "Last Name:", type: "text", autoComplete: "family-name" },
   { id: "email", key: "email", label: "Email Address:", type: "email", autoComplete: "email", locked: true },
   { id: "phone", key: "phone", label: "Phone Number:", type: "text", autoComplete: "tel" },
+  // Locked once set (useProfile): the birthday voucher follows it
   { id: "dob", key: "dob", label: "Date of Birth:", type: "date", autoComplete: "bday" },
   // Optional: more ways for the salon to reach the client before an appointment
   { id: "alt_phone", key: "alt_phone", label: "Other Phone Number (optional):", type: "tel", autoComplete: "off" },
