@@ -1,13 +1,15 @@
 import { API_BASE_URL } from "../apiConfig";
 
 // The salon's settings (Admin > Settings): the online downpayment, how clients may pay it, and
-// the birthday voucher's discount and the loyalty card's stamps
+// the birthday voucher's discount, the loyalty card's stamps and how long a booking holds its slot
 
 export interface SalonSettings {
   downpayment_amount: number;
   payment_methods: string[];
   birthday_discount_pct: number;
   loyalty_stamps_required: number;
+  /** How long a new booking holds its slot while the client pays */
+  booking_hold_minutes: number;
 }
 
 const getHeaders = (token?: string | null) => ({

@@ -1,5 +1,6 @@
 import "server-only";
 import { cancelExpiredPendingAppointments, getAppointment, isSlotConflict } from "../appointments";
+import { slotTaken } from "../slotRules";
 import { canAccess, requireAdmin, requireUserRow, type RequesterUser } from "../auth";
 import { getSql } from "../db";
 import { sendAppointmentConfirmation, sendPaymentProofAdminEmail, sendPaymentReceived } from "../email";
@@ -42,14 +43,22 @@ export const createPayment = ported(async (req) => {
 
   const sql = getSql();
   const appointmentId = toId(appointment_id);
+  await cancelExpiredPendingAppointments();
   const [appt] = appointmentId === null
     ? []
-    : await sql<{ status: string | null; user_id: number }[]>`select status, user_id from appointments where id = ${appointmentId}`;
+    : await sql<{ status: string | null; user_id: number; expires_at: string | null }[]>`
+        select status, user_id, expires_at from appointments where id = ${appointmentId}`;
   if (!appt) return errorBody("Appointment not found.", 404);
   if (!canAccess(requester, appt.user_id)) return errorBody("You can only pay for your own appointment.", 403);
-  if (["AWAITING_CONFIRMATION", "CONFIRMED", "COMPLETED", "PAID"].includes(String(appt.status || "").toUpperCase())) {
+  const apptStatus = String(appt.status || "").trim().toUpperCase();
+  if (["AWAITING_CONFIRMATION", "CONFIRMED", "COMPLETED", "PAID"].includes(apptStatus)) {
     return errorBody("This appointment has already been paid for.", 400);
   }
+  // Only a booking still holding its slot is paid for: an expired or cancelled one has let it go
+  if (apptStatus !== "PENDING") return errorBody("This booking has expired. Please book your time again.", 409);
+  // The invoice closes when the hold ends, so a payment can't arrive for a slot already released
+  const holdSeconds = Math.floor((Date.parse(appt.expires_at ?? "") - Date.now()) / 1000);
+  if (!(holdSeconds > 0)) return errorBody("This booking has expired. Please book your time again.", 409);
 
   // One payment path at a time: a proof under review blocks a new Xendit invoice
   const [pendingProof] = await sql`select id from payment_proofs where appointment_id = ${appointmentId} and status = 'PENDING' limit 1`;
@@ -83,7 +92,7 @@ export const createPayment = ported(async (req) => {
   const externalId = `appt-${appointmentId}-${Date.now()}`;
   let invoiceUrl: string;
   try {
-    invoiceUrl = await createXenditInvoice(appointmentId!, externalId, downpayment_amount, payment_method);
+    invoiceUrl = await createXenditInvoice(appointmentId!, externalId, downpayment_amount, payment_method, holdSeconds);
   } catch (error) {
     if (!(error instanceof XenditInvoiceError)) throw error;
     return errorBody("This payment method is not available right now. Please choose another one.", 502);
@@ -104,11 +113,13 @@ export const xenditWebhook = ported(
     const body = await readJson<{ status?: string; external_id?: string; externalId?: string }>(req);
     const externalId = body.external_id || body.externalId;
     if (body.status === "PAID" && externalId) {
-      const paidId = await getSql().begin(async (tx) => {
-        // Skip an appointment already paid by an approved payment proof, so it isn't paid twice
+      const outcome = await getSql().begin(async (tx) => {
+        // Only a payment not yet recorded as paid: Xendit repeats a callback it isn't sure arrived,
+        // and the repeat must change nothing. An appointment already paid by an approved payment
+        // proof is skipped too, so it isn't paid twice.
         const [paid] = await tx<{ appointment_id: number }[]>`
           update payments set status = 'PAID'
-          where external_id = ${externalId}
+          where external_id = ${externalId} and upper(status) <> 'PAID'
             and not exists (
               select 1 from payments p2
               where p2.appointment_id = payments.appointment_id and p2.payment_method = 'MANUAL' and upper(p2.status) = 'PAID'
@@ -116,23 +127,40 @@ export const xenditWebhook = ported(
           returning appointment_id
         `;
         if (!paid) return null;
+        const appointmentId = paid.appointment_id;
         // The payment is recorded either way. A paid booking isn't confirmed yet: it waits for an
-        // admin to confirm it (AWAITING_CONFIRMATION holds the slot meanwhile). If the booking
-        // expired meanwhile and someone else took the slot, it stays cancelled for the salon to refund.
+        // admin to confirm it (AWAITING_CONFIRMATION holds the slot meanwhile). Only a booking
+        // waiting for this payment moves: unpaid, or released when its hold ran out just before the
+        // payment arrived (and its time is still free). Anything else (already paid another way, confirmed, completed, refunded),
+        // or a slot someone else took meanwhile, keeps its status for an admin to check.
+        const [appt] = await tx<{ status: string; expires_at: string | null; nailist_id: number; appointment_date: string; appointment_time: string }[]>`
+          select status, expires_at, nailist_id, appointment_date, appointment_time from appointments where id = ${appointmentId} for update
+        `;
+        const status = String(appt?.status ?? "").trim().toUpperCase();
+        // A cancellation by the client or an admin clears expires_at: only a hold that ran out comes back
+        const released = status === "CANCELLED" && appt.expires_at !== null;
+        if (status !== "PENDING" && !released) return { appointmentId, applied: false };
+        if (released && (await slotTaken(appt.nailist_id, appt.appointment_date, appt.appointment_time, appointmentId))) {
+          return { appointmentId, applied: false };
+        }
         try {
-          await tx.savepoint((sp) => sp`update appointments set status = 'AWAITING_CONFIRMATION' where id = ${paid.appointment_id}`);
+          await tx.savepoint((sp) => sp`update appointments set status = 'AWAITING_CONFIRMATION' where id = ${appointmentId}`);
+          return { appointmentId, applied: true };
         } catch (error) {
           if (!isSlotConflict(error)) throw error;
-          console.error(`[webhook] appointment ${paid.appointment_id} was paid but its slot is taken; needs a manual refund`);
-          return null;
+          return { appointmentId, applied: false };
         }
-        return paid.appointment_id;
       });
-      if (paidId !== null) {
+      if (outcome?.applied) {
+        const paidId = outcome.appointmentId;
         // "Payment received, the salon will confirm"; the confirmation email goes out when an admin confirms
         inBackground("payment received email", () => sendPaymentReceived(paidId));
         // The admins' bell. After the payment's transaction, so a failure here can't undo it
         inBackground("admin notification", () => notifyAdmins("booking_paid", paidId, paidId));
+      } else if (outcome) {
+        const { appointmentId } = outcome;
+        console.error(`[webhook] appointment ${appointmentId} was paid but can't take the payment; an admin needs to check it`);
+        inBackground("admin notification", () => notifyAdmins("payment_to_check", appointmentId, appointmentId));
       }
     }
     return new Response("OK", { status: 200 });
