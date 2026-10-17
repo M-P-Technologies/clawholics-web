@@ -236,13 +236,14 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
   });
 
   it("the settings set the stamps a reward needs, and the client redeems at that number", async () => {
-    const body = { downpayment_amount: 500, payment_methods: ["QRPH"], birthday_discount_pct: 20, loyalty_stamps_required: 3 };
+    const body = { downpayment_amount: 500, payment_methods: ["QRPH"], birthday_discount_pct: 20, loyalty_stamps_required: 3, booking_hold_minutes: 5 };
     as("user_cust");
     expect((await call(settings.updateSettings, "/api/settings", { method: "PUT", body })).status).toBe(403);
     expect((await call(settings.getLoyaltySettings, "/api/settings/loyalty")).body).toEqual({ stamps_required: 10 });
 
     as("user_admin");
     expect((await call(settings.updateSettings, "/api/settings", { method: "PUT", body: { ...body, loyalty_stamps_required: 21 } })).status).toBe(400);
+    expect((await call(settings.updateSettings, "/api/settings", { method: "PUT", body: { ...body, booking_hold_minutes: 0 } })).status).toBe(400);
     expect((await call(settings.updateSettings, "/api/settings", { method: "PUT", body })).body).toEqual(body);
     expect((await call(settings.getSettings, "/api/settings")).body).toEqual(body);
     expect((await call(settings.getLoyaltySettings, "/api/settings/loyalty")).body).toEqual({ stamps_required: 3 });

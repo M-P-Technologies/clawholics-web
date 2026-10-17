@@ -177,7 +177,11 @@ export class XenditInvoiceError extends Error {}
  * A new invoice for the downpayment, or the Worker's placeholder URL when Xendit isn't configured.
  * Throws XenditInvoiceError when Xendit refuses it (the Worker sent the client to the placeholder).
  */
-export async function createXenditInvoice(appointmentId: number, externalId: string, amount: number, paymentMethod: string) {
+/** Extra time an invoice stays open after its booking's hold, for a payment already under way */
+const INVOICE_GRACE_SECONDS = 120;
+
+/** An invoice for the downpayment, open for the booking's remaining hold (plus a short grace) */
+export async function createXenditInvoice(appointmentId: number, externalId: string, amount: number, paymentMethod: string, holdSeconds: number) {
   const auth = xenditAuth();
   if (!auth) return `https://checkout.xendit.co/v2/placeholder-${appointmentId}`;
   const base = frontendUrl();
@@ -189,6 +193,7 @@ export async function createXenditInvoice(appointmentId: number, externalId: str
       amount,
       currency: "PHP",
       payment_methods: [paymentMethod],
+      invoice_duration: Math.max(1, Math.floor(holdSeconds)) + INVOICE_GRACE_SECONDS,
       success_redirect_url: `${base}/my/confirmation?appointment_id=${appointmentId}`,
       failure_redirect_url: `${base}/my/book`,
     }),

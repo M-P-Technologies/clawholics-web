@@ -1,6 +1,7 @@
 import "server-only";
 import { requireAdmin } from "../auth";
 import { getBirthdayDiscountPct } from "../birthdayVouchers";
+import { getBookingHoldMinutes, MAX_BOOKING_HOLD_MINUTES, MIN_BOOKING_HOLD_MINUTES } from "../bookingHold";
 import { getSql } from "../db";
 import { readJson } from "../http";
 import { getLoyaltyStampsRequired, MAX_LOYALTY_STAMPS } from "../loyalty";
@@ -8,22 +9,25 @@ import { getPaymentSettings, validatePaymentSettings } from "../payments";
 import { ported } from "../worker";
 
 // The salon's settings (table site_settings), edited together in Admin > Settings. The payment
-// ones are also public through /settings/payment, and the loyalty card's through /settings/loyalty.
+// ones are also public through /settings/payment, and the loyalty card's through /settings/loyalty;
+// the booking hold is read by booking itself.
 
 export interface SalonSettings {
   downpayment_amount: number;
   payment_methods: string[];
   birthday_discount_pct: number;
   loyalty_stamps_required: number;
+  booking_hold_minutes: number;
 }
 
 async function getSalonSettings(): Promise<SalonSettings> {
-  const [payment, birthdayDiscountPct, stampsRequired] = await Promise.all([
+  const [payment, birthdayDiscountPct, stampsRequired, holdMinutes] = await Promise.all([
     getPaymentSettings(),
     getBirthdayDiscountPct(),
     getLoyaltyStampsRequired(),
+    getBookingHoldMinutes(),
   ]);
-  return { ...payment, birthday_discount_pct: birthdayDiscountPct, loyalty_stamps_required: stampsRequired };
+  return { ...payment, birthday_discount_pct: birthdayDiscountPct, loyalty_stamps_required: stampsRequired, booking_hold_minutes: holdMinutes };
 }
 
 const isWholeIn = (value: unknown, min: number, max: number) => Number.isInteger(value) && (value as number) >= min && (value as number) <= max;
@@ -32,9 +36,12 @@ const isWholeIn = (value: unknown, min: number, max: number) => Number.isInteger
 export function validateSalonSettings(body: unknown): string | null {
   const paymentError = validatePaymentSettings(body);
   if (paymentError) return paymentError;
-  const { birthday_discount_pct: pct, loyalty_stamps_required: stamps } = body as Record<string, unknown>;
+  const { birthday_discount_pct: pct, loyalty_stamps_required: stamps, booking_hold_minutes: hold } = body as Record<string, unknown>;
   if (!isWholeIn(pct, 1, 100)) return "birthday_discount_pct must be a whole number from 1 to 100.";
   if (!isWholeIn(stamps, 1, MAX_LOYALTY_STAMPS)) return `loyalty_stamps_required must be a whole number from 1 to ${MAX_LOYALTY_STAMPS}.`;
+  if (!isWholeIn(hold, MIN_BOOKING_HOLD_MINUTES, MAX_BOOKING_HOLD_MINUTES)) {
+    return `booking_hold_minutes must be a whole number from ${MIN_BOOKING_HOLD_MINUTES} to ${MAX_BOOKING_HOLD_MINUTES}.`;
+  }
   return null;
 }
 
@@ -62,6 +69,7 @@ export const updateSettings = ported(async (req) => {
       ["payment_methods", JSON.stringify(body.payment_methods)],
       ["birthday_discount_pct", String(body.birthday_discount_pct)],
       ["loyalty_stamps_required", String(body.loyalty_stamps_required)],
+      ["booking_hold_minutes", String(body.booking_hold_minutes)],
     ]) {
       await tx`
         insert into site_settings (key, value, updated_at) values (${key}, ${value}, clawholics_utc_now())

@@ -11,8 +11,9 @@ const TITLES: Record<AdminNotification["kind"], string> = {
   booking_paid: "Booking paid, to confirm",
   proof_uploaded: "Payment proof to review",
   visit_to_complete: "Visit to complete",
+  payment_to_check: "Payment to check: refund?",
 };
-/** "Booking paid, to confirm", "Payment proof to review" or "Visit to complete" */
+/** "Booking paid, to confirm", "Payment proof to review", "Visit to complete" or "Payment to check: refund?" */
 export const notificationTitle = (n: AdminNotification) => TITLES[n.kind] ?? TITLES.booking_paid;
 
 /** "Ana Cruz · Gel manicure with Maxine · Oct 20, 2:00 PM" (whatever of it is known) */
@@ -23,10 +24,11 @@ export function notificationLine(n: AdminNotification) {
   return [who, what, when].filter(Boolean).join(" · ");
 }
 
-/** A proof opens the proofs to review; a paid booking the bookings to confirm; a visit to complete the client's page (a walk-in, who has none, the list of them) */
+/** A proof opens the proofs to review; a paid booking the bookings to confirm; a visit to complete or a payment to check the client's page (a walk-in, who has none, the list of them) */
 export function notificationLink(n: AdminNotification) {
   if (n.kind === "proof_uploaded") return "/clients?status=PROOF_PENDING";
   if (n.kind === "visit_to_complete") return n.client_user_id ? `/clients/${n.client_user_id}` : "/clients?status=TO_COMPLETE";
+  if (n.kind === "payment_to_check") return n.client_user_id ? `/clients/${n.client_user_id}` : "/clients";
   return "/clients?status=AWAITING_CONFIRMATION";
 }
 
