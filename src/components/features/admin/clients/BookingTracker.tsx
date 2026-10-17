@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { ConfirmDialog } from "@/components/organisms";
 import { dateLabel, statusOf } from "@/lib/admin/clientPage";
+import { peso } from "@/lib/dashboardFormat";
+import { RESERVATION_FEE } from "@/lib/visitCompletion";
 import { appointmentToTrack, trackerSteps, type TrackerStep } from "@/lib/bookingTracker";
 import type { ClientAppointment } from "@/services/clientNotesService";
 import { Badge, Button, Select } from "@/components/atoms";
@@ -35,9 +37,18 @@ export default function BookingTracker({ appointments, today, artists, onConfirm
   const extra = (step: TrackerStep) => {
     if (step.key === "downpayment") {
       const proof = tracked.proof_image_url ? { id: 0, status: tracked.proof_status ?? "PENDING", image_url: tracked.proof_image_url, created_at: "" } : null;
+      const paid = tracked.paid_downpayment ?? 0;
       return (
-        <div className="mt-1 flex items-center gap-3 text-xs text-gray-red">
-          Payment screenshot <ProofThumb proof={proof} appointmentId={tracked.id} />
+        <div className="mt-1 flex flex-col gap-1.5 text-xs text-gray-red">
+          {paid > 0 && (
+            <p>
+              <span className="font-bold">Paid {peso(paid)}</span>
+              {paid > RESERVATION_FEE && ` (${peso(RESERVATION_FEE)} reservation fee + ${peso(paid - RESERVATION_FEE)} off the service)`}
+            </p>
+          )}
+          <div className="flex items-center gap-3">
+            Payment screenshot <ProofThumb proof={proof} appointmentId={tracked.id} />
+          </div>
         </div>
       );
     }
@@ -61,7 +72,7 @@ export default function BookingTracker({ appointments, today, artists, onConfirm
     }
     if (step.key === "completed" && (status === "CONFIRMED" || status === "COMPLETED")) {
       return (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
         <CompleteVisitForm
           key={tracked.id}
           visit={{
