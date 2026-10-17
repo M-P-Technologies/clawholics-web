@@ -59,7 +59,7 @@ export default function TopBar({ title, greeting, titleAside, leading, actions, 
           href="/"
           target="_blank"
           rel="noreferrer"
-          className="hidden shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-crimson-light px-3 py-1.5 text-sm 2xl:text-base font-bold text-berry transition-colors hover:bg-crimson-light/30 lg:flex"
+          className="hidden shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-crimson-light px-3 py-1.5 text-sm font-bold text-berry transition-colors hover:bg-crimson-light/30 lg:flex"
         >
           View site
           <ExternalLink size={14} aria-hidden="true" />
