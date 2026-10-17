@@ -11,7 +11,7 @@ const steady = (): DashboardResponse => ({
     collected: { value: 10000, previous: 10000 },
     estimatedSales: { value: 20000, previous: 20000 },
     bookings: { value: 20, previous: 20 },
-    newClients: { value: 5, previous: 5 },
+    newClients: { value: 5, previous: 5 }, recurringClients: { value: 0, previous: 0 },
   },
   rates: {
     cancellation: { value: 0.05, previous: 0.05 },
@@ -22,7 +22,7 @@ const steady = (): DashboardResponse => ({
   lapsedClients: 0, leads: { accounts: 4, booked: 2 }, clientBase: { clients: 5, lifetimeValue: 1120, churn: 0.2 }, totals: { clients: 17, services: 35, artists: 5, upcoming: 7, trend: [] }, sales: [],
   loyalty: { stamps: 0, redeemed: 0 },
   attention: { today: 0, proofsToReview: 0, toConfirm: 0, toComplete: 0, photosToAdd: 0, unpaid: 0, warmLeads: 0 },
-  money: { balanceAtSalon: { value: 0, previous: 0 }, returningRevenue: { value: 0, previous: 0 }, lostToCancellations: { value: 0, previous: 0 }, bookedAhead: { value: 0, visits: 0, days: [] } },
+  money: { balanceAtSalon: { value: 0, previous: 0 }, returningRevenue: { value: 0, previous: 0 }, lostToCancellations: { value: 0, previous: 0 }, bookedAhead: { value: 0, previous: 0, visits: 0, granularity: "day", days: [] } },
   trend: { granularity: "day", points: [] },
   monthly: ["2026-05", "2026-06", "2026-07", "2026-08", "2026-09", "2026-10"].map((month) => ({ month, completed: 20, cancelled: 1 })),
   services: [{ name: "Gel", bookings: 10, estimatedSales: 0 }, { name: "Art", bookings: 10, estimatedSales: 0 }],
@@ -58,7 +58,7 @@ describe("buildInsights: a quiet, steady period", () => {
 describe("buildInsights: too little data", () => {
   const quiet = (): DashboardResponse => ({
     ...steady(),
-    kpis: { collected: { value: 500, previous: 0 }, estimatedSales: { value: 800, previous: 0 }, bookings: { value: 1, previous: 1 }, newClients: { value: 1, previous: 0 } },
+    kpis: { collected: { value: 500, previous: 0 }, estimatedSales: { value: 800, previous: 0 }, bookings: { value: 1, previous: 1 }, newClients: { value: 1, previous: 0 }, recurringClients: { value: 0, previous: 0 } },
   });
 
   it("does not compare or praise, it says so", () => {
@@ -85,7 +85,7 @@ describe("buildInsights: wins", () => {
       collected: { value: 2000, previous: 1000 },
       estimatedSales: { value: 3300, previous: 3000 }, // +10%
       bookings: { value: 22, previous: 20 }, // +10%
-      newClients: { value: 6, previous: 5 }, // +20%
+      newClients: { value: 6, previous: 5 }, recurringClients: { value: 0, previous: 0 }, // +20%
     }));
     expect(i.wins.map((w) => w.text)).toEqual([
       "Collected ₱2,000, up 100% on last month.",
@@ -125,7 +125,7 @@ describe("buildInsights: wins", () => {
 
   it("shows at most three, best first", () => {
     const i = buildInsights(withKpis(
-      { collected: { value: 20000, previous: 10000 }, estimatedSales: { value: 40000, previous: 20000 }, bookings: { value: 40, previous: 20 }, newClients: { value: 10, previous: 5 } },
+      { collected: { value: 20000, previous: 10000 }, estimatedSales: { value: 40000, previous: 20000 }, bookings: { value: 40, previous: 20 }, newClients: { value: 10, previous: 5 }, recurringClients: { value: 0, previous: 0 } },
       { loyalty: { stamps: 3, redeemed: 4 } },
     ));
     expect(i.wins).toHaveLength(3);
@@ -167,7 +167,7 @@ describe("buildInsights: watch-outs", () => {
 
   it("shows at most three", () => {
     const i = buildInsights(withKpis(
-      { collected: { value: 1, previous: 10000 }, estimatedSales: { value: 1, previous: 20000 }, bookings: { value: 1, previous: 20 }, newClients: { value: 1, previous: 5 } },
+      { collected: { value: 1, previous: 10000 }, estimatedSales: { value: 1, previous: 20000 }, bookings: { value: 1, previous: 20 }, newClients: { value: 1, previous: 5 }, recurringClients: { value: 0, previous: 0 } },
     ));
     expect(i.watch).toHaveLength(3);
   });
@@ -233,7 +233,7 @@ describe("buildInsights without repeating the stat cards", () => {
   it("leaves out the sentences that only repeat a card, and fills the three slots with the rest", () => {
     const i = buildInsights(
       withKpis(
-        { collected: { value: 1, previous: 10000 }, estimatedSales: { value: 1, previous: 20000 }, bookings: { value: 1, previous: 20 }, newClients: { value: 1, previous: 5 } },
+        { collected: { value: 1, previous: 10000 }, estimatedSales: { value: 1, previous: 20000 }, bookings: { value: 1, previous: 20 }, newClients: { value: 1, previous: 5 }, recurringClients: { value: 0, previous: 0 } },
         { rates: { ...steady().rates, cancellation: { value: 0.3, previous: 0.05 } }, lapsedClients: 2 },
       ),
       { repeatKpis: false },

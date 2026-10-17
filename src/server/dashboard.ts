@@ -4,11 +4,12 @@ import { SERVICE_PRICE_SQL } from "./appointments";
 import { PROOF_TO_REVIEW_SQL } from "./proofRules";
 import { PHOTOS_TO_ADD_SQL, TO_COMPLETE_SQL } from "./visitsToComplete";
 import {
-  LAPSED_DAYS, addDays, manilaClock, manilaToday, monthKeys, resolvePeriod,
+  LAPSED_DAYS, addDays, manilaClock, manilaToday, monthEnd, monthKeys, resolvePeriod,
   type DashboardRange, type Span,
 } from "../lib/dashboardPeriods";
 import { bucketTrend, trendBuckets, type DayValues, type TrendPoint } from "../lib/dashboardTrend";
 import type { DashboardResponse } from "../services/dashboardTypes";
+import { RESERVATION_FEE } from "../lib/visitCompletion";
 
 // Every number on the dashboard, computed in SQL. Dates: appointment_date is already local text;
 // created_at is UTC, so it is shifted to Manila's day (+8h) before it is compared.
@@ -25,6 +26,10 @@ const APPT = `
   with appt as (
     select a.id, a.user_id, a.appointment_date as d, a.appointment_time as t,
       upper(trim(a.status)) as st, ${LOCAL_DATE("a.created_at")} as created_d,
+      -- For the Bookings and Returning clients cards: the day an admin completed the visit with the
+      -- booking tracker's Complete visit (which only a confirmed booking has), from its record.
+      -- Null otherwise, including visits marked completed before the tracker recorded them.
+      case when upper(trim(a.status)) = 'COMPLETED' then ${LOCAL_DATE("vc.created_at")} end as tracked_d,
       a.service_name, coalesce(n.name, a.nailist_name) as nailist_name,
       ${SERVICE_PRICE_SQL} as price,
       coalesce(u.clerk_id = 'walkin_guest', false) as is_guest,
@@ -56,8 +61,21 @@ const BALANCE = "coalesce(recorded_balance, greatest(coalesce(price, 0) - paid, 
 
 const rate = (part: number, whole: number) => (whole === 0 ? null : part / whole);
 
-// How far ahead Booked ahead's line looks
-const AHEAD_DAYS = 14;
+// What a confirmed visit still has to pay at the salon: its list price less the downpayment paid,
+// of which the reservation fee doesn't go toward the service (as Complete visit prefills it)
+const STILL_TO_PAY = `greatest(coalesce(price, 0) - greatest(paid - ${RESERVATION_FEE}, 0), 0)`;
+
+// Booked ahead's points, from today to the end of the period: a day each, or a month each for the
+// year (so its line doesn't have hundreds of points)
+function aheadBuckets(range: DashboardRange, today: string, to: string): Span[] {
+  const buckets: Span[] = [];
+  for (let from = today; from <= to; ) {
+    const end = range === "year" ? monthEnd(from) : from;
+    buckets.push({ from, to: end < to ? end : to });
+    from = addDays(end, 1);
+  }
+  return buckets;
+}
 
 // A client who has booked: at least one confirmed or completed appointment
 const HAS_BOOKED = `exists (select 1 from appointments b where b.user_id = u.id and upper(trim(b.status)) in ${BOOKED})`;
@@ -77,12 +95,14 @@ export const WARM_LEADS = `
     and ${LOCAL_DATE("greatest(u.created_at::timestamp, a.last_started)")} >= $1`;
 export const warmSince = (today: string) => addDays(today, -LAPSED_DAYS);
 
-// Each client's first completed visit, for "returning" (a completed visit before the period). Read
-// from appointments directly so the APPT query it's joined to is used once, and stays filtered by
-// date instead of being built in full for every row it's compared with.
+// Each client's first visit completed with the tracker (by the day it was completed, as the money
+// is dated), for "returning revenue" (a completed visit before the period). Read from the tables
+// directly so the APPT query it's joined to is used once, and stays filtered by date instead of
+// being built in full for every row it's compared with.
 const FIRST_VISIT = `first_visit as (
-    select user_id, min(appointment_date) as first_d from appointments
-    where upper(trim(status)) = 'COMPLETED' group by user_id
+    select a.user_id, min(${LOCAL_DATE("vc.created_at")}) as first_d
+    from appointments a join visit_completions vc on vc.appointment_id = a.id
+    where upper(trim(a.status)) = 'COMPLETED' group by a.user_id
   )`;
 
 // The glance cards' lines, one point per trend bucket: client accounts at the bucket's end (today's
@@ -113,20 +133,23 @@ export async function listWarmLeads(now: Date = new Date()): Promise<string[]> {
 // What is measured for one span (the period, then the one before it)
 async function spanMetrics(span: Span) {
   const p = [span.from, span.to];
-  const [counts, newClients, conversion, returning, leads, returningRevenue] = await Promise.all([
-    // Collected: the downpayments of the visits completed in the period (so never a refunded one),
-    // dated by the visit like the other money
-    one<{ bookings: number; estimated_sales: number; collected: number; balance_at_salon: number; lost: number; completed: number; cancelled: number; decided: number }>(
+  const [counts, booked, newClients, conversion, returning, leads, returningRevenue] = await Promise.all([
+    // The money (Collected, Sales, Balance at the salon): the visits an admin completed with the
+    // booking tracker in the period, dated by that day (tracked_d), so never a refunded one, and
+    // always with the balance recorded. Cancellations and the outcome counts stay by the visit's day.
+    one<{ estimated_sales: number; collected: number; balance_at_salon: number; sold: number; lost: number; completed: number; cancelled: number; decided: number }>(
       `${APPT} select
-         count(*) filter (where st in ${BOOKED})::int as bookings,
-         coalesce(sum(${SALE}) filter (where st = 'COMPLETED'), 0)::int as estimated_sales,
-         coalesce(sum(paid) filter (where st = 'COMPLETED'), 0)::int as collected,
-         coalesce(sum(${BALANCE}) filter (where st = 'COMPLETED'), 0)::int as balance_at_salon,
-         coalesce(sum(price) filter (where st in ${CANCELLED}), 0)::int as lost,
-         count(*) filter (where st = 'COMPLETED')::int as completed,
-         count(*) filter (where st in ${CANCELLED})::int as cancelled,
-         count(*) filter (where st in ${DECIDED})::int as decided
-       from appt where d between $1 and $2`, p),
+         coalesce(sum(${SALE}) filter (where tracked_d between $1 and $2), 0)::int as estimated_sales,
+         coalesce(sum(paid) filter (where tracked_d between $1 and $2), 0)::int as collected,
+         coalesce(sum(${BALANCE}) filter (where tracked_d between $1 and $2), 0)::int as balance_at_salon,
+         count(*) filter (where tracked_d between $1 and $2)::int as sold,
+         coalesce(sum(price) filter (where st in ${CANCELLED} and d between $1 and $2), 0)::int as lost,
+         count(*) filter (where st = 'COMPLETED' and d between $1 and $2)::int as completed,
+         count(*) filter (where st in ${CANCELLED} and d between $1 and $2)::int as cancelled,
+         count(*) filter (where st in ${DECIDED} and d between $1 and $2)::int as decided
+       from appt where d between $1 and $2 or tracked_d between $1 and $2`, p),
+    // Bookings: confirmed and completed (the tracker's last step) in the period, dated by the completion
+    one<{ n: number }>(`${APPT} select count(*)::int as n from appt where tracked_d between $1 and $2`, p),
     one<{ n: number }>(
       `select count(*)::int as n from users
        where coalesce(role, 'customer') = 'customer' and clerk_id <> 'walkin_guest'
@@ -146,10 +169,10 @@ async function spanMetrics(span: Span) {
     one<{ value: number }>(
       `${APPT}, ${FIRST_VISIT} select coalesce(sum(${SALE}), 0)::int as value
        from appt v join first_visit f on f.user_id = v.user_id and f.first_d < $1
-       where v.st = 'COMPLETED' and not v.is_guest and v.d between $1 and $2`, p),
+       where not v.is_guest and v.tracked_d between $1 and $2`, p),
   ]);
   return {
-    bookings: counts.bookings,
+    bookings: booked.n,
     estimatedSales: counts.estimated_sales,
     balanceAtSalon: counts.balance_at_salon,
     lost: counts.lost,
@@ -161,7 +184,7 @@ async function spanMetrics(span: Span) {
     cancellation: rate(counts.cancelled, counts.decided),
     conversion: rate(conversion.converted, conversion.created),
     returning: rate(returning.returning, returning.clients),
-    averageSale: counts.completed === 0 ? null : Math.round(counts.estimated_sales / counts.completed),
+    averageSale: counts.sold === 0 ? null : Math.round(counts.estimated_sales / counts.sold),
     leadConversion: rate(leads.booked, leads.leads),
     leadAccounts: leads.leads,
     leadBooked: leads.booked,
@@ -177,11 +200,18 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
   const { granularity, buckets } = trendBuckets(range, period, today);
   // The trend line runs from the period's first day to today, so only those days are read
   const trendSpan = buckets.length === 0 ? null : [buckets[0].from, buckets[buckets.length - 1].to];
+  // Booked ahead looks from today to the end of the period (just today for one that ends today).
+  // It's compared with the same stretch of the previous period: as many days into it, to its end.
+  const aheadTo = period.to > today ? period.to : today;
+  const ahead = [today, aheadTo];
+  const daysIn = Math.round((Date.parse(today) - Date.parse(period.from)) / 86_400_000);
+  const shifted = addDays(previous.from, daysIn);
+  const aheadBefore = [shifted < previous.to ? shifted : previous.to, previous.to];
 
   // Both counts match the lists they link to on the Appointments screen: "Pending" is the PENDING
   // filter, "Proofs to review" is the PROOF_PENDING filter (an awaiting-proof booking whose latest
   // upload is still pending).
-  const [current, before, loyalty, attention, lapsed, monthlyRows, serviceRows, weekdayRows, artistRows, outcomeRows, next, dayAppts, dayClients, ahead, warm, base, counts, sales, aheadDays, dayMix] =
+  const [current, before, loyalty, attention, lapsed, monthlyRows, serviceRows, weekdayRows, artistRows, outcomeRows, next, dayAppts, dayLost, recurringSince, dayBooked, dayClients, aheadTotal, aheadPrevious, warm, base, counts, sales, aheadDays, dayMix] =
     await Promise.all([
       spanMetrics(period),
       spanMetrics(previous),
@@ -230,15 +260,32 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
       // The same day by day, for the lines: also the money cards' values, worked out as on the
       // cards ("returning" means a completed visit before the period's first day, $1)
       trendSpan
-        ? rows<{ d: string; bookings: number; sales: number; collected: number; balance: number; returning: number; lost: number }>(
-            `${APPT}, ${FIRST_VISIT} select d, count(*) filter (where st in ${BOOKED})::int as bookings,
-               coalesce(sum(${SALE}) filter (where st = 'COMPLETED'), 0)::int as sales,
-               coalesce(sum(paid) filter (where st = 'COMPLETED'), 0)::int as collected,
-               coalesce(sum(${BALANCE}) filter (where st = 'COMPLETED'), 0)::int as balance,
-               coalesce(sum(${SALE}) filter (where st = 'COMPLETED' and not is_guest and f.first_d < $1), 0)::int as returning,
-               coalesce(sum(price) filter (where st in ${CANCELLED}), 0)::int as lost
+        ? rows<{ d: string; sales: number; collected: number; balance: number; returning: number }>(
+            `${APPT}, ${FIRST_VISIT} select tracked_d as d,
+               coalesce(sum(${SALE}), 0)::int as sales,
+               coalesce(sum(paid), 0)::int as collected,
+               coalesce(sum(${BALANCE}), 0)::int as balance,
+               coalesce(sum(${SALE}) filter (where not is_guest and f.first_d < $1), 0)::int as returning
              from appt v left join first_visit f on f.user_id = v.user_id
-             where d between $1 and $2 group by d`, trendSpan)
+             where tracked_d between $1 and $2 group by tracked_d`, trendSpan)
+        : Promise.resolve([]),
+      // What cancellations cost, by the visit's day like its card
+      trendSpan
+        ? rows<{ d: string; n: number }>(
+            `${APPT} select d, coalesce(sum(price), 0)::int as n from appt
+             where st in ${CANCELLED} and d between $1 and $2 group by d`, trendSpan)
+        : Promise.resolve([]),
+      // Returning clients: the day each client's second confirmed and completed visit was completed
+      // (as the Bookings card dates them), the day they became one; the walk-in guest isn't a client
+      rows<{ d: string; n: number }>(
+        `${APPT} select second_d as d, count(*)::int as n from (
+           select user_id, (array_agg(tracked_d order by tracked_d))[2] as second_d
+           from appt where tracked_d is not null and not is_guest group by user_id
+         ) t where second_d is not null group by 1`, []),
+      // The Bookings card's line, by the tracker's day like the card
+      trendSpan
+        ? rows<{ d: string; n: number }>(
+            `${APPT} select tracked_d as d, count(*)::int as n from appt where tracked_d between $1 and $2 group by 1`, trendSpan)
         : Promise.resolve([]),
       trendSpan
         ? rows<{ d: string; n: number }>(
@@ -246,9 +293,15 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
              where coalesce(role, 'customer') = 'customer' and clerk_id <> 'walkin_guest'
                and ${LOCAL_DATE("created_at")} between $1 and $2 group by 1`, trendSpan)
         : Promise.resolve([]),
+      // Booked ahead: confirmed visits from today to the period's end, and what they still have to pay
       one<{ value: number; visits: number }>(
-        `${APPT} select coalesce(sum(price), 0)::int as value, count(*)::int as visits
-         from appt where st = 'CONFIRMED' and d >= $1`, [today]),
+        `${APPT} select coalesce(sum(${STILL_TO_PAY}), 0)::int as value, count(*)::int as visits
+         from appt where st = 'CONFIRMED' and d between $1 and $2`, ahead),
+      // The same for that stretch of the previous period: its visits are past, so those confirmed
+      // or completed (by status), at what they had to pay at the salon the same way
+      one<{ value: number }>(
+        `${APPT} select coalesce(sum(${STILL_TO_PAY}), 0)::int as value
+         from appt where st in ${BOOKED} and d between $1 and $2`, aheadBefore),
       one<{ n: number }>(`select count(*)::int as n from (${WARM_LEADS}) w`, [warmSince(today)]),
       // the same clients as Lapsed clients: anyone but the walk-in guest with a completed visit
       one<{ clients: number; spent: number }>(
@@ -261,12 +314,12 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
       rows<DashboardResponse["sales"][number]>(
         `${APPT} select id, d as date, t as time, coalesce(nullif(client_name, ''), 'Client') as client_name,
            case when is_guest then null else user_id end as user_id, service_name, nailist_name, ${SALE}::int as fee
-         from appt where st = 'COMPLETED' and d between $1 and $2
-         order by d desc, lpad(split_part(t, '-', 1), 5, '0') desc, id desc`, p),
-      // Booked ahead, day by day for the next 14 days, for its line
+         from appt where tracked_d between $1 and $2
+         order by tracked_d desc, d desc, lpad(split_part(t, '-', 1), 5, '0') desc, id desc`, p),
+      // The same day by day, for its line
       rows<{ d: string; value: number; visits: number }>(
-        `${APPT} select d, coalesce(sum(price), 0)::int as value, count(*)::int as visits from appt
-         where st = 'CONFIRMED' and d between $1 and $2 group by d`, [today, addDays(today, AHEAD_DAYS - 1)]),
+        `${APPT} select d, coalesce(sum(${STILL_TO_PAY}), 0)::int as value, count(*)::int as visits from appt
+         where st = 'CONFIRMED' and d between $1 and $2 group by d`, ahead),
       // Which services and artists were booked each day, for the glance cards' lines (merged per
       // week or month below, so a service booked on two days of a week counts once)
       trendSpan
@@ -278,13 +331,17 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
 
   const byDay: Record<string, Partial<DayValues>> = {};
   const day = (d: string) => (byDay[d] ??= {});
-  for (const r of dayAppts as { d: string; bookings: number; sales: number; collected: number; balance: number; returning: number; lost: number }[]) {
-    Object.assign(day(r.d), { bookings: r.bookings, estimatedSales: r.sales, collected: r.collected, balanceAtSalon: r.balance, returningRevenue: r.returning, lost: r.lost });
+  for (const r of dayAppts as { d: string; sales: number; collected: number; balance: number; returning: number }[]) {
+    Object.assign(day(r.d), { estimatedSales: r.sales, collected: r.collected, balanceAtSalon: r.balance, returningRevenue: r.returning });
   }
+  for (const r of dayLost as { d: string; n: number }[]) day(r.d).lost = r.n;
+  for (const r of dayBooked as { d: string; n: number }[]) day(r.d).bookings = r.n;
   for (const r of dayClients as { d: string; n: number }[]) day(r.d).newClients = r.n;
 
-  const topServices = serviceRows.slice(0, 5).map((r) => ({ name: r.name, bookings: r.bookings, estimatedSales: r.estimated_sales }));
-  const otherServices = serviceRows.slice(5);
+  // Five rows at most, Other included: with more than five services, the top four and Other
+  const shown = serviceRows.length > 5 ? 4 : 5;
+  const topServices = serviceRows.slice(0, shown).map((r) => ({ name: r.name, bookings: r.bookings, estimatedSales: r.estimated_sales }));
+  const otherServices = serviceRows.slice(shown);
   if (otherServices.length > 0) {
     topServices.push({
       name: "Other",
@@ -293,7 +350,12 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
     });
   }
 
+  // Returning clients as of a day: those whose second completed visit came on or before it. The
+  // card counts them as of the period's end (today at the latest), and its line as of each point's end.
+  const recurringBy = (day: string) => (recurringSince as { d: string; n: number }[]).reduce((sum, r) => (r.d <= day ? sum + r.n : sum), 0);
+  const asOf = (span: Span) => recurringBy(span.to < today ? span.to : today);
   const trend = bucketTrend(granularity, buckets, byDay);
+  trend.points.forEach((point, i) => (point.recurringClients = recurringBy(buckets[i].to)));
   const outcome = (...statuses: string[]) => outcomeRows.filter((r) => statuses.includes(r.st)).reduce((sum, r) => sum + r.n, 0);
 
   return {
@@ -305,6 +367,7 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
       estimatedSales: { value: current.estimatedSales, previous: before.estimatedSales },
       bookings: { value: current.bookings, previous: before.bookings },
       newClients: { value: current.newClients, previous: before.newClients },
+      recurringClients: { value: asOf(period), previous: asOf(previous) },
     },
     rates: {
       cancellation: { value: current.cancellation, previous: before.cancellation },
@@ -320,7 +383,7 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
       clients: counts.clients,
       services: counts.services,
       artists: counts.artists,
-      upcoming: ahead.visits,
+      upcoming: aheadTotal.visits,
       trend: glanceTrend(trend.points, buckets, dayMix as { d: string; services: string[]; artists: string[] }[], counts.clients),
     },
     clientBase: {
@@ -336,11 +399,12 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
       returningRevenue: { value: current.returningRevenue, previous: before.returningRevenue },
       lostToCancellations: { value: current.lost, previous: before.lost },
       bookedAhead: {
-        ...ahead,
-        days: Array.from({ length: AHEAD_DAYS }, (_, i) => {
-          const date = addDays(today, i);
-          const found = aheadDays.find((r) => r.d === date);
-          return { date, value: found?.value ?? 0, visits: found?.visits ?? 0 };
+        ...aheadTotal,
+        previous: aheadPrevious.value,
+        granularity: range === "year" ? "month" : "day",
+        days: aheadBuckets(range, today, aheadTo).map((bucket) => {
+          const inside = aheadDays.filter((r) => r.d >= bucket.from && r.d <= bucket.to);
+          return { date: bucket.from, value: inside.reduce((sum, r) => sum + r.value, 0), visits: inside.reduce((sum, r) => sum + r.visits, 0) };
         }),
       },
     },

@@ -55,7 +55,7 @@ describe("DashboardView layout", () => {
     const grid = screen.getByRole("group", { name: "Collected" }).parentElement as HTMLElement;
     expect(grid.className).toContain("grid-cols-2");
     expect(grid.className).toContain("xl:grid-cols-4");
-    for (const name of ["Collected", "Sales", "Bookings", "New clients"]) {
+    for (const name of ["Collected", "Sales", "Bookings", "Returning clients"]) {
       const card = screen.getByRole("group", { name });
       expect(card.parentElement).toBe(grid);
       expect(card.className).not.toContain("col-span");
@@ -67,7 +67,7 @@ describe("DashboardView layout", () => {
     expect(screen.getByRole("img", { name: "Collected per day, from ₱0 to ₱500" })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "Sales per day, from ₱0 to ₱800" })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "Bookings per day, from 1 to 2" })).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "New clients per day, from 0 to 1" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Returning clients per day, from 3 to 4" })).toBeInTheDocument();
   });
 
   it("names each point in its tooltip", () => {
@@ -77,7 +77,7 @@ describe("DashboardView layout", () => {
   });
 
   it("speaks of weeks and months when the line has weekly or monthly points", () => {
-    render(<DashboardView data={{ ...data, trend: { granularity: "month", points: [{ date: "2026-09-01", collected: 100, estimatedSales: 0, bookings: 0, newClients: 0, balanceAtSalon: 0, returningRevenue: 0, lost: 0 }, { date: "2026-10-01", collected: 400, estimatedSales: 0, bookings: 0, newClients: 0, balanceAtSalon: 0, returningRevenue: 0, lost: 0 }] } }} />);
+    render(<DashboardView data={{ ...data, trend: { granularity: "month", points: [{ date: "2026-09-01", collected: 100, estimatedSales: 0, bookings: 0, newClients: 0, recurringClients: 0, balanceAtSalon: 0, returningRevenue: 0, lost: 0 }, { date: "2026-10-01", collected: 400, estimatedSales: 0, bookings: 0, newClients: 0, recurringClients: 0, balanceAtSalon: 0, returningRevenue: 0, lost: 0 }] } }} />);
     expect(screen.getByRole("img", { name: "Collected per month, from ₱100 to ₱400" })).toBeInTheDocument();
   });
 
@@ -88,7 +88,7 @@ describe("DashboardView layout", () => {
 
   it("gives each of the four stat cards an icon", () => {
     render(<DashboardView data={data} />);
-    for (const name of ["Collected", "Sales", "Bookings", "New clients"]) {
+    for (const name of ["Collected", "Sales", "Bookings", "Returning clients"]) {
       expect(within(screen.getByRole("group", { name })).getByTestId("kpi-icon")).toBeInTheDocument();
     }
   });
@@ -102,7 +102,7 @@ describe("DashboardView layout", () => {
     for (const name of ["Money", "Sales record", "Top services", "How bookings ended", "Key rates", "Salon at a glance", "Busiest weekdays", "Bookings per artist", "Artist utilization"]) {
       expect(screen.queryByRole("region", { name })).toBeNull();
     }
-    expect(screen.getAllByRole("group").map((g) => g.getAttribute("aria-label"))).toEqual(["Collected", "Sales", "Bookings", "New clients"]);
+    expect(screen.getAllByRole("group").map((g) => g.getAttribute("aria-label"))).toEqual(["Collected", "Sales", "Bookings", "Returning clients"]);
   });
 
   it("links to the Sales and Performance pages for the rest", () => {
@@ -151,6 +151,6 @@ describe("DashboardView next appointments (without the bookings table)", () => {
 describe("the Sales card", () => {
   it("says what it adds up: the downpayments and balances of completed visits", () => {
     render(<DashboardView data={data} />);
-    expect(within(screen.getByRole("group", { name: "Sales" })).getByText("downpayments + balance of completed visits")).toBeInTheDocument();
+    expect(within(screen.getByRole("group", { name: "Sales" })).getByText("downpayment + balance")).toBeInTheDocument();
   });
 });

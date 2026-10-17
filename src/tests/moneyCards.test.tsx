@@ -7,7 +7,7 @@ const money: Money = {
   balanceAtSalon: { value: 1300, previous: 700 },
   returningRevenue: { value: 300, previous: 0 },
   lostToCancellations: { value: 2000, previous: 0 },
-  bookedAhead: { value: 2300, visits: 3, days: [{ date: "2026-10-14", value: 2000, visits: 1 }, { date: "2026-10-15", value: 0, visits: 1 }, { date: "2026-10-16", value: 300, visits: 1 }] },
+  bookedAhead: { value: 2300, previous: 0, visits: 3, granularity: "day", days: [{ date: "2026-10-14", value: 2000, visits: 1 }, { date: "2026-10-15", value: 0, visits: 1 }, { date: "2026-10-16", value: 300, visits: 1 }] },
 };
 
 describe("MoneyCards", () => {
@@ -23,13 +23,13 @@ describe("MoneyCards", () => {
     render(<MoneyCards money={money} />);
     const card = within(screen.getByRole("group", { name: "Booked ahead" }));
     expect(card.getByText("₱2,300")).toBeInTheDocument();
-    expect(card.getByText("3 confirmed visits from today")).toBeInTheDocument();
+    expect(card.getByText("still to pay, 3 confirmed visits")).toBeInTheDocument();
   });
 
   it("shows what cancellations cost, with one visit in the singular", () => {
-    render(<MoneyCards money={{ ...money, bookedAhead: { value: 800, visits: 1, days: [] } }} />);
+    render(<MoneyCards money={{ ...money, bookedAhead: { value: 800, previous: 0, visits: 1, granularity: "day", days: [] } }} />);
     expect(within(screen.getByRole("group", { name: "Lost to cancellations" })).getByText("₱2,000")).toBeInTheDocument();
-    expect(screen.getByText("1 confirmed visit from today")).toBeInTheDocument();
+    expect(screen.getByText("still to pay, 1 confirmed visit")).toBeInTheDocument();
   });
 
   it("shows revenue from returning clients and its share of all revenue", () => {
@@ -55,8 +55,8 @@ describe("MoneyCards: the lines", () => {
   const trend = {
     granularity: "day" as const,
     points: [
-      { date: "2026-10-12", collected: 0, estimatedSales: 0, bookings: 0, newClients: 0, balanceAtSalon: 0, returningRevenue: 0, lost: 500 },
-      { date: "2026-10-13", collected: 0, estimatedSales: 0, bookings: 0, newClients: 0, balanceAtSalon: 300, returningRevenue: 800, lost: 0 },
+      { date: "2026-10-12", collected: 0, estimatedSales: 0, bookings: 0, newClients: 0, recurringClients: 0, balanceAtSalon: 0, returningRevenue: 0, lost: 500 },
+      { date: "2026-10-13", collected: 0, estimatedSales: 0, bookings: 0, newClients: 0, recurringClients: 0, balanceAtSalon: 300, returningRevenue: 800, lost: 0 },
     ],
   };
 
@@ -65,8 +65,8 @@ describe("MoneyCards: the lines", () => {
     expect(screen.getByRole("img", { name: "Balance at the salon per day, from ₱0 to ₱300" })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "From returning clients per day, from ₱0 to ₱800" })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "Lost to cancellations per day, from ₱500 to ₱0" })).toBeInTheDocument();
-    // Booked ahead looks forward: one point per day from today
-    const ahead = screen.getByRole("img", { name: "Booked ahead per day for the next 3 days, from ₱2,000 to ₱300" });
+    // Booked ahead looks forward: one point per day from today to the period's end
+    const ahead = screen.getByRole("img", { name: "Booked ahead per day to the period's end, from ₱2,000 to ₱300" });
     expect([...ahead.querySelectorAll("title")].map((t) => t.textContent)).toEqual(["Oct 14: ₱2,000", "Oct 15: ₱0", "Oct 16: ₱300"]);
   });
 

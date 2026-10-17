@@ -1,6 +1,6 @@
 import { timeRangeLabel } from "@/lib/timeFormat";
 import { Card } from "@/components/atoms";
-import { ArrowRight, CalendarHeart, Receipt, UserPlus, Wallet } from "lucide-react";
+import { ArrowRight, CalendarHeart, Receipt, Repeat, Wallet } from "lucide-react";
 import { describeChange, peso, shortDay } from "@/lib/dashboardFormat";
 import { formatBucketLabel, granularityWord, type DayValues } from "@/lib/dashboardTrend";
 import { Link } from "@/lib/router";
@@ -63,10 +63,10 @@ export default function DashboardView({ data, loading = false, failed = false, l
   return (
     <ViewBody loading={loading} failed={failed}>
       <div className="grid grid-cols-2 gap-3 md:gap-6 xl:grid-cols-4">
-        <StatCard icon={Wallet} label="Collected" value={peso(kpis.collected.value)} change={describeChange(kpis.collected.value, kpis.collected.previous)} hint="downpayments from completed visits" sparkline={spark("Collected", "collected", peso)} />
-        <StatCard icon={Receipt} label="Sales" value={peso(kpis.estimatedSales.value)} change={describeChange(kpis.estimatedSales.value, kpis.estimatedSales.previous)} hint="downpayments + balance of completed visits" sparkline={spark("Sales", "estimatedSales", peso)} />
+        <StatCard icon={Wallet} label="Collected" value={peso(kpis.collected.value)} change={describeChange(kpis.collected.value, kpis.collected.previous)} hint="downpayments of done visits" sparkline={spark("Collected", "collected", peso)} />
+        <StatCard icon={Receipt} label="Sales" value={peso(kpis.estimatedSales.value)} change={describeChange(kpis.estimatedSales.value, kpis.estimatedSales.previous)} hint="downpayment + balance" sparkline={spark("Sales", "estimatedSales", peso)} />
         <StatCard icon={CalendarHeart} label="Bookings" value={String(kpis.bookings.value)} change={describeChange(kpis.bookings.value, kpis.bookings.previous)} hint="confirmed and completed" sparkline={spark("Bookings", "bookings", String)} />
-        <StatCard icon={UserPlus} label="New clients" value={String(kpis.newClients.value)} change={describeChange(kpis.newClients.value, kpis.newClients.previous)} hint="new accounts" sparkline={spark("New clients", "newClients", String)} />
+        <StatCard icon={Repeat} label="Returning clients" value={String(kpis.recurringClients.value)} change={describeChange(kpis.recurringClients.value, kpis.recurringClients.previous)} hint="2 or more completed visits" sparkline={spark("Returning clients", "recurringClients", String)} />
       </div>
 
       {/* Words on the right, figures on the left. On a phone the notes come straight after the

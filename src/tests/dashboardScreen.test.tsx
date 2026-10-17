@@ -54,7 +54,7 @@ const base = (over: Partial<DashboardResponse> = {}): DashboardResponse => ({
     collected: { value: 2000, previous: 1000 },
     estimatedSales: { value: 3100, previous: 1700 },
     bookings: { value: 7, previous: 0 },
-    newClients: { value: 2, previous: 2 },
+    newClients: { value: 2, previous: 2 }, recurringClients: { value: 0, previous: 0 },
   },
   rates: {
     cancellation: { value: 2 / 9, previous: 0 },
@@ -65,7 +65,7 @@ const base = (over: Partial<DashboardResponse> = {}): DashboardResponse => ({
   lapsedClients: 1, leads: { accounts: 4, booked: 2 }, clientBase: { clients: 5, lifetimeValue: 1120, churn: 0.2 }, totals: { clients: 17, services: 35, artists: 5, upcoming: 7, trend: [] }, sales: [],
   loyalty: { stamps: 3, redeemed: 1 },
   attention: { today: 2, proofsToReview: 2, toConfirm: 0, toComplete: 0, photosToAdd: 0, unpaid: 2, warmLeads: 0 },
-  money: { balanceAtSalon: { value: 0, previous: 0 }, returningRevenue: { value: 0, previous: 0 }, lostToCancellations: { value: 0, previous: 0 }, bookedAhead: { value: 0, visits: 0, days: [] } },
+  money: { balanceAtSalon: { value: 0, previous: 0 }, returningRevenue: { value: 0, previous: 0 }, lostToCancellations: { value: 0, previous: 0 }, bookedAhead: { value: 0, previous: 0, visits: 0, granularity: "day", days: [] } },
   trend: { granularity: "day", points: [] },
   monthly: [
     { month: "2026-05", completed: 0, cancelled: 0 }, { month: "2026-06", completed: 1, cancelled: 0 },
@@ -188,7 +188,7 @@ describe("Dashboard", () => {
   it("shows empty states instead of blank charts when nothing has happened", async () => {
     fetchDashboard.mockResolvedValue(
       base({
-        kpis: { collected: { value: 0, previous: 0 }, estimatedSales: { value: 0, previous: 0 }, bookings: { value: 0, previous: 0 }, newClients: { value: 0, previous: 0 } },
+        kpis: { collected: { value: 0, previous: 0 }, estimatedSales: { value: 0, previous: 0 }, bookings: { value: 0, previous: 0 }, newClients: { value: 0, previous: 0 }, recurringClients: { value: 0, previous: 0 } },
         monthly: base().monthly.map((m) => ({ ...m, completed: 0, cancelled: 0 })),
         services: [], artists: [], next: [],
         weekdays: base().weekdays.map((w) => ({ ...w, bookings: 0 })),

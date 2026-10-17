@@ -5,23 +5,28 @@ type Change = { value: number; previous: number };
 // A fraction (0..1) or an amount; null means there was nothing to divide by
 type Rate = { value: number | null; previous: number | null };
 
-/** Money worked out from list prices and downpayments: nothing is entered by hand */
+/** The period's money. Balance and returning revenue count the visits an admin completed with the
+ *  booking tracker, dated by the day they were completed; cancellations are by the visit's day. */
 export interface Money {
-  /** Completed visits' list price less their paid downpayments: the balance paid at the salon */
+  /** The balance paid at the salon, as recorded by Complete visit */
   balanceAtSalon: Change;
-  /** List price of completed visits by clients who had a completed visit before the period */
+  /** What visits completed in the period sold for, from clients with a visit completed before it */
   returningRevenue: Change;
   /** List price of cancelled and refunded visits */
   lostToCancellations: Change;
-  /** Confirmed visits from today on, at list price (not tied to the period); days: the next 14, for its line */
-  bookedAhead: { value: number; visits: number; days: { date: string; value: number; visits: number }[] };
+  /** Confirmed visits from today to the end of the period, and what they still have to pay at the
+   *  salon (list price less the downpayment, without the reservation fee); days: its line, a point
+   *  per day (per month for the year), each dated by its first day. previous: the same for as many
+   *  days into the previous period to its end (its visits confirmed or completed) */
+  bookedAhead: { value: number; previous: number; visits: number; granularity: "day" | "month"; days: { date: string; value: number; visits: number }[] };
 }
 
 export interface DashboardResponse {
   range: DashboardRange;
   period: { from: string; to: string };
   previous: { from: string; to: string };
-  kpis: { collected: Change; estimatedSales: Change; bookings: Change; newClients: Change };
+  /** recurringClients: clients with two or more confirmed and completed visits, as of the period's end (today at the latest) */
+  kpis: { collected: Change; estimatedSales: Change; bookings: Change; newClients: Change; recurringClients: Change };
   /** leadConversion: client accounts made in the period that went on to book (confirmed or completed) */
   rates: { cancellation: Rate; conversion: Rate; returning: Rate; averageSale: Rate; leadConversion: Rate };
   lapsedClients: number;
@@ -40,8 +45,8 @@ export interface DashboardResponse {
      * end of each, and how many different services and artists were booked in each */
     trend: { date: string; clients: number; services: number; artists: number }[];
   };
-  /** Every completed visit in the period, newest first. fee: the list price for the artist's tier
-   * (null for a service no longer on the menu); user_id: null for a walk-in */
+  /** Every visit completed with the booking tracker in the period, latest completed first. date:
+   * the visit's day; fee: what it sold for (downpayment + recorded balance); user_id: null for a walk-in */
   sales: { id: number; date: string; time: string; client_name: string; user_id: number | null; service_name: string; nailist_name: string; fee: number | null }[];
   loyalty: { stamps: number; redeemed: number };
   /** warmLeads: clients active in the last 60 days who haven't booked a visit (see /leads) */
@@ -50,6 +55,7 @@ export interface DashboardResponse {
   /** One point per day, week or month of the period (up to today), for the lines on the stat cards */
   trend: Trend;
   monthly: { month: string; completed: number; cancelled: number }[];
+  /** The period's services by bookings, five rows at most: with more, the top four and "Other" */
   services: { name: string; bookings: number; estimatedSales: number }[];
   weekdays: { weekday: number; bookings: number }[];
   artists: { name: string; bookings: number }[];

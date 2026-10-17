@@ -21,7 +21,7 @@ export default function PerformanceView({ data, loading, failed, loadUtilization
   const { rates } = data;
   return (
     <ViewBody loading={loading} failed={failed}>
-      <GlanceCards totals={data.totals} granularity={data.trend.granularity} upcomingDays={data.money.bookedAhead.days} />
+      <GlanceCards totals={data.totals} granularity={data.trend.granularity} upcomingDays={data.money.bookedAhead.days} upcomingGranularity={data.money.bookedAhead.granularity} />
 
       <section aria-label="Key rates" className="grid grid-cols-2 gap-x-6 gap-y-6 rounded-2xl border border-crimson-light/40 bg-milk p-6 shadow-petal sm:grid-cols-4">
         <StatCard variant="bare" label="Cancellation rate" value={percent(rates.cancellation.value)} change={describePoints(rates.cancellation.value, rates.cancellation.previous)} lowerIsBetter />

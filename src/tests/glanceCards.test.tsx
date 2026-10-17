@@ -35,7 +35,7 @@ describe("GlanceCards", () => {
     expect(screen.getByText("client accounts")).toBeInTheDocument();
     expect(screen.getByText("on the menu")).toBeInTheDocument();
     expect(screen.getByText("nail artists")).toBeInTheDocument();
-    expect(screen.getByText("upcoming, confirmed")).toBeInTheDocument();
+    expect(screen.getByText("confirmed, to the period's end")).toBeInTheDocument();
   });
 
   it("looks like the stat cards: a milk card, the small icon badge, the number in berry", () => {
@@ -52,7 +52,7 @@ describe("GlanceCards", () => {
     expect(screen.getByRole("img", { name: "Total clients per day, from 15 to 17" })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "Different services booked per day, from 2 to 4" })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "Artists with bookings per day, from 1 to 3" })).toBeInTheDocument();
-    const ahead = screen.getByRole("img", { name: "Upcoming appointments per day for the next 3 days, from 2 to 1" });
+    const ahead = screen.getByRole("img", { name: "Upcoming appointments per day to the period's end, from 2 to 1" });
     expect([...ahead.querySelectorAll("title")].map((t) => t.textContent)).toEqual(["Oct 14: 2", "Oct 15: 0", "Oct 16: 1"]);
   });
 

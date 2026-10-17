@@ -34,10 +34,10 @@ describe("SalesRecord", () => {
     expect(screen.getByText("₱0 from 1 visit")).toBeInTheDocument();
   });
 
-  it("pages through ten at a time", () => {
+  it("pages through five at a time", () => {
     render(<SalesRecord sales={Array.from({ length: 13 }, (_, i) => sale(i + 1))} />);
-    expect(screen.getAllByRole("row")).toHaveLength(11);
-    fireEvent.click(screen.getByRole("button", { name: "Page 2" }));
+    expect(screen.getAllByRole("row")).toHaveLength(6); // the header and five sales
+    fireEvent.click(screen.getByRole("button", { name: "Page 3" }));
     expect(screen.getAllByRole("row")).toHaveLength(4);
     expect(screen.getByText("Showing 11–13 of 13")).toBeInTheDocument();
   });

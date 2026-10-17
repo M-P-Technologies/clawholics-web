@@ -5,7 +5,7 @@ import type { Money } from "@/services/dashboardTypes";
 import { StatCard } from "@/components/molecules";
 import Sparkline from "@/components/features/admin/dashboard/Sparkline";
 
-const visits = (n: number) => `${n} confirmed ${n === 1 ? "visit" : "visits"} from today`;
+const visits = (n: number) => `still to pay, ${n} confirmed ${n === 1 ? "visit" : "visits"}`;
 
 interface MoneyCardsProps {
   money: Money;
@@ -15,9 +15,9 @@ interface MoneyCardsProps {
   trend?: Trend;
 }
 
-// Money worked out from list prices and downpayments, so it needs nothing entered by hand. Each
+// The period's money, from the visits completed with the booking tracker (see Money). Each
 // card has a small line like the stat cards: over the period, except Booked ahead, which looks
-// forward over the next days.
+// forward from today to the period's end.
 export default function MoneyCards({ money, revenue = 0, trend }: MoneyCardsProps) {
   const share = revenue > 0 ? `${Math.round((money.returningRevenue.value / revenue) * 100)}% of sales, ` : "";
 
@@ -33,13 +33,13 @@ export default function MoneyCards({ money, revenue = 0, trend }: MoneyCardsProp
       />
     );
   };
-  const days = money.bookedAhead.days;
+  const { days, granularity: aheadGranularity } = money.bookedAhead;
   const aheadLine =
     days.length === 0 ? undefined : (
       <Sparkline
         values={days.map((d) => d.value)}
-        labels={days.map((d) => `${formatBucketLabel("day", d.date)}: ${peso(d.value)}`)}
-        ariaLabel={`Booked ahead per day for the next ${days.length} days, from ${peso(days[0].value)} to ${peso(days[days.length - 1].value)}`}
+        labels={days.map((d) => `${formatBucketLabel(aheadGranularity, d.date)}: ${peso(d.value)}`)}
+        ariaLabel={`Booked ahead ${granularityWord(aheadGranularity)} to the period's end, from ${peso(days[0].value)} to ${peso(days[days.length - 1].value)}`}
       />
     );
 
@@ -61,7 +61,14 @@ export default function MoneyCards({ money, revenue = 0, trend }: MoneyCardsProp
         hint={`${share}from clients who visited before`}
         sparkline={line("From returning clients", "returningRevenue")}
       />
-      <StatCard icon={CalendarClock} label="Booked ahead" value={peso(money.bookedAhead.value)} hint={visits(money.bookedAhead.visits)} sparkline={aheadLine} />
+      <StatCard
+        icon={CalendarClock}
+        label="Booked ahead"
+        value={peso(money.bookedAhead.value)}
+        change={describeChange(money.bookedAhead.value, money.bookedAhead.previous)}
+        hint={visits(money.bookedAhead.visits)}
+        sparkline={aheadLine}
+      />
       <StatCard
         icon={CircleSlash}
         label="Lost to cancellations"

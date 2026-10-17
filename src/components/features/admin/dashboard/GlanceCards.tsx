@@ -21,6 +21,8 @@ interface GlanceCardsProps {
   granularity?: Granularity;
   /** The next days' confirmed visits, for the Appointments line */
   upcomingDays?: Money["bookedAhead"]["days"];
+  /** A point per day, or per month for the year (Booked ahead's) */
+  upcomingGranularity?: Money["bookedAhead"]["granularity"];
 }
 
 // The salon's size at a glance: how many clients, services, artists and appointments still to
@@ -28,7 +30,7 @@ interface GlanceCardsProps {
 // like the stat cards (StatCard), with an arrow to the screen in place of the change pill, and a
 // small line: clients over the period, the services and artists booked in it, and the visits
 // still to come in the next days.
-export default function GlanceCards({ totals, granularity = "day", upcomingDays = [] }: GlanceCardsProps) {
+export default function GlanceCards({ totals, granularity = "day", upcomingDays = [], upcomingGranularity = "day" }: GlanceCardsProps) {
   const points = totals.trend;
   const line = (label: string, key: "clients" | "services" | "artists") =>
     points.length === 0 ? undefined : (
@@ -42,8 +44,8 @@ export default function GlanceCards({ totals, granularity = "day", upcomingDays 
     upcomingDays.length === 0 ? undefined : (
       <Sparkline
         values={upcomingDays.map((d) => d.visits)}
-        labels={upcomingDays.map((d) => `${formatBucketLabel("day", d.date)}: ${d.visits}`)}
-        ariaLabel={`Upcoming appointments per day for the next ${upcomingDays.length} days, from ${upcomingDays[0].visits} to ${upcomingDays[upcomingDays.length - 1].visits}`}
+        labels={upcomingDays.map((d) => `${formatBucketLabel(upcomingGranularity, d.date)}: ${d.visits}`)}
+        ariaLabel={`Upcoming appointments ${granularityWord(upcomingGranularity)} to the period's end, from ${upcomingDays[0].visits} to ${upcomingDays[upcomingDays.length - 1].visits}`}
       />
     );
 
@@ -51,7 +53,7 @@ export default function GlanceCards({ totals, granularity = "day", upcomingDays 
     { label: "Total clients", value: totals.clients, hint: "client accounts", to: "/clients#clients", linkLabel: "Open clients", icon: Users, line: line("Total clients", "clients") },
     { label: "Services", value: totals.services, hint: "on the menu", to: "/nail-services", linkLabel: "Open services", icon: Gem, line: line("Different services booked", "services") },
     { label: "Artists", value: totals.artists, hint: "nail artists", to: "/nail-artists", linkLabel: "Open artists", icon: Palette, line: line("Artists with bookings", "artists") },
-    { label: "Appointments", value: totals.upcoming, hint: "upcoming, confirmed", to: "/clients?status=CONFIRMED", linkLabel: "Open appointments", icon: CalendarCheck, line: upcomingLine },
+    { label: "Appointments", value: totals.upcoming, hint: "confirmed, to the period's end", to: "/clients?status=CONFIRMED", linkLabel: "Open appointments", icon: CalendarCheck, line: upcomingLine },
   ];
 
   return (
