@@ -5,10 +5,10 @@ import { PanelSection, SaveBar, TextField } from "@/components/features/admin/cm
 import { SectionSkeleton } from "@/components/features/admin/skeletons/skeletons";
 import { Button } from "@/components/atoms";
 import { useSettings } from "@/hooks/admin/useSettings";
-import { MAX_LOYALTY_STAMPS, PAYMENT_METHOD_CHOICES } from "@/lib/admin/settings";
+import { MAX_HOLD_MINUTES, MAX_LOYALTY_STAMPS, MIN_HOLD_MINUTES, PAYMENT_METHOD_CHOICES } from "@/lib/admin/settings";
 
-// Admin > Settings: the online downpayment, the ways to pay it, the birthday voucher's discount
-// and the loyalty card's stamps, saved together. Its data and actions are in hooks/admin/useSettings.
+// Admin > Settings: the online downpayment, the ways to pay it, how long a booking holds its slot,
+// the birthday voucher's discount and the loyalty card's stamps, saved together. Its data and actions are in hooks/admin/useSettings.
 export default function Settings() {
   const s = useSettings();
 
@@ -54,6 +54,13 @@ export default function Settings() {
                     </label>
                   ))}
                 </fieldset>
+                <TextField
+                  label="Slot hold (minutes)"
+                  inputMode="numeric"
+                  value={s.form.holdMinutes}
+                  onChange={s.setHoldMinutes}
+                  hint={`From ${MIN_HOLD_MINUTES} to ${MAX_HOLD_MINUTES}. How long a new booking keeps its time while the client pays; unpaid, it's released for others. Bookings already made keep their time.`}
+                />
               </PanelSection>
 
               <PanelSection title="Birthday voucher" description="Each client gets a voucher in their birthday month, emailed at the start of the month, for money off a service paid at the salon.">

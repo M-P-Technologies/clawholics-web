@@ -9,7 +9,7 @@ import { PUBLIC } from "../../lib/publicQueries";
 import { fromForm, sameForm, settingsProblem, toForm, type SettingsForm } from "../../lib/admin/settings";
 import { fetchSettings, updateSettings, type SalonSettings } from "../../services/settingsService";
 
-const EMPTY_FORM: SettingsForm = { downpayment: "", methods: [], birthdayPct: "", stampsRequired: "" };
+const EMPTY_FORM: SettingsForm = { downpayment: "", methods: [], birthdayPct: "", stampsRequired: "", holdMinutes: "" };
 
 // Admin > Settings: the salon's settings, loaded, edited in one form and saved together
 export function useSettings() {
@@ -70,6 +70,7 @@ export function useSettings() {
     setDownpayment: (value: string) => set("downpayment", value),
     setBirthdayPct: (value: string) => set("birthdayPct", value),
     setStampsRequired: (value: string) => set("stampsRequired", value),
+    setHoldMinutes: (value: string) => set("holdMinutes", value),
     toggleMethod,
     save,
     discard: () => setForm(saved),

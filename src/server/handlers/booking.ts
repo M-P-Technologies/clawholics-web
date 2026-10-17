@@ -20,7 +20,9 @@ import { getSql } from "../db";
 import { sendAppointmentConfirmation, sendCancellationEmails, sendConfirmationEmail, sendRescheduleEmails } from "../email";
 import { inBackground, readJson, routeNotFound, toId } from "../http";
 import { createXenditRefund, expireXenditInvoice, getXenditInvoices } from "../payments";
+import { getBookingHoldMinutes } from "../bookingHold";
 import { usableProof } from "../proofRules";
+import { checkSlot, hasStarted, normalizeSlot } from "../slotRules";
 import { ported } from "../worker";
 
 // Booking and appointment routes, ported from worker-api/src/index.ts (~lines 1705-2022).
@@ -31,7 +33,6 @@ import { ported } from "../worker";
 type IdContext = { params: Promise<{ id: string }> };
 
 const SLOT_TAKEN = { error: true, message: "Time slot already booked" };
-const BOOKING_HOLD_MS = 5 * 60 * 1000;
 
 // GET /booking/nailists[?service_id=] (public): artists, or the ones offering a service with
 // the price each charges for it.
@@ -61,7 +62,7 @@ export const getBookingNailists = ported(async (req) => {
 });
 
 // GET /booking/slots-detailed and /appointments/booked-slots (public): taken times only, by
-// holdsSlot. Unpaid holds past their 5 minutes are released first, as booking does before its
+// holdsSlot. Unpaid holds past their time (Admin > Settings) are released first, as booking does before its
 // check, so the calendar offers what booking allows.
 export const getBookedSlots = ported(async (req) => {
   const params = new URL(req.url).searchParams;
@@ -104,7 +105,8 @@ export const getBookedSlotsRange = ported(async (req) => {
   `);
 });
 
-// POST /booking/create (signed in): the client's own booking, held for 5 minutes until paid.
+// POST /booking/create (signed in): the client's own booking, held until paid for the minutes set
+// in Admin > Settings (booking_hold_minutes, default 5).
 // The user comes from the session; the body's user_id is ignored.
 export const createBooking = ported(async (req) => {
   const requester = await requireUserRow();
@@ -128,28 +130,37 @@ export const createBooking = ported(async (req) => {
   const sql = getSql();
   const serviceId = toId(b.service_id)!;
   const nailistId = toId(b.nailist_id)!;
-  const [pending] = await sql`select id from appointments where user_id = ${requester.id} and upper(status) = 'PENDING'`;
-  if (pending) {
-    return Response.json(
-      { error: true, code: "PENDING_APPOINTMENT_EXISTS", message: "You already have an unpaid pending appointment." },
-      { status: 409 },
-    );
+  const userId = requester.id;
+  const slot = await checkSlot({ nailistId, date: String(b.appointment_date), time: String(b.appointment_time) });
+  if (!slot.ok) {
+    return slot.code === "SLOT_TAKEN"
+      ? Response.json(SLOT_TAKEN, { status: 409 })
+      : Response.json({ error: true, code: slot.code, message: slot.message }, { status: slot.status });
   }
-  const [taken] = await sql`
-    select 1 from appointments
-    where nailist_id = ${nailistId} and appointment_date = ${String(b.appointment_date)} and appointment_time = ${String(b.appointment_time)}
-      and ${sql.unsafe(holdsSlot())}
-  `;
-  if (taken) return Response.json(SLOT_TAKEN, { status: 409 });
+  const names = await bookingNames(serviceId, nailistId);
+  const expiresAt = await holdUntil();
 
-  const expiresAt = new Date(Date.now() + BOOKING_HOLD_MS).toISOString();
   try {
-    const [created] = await sql<{ id: number }[]>`
-      insert into appointments (user_id, service_id, service_name, nailist_id, nailist_name, appointment_date, appointment_time, status, expires_at)
-      values (${requester.id}, ${serviceId}, ${String(b.service_name ?? "")}, ${nailistId}, ${String(b.nailist_name ?? "")},
-        ${String(b.appointment_date)}, ${String(b.appointment_time)}, 'PENDING', ${expiresAt})
-      returning id
-    `;
+    // One unpaid booking per client: the lock makes the check and the insert one step, so two
+    // requests at once can't both pass the check
+    const created = await sql.begin(async (tx) => {
+      await tx`select pg_advisory_xact_lock(${PENDING_LOCK}::int, ${userId}::int)`;
+      const [pending] = await tx`select id from appointments where user_id = ${userId} and upper(status) = 'PENDING'`;
+      if (pending) return null;
+      const [row] = await tx<{ id: number }[]>`
+        insert into appointments (user_id, service_id, service_name, nailist_id, nailist_name, appointment_date, appointment_time, status, expires_at)
+        values (${userId}, ${serviceId}, ${names.service}, ${nailistId}, ${names.nailist},
+          ${String(b.appointment_date)}, ${slot.time}, 'PENDING', ${expiresAt})
+        returning id
+      `;
+      return row;
+    });
+    if (!created) {
+      return Response.json(
+        { error: true, code: "PENDING_APPOINTMENT_EXISTS", message: "You already have an unpaid pending appointment." },
+        { status: 409 },
+      );
+    }
     return Response.json({ appointment_id: created.id, expires_at: expiresAt, status: "PENDING" });
   } catch (error) {
     // Two clients racing for the same slot: the unique index lets only one in
@@ -158,6 +169,23 @@ export const createBooking = ported(async (req) => {
   }
 });
 
+/** When a booking made now stops holding its slot unless paid (the hold set in Admin > Settings) */
+async function holdUntil() {
+  return new Date(Date.now() + (await getBookingHoldMinutes()) * 60_000).toISOString();
+}
+
+/** First key of the advisory lock that serializes a client's new bookings (the second is their users.id) */
+const PENDING_LOCK = 7_301;
+
+/** The service's and artist's names as the catalog has them, not as the request says */
+async function bookingNames(serviceId: number, nailistId: number) {
+  const [row] = await getSql()<{ service: string | null; nailist: string | null }[]>`
+    select (select name from services where id = ${serviceId}) as service,
+      (select name from nailists where id = ${nailistId}) as nailist
+  `;
+  return { service: row?.service ?? "", nailist: row?.nailist ?? "" };
+}
+
 // POST /booking/admin/create (admin): a confirmed walk-in or phone booking.
 export const createAdminBooking = ported(async (req) => {
   const admin = await requireAdmin();
@@ -165,9 +193,9 @@ export const createAdminBooking = ported(async (req) => {
 
   await cancelExpiredPendingAppointments();
   const b = await readJson<Record<string, string | number | undefined>>(req);
-  const { first_name, last_name, phone, email, service_id, service_name, nailist_id, nailist_name, appointment_date, appointment_time } = b;
+  const { first_name, last_name, phone, email, service_id, nailist_id, appointment_date, appointment_time } = b;
 
-  if (!first_name || !last_name || !phone || !service_id || !service_name || !nailist_id || !nailist_name || !appointment_date || !appointment_time) {
+  if (!first_name || !last_name || !phone || !service_id || !nailist_id || !appointment_date || !appointment_time) {
     return Response.json({ error: true, message: "Please complete all required appointment fields." }, { status: 400 });
   }
   if (!(await isServiceBookable(service_id))) {
@@ -184,12 +212,15 @@ export const createAdminBooking = ported(async (req) => {
   };
   const sql = getSql();
   const nailistId = toId(nailist_id)!;
-  const [taken] = await sql`
-    select 1 from appointments
-    where nailist_id = ${nailistId} and appointment_date = ${String(appointment_date)} and appointment_time = ${String(appointment_time)}
-      and ${sql.unsafe(holdsSlot())}
-  `;
-  if (taken) return Response.json(slotTaken, { status: 409 });
+  // A walk-in may be recorded once it has started
+  const slot = await checkSlot({ nailistId, date: String(appointment_date), time: String(appointment_time), allowPast: true });
+  if (!slot.ok) {
+    return slot.code === "SLOT_TAKEN"
+      ? Response.json(slotTaken, { status: 409 })
+      : Response.json({ error: true, code: slot.code, message: slot.message }, { status: slot.status });
+  }
+  const names = await bookingNames(toId(service_id)!, nailistId);
+  const expiresAt = await holdUntil();
 
   // A known client email books under that account; otherwise under the shared walk-in user,
   // with the client's details stored on the appointment.
@@ -211,14 +242,13 @@ export const createAdminBooking = ported(async (req) => {
     userId = guest.id;
   }
 
-  const expiresAt = new Date(Date.now() + BOOKING_HOLD_MS).toISOString();
   let createdId: number;
   try {
     const [created] = await sql<{ id: number }[]>`
       insert into appointments (user_id, service_id, service_name, nailist_id, nailist_name, appointment_date, appointment_time, status, expires_at,
         walkin_first_name, walkin_last_name, walkin_phone, walkin_email)
-      values (${userId}, ${toId(service_id)!}, ${String(service_name)}, ${nailistId}, ${String(nailist_name)},
-        ${String(appointment_date)}, ${String(appointment_time)}, 'CONFIRMED', ${expiresAt},
+      values (${userId}, ${toId(service_id)!}, ${names.service}, ${nailistId}, ${names.nailist},
+        ${String(appointment_date)}, ${slot.time}, 'CONFIRMED', ${expiresAt},
         ${walkin.first}, ${walkin.last}, ${walkin.phone}, ${walkin.email})
       returning id
     `;
@@ -306,6 +336,14 @@ export const getAppointmentById = ported<IdContext>(async (_req, { params }) => 
 
 class ScreenshotGone extends Error {}
 
+/** Every status an appointment can have (the admin's status menu offers these) */
+const APPOINTMENT_STATUSES = ["PENDING", "AWAITING_PROOF", "AWAITING_CONFIRMATION", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUNDED", "NO_SHOW"];
+/** Still to happen: a booking that can be moved or cancelled */
+const OPEN_STATUSES = ["PENDING", "AWAITING_PROOF", "AWAITING_CONFIRMATION", "CONFIRMED"];
+const statusOf = (status: string | null | undefined) => String(status ?? "").trim().toUpperCase();
+/** The appointment's start has passed (Manila time); an unreadable time counts from the day's start */
+const appointmentStarted = (date: string, time: string) => hasStarted(date, normalizeSlot(time) ?? "00:00-00:00");
+
 // PATCH /booking/appointments/:id/status and /appointments/:id/status (admin)
 export const updateAppointmentStatus = ported<IdContext>(async (req, { params }) => {
   const admin = await requireAdmin();
@@ -314,6 +352,9 @@ export const updateAppointmentStatus = ported<IdContext>(async (req, { params })
   if (id === null) return routeNotFound();
   const { status, without_screenshot } = await readJson<{ status?: unknown; without_screenshot?: unknown }>(req);
   const upperStatus = String(status || "").trim().toUpperCase();
+  if (!APPOINTMENT_STATUSES.includes(upperStatus)) {
+    return Response.json({ error: true, code: "INVALID_STATUS", message: `status must be one of ${APPOINTMENT_STATUSES.join(", ")}` }, { status: 400 });
+  }
   const sql = getSql();
   const [current] = await sql<{ status: string | null }[]>`select status from appointments where id = ${id}`;
   if (!current) return Response.json({ message: "Appointment not found" }, { status: 404 });
@@ -359,7 +400,8 @@ export const updateAppointmentStatus = ported<IdContext>(async (req, { params })
         if (latest?.status !== "PENDING" && latest?.status !== "APPROVED") throw new ScreenshotGone();
       }
       const [changed] = await tx<{ was: string | null }[]>`
-        update appointments a set status = ${upperStatus}
+        update appointments a set status = ${upperStatus},
+          expires_at = case when ${upperStatus} in ('CANCELLED', 'REFUNDED') then null else a.expires_at end
         from (select id, status as was from appointments where id = ${id}) old
         where a.id = old.id
         returning old.was
@@ -428,7 +470,9 @@ export const getSchedule = ported(async (req) => {
   return Response.json({ nailists, appointments, dayOffs, timeSlots });
 });
 
-// POST /booking/:id/reschedule (owner or admin)
+// POST /booking/:id/reschedule (owner or admin). A client moves a confirmed booking at least 72
+// hours ahead, as their appointment card offers; an admin moves any booking still to happen.
+// Either way the new time must be one the booking calendar offers.
 export const rescheduleAppointment = ported<IdContext>(async (req, { params }) => {
   const requester = await requireUserRow();
   if (requester instanceof Response) return requester;
@@ -440,8 +484,34 @@ export const rescheduleAppointment = ported<IdContext>(async (req, { params }) =
 
   const { newDate, newTime } = await readJson<{ newDate?: string; newTime?: string }>(req);
   if (!newDate || !newTime) return Response.json({ message: "newDate and newTime are required" }, { status: 400 });
+
+  const isAdmin = requester.role === "admin";
+  const status = statusOf(oldAppt.status);
+  const movable = isAdmin
+    ? OPEN_STATUSES.includes(status)
+    : status === "CONFIRMED" && isEligibleForChanges(oldAppt.appointment_date, oldAppt.appointment_time);
+  if (!movable) {
+    return Response.json(
+      {
+        code: "NOT_RESCHEDULABLE",
+        message: isAdmin
+          ? "Only a booking that's still to happen can be rescheduled."
+          : "Only a confirmed booking at least 72 hours away can be rescheduled. Please contact the salon.",
+      },
+      { status: 409 },
+    );
+  }
+  const slot = await checkSlot({ nailistId: oldAppt.nailist_id, date: newDate, time: newTime, excludeAppointmentId: id });
+  if (!slot.ok) return Response.json({ code: slot.code, message: slot.message }, { status: slot.status });
+
   try {
-    await getSql()`update appointments set appointment_date = ${newDate}, appointment_time = ${newTime} where id = ${id}`;
+    // Only while it's still in the status checked above
+    const [moved] = await getSql()`
+      update appointments set appointment_date = ${newDate}, appointment_time = ${slot.time}
+      where id = ${id} and upper(trim(status)) = ${status}
+      returning id
+    `;
+    if (!moved) return Response.json({ code: "NOT_RESCHEDULABLE", message: "This booking changed meanwhile. Please reload it." }, { status: 409 });
   } catch (error) {
     if (isSlotConflict(error)) return Response.json({ message: "Time slot already booked" }, { status: 409 });
     throw error;
@@ -451,7 +521,7 @@ export const rescheduleAppointment = ported<IdContext>(async (req, { params }) =
   inBackground("reschedule email", () =>
     sendRescheduleEmails({
       email: oldAppt.email || "", name: oldAppt.client_name || "Client", service: oldAppt.service_name,
-      oldDate: oldAppt.appointment_date, oldTime: oldAppt.appointment_time, newDate, newTime,
+      oldDate: oldAppt.appointment_date, oldTime: oldAppt.appointment_time, newDate, newTime: slot.time,
       artist: oldAppt.nailist_name, appointmentId: id, userId: oldAppt.user_id,
       serviceId: oldAppt.service_id, nailistId: oldAppt.nailist_id,
     }),
@@ -474,9 +544,17 @@ export const refundAppointment = ported<IdContext>(async (_req, { params }) => {
   // an admin at once) can't refund twice: the second request waits, then sees it cancelled.
   const result = await getSql().begin(async (tx) => {
     const [locked] = await tx<{ status: string | null }[]>`select status from appointments where id = ${id} for update`;
-    const currentStatus = String(locked?.status || "").toUpperCase();
+    const currentStatus = statusOf(locked?.status);
     if (currentStatus === "REFUNDED" || currentStatus === "CANCELLED") {
       return Response.json({ message: "Already cancelled or refunded." }, { status: 400 });
+    }
+    // A completed visit or a no-show is a record of what happened, not a booking to cancel; and a
+    // client can't cancel a visit once its time has come (an admin still can, from the list)
+    if (!OPEN_STATUSES.includes(currentStatus)) {
+      return Response.json({ message: "Only a booking that's still to happen can be cancelled." }, { status: 400 });
+    }
+    if (requester.role !== "admin" && appointmentStarted(app.appointment_date, app.appointment_time)) {
+      return Response.json({ message: "This appointment has already started. Please contact the salon." }, { status: 400 });
     }
 
     const eligibleForRefund = isEligibleForChanges(app.appointment_date, app.appointment_time);
@@ -519,7 +597,9 @@ export const refundAppointment = ported<IdContext>(async (_req, { params }) => {
       }
     }
 
-    await tx`update appointments set status = ${finalStatus} where id = ${id}`;
+    // No expiry any more: a late payment for it then doesn't bring it back (the webhook only revives
+    // a booking whose hold ran out)
+    await tx`update appointments set status = ${finalStatus}, expires_at = null where id = ${id}`;
     return { finalStatus, isLateCancellation, manualRefundAmount };
   });
   if (result instanceof Response) return result;

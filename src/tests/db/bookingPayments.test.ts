@@ -31,9 +31,9 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
 
   // Far-future dates: refunds/changes are only allowed 72+ hours ahead
   let day = 0;
-  const nextDate = () => `2099-01-${String(++day).padStart(2, "0")}`;
+  const nextDate = () => new Date(Date.UTC(2099, 0, ++day)).toISOString().slice(0, 10);
 
-  const book = (clerkId: string, date: string, time = "10:00 AM", extra: object = {}) => {
+  const book = (clerkId: string, date: string, time = "10:00-11:00", extra: object = {}) => {
     as(clerkId);
     return callRoute(booking.createBooking, "/api/booking/create", {
       method: "POST",
@@ -61,6 +61,13 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       where s.is_active = 1 order by ns.service_id, ns.nailist_id limit 1
     `;
     ({ nailist_id: nailistId, service_id: serviceId, nailist_name: nailistName, service_name: serviceName } = pair);
+    // Bookings must be at one of the artist's times and not on a day off: hourly slots, every day
+    await db`delete from nailist_time_slots where nailist_id = ${nailistId}`;
+    await db`delete from nailist_day_offs where nailist_id = ${nailistId}`;
+    for (let hour = 8; hour < 21; hour++) {
+      const h = (n: number) => `${String(n).padStart(2, "0")}:00`;
+      await db`insert into nailist_time_slots (nailist_id, start_time, end_time) values (${nailistId}, ${h(hour)}, ${h(hour + 1)})`;
+    }
 
     booking = await import("../../server/handlers/booking");
     payments = await import("../../server/handlers/payments");
@@ -80,7 +87,7 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
 
   describe("booking", () => {
     it("TC-BK-01: books for the signed-in client, ignoring user_id in the body", async () => {
-      const res = await book("user_a", nextDate(), "10:00 AM", { user_id: clientB });
+      const res = await book("user_a", nextDate(), "10:00-11:00", { user_id: clientB });
       expect(res.status).toBe(200);
       expect(res.body).toMatchObject({ status: "PENDING" });
       const [row] = await db`select user_id, status from appointments where id = ${res.body.appointment_id}`;
@@ -107,7 +114,7 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
     it("TC-BK-04: two clients racing for one slot: exactly one wins (unique index)", async () => {
       const date = nextDate();
       authMock.mockResolvedValueOnce({ userId: "user_a" }).mockResolvedValueOnce({ userId: "user_b" });
-      const body = (extra: object) => ({ method: "POST", body: { service_id: serviceId, service_name: serviceName, nailist_id: nailistId, nailist_name: nailistName, appointment_date: date, appointment_time: "2:00 PM", ...extra } });
+      const body = (extra: object) => ({ method: "POST", body: { service_id: serviceId, service_name: serviceName, nailist_id: nailistId, nailist_name: nailistName, appointment_date: date, appointment_time: "14:00-15:00", ...extra } });
       const results = await Promise.all([
         callRoute(booking.createBooking, "/api/booking/create", body({})),
         callRoute(booking.createBooking, "/api/booking/create", body({})),
@@ -155,10 +162,10 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
 
     it("TC-BK-08: booked slots are public and list only active bookings' times", async () => {
       const date = nextDate();
-      await book("user_a", date, "3:00 PM");
+      await book("user_a", date, "15:00-16:00");
       as(null);
       const res = await callRoute(booking.getBookedSlots, `/api/booking/slots-detailed?nailist_id=${nailistId}&date=${date}`);
-      expect(res.body).toEqual([{ appointment_time: "3:00 PM" }]);
+      expect(res.body).toEqual([{ appointment_time: "15:00-16:00" }]);
       expect((await callRoute(booking.getBookedSlots, "/api/booking/slots-detailed?nailist_id=abc&date=x")).body).toEqual([]);
     });
 
@@ -228,12 +235,12 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       const second = nextDate();
       const outside = nextDate();
       // A client holds one unpaid booking at a time, so each is confirmed before the next
-      await book("user_a", first, "3:00 PM");
+      await book("user_a", first, "15:00-16:00");
       await db`update appointments set status = 'CONFIRMED' where user_id = ${clientA} and appointment_date = ${first}`;
-      await book("user_b", second, "9:00 AM");
+      await book("user_b", second, "09:00-10:00");
       await db`update appointments set status = 'CONFIRMED' where user_id = ${clientB} and appointment_date = ${second}`;
-      await book("user_b", outside, "9:00 AM");
-      const { body: cancelled } = await book("user_a", second, "1:00 PM");
+      await book("user_b", outside, "09:00-10:00");
+      const { body: cancelled } = await book("user_a", second, "13:00-14:00");
       expect(cancelled.appointment_id).toBeDefined();
       await db`update appointments set status = 'CANCELLED' where id = ${cancelled.appointment_id}`;
 
@@ -242,8 +249,8 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       const res = await callRoute(booking.getBookedSlotsRange, url(`nailist_id=${nailistId}&from=${first}&to=${second}`));
       expect(res.status).toBe(200);
       expect(res.body).toEqual([
-        { appointment_date: first, appointment_time: "3:00 PM" },
-        { appointment_date: second, appointment_time: "9:00 AM" },
+        { appointment_date: first, appointment_time: "15:00-16:00" },
+        { appointment_date: second, appointment_time: "09:00-10:00" },
       ]);
 
       for (const bad of [
@@ -258,25 +265,25 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
 
     it("TC-BK-08d: a booking awaiting proof (or completed) holds its slot, as booking it again is refused", async () => {
       const date = nextDate();
-      const { body: proof } = await book("user_a", date, "1:00 PM");
+      const { body: proof } = await book("user_a", date, "13:00-14:00");
       await db`update appointments set status = 'AWAITING_PROOF' where id = ${proof.appointment_id}`;
-      const { body: done } = await book("user_b", date, "4:00 PM");
+      const { body: done } = await book("user_b", date, "16:00-17:00");
       await db`update appointments set status = 'COMPLETED' where id = ${done.appointment_id}`;
-      const { body: refunded } = await book("user_a", date, "6:00 PM");
+      const { body: refunded } = await book("user_a", date, "18:00-19:00");
       await db`update appointments set status = 'REFUNDED' where id = ${refunded.appointment_id}`;
 
       as(null);
       const day = await callRoute(booking.getBookedSlots, `/api/booking/slots-detailed?nailist_id=${nailistId}&date=${date}`);
-      expect(day.body.map((s: { appointment_time: string }) => s.appointment_time).sort()).toEqual(["1:00 PM", "4:00 PM"]);
+      expect(day.body.map((s: { appointment_time: string }) => s.appointment_time).sort()).toEqual(["13:00-14:00", "16:00-17:00"]);
       const range = await callRoute(booking.getBookedSlotsRange, `/api/booking/slots-range?nailist_id=${nailistId}&from=${date}&to=${date}`);
-      expect(range.body.map((s: { appointment_time: string }) => s.appointment_time).sort()).toEqual(["1:00 PM", "4:00 PM"]);
+      expect(range.body.map((s: { appointment_time: string }) => s.appointment_time).sort()).toEqual(["13:00-14:00", "16:00-17:00"]);
 
       // What the slots show is what booking allows: the held slot is refused, the refunded one isn't
-      const refused = await book("user_b", date, "1:00 PM");
+      const refused = await book("user_b", date, "13:00-14:00");
       expect(refused.status).toBe(409);
       // The taken slot's refusal, not another 409 (such as an unpaid booking already open)
       expect(refused.body).toEqual({ error: true, message: "Time slot already booked" });
-      const freed = await book("user_b", date, "6:00 PM");
+      const freed = await book("user_b", date, "18:00-19:00");
       expect(freed.status).toBe(200);
       expect(freed.body.appointment_id).toBeDefined();
       await db`update appointments set status = 'CANCELLED' where id = ${freed.body.appointment_id}`;
@@ -295,7 +302,7 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
 
     it("TC-BK-08e: an unpaid hold past its 5 minutes is released before the slots are listed", async () => {
       const date = nextDate();
-      const { body } = await book("user_a", date, "2:00 PM");
+      const { body } = await book("user_a", date, "14:00-15:00");
       await db`update appointments set expires_at = '2000-01-01T00:00:00.000Z' where id = ${body.appointment_id}`;
       as(null);
       const day = await callRoute(booking.getBookedSlots, `/api/booking/slots-detailed?nailist_id=${nailistId}&date=${date}`);
@@ -307,19 +314,87 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
 
     it("TC-BK-09: reschedule is owner-only and refuses a taken slot", async () => {
       const takenDate = nextDate();
-      await book("user_b", takenDate, "11:00 AM");
+      await book("user_b", takenDate, "11:00-12:00");
       await db`update appointments set status = 'CONFIRMED' where user_id = ${clientB} and appointment_date = ${takenDate}`;
       const { body } = await book("user_a", nextDate());
       const params = { id: String(body.appointment_id) };
+      const move = (newDate: string, newTime: string) =>
+        callRoute(booking.rescheduleAppointment, "/x", { method: "POST", body: { newDate, newTime }, params });
+
+      // A client moves a confirmed booking only
+      as("user_a");
+      expect((await move(nextDate(), "09:00-10:00")).body.code).toBe("NOT_RESCHEDULABLE");
+      await db`update appointments set status = 'CONFIRMED' where id = ${body.appointment_id}`;
 
       as("user_b");
-      expect((await callRoute(booking.rescheduleAppointment, "/x", { method: "POST", body: { newDate: nextDate(), newTime: "9:00 AM" }, params })).status).toBe(403);
+      expect((await move(nextDate(), "09:00-10:00")).status).toBe(403);
       as("user_a");
-      const clash = await callRoute(booking.rescheduleAppointment, "/x", { method: "POST", body: { newDate: takenDate, newTime: "11:00 AM" }, params });
+      const clash = await move(takenDate, "11:00-12:00");
       expect(clash.status).toBe(409);
-      const ok = await callRoute(booking.rescheduleAppointment, "/x", { method: "POST", body: { newDate: "2099-02-01", newTime: "9:00 AM" }, params });
+      expect(clash.body.code).toBe("SLOT_TAKEN");
+      // Same slot written another way, or overlapping it: still taken
+      expect((await move(takenDate, "11:00 - 12:00")).status).toBe(409);
+      const newDate = nextDate();
+      const ok = await move(newDate, "9:00-10:00");
       expect(ok.status).toBe(200);
-      expect(ok.body.appointment).toMatchObject({ appointment_date: "2099-02-01", appointment_time: "9:00 AM" });
+      expect(ok.body.appointment).toMatchObject({ appointment_date: newDate, appointment_time: "09:00-10:00" });
+      await db`update appointments set status = 'CANCELLED' where id in (${body.appointment_id}) or (user_id = ${clientB} and appointment_date = ${takenDate})`;
+    });
+
+    it("TC-BK-11: a booking must be at one of the artist's times, on a working day, not in the past", async () => {
+      as("user_a");
+      expect((await book("user_a", "2099-02-30")).body.code).toBe("INVALID_DATE");
+      expect((await book("user_a", nextDate(), "10:00 AM")).body.code).toBe("INVALID_TIME");
+      expect((await book("user_a", nextDate(), "10:30-11:30")).body.code).toBe("NOT_A_SLOT");
+      expect((await book("user_a", "2020-01-06", "10:00-11:00")).body.code).toBe("SLOT_PAST");
+      const offDay = nextDate();
+      await db`insert into nailist_day_offs (nailist_id, day_off_type, date) values (${nailistId}, 'CUSTOM', ${offDay})`;
+      try {
+        expect((await book("user_a", offDay, "10:00-11:00")).body.code).toBe("DAY_OFF");
+      } finally {
+        await db`delete from nailist_day_offs where nailist_id = ${nailistId}`;
+      }
+      // Stored the way the slot list writes it, with the catalog's names whatever the request says
+      const ok = await book("user_a", nextDate(), "9:00 - 10:00", { service_name: "Free everything", nailist_name: "Nobody" });
+      expect(ok.status).toBe(200);
+      const [row] = await db`select appointment_time, service_name, nailist_name from appointments where id = ${ok.body.appointment_id}`;
+      expect(row).toEqual({ appointment_time: "09:00-10:00", service_name: serviceName, nailist_name: nailistName });
+    });
+
+    it("TC-BK-14: a new booking holds its slot for the minutes set in Admin > Settings (5 by default)", async () => {
+      const heldFor = async () => {
+        const res = await book("user_a", nextDate());
+        await db`update appointments set status = 'CANCELLED' where id = ${res.body.appointment_id}`;
+        return Math.round((Date.parse(res.body.expires_at) - Date.now()) / 60_000);
+      };
+      expect(await heldFor()).toBe(5);
+      await db`update site_settings set value = '15' where key = 'booking_hold_minutes'`;
+      try {
+        expect(await heldFor()).toBe(15);
+      } finally {
+        await db`update site_settings set value = '5' where key = 'booking_hold_minutes'`;
+      }
+    });
+
+    it("TC-BK-12: two bookings at once by one client: only one is held", async () => {
+      as("user_a");
+      const results = await Promise.all([book("user_a", nextDate()), book("user_a", nextDate())]);
+      expect(results.map((r) => r.status).sort()).toEqual([200, 409]);
+    });
+
+    it("TC-BK-13: a client can't cancel or move a visit that's over, and an admin can't set an unknown status", async () => {
+      const { body } = await book("user_a", nextDate());
+      const params = { id: String(body.appointment_id) };
+      await db`update appointments set status = 'COMPLETED' where id = ${body.appointment_id}`;
+      as("user_a");
+      expect((await callRoute(booking.refundAppointment, "/x", { method: "POST", params })).status).toBe(400);
+      expect(await statusOf(body.appointment_id)).toBe("COMPLETED");
+      expect((await callRoute(booking.rescheduleAppointment, "/x", { method: "POST", body: { newDate: nextDate(), newTime: "09:00-10:00" }, params })).status).toBe(409);
+      as("user_admin");
+      const bad = await callRoute(booking.updateAppointmentStatus, "/x", { method: "PATCH", body: { status: "" }, params });
+      expect(bad.status).toBe(400);
+      expect(await statusOf(body.appointment_id)).toBe("COMPLETED");
+      await db`update appointments set status = 'CANCELLED' where id = ${body.appointment_id}`;
     });
   });
 
@@ -655,6 +730,67 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       expect(res.status).toBe(200);
       expect((await db`select status from payments where external_id = ${invoice.body.external_id}`)[0].status).toBe("PAID");
       expect(await statusOf(body.appointment_id)).toBe("CANCELLED");
+      // The admins hear about the payment to refund
+      await Promise.all(background);
+      const [note] = await db`select kind from admin_notifications where appointment_id = ${body.appointment_id}`;
+      expect(note).toEqual({ kind: "payment_to_check" });
+      await db`update appointments set status = 'CANCELLED' where appointment_date = ${date}`;
+    });
+
+    it("TC-PAY-11: a repeated webhook after the admin confirmed the booking changes nothing", async () => {
+      const { body } = await book("user_a", nextDate());
+      as("user_a");
+      const invoice = await callRoute(payments.createPayment, "/api/payment/create", { method: "POST", body: { appointment_id: body.appointment_id, payment_method: "GCASH" } });
+      await webhook("cb-token", { external_id: invoice.body.external_id, status: "PAID" });
+      expect(await statusOf(body.appointment_id)).toBe("AWAITING_CONFIRMATION");
+      await db`update appointments set status = 'CONFIRMED' where id = ${body.appointment_id}`;
+      await Promise.all(background);
+      background.length = 0;
+
+      expect((await webhook("cb-token", { external_id: invoice.body.external_id, status: "PAID" })).status).toBe(200);
+      expect(await statusOf(body.appointment_id)).toBe("CONFIRMED");
+      // No second "payment received" email
+      expect(background).toHaveLength(0);
+      await db`update appointments set status = 'CANCELLED' where id = ${body.appointment_id}`;
+    });
+
+    it("TC-PAY-13: a late payment brings back a booking whose hold ran out, never one cancelled on purpose", async () => {
+      const pay = async (appointmentId: number) => {
+        as("user_a");
+        const invoice = await callRoute(payments.createPayment, "/api/payment/create", { method: "POST", body: { appointment_id: appointmentId, payment_method: "GCASH" } });
+        expect(invoice.status).toBe(200);
+        return invoice.body.external_id as string;
+      };
+
+      // The hold ran out, the time is still free: the payment brings it back
+      const expired = (await book("user_a", nextDate())).body.appointment_id;
+      const lateInvoice = await pay(expired);
+      await db`update appointments set expires_at = '2000-01-01T00:00:00.000Z' where id = ${expired}`;
+      as("user_a");
+      await callRoute(booking.getAppointmentById, `/x`, { params: { id: String(expired) } }); // runs the cleanup
+      expect(await statusOf(expired)).toBe("CANCELLED");
+      await webhook("cb-token", { external_id: lateInvoice, status: "PAID" });
+      expect(await statusOf(expired)).toBe("AWAITING_CONFIRMATION");
+      await db`update appointments set status = 'CANCELLED' where id = ${expired}`;
+
+      // The client cancelled it: the payment is recorded for a refund, the booking stays cancelled
+      const cancelled = (await book("user_a", nextDate())).body.appointment_id;
+      const invoice = await pay(cancelled);
+      as("user_a");
+      expect((await callRoute(booking.refundAppointment, "/x", { method: "POST", params: { id: String(cancelled) } })).status).toBe(200);
+      await webhook("cb-token", { external_id: invoice, status: "PAID" });
+      await Promise.all(background);
+      expect(await statusOf(cancelled)).toBe("CANCELLED");
+      expect(await db`select kind from admin_notifications where appointment_id = ${cancelled}`).toEqual([{ kind: "payment_to_check" }]);
+    });
+
+    it("TC-PAY-12: an expired booking can't be paid for", async () => {
+      const { body } = await book("user_a", nextDate());
+      await db`update appointments set expires_at = '2000-01-01T00:00:00.000Z' where id = ${body.appointment_id}`;
+      as("user_a");
+      const res = await callRoute(payments.createPayment, "/api/payment/create", { method: "POST", body: { appointment_id: body.appointment_id, payment_method: "GCASH" } });
+      expect(res.status).toBe(409);
+      expect(await db`select 1 from payments where appointment_id = ${body.appointment_id}`).toHaveLength(0);
     });
 
     it("TC-PAY-08: approving a proof after the client cancelled is refused and changes nothing", async () => {
@@ -713,7 +849,7 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       await db`update site_settings set value = '["GCASH","MANUAL"]' where key = 'payment_methods'`;
       try {
         // Paid online: the webhook may come twice, the admins hear once
-        const paidBooking = await book("user_a", nextDate(), "9:00 AM");
+        const paidBooking = await book("user_a", nextDate(), "09:00-10:00");
         expect(paidBooking.status).toBe(200);
         as("user_a");
         const invoice = await callRoute(payments.createPayment, "/api/payment/create", {
@@ -724,7 +860,7 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
         await webhook("cb-token", { external_id: invoice.body.external_id, status: "PAID" });
 
         // A proof uploaded for review
-        const proofBooking = await book("user_b", nextDate(), "9:00 AM");
+        const proofBooking = await book("user_b", nextDate(), "09:00-10:00");
         expect(proofBooking.status).toBe(200);
         as("user_b");
         const uploaded = await callRoute(payments.uploadPaymentProof, "/api/payment/proofs", {
