@@ -108,9 +108,11 @@ export default function ClientHome() {
                   <h3 className="font-display text-2xl font-normal normal-case leading-tight tracking-normal text-on-crimson">{offer.title}</h3>
                   {offer.line && <p className="text-sm text-on-crimson">{offer.line}</p>}
                   {offer.note && <p className="text-xs text-on-crimson">{offer.note}</p>}
-                  <Button variant="bare" to={offer.to} href={offer.href} className="mt-auto rounded-lg bg-milk px-3 py-1.5 text-[13px] font-bold text-crimson-ink">
-                    {offer.buttonLabel}
-                  </Button>
+                  {offer.buttonLabel && (
+                    <Button variant="bare" to={offer.to} href={offer.href} className="mt-auto rounded-lg bg-milk px-3 py-1.5 text-[13px] font-bold text-crimson-ink">
+                      {offer.buttonLabel}
+                    </Button>
+                  )}
                 </div>
                 {offer.image && (
                   // eslint-disable-next-line @next/next/no-img-element -- R2 images, sized by CSS

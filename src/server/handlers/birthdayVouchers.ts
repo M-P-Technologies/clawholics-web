@@ -1,7 +1,9 @@
 import "server-only";
-import { requireUserRow } from "../auth";
+import { requireAdmin, requireUserRow } from "../auth";
+import { getSql } from "../db";
+import { toId } from "../http";
 import { isCronCall } from "../cron";
-import { claimVoucher, getCurrentVoucher, issueBirthdayVouchers } from "../birthdayVouchers";
+import { checkVoucherForVisit, claimVoucher, getCurrentVoucher, issueBirthdayVouchers } from "../birthdayVouchers";
 import { nextApiEnabled, ported } from "../worker";
 
 // Birthday vouchers (src/server/birthdayVouchers.ts). Not on the Worker.
@@ -34,6 +36,19 @@ export const claimMyBirthdayVoucher = ported(async () => {
   return Response.json(result);
 });
 
+// GET /vouchers/check?code=&appointment_id= (admin): whether the code the client shows at the salon
+// can go on this visit, and what it takes off. Completing the visit checks it again.
+export const checkVoucher = ported(async (req) => {
+  const admin = await requireAdmin();
+  if (admin instanceof Response) return admin;
+  const params = new URL(req.url).searchParams;
+  const appointmentId = toId(params.get("appointment_id"));
+  const [appt] = appointmentId === null ? [] : await getSql()`select id from appointments where id = ${appointmentId}`;
+  if (!appt || appointmentId === null) return errorBody("Appointment not found", 404);
+  const result = await checkVoucherForVisit(getSql(), params.get("code") ?? "", appointmentId);
+  if ("error" in result) return errorBody(result.error, 400);
+  return Response.json(result);
+});
 
 // GET /cron/birthday-vouchers: Vercel Cron, daily at 00:00 Manila (vercel.json). Vercel sends
 // `Authorization: Bearer $CRON_SECRET`; without CRON_SECRET set, every call is refused.

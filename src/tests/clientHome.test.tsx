@@ -78,6 +78,16 @@ describe("ClientHome", () => {
     expect(screen.getByText("Happy birthday, Ana!")).toBeInTheDocument();
   });
 
+  it("says the birthday voucher was used, with nothing to book, once it was", async () => {
+    account = { ...account, dbUser: { first_name: "Ana", dob: "1998-10-25" } };
+    birthday = { ...birthday, used: true };
+    render(<ClientHome />);
+    const banner = (await screen.findByText("Happy birthday, Ana!")).closest("article")!;
+    expect(banner).toHaveTextContent("You've used your birthday treat this year.");
+    expect(within(banner).queryByRole("link")).toBeNull();
+    expect(within(banner).queryByRole("button")).toBeNull();
+  });
+
   it("shows the admin's offers", async () => {
     home = { home_offers: JSON.stringify([{ title: "20% off", line: "On gel", note: "", image: "", buttonLabel: "Grab it", link: "/my/explore/2" }]) };
     render(<ClientHome />);

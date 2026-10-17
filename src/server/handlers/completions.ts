@@ -7,19 +7,22 @@ import { PROOF_EXTENSIONS, MAX_PROOF_SIZE } from "../payments";
 import { changesCatalog } from "../publicCache";
 import { createImageKey, publicBaseUrl, putObject } from "../r2";
 import { ported } from "../worker";
+import { checkVoucherForVisit, releaseVoucherOf, useVoucherOn } from "../birthdayVouchers";
 import { BALANCE_METHODS, MAX_COMPLETION_PHOTOS, lateFee, minutesLate } from "../../lib/visitCompletion";
 
 // Completing a visit (admin only): the balance paid at the salon, how it was paid, the artist who
-// did it, and photos of the nails, which go to that artist's public gallery. Not on the Worker.
-// Table from migration 20261022000000_visit_completions.sql.
+// did it, the client's birthday voucher if they used one, and photos of the nails, which go to that
+// artist's public gallery. Not on the Worker. Table from migration 20261022000000_visit_completions.sql.
 
 type IdContext = { params: Promise<{ id: string }> };
 
 class NoLongerConfirmed extends Error {}
+class VoucherTaken extends Error {}
 const badRequest = (message: string) => Response.json({ message }, { status: 400 });
 const manilaToday = () => new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
 
-// PUT /appointments/:id/completion (multipart: balance_amount, payment_method, nailist_id, file…)
+// PUT /appointments/:id/completion (multipart: balance_amount, payment_method, nailist_id, arrived_at,
+// voucher_code (empty: no voucher, and one used before is freed), file…)
 export const saveCompletion = changesCatalog(ported<IdContext>(async (req, { params }) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
@@ -37,6 +40,7 @@ export const saveCompletion = changesCatalog(ported<IdContext>(async (req, { par
   const arrivedText = String(form.get("arrived_at") ?? "").trim();
   if (arrivedText && !/^([01]\d|2[0-3]):[0-5]\d$/.test(arrivedText)) return badRequest("Enter the arrival time like 13:17.");
   const arrivedAt = arrivedText || null;
+  const voucherCode = String(form.get("voucher_code") ?? "").trim();
   const files = form.getAll("file").filter((f): f is File => typeof f !== "string");
   if (files.length > MAX_COMPLETION_PHOTOS) return badRequest(`Add up to ${MAX_COMPLETION_PHOTOS} photos at a time.`);
 
@@ -51,6 +55,9 @@ export const saveCompletion = changesCatalog(ported<IdContext>(async (req, { par
     return Response.json({ message: "Only a confirmed visit can be completed." }, { status: 409 });
   }
   if (appt.appointment_date > manilaToday()) return badRequest("A visit can be completed from its day on.");
+  // Checked again in the transaction below, in case another visit takes the voucher meanwhile
+  const voucher = voucherCode ? await checkVoucherForVisit(sql, voucherCode, id) : null;
+  if (voucher && "error" in voucher) return badRequest(voucher.error);
 
   // Every photo checked before any is stored
   const photos: { bytes: Uint8Array; type: string; ext: string }[] = [];
@@ -88,6 +95,16 @@ export const saveCompletion = changesCatalog(ported<IdContext>(async (req, { par
         arrived_at = excluded.arrived_at, late_fee = excluded.late_fee,
         photos_added = visit_completions.photos_added + excluded.photos_added, updated_at = clawholics_utc_now()
       returning appointment_id, balance_amount, payment_method, nailist_id, arrived_at, late_fee, photos_added`;
+    // The birthday voucher, if they used one: USED by this visit, and its discount kept with the record
+    if (voucher) {
+      if (!(await useVoucherOn(tx, voucher.id, id))) throw new VoucherTaken();
+    } else {
+      await releaseVoucherOf(tx, id);
+    }
+    await tx`update visit_completions set voucher_discount = ${voucher?.discount ?? 0} where appointment_id = ${id}`;
+    saved.voucher_code = voucher?.code ?? null;
+    saved.voucher_pct = voucher?.discount_pct ?? null;
+    saved.voucher_discount = voucher?.discount ?? 0;
     // The newest work first: each photo goes before the artist's others (the page shows the first 10)
     for (const url of urls) {
       await tx`
@@ -103,8 +120,10 @@ export const saveCompletion = changesCatalog(ported<IdContext>(async (req, { par
     return saved;
   }).catch((error) => {
     if (error instanceof NoLongerConfirmed) return null;
+    if (error instanceof VoucherTaken) return "voucher-taken" as const;
     throw error;
   });
+  if (completion === "voucher-taken") return Response.json({ message: "This voucher was just used on another visit." }, { status: 409 });
   if (!completion) return Response.json({ message: "Only a confirmed visit can be completed." }, { status: 409 });
   return Response.json({ completion, photos: urls.length });
 }));

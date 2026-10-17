@@ -1,4 +1,5 @@
 import type { Completion } from "./completionService";
+import type { BirthdayVoucher } from "./voucherService";
 // ADMIN ONLY. Private notes must never reach a client-facing page: do not
 // import this file from anything under pages/ or from a non-admin service.
 import { ApiError, call, type Auth } from "./catalogService";
@@ -85,6 +86,8 @@ export interface ClientDetails {
   client: ClientProfile;
   summary: { visits: number; totalSpent: number; lastVisit: string | null; nextVisit: string | null; stamps: number; /** Confirmed visits they didn't come to */ noShows?: number };
   appointments: ClientAppointment[];
+  /** This year's birthday voucher, with the visit it was used on */
+  birthday_voucher?: (BirthdayVoucher & { used_at: string | null; used_on: string | null }) | null;
 }
 
 // The client page: profile, summary and every appointment, newest first

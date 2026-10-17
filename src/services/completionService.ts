@@ -15,6 +15,11 @@ export interface Completion {
   photos_added?: number;
   /** The visit's one nail photo, once added */
   photo_url?: string | null;
+  /** The birthday voucher used on it, and what it took off the service price */
+  voucher_code?: string | null;
+  /** The voucher's percentage off */
+  voucher_pct?: number | null;
+  voucher_discount?: number;
 }
 
 /** What completing a visit needs to know about it */
@@ -38,6 +43,8 @@ export interface CompletionForm {
   nailist_id: number;
   /** "13:17", or empty when they came on time */
   arrived_at: string;
+  /** The client's birthday voucher code, or empty for none */
+  voucher_code: string;
   photos: File[];
 }
 
@@ -48,6 +55,7 @@ export const saveCompletion = async (appointmentId: number, form: CompletionForm
   body.set("payment_method", form.payment_method);
   body.set("nailist_id", String(form.nailist_id));
   body.set("arrived_at", form.arrived_at);
+  body.set("voucher_code", form.voucher_code);
   for (const photo of form.photos) body.append("file", await compressImageToWebp(photo, PHOTO_UPLOAD_OPTIONS));
   return call<{ completion: Completion; photos: number }>(`/appointments/${appointmentId}/completion`, { method: "PUT", body }, auth);
 };

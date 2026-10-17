@@ -418,7 +418,9 @@ export const updateProfile = ported(async (req) => {
           insert into customer_profiles (user_id, first_name, last_name, phone, dob, gender)
           values (${user.id}, ${firstName}, ${lastName}, ${orNull(body.phone)}, ${orNull(body.dob)}, ${body.gender || "female"})
           on conflict (user_id) do update set first_name = excluded.first_name, last_name = excluded.last_name,
-            phone = excluded.phone, dob = excluded.dob, gender = excluded.gender
+            phone = excluded.phone, gender = excluded.gender,
+            -- The birthday is set once: changing it would move the birthday voucher to any month
+            dob = case when customer_profiles.dob ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' then customer_profiles.dob else excluded.dob end
         `;
         await updateContactFields(tx, user.id, contact.fields);
       }

@@ -94,7 +94,7 @@ describe.skipIf(!TEST_DATABASE_URL)("birthday vouchers (Postgres)", () => {
     as("user_oct");
     const mine = await callRoute(handlers.getMyBirthdayVoucher, "/api/vouchers/birthday");
     expect(mine.body).toMatchObject({ status: "ISSUED", discount_pct: 20 });
-    expect(mine.body.code).toMatch(/^BDAY-[0-9A-F]{10}$/);
+    expect(mine.body.code).toMatch(/^[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{8}$/);
 
     const claimed = await callRoute(handlers.claimMyBirthdayVoucher, "/api/vouchers/birthday/claim", { method: "POST" });
     expect(claimed.status).toBe(200);
@@ -129,5 +129,17 @@ describe.skipIf(!TEST_DATABASE_URL)("birthday vouchers (Postgres)", () => {
     expect((await cron()).status).toBe(401);
     expect((await cron("Bearer wrong")).status).toBe(401);
     expect((await cron("Bearer s3cret")).status).toBe(200);
+  });
+
+  it("gives each client their own 8-character code", async () => {
+    for (let i = 1; i <= 30; i++) {
+      const [{ id }] = await db<{ id: number }[]>`insert into users (clerk_id, email, role) values (${`user_dec${i}`}, ${`dec${i}@x.test`}, 'customer') returning id`;
+      await db`insert into customer_profiles (user_id, first_name, last_name, dob) values (${id}, 'Dec', 'X', '1995-12-03')`;
+    }
+    expect(await vouchers.issueBirthdayVouchers(new Date("2026-12-02T02:00:00Z"))).toMatchObject({ issued: 30 });
+    const codes = (await db<{ code: string }[]>`select code from birthday_vouchers where valid_from = '2026-12-01'`).map((r) => r.code);
+    expect(codes).toHaveLength(30);
+    expect(new Set(codes).size).toBe(30);
+    for (const code of codes) expect(code).toMatch(/^[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{8}$/);
   });
 });

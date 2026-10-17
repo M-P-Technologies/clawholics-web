@@ -71,7 +71,7 @@ export function useClientHome() {
     trackerSteps: next ? clientTrackerSteps(next.appt) : [],
     /** Special offers, each with where its button goes: a screen of the app opens here (`to`); the
      *  public site's pages and web addresses in a new tab (`href`) */
-    offers: homeOffers({ sections: readHomeSections(home), dob: account.dbUser?.dob, firstName, now: account.currentTime }).map((offer) => {
+    offers: homeOffers({ sections: readHomeSections(home), dob: account.dbUser?.dob, firstName, now: account.currentTime, birthdayUsed: birthday.used }).map((offer) => {
       const link = ctaLink(offer.link, offer.buttonLabel);
       const inApp = link.to !== undefined && isClientPath(link.to);
       return { ...offer, to: inApp ? link.to : undefined, href: inApp ? undefined : (link.to ?? link.href) };
