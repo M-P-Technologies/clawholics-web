@@ -2,6 +2,7 @@ import "server-only";
 import { requireAdmin } from "../auth";
 import { buildDashboard, listWarmLeads as warmLeadIds } from "../dashboard";
 import { buildUtilization } from "../utilization";
+import { ATTENTION_TABS, listAttention, type AttentionTab } from "../attention";
 import { DEFAULT_RANGE, isDashboardRange, manilaToday } from "../../lib/dashboardPeriods";
 import { ported } from "../worker";
 
@@ -37,4 +38,14 @@ export const getUtilization = ported(async (req) => {
     return Response.json({ error: "Use a date like 2026-10-12." }, { status: 400 });
   }
   return Response.json(await buildUtilization(week));
+});
+
+// GET /attention?tab=all|confirm|complete|leads (admin only): the Needs attention queue, the five
+// most urgent things to act on, and how many of each kind there are. Not on the Worker either.
+export const getAttention = ported(async (req) => {
+  const admin = await requireAdmin();
+  if (admin instanceof Response) return admin;
+  const tab = new URL(req.url).searchParams.get("tab") ?? "all";
+  if (!ATTENTION_TABS.includes(tab as AttentionTab)) return Response.json({ error: "Unknown tab." }, { status: 400 });
+  return Response.json(await listAttention(tab as AttentionTab));
 });

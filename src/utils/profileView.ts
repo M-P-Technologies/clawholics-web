@@ -39,7 +39,7 @@ export function statusDotTone(status: string): BadgeTone {
   if (s === "pending" || s === "awaiting_proof" || s === "awaiting_confirmation") return "warning";
   if (s === "confirmed") return "info";
   if (s === "completed") return "success";
-  if (s === "cancelled") return "danger";
+  if (s === "cancelled" || s === "no_show") return "danger";
   if (s === "refunded") return "brand";
   return "neutral";
 }

@@ -35,7 +35,7 @@ export default function PrivacyPolicy() {
       >
         <RichTextField label="Privacy policy" initialHtml={editor.html} resetKey={editor.resetKey} onChange={editor.setHtml} />
         {editor.differsFromOriginal && (
-          <Button type="button" variant="bare" onClick={editor.restoreOriginal} className="gap-1.5 self-start rounded-md px-3 py-1.5 text-sm 2xl:text-base font-bold text-gray-red hover:bg-crimson-light/30">
+          <Button type="button" variant="bare" onClick={editor.restoreOriginal} className="gap-1.5 self-start rounded-md px-3 py-1.5 text-sm font-bold text-gray-red hover:bg-crimson-light/30">
             <RotateCcw size={14} aria-hidden="true" />
             Put back the original
           </Button>

@@ -96,25 +96,44 @@ describe("Client page", () => {
     expect(steps[3]).toHaveAttribute("aria-current", "step");
   });
 
-  it("lists every appointment with its own notes, and adds a note to one", async () => {
+  it("keeps a visit's notes behind a link that opens them in a window, where a note is added", async () => {
     render(<ClientPage />);
     const history = await openTab(/Appointments/);
     const sept = within(history.getByRole("row", { name: /Sep 5, 2026/ }));
     expect(sept.getByText("Completed")).toBeInTheDocument();
     expect(sept.getByText("₱800")).toBeInTheDocument();
-    expect(history.getByText("Asked for almond shape")).toBeInTheDocument();
+    // Not laid out under the row
+    expect(history.queryByText("Asked for almond shape")).toBeNull();
 
-    fireEvent.click(sept.getByRole("button", { name: "Add a note" }));
-    fireEvent.change(history.getByLabelText("Note about Sep 5, 2026"), { target: { value: "Loved the colour" } });
-    fireEvent.click(history.getByRole("button", { name: "Save note" }));
+    fireEvent.click(sept.getByRole("button", { name: "Notes (1)" }));
+    const dialog = within(await screen.findByRole("dialog", { name: "Notes · Sep 5, 2026" }));
+    expect(dialog.getByText("Asked for almond shape")).toBeInTheDocument();
+    fireEvent.change(dialog.getByLabelText("Note about Sep 5, 2026"), { target: { value: "Loved the colour" } });
+    fireEvent.click(dialog.getByRole("button", { name: "Save note" }));
     await waitFor(() => expect(addNote).toHaveBeenCalledWith(7, "Loved the colour", auth, 2));
+    // A visit without notes says Add a note
+    expect(within(history.getByRole("row", { name: /Nov 2, 2026/ })).getByRole("button", { name: "Add a note" })).toBeInTheDocument();
+  });
+
+  it("offers Add photo for a completed visit without one, opening the upload window", async () => {
+    fetchClient.mockResolvedValue({
+      ...details,
+      appointments: [
+        { id: 5, appointment_date: "2026-10-01", appointment_time: "10:00-11:00", service_name: "Gel", nailist_name: "Maxine", status: "COMPLETED", price: 800,
+          completion: { balance_amount: 300, payment_method: "Cash", nailist_id: 1, nailist_name: "Maxine", photos_added: 0, photo_url: null } },
+      ],
+    });
+    render(<ClientPage />);
+    const history = await openTab(/Appointments/);
+    fireEvent.click(within(history.getByRole("row", { name: /Oct 1, 2026/ })).getByRole("button", { name: "Add photo" }));
+    expect(await screen.findByRole("dialog", { name: "Add a visit photo" })).toBeInTheDocument();
   });
 
   it("shows a visit's review and opens its photo", async () => {
     render(<ClientPage />);
     const history = await openTab(/Appointments/);
     expect(history.getByRole("columnheader", { name: "Review" })).toBeInTheDocument();
-    expect(history.getByRole("columnheader", { name: "Review photo" })).toBeInTheDocument();
+    expect(history.getByRole("columnheader", { name: "Photo" })).toBeInTheDocument();
     const sept = within(history.getByRole("row", { name: /Sep 5, 2026/ }));
     expect(sept.getByRole("img", { name: "5 out of 5 stars" })).toBeInTheDocument();
     expect(sept.getByText("Best set yet")).toBeInTheDocument();

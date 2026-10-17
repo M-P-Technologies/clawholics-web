@@ -42,6 +42,8 @@ const STATUS_OPTIONS: { label: string; value: AppointmentFilterStatus }[] = [
   { label: "Completed", value: "COMPLETED" },
   { label: "Cancelled", value: "CANCELLED" },
   { label: "Refunded", value: "REFUNDED" },
+  { label: "No-show", value: "NO_SHOW" },
+  { label: "Visit photos to add", value: "PHOTOS_TO_ADD" },
 ];
 
 export const parseStatusParam = (value: string | null): AppointmentFilterStatus =>
@@ -60,7 +62,7 @@ const SORT_PARAM: Record<string, AppointmentSort> = {
 // Five to a page, like the dashboard's bookings table
 const ROWS_PER_PAGE = 5;
 
-const STATUSES: AppointmentStatus[] = ["PENDING", "AWAITING_PROOF", "AWAITING_CONFIRMATION", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUNDED"];
+const STATUSES: AppointmentStatus[] = ["PENDING", "AWAITING_PROOF", "AWAITING_CONFIRMATION", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUNDED", "NO_SHOW"];
 
 // Dot beside each status, so the colour says what it means before you read it
 const statusDotClass = (status: AppointmentStatus) => {
@@ -74,6 +76,7 @@ const statusDotClass = (status: AppointmentStatus) => {
     case "COMPLETED":
       return "bg-success";
     case "CANCELLED":
+    case "NO_SHOW":
       return "bg-danger";
     case "REFUNDED":
       return "bg-crimson-light";
@@ -182,9 +185,10 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
     // A list that shrank (a status changed) keeps you on its last page rather than past it
     page: Math.min(page, pages),
     pageSize,
-    statuses: status === "ALL" || status === "PROOF_PENDING" || proofOverdue ? STATUSES : status === "TO_COMPLETE" ? ["CONFIRMED"] : [status],
+    statuses: status === "ALL" || status === "PROOF_PENDING" || proofOverdue ? STATUSES : status === "TO_COMPLETE" ? ["CONFIRMED"] : status === "PHOTOS_TO_ADD" ? ["COMPLETED"] : [status],
     proofToReview: status === "PROOF_PENDING",
     toComplete: status === "TO_COMPLETE",
+    photosToAdd: status === "PHOTOS_TO_ADD",
     artist: artist === "All" ? undefined : artist,
     search,
     sort: SORT_PARAM[sort],
@@ -216,9 +220,9 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
     setPage(1);
   };
 
-  const changeStatus = async (id: number, next: AppointmentStatus) => {
+  const changeStatus = async (id: number, next: AppointmentStatus, options: { withoutScreenshot?: boolean } = {}) => {
     try {
-      const updated = await updateAppointmentStatus(id, next, await getToken(), currentUser?.id);
+      const updated = await updateAppointmentStatus(id, next, await getToken(), currentUser?.id, options);
       const updatedStatus = statusOf(updated);
       toast.show("success", "Appointment updated", `Appointment #${id} is now ${updatedStatus.toLowerCase().replace(/_/g, " ")}.`);
       void refresh();
@@ -531,6 +535,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
           tokenFetcher={getToken}
           clerkId={currentUser?.id}
           artists={(artistList ?? []).map((n) => ({ id: n.id, name: artistName(n) }))}
+          onConfirmWithoutScreenshot={(id) => changeStatus(id, "CONFIRMED", { withoutScreenshot: true })}
           onProofReviewed={async () => {
             setSelected(null);
             await refresh();

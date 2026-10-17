@@ -5,7 +5,6 @@ import { ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "@/lib/router";
 import { Button } from "@/components/atoms";
 import { PHONE_STICKY_TOP_BAR, TopBar } from "@/components/organisms";
-import { useIsClient } from "@/hooks/useIsClient";
 import { useMyAccount } from "@/hooks/client/useMyAccount";
 
 interface ClientScreenProps {
@@ -23,19 +22,16 @@ const backCircleClass =
   "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-crimson-light bg-milk text-berry transition-colors hover:bg-crimson-light/30 lg:hidden";
 
 // The page frame of every client screen, shaped like the admin's AdminShell: the top bar (a welcome,
-// the title, today's date, a link to the site and who is signed in) and the content below it with
+// the title, a link to the site and who is signed in) and the content below it with
 // the admin's spacing.
 export default function ClientScreen({ title, actions, back, children }: ClientScreenProps) {
   const account = useMyAccount();
   const navigate = useNavigate();
-  const isClient = useIsClient();
   const dbUser = account?.dbUser;
   const clerkUser = account?.clerkUser;
   const firstName = dbUser?.first_name || clerkUser?.firstName || "";
   const name = [dbUser?.first_name, dbUser?.last_name].filter(Boolean).join(" ") || firstName || "You";
   const imageUrl = clerkUser?.hasImage ? clerkUser.imageUrl : "";
-  // The server's day must not show in place of the client's own
-  const today = isClient ? new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }) : "";
 
   const backControl =
     back === "history" ? (
@@ -71,7 +67,6 @@ export default function ClientScreen({ title, actions, back, children }: ClientS
         actionsOnPhone={Boolean(actions)}
         actions={backControl || actions ? <>{backControl}{actions}</> : undefined}
         greeting={`Welcome back${firstName ? `, ${firstName}` : ""}!`}
-        today={today}
         account={{ name, email: dbUser?.email ?? "", imageUrl }}
         // On phones it stays at the top as the tab bar stays at the bottom
         className={PHONE_STICKY_TOP_BAR}

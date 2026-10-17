@@ -19,6 +19,14 @@ describe("AddAdminModal", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it("is titled in the brand's heading style and opens the image full size in a new tab", () => {
+    render(<ImagePreviewDialog imageUrl="https://img/1.webp" title="Payment screenshot" onClose={vi.fn()} />);
+    expect(screen.getByRole("heading", { level: 2, name: "Payment screenshot" }).className).toContain("font-display");
+    const full = screen.getByRole("link", { name: /Open full size/ });
+    expect(full).toHaveAttribute("href", "https://img/1.webp");
+    expect(full).toHaveAttribute("target", "_blank");
+  });
+
   it("does not close on Escape while saving", () => {
     const onClose = vi.fn();
     render(<AddAdminModal open onClose={onClose} onSubmit={vi.fn()} isSaving />);

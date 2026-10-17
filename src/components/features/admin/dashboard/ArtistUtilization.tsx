@@ -76,7 +76,7 @@ export default function ArtistUtilization({ load }: { load: (date: string) => Pr
         </div>
         <div className="flex items-center gap-1">
           {from !== thisWeek && (
-            <Button type="button" variant="bare" onClick={() => setAnchor(today)} className="mr-1 rounded-full border border-crimson-light px-3 py-1 text-sm 2xl:text-base font-bold text-gray-red hover:bg-crimson-light/30">
+            <Button type="button" variant="bare" onClick={() => setAnchor(today)} className="mr-1 rounded-full border border-crimson-light px-3 py-1 text-sm font-bold text-gray-red hover:bg-crimson-light/30">
               This week
             </Button>
           )}

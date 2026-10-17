@@ -1,4 +1,4 @@
-import { Cake, CalendarClock, CalendarDays, Mail, MessageCircle, Phone, Sparkles } from "lucide-react";
+import { Cake, CalendarClock, CalendarDays, CalendarX, Mail, MessageCircle, Phone, Sparkles } from "lucide-react";
 import type { ComponentType } from "react";
 import { FacebookIcon, InstagramIcon, type BadgeTone } from "@/components/atoms";
 import type { ClientAppointment, ClientDetails } from "../../services/clientNotesService";
@@ -27,6 +27,7 @@ const STATUS: Record<string, { label: string; className: string; tone: BadgeTone
   CANCELLED: { label: "Cancelled", className: "bg-danger/15 text-gray-red", tone: "danger" },
   CANCELED: { label: "Cancelled", className: "bg-danger/15 text-gray-red", tone: "danger" },
   REFUNDED: { label: "Refunded", className: "bg-danger/15 text-gray-red", tone: "danger" },
+  NO_SHOW: { label: "No-show", className: "bg-danger/15 text-gray-red", tone: "danger" },
 };
 /** An appointment status's label, pill colours and Badge tone */
 export const statusOf = (status: string) => STATUS[status] ?? { label: status, className: "bg-sand text-gray-red", tone: "warning" as BadgeTone };
@@ -65,6 +66,8 @@ export const clientInfoRows = ({ client, summary }: Pick<ClientDetails, "client"
     { label: "Client since", value: client.created_at ? dateLabel(client.created_at.slice(0, 10)) : null, Icon: CalendarDays },
     { label: "Last visit", value: summary.lastVisit ? dateLabel(summary.lastVisit) : null, Icon: Sparkles },
     { label: "Next visit", value: summary.nextVisit ? dateLabel(summary.nextVisit) : null, Icon: CalendarClock },
+    // Flagged: the terms say a no-show may be blocked from booking again (the admins decide)
+    { label: "No-shows", value: summary.noShows ? String(summary.noShows) : null, Icon: CalendarX },
   ].filter((row) => row.value);
 
 /** The client's name, or their email when they never gave one */

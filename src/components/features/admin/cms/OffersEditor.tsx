@@ -68,7 +68,7 @@ export default function OffersEditor({ offers, services, onChange, upload, uploa
               />
             </label>
             {offer.image && (
-              <Button type="button" variant="bare" onClick={() => update(i, { image: "" })} className="w-fit rounded-md px-3 py-1 text-sm 2xl:text-base font-bold text-gray-red hover:bg-crimson-light/30">
+              <Button type="button" variant="bare" onClick={() => update(i, { image: "" })} className="w-fit rounded-md px-3 py-1 text-sm font-bold text-gray-red hover:bg-crimson-light/30">
                 Remove photo
               </Button>
             )}

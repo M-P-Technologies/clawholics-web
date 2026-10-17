@@ -9,8 +9,15 @@ import { pageOf } from "./fakeAppointmentPages";
 import type { Appointment, AppointmentPageParams } from "@/services/appointmentService";
 
 const fetchDashboard = vi.fn();
+const QUEUE = {
+  items: [{ kind: "confirm", appointment_id: 1, user_id: 4, client_name: "Dana D", email: "dana@x.test", service_name: "Gel Manicure", nailist_name: "Maxine",
+    appointment_date: "2026-10-20", appointment_time: "15:00-16:00", since: "2026-10-13 04:00:00" }],
+  counts: { confirm: 1, review: 0, complete: 0, photos: 0, leads: 0 },
+};
+const fetchAttention = vi.fn(async () => QUEUE);
 vi.mock("@/services/dashboardService", () => ({
   fetchDashboard: (...args: unknown[]) => fetchDashboard(...args),
+  fetchAttention: () => fetchAttention(),
   fetchUtilization: async () => ({ week: { from: "2026-10-12", to: "2026-10-18" }, overall: null, artists: [] }),
 }));
 vi.mock("@/services/appointmentService", async (importOriginal) => ({
@@ -57,7 +64,7 @@ const base = (over: Partial<DashboardResponse> = {}): DashboardResponse => ({
   },
   lapsedClients: 1, leads: { accounts: 4, booked: 2 }, clientBase: { clients: 5, lifetimeValue: 1120, churn: 0.2 }, totals: { clients: 17, services: 35, artists: 5, upcoming: 7, trend: [] }, sales: [],
   loyalty: { stamps: 3, redeemed: 1 },
-  attention: { today: 2, proofsToReview: 2, toConfirm: 0, toComplete: 0, unpaid: 2, warmLeads: 0 },
+  attention: { today: 2, proofsToReview: 2, toConfirm: 0, toComplete: 0, photosToAdd: 0, unpaid: 2, warmLeads: 0 },
   money: { balanceAtSalon: { value: 0, previous: 0 }, returningRevenue: { value: 0, previous: 0 }, lostToCancellations: { value: 0, previous: 0 }, bookedAhead: { value: 0, visits: 0, days: [] } },
   trend: { granularity: "day", points: [] },
   monthly: [
@@ -189,8 +196,9 @@ describe("Dashboard", () => {
       }),
     );
     fetchAppointments.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+    fetchAttention.mockResolvedValueOnce({ items: [], counts: { confirm: 0, review: 0, complete: 0, photos: 0, leads: 0 } });
     render(<Dashboard />);
-    expect(await screen.findByText("No upcoming bookings.")).toBeInTheDocument();
+    expect(await screen.findByText("Nothing needs attention right now.")).toBeInTheDocument();
     expect(screen.getAllByText(/Nothing to show yet|No bookings/).length).toBeGreaterThan(0);
   });
 

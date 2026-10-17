@@ -68,7 +68,8 @@ export const getClient = ported<IdContext>(async (_req, { params }) => {
          (select coalesce(sum(p.amount), 0)::int from payments p
           where p.appointment_id = a.id and upper(trim(p.status)) = 'PAID') as paid_downpayment,
          (select json_build_object('balance_amount', vc.balance_amount, 'payment_method', vc.payment_method,
-                   'nailist_id', vc.nailist_id, 'nailist_name', vn.name)
+                   'nailist_id', vc.nailist_id, 'nailist_name', vn.name,
+                   'arrived_at', vc.arrived_at, 'late_fee', vc.late_fee, 'photos_added', vc.photos_added, 'photo_url', vc.photo_url)
           from visit_completions vc left join nailists vn on vn.id = vc.nailist_id
           where vc.appointment_id = a.id) as completion,
          -- The client's review of the visit, if they left one
@@ -100,6 +101,8 @@ export const getClient = ported<IdContext>(async (_req, { params }) => {
     client: profile,
     summary: {
       visits: completed.length,
+      /** Confirmed visits they didn't come to */
+      noShows: appointments.filter((a) => a.status === "NO_SHOW").length,
       totalSpent: completed.reduce((sum, a) => sum + (a.price ?? 0), 0),
       lastVisit: completed[0]?.appointment_date ?? null,
       nextVisit: upcoming[upcoming.length - 1]?.appointment_date ?? null,

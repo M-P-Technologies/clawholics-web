@@ -6,8 +6,8 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { DEFAULT_RANGE, type DashboardRange } from "../../lib/dashboardPeriods";
 import { fetchAppointmentPage, type AppointmentPage, type AppointmentPageParams } from "../../services/appointmentService";
 import { adminKeys } from "@/lib/adminQueries";
-import { fetchDashboard, fetchUtilization } from "../../services/dashboardService";
-import type { DashboardResponse } from "../../services/dashboardTypes";
+import { fetchDashboard, fetchUtilization, fetchAttention } from "../../services/dashboardService";
+import type { AttentionTab, DashboardResponse } from "../../services/dashboardTypes";
 
 /** Loads one page of the admin appointment list */
 export type BookingsLoader = (params: AppointmentPageParams) => Promise<AppointmentPage>;
@@ -66,6 +66,13 @@ export function useBookingsLoader() {
     async (params: AppointmentPageParams) => fetchAppointmentPage(params, await getToken(), user?.id),
     [getToken, user?.id],
   );
+}
+
+/** Loads the dashboard's queue of what to act on, for one of its tabs */
+export function useAttentionLoader() {
+  const { getToken } = useAuth();
+  const { user } = useUser();
+  return useCallback(async (tab: AttentionTab) => fetchAttention(tab, await getToken(), user?.id), [getToken, user?.id]);
 }
 
 /** Loads the artist utilization of the week holding a date */

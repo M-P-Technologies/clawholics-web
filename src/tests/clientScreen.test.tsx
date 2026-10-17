@@ -45,10 +45,10 @@ describe("ClientScreen", () => {
     expect(container.querySelector('img[src="https://img/ana.png"]')).not.toBeNull();
   });
 
-  it("shows today's date once it is in the browser", () => {
+  it("doesn't show today's date in the top bar", () => {
     renderWith(signedIn(), <ClientScreen title="Home"><p /></ClientScreen>);
     const today = new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
-    expect(screen.getByText(today)).toBeInTheDocument();
+    expect(screen.queryByText(today)).toBeNull();
   });
 
   it("puts the screen's own controls in the bar", () => {

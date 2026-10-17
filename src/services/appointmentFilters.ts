@@ -6,7 +6,8 @@ export type AppointmentFilterStatus =
   | AppointmentStatus
   | "PROOF_PENDING"
   | "PROOF_OVERDUE"
-  | "TO_COMPLETE";
+  | "TO_COMPLETE"
+  | "PHOTOS_TO_ADD";
 
 /** A confirmed visit that is over (Manila time), waiting to be completed: the server's TO_COMPLETE_SQL */
 export function isVisitToComplete(appointment: Appointment, now: number): boolean {
@@ -26,5 +27,6 @@ export function matchesAppointmentFilter(
   if (filter === "PROOF_PENDING") return getProofState(appointment, now).kind === "in_review";
   if (filter === "PROOF_OVERDUE") return isProofOverdue(appointment, now);
   if (filter === "TO_COMPLETE") return isVisitToComplete(appointment, now);
+  if (filter === "PHOTOS_TO_ADD") return (appointment.status ?? "").trim().toUpperCase() === "COMPLETED" && appointment.completion?.photos_added === 0;
   return (appointment.status ?? "").trim().toUpperCase() === filter;
 }

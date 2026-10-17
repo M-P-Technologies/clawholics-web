@@ -22,7 +22,7 @@ const base = (over: Partial<DashboardResponse> = {}): DashboardResponse => ({
   },
   lapsedClients: 0, leads: { accounts: 4, booked: 2 }, clientBase: { clients: 5, lifetimeValue: 1120, churn: 0.2 }, totals: { clients: 17, services: 35, artists: 5, upcoming: 7, trend: [] }, sales: [],
   loyalty: { stamps: 0, redeemed: 0 },
-  attention: { today: 0, proofsToReview: 0, toConfirm: 0, toComplete: 0, unpaid: 0, warmLeads: 0 },
+  attention: { today: 0, proofsToReview: 0, toConfirm: 0, toComplete: 0, photosToAdd: 0, unpaid: 0, warmLeads: 0 },
   money: { balanceAtSalon: { value: 0, previous: 0 }, returningRevenue: { value: 0, previous: 0 }, lostToCancellations: { value: 0, previous: 0 }, bookedAhead: { value: 0, visits: 0, days: [] } },
   trend: { granularity: "day", points: [] },
   monthly: ["2026-05", "2026-06", "2026-07", "2026-08", "2026-09", "2026-10"].map((month) => ({ month, completed: 5, cancelled: 0 })),
@@ -39,7 +39,7 @@ describe("SalonNotes", () => {
   });
 
   it("lists only the things that need attention, each linked to where to do it", () => {
-    render(<SalonNotes data={base({ attention: { today: 3, proofsToReview: 2, toConfirm: 0, toComplete: 0, unpaid: 0, warmLeads: 0 } })} />);
+    render(<SalonNotes data={base({ attention: { today: 3, proofsToReview: 2, toConfirm: 0, toComplete: 0, photosToAdd: 0, unpaid: 0, warmLeads: 0 } })} />);
     const todo = within(screen.getByRole("region", { name: "Needs attention" }));
     expect(todo.getByRole("link", { name: /3.*Today's appointments/ })).toHaveAttribute("href", "/schedule");
     expect(todo.getByRole("link", { name: /2.*Proofs to review/ })).toHaveAttribute("href", "/clients?status=PROOF_PENDING");
@@ -78,7 +78,7 @@ describe("SalonNotes", () => {
   });
 
   it("does not repeat waiting proofs that Needs attention already lists", () => {
-    render(<SalonNotes data={base({ attention: { today: 0, proofsToReview: 1, toConfirm: 0, toComplete: 0, unpaid: 0, warmLeads: 0 } })} />);
+    render(<SalonNotes data={base({ attention: { today: 0, proofsToReview: 1, toConfirm: 0, toComplete: 0, photosToAdd: 0, unpaid: 0, warmLeads: 0 } })} />);
     expect(within(screen.getByRole("region", { name: "Needs attention" })).getByRole("link", { name: /1.*Proofs to review/ })).toBeInTheDocument();
     expect(screen.queryByText(/payment proof is waiting/)).toBeNull();
     expect(screen.queryByText(/Review 1 payment proof/)).toBeNull();
@@ -103,7 +103,7 @@ describe("SalonNotes", () => {
 
 describe("SalonNotes: warm leads", () => {
   it("lists clients who haven't booked yet, linking to them in the Client Directory", () => {
-    render(<SalonNotes data={base({ attention: { today: 0, proofsToReview: 0, toConfirm: 0, toComplete: 0, unpaid: 0, warmLeads: 5 } })} />);
+    render(<SalonNotes data={base({ attention: { today: 0, proofsToReview: 0, toConfirm: 0, toComplete: 0, photosToAdd: 0, unpaid: 0, warmLeads: 5 } })} />);
     const todo = within(screen.getByRole("region", { name: "Needs attention" }));
     expect(todo.getByRole("link", { name: /5.*Warm leads/ })).toHaveAttribute("href", "/clients?view=leads");
   });
@@ -111,8 +111,16 @@ describe("SalonNotes: warm leads", () => {
 
 describe("visits to complete", () => {
   it("is a Needs attention row linking to the visits waiting to be completed", () => {
-    render(<SalonNotes data={base({ attention: { today: 0, proofsToReview: 0, toConfirm: 0, toComplete: 2, unpaid: 0, warmLeads: 0 } })} />);
+    render(<SalonNotes data={base({ attention: { today: 0, proofsToReview: 0, toConfirm: 0, toComplete: 2, photosToAdd: 0, unpaid: 0, warmLeads: 0 } })} />);
     const todo = within(screen.getByRole("region", { name: "Needs attention" }));
     expect(todo.getByRole("link", { name: /2.*Visits to complete/ })).toHaveAttribute("href", "/clients?status=TO_COMPLETE");
+  });
+});
+
+describe("Needs attention keeps to three", () => {
+  it("shows only the first three rows, in their order", () => {
+    render(<SalonNotes data={base({ attention: { today: 5, proofsToReview: 0, toConfirm: 3, toComplete: 4, photosToAdd: 0, unpaid: 0, warmLeads: 146 } })} />);
+    const todo = within(screen.getByRole("region", { name: "Needs attention" }));
+    expect(todo.getAllByRole("link").map((l) => l.textContent?.replace(/^\d+/, ""))).toEqual(["Today's appointments", "Bookings to confirm", "Visits to complete"]);
   });
 });

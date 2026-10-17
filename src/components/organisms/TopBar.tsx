@@ -1,4 +1,4 @@
-import { CalendarDays, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import type { ReactNode } from "react";
 import clsx from "clsx";
 import { Avatar } from "../atoms";
@@ -19,8 +19,6 @@ interface TopBarProps {
   /** The screen's own controls (wrap under the title on phones) */
   actions?: ReactNode;
   account: { name: string; email: string; imageUrl: string };
-  /** E.g. "Wednesday, Oct 14"; empty until the page is in the browser */
-  today?: string;
   /** E.g. a notifications bell, beside the account */
   bell?: ReactNode;
   /** Whether the computer layout is showing, so the bell is drawn in one place only */
@@ -32,9 +30,9 @@ interface TopBarProps {
 }
 
 // The bar across the top of every admin screen and client app tab: the greeting, title and the
-// screen's controls on the left; the date, a link to the public site, an optional bell (e.g. new
-// bookings) and who is signed in on the right.
-export default function TopBar({ title, greeting, titleAside, leading, actions, account, today, bell, wide = true, actionsOnPhone = true, className }: TopBarProps) {
+// screen's controls on the left; a link to the public site, an optional bell (e.g. new bookings)
+// and who is signed in on the right.
+export default function TopBar({ title, greeting, titleAside, leading, actions, account, bell, wide = true, actionsOnPhone = true, className }: TopBarProps) {
   return (
     <header className={clsx("flex w-full flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk/80 px-3 py-3 shadow-petal backdrop-blur-sm sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:gap-6", className)}>
       <div className="flex min-w-0 items-center justify-between gap-3 lg:shrink-0">
@@ -57,17 +55,11 @@ export default function TopBar({ title, greeting, titleAside, leading, actions, 
       {/* clsx, not a template string: Tailwind only finds whole words, and "lg:justify-end${" isn't one */}
       <div className={clsx("flex min-w-0 flex-wrap items-center gap-3 lg:flex-1 lg:flex-nowrap lg:justify-end", !actionsOnPhone && "max-lg:hidden")}>
         {actions}
-        {today && (
-          <p className="hidden shrink-0 items-center gap-1.5 whitespace-nowrap text-[13px] font-medium text-gray-red xl:flex">
-            <CalendarDays size={15} aria-hidden="true" className="text-berry" />
-            {today}
-          </p>
-        )}
         <a
           href="/"
           target="_blank"
           rel="noreferrer"
-          className="hidden shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-crimson-light px-3 py-1.5 text-sm 2xl:text-base font-bold text-berry transition-colors hover:bg-crimson-light/30 lg:flex"
+          className="hidden shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-crimson-light px-3 py-1.5 text-sm font-bold text-berry transition-colors hover:bg-crimson-light/30 lg:flex"
         >
           View site
           <ExternalLink size={14} aria-hidden="true" />

@@ -247,7 +247,7 @@ export default function DirectoryProfileCard({
         {clientHref && (
           <Link
             to={clientHref}
-            className="flex w-full items-center justify-between gap-3 rounded-xl border border-crimson-light/60 px-3 py-3 text-sm 2xl:text-base font-bold text-berry transition-colors hover:bg-crimson-light/20"
+            className="flex w-full items-center justify-between gap-3 rounded-xl border border-crimson-light/60 px-3 py-3 text-sm font-bold text-berry transition-colors hover:bg-crimson-light/20"
           >
             View client page
             <ArrowRight size={16} aria-hidden="true" />

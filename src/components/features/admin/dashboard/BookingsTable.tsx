@@ -29,8 +29,9 @@ const STATUS: Record<string, { label: string; className: string }> = {
   CANCELLED: { label: "Cancelled", className: "bg-danger/15 text-gray-red" },
   CANCELED: { label: "Cancelled", className: "bg-danger/15 text-gray-red" },
   REFUNDED: { label: "Refunded", className: "bg-danger/15 text-gray-red" },
+  NO_SHOW: { label: "No-show", className: "bg-danger/15 text-gray-red" },
 };
-const CANCELLED = ["CANCELLED", "CANCELED", "REFUNDED"];
+const CANCELLED = ["CANCELLED", "CANCELED", "REFUNDED", "NO_SHOW"];
 // Still to come: not cancelled, refunded or completed
 const UPCOMING = ["PENDING", "AWAITING_PROOF", "AWAITING_CONFIRMATION", "CONFIRMED"];
 const statusOf = (a: Appointment) => (a.status ?? "").trim().toUpperCase();
@@ -155,7 +156,7 @@ export default function BookingsTable({ load }: { load: BookingsLoader }) {
                       <Link
                         to={`/clients/${a.user_id}`}
                         aria-label={`Open ${name}`}
-                        className="inline-flex items-center justify-center gap-3 rounded-lg bg-berry px-3 py-2 text-sm 2xl:text-base font-bold text-pearl transition-colors hover:bg-gray-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson"
+                        className="inline-flex items-center justify-center gap-3 rounded-lg bg-berry px-3 py-2 text-sm font-bold text-pearl transition-colors hover:bg-gray-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson"
                       >
                         <SquarePen size={15} aria-hidden="true" />
                         Client page

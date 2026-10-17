@@ -1,6 +1,6 @@
 import { API_BASE_URL } from "../apiConfig";
 import type { DashboardRange } from "../lib/dashboardPeriods";
-import type { DashboardResponse, Utilization } from "./dashboardTypes";
+import type { AttentionResponse, AttentionTab, DashboardResponse, Utilization } from "./dashboardTypes";
 
 export const fetchDashboard = async (
   range: DashboardRange,
@@ -41,5 +41,18 @@ export const fetchUtilization = async (date: string, token?: string | null, cler
     },
   });
   if (!res.ok) throw new Error(`Failed to load artist utilization (${res.status})`);
+  return res.json();
+};
+
+// The queue of what to act on, for one of its tabs (admin only)
+export const fetchAttention = async (tab: AttentionTab, token?: string | null, clerkId?: string | null): Promise<AttentionResponse> => {
+  const res = await fetch(`${API_BASE_URL}/attention?tab=${tab}`, {
+    headers: {
+      "x-clawholics-origin": "frontend",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(clerkId ? { clerk_id: clerkId } : {}),
+    },
+  });
+  if (!res.ok) throw new Error(`Failed to load what needs attention (${res.status})`);
   return res.json();
 };

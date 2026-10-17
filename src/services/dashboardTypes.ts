@@ -45,7 +45,7 @@ export interface DashboardResponse {
   sales: { id: number; date: string; time: string; client_name: string; user_id: number | null; service_name: string; nailist_name: string; fee: number | null }[];
   loyalty: { stamps: number; redeemed: number };
   /** warmLeads: clients active in the last 60 days who haven't booked a visit (see /leads) */
-  attention: { today: number; proofsToReview: number; /** Paid online, waiting for an admin to confirm */ toConfirm: number; /** Confirmed visits that are over, waiting to be completed */ toComplete: number; unpaid: number; warmLeads: number };
+  attention: { today: number; proofsToReview: number; /** Paid online, waiting for an admin to confirm */ toConfirm: number; /** Confirmed visits that are over, waiting to be completed */ toComplete: number; /** Completed visits without nail photos yet */ photosToAdd: number; unpaid: number; warmLeads: number };
   money: Money;
   /** One point per day, week or month of the period (up to today), for the lines on the stat cards */
   trend: Trend;
@@ -88,4 +88,25 @@ export interface Utilization {
   artists: ArtistUtilization[];
   /** The same, for all artists together */
   overall: number | null;
+}
+
+/** The dashboard's queue of what to act on (GET /attention) */
+export type AttentionTab = "all" | "confirm" | "complete" | "leads";
+export interface AttentionResponse {
+  items: {
+    kind: "confirm" | "review" | "complete" | "photos" | "lead";
+    appointment_id: number | null;
+    /** The client's users.id; null for the walk-in guest, who has no page */
+    user_id: number | null;
+    client_name: string;
+    email: string | null;
+    service_name: string | null;
+    nailist_name: string | null;
+    appointment_date: string | null;
+    appointment_time: string | null;
+    /** Waiting since (UTC "YYYY-MM-DD HH:MM:SS") */
+    since: string;
+    has_screenshot?: boolean;
+  }[];
+  counts: { confirm: number; review: number; complete: number; photos: number; leads: number };
 }

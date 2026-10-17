@@ -5,10 +5,11 @@ import { describeChange, peso, shortDay } from "@/lib/dashboardFormat";
 import { formatBucketLabel, granularityWord, type DayValues } from "@/lib/dashboardTrend";
 import { Link } from "@/lib/router";
 import type { BookingsLoader } from "@/hooks/admin/useReports";
-import type { DashboardResponse } from "@/services/dashboardTypes";
+import type { DashboardResponse, AttentionResponse, AttentionTab } from "@/services/dashboardTypes";
 import ActiveBookings from "@/components/features/admin/dashboard/ActiveBookings";
 import BarChart from "@/components/features/admin/dashboard/BarChart";
 import BookingsTable from "@/components/features/admin/dashboard/BookingsTable";
+import NeedsAttentionQueue from "@/components/features/admin/dashboard/NeedsAttentionQueue";
 import DonutChart from "@/components/features/admin/dashboard/DonutChart";
 import { StatCard, SectionHeader } from "@/components/molecules";
 import SalonNotes from "@/components/features/admin/dashboard/SalonNotes";
@@ -23,6 +24,8 @@ interface DashboardViewProps {
   /** Loads the admin appointments list for the bookings table and today's bookings; without it
    * the short next-appointments list from `data` is shown */
   loadBookings?: BookingsLoader;
+  /** Loads the queue of what to act on, which takes the bookings table's place */
+  loadAttention?: (tab: AttentionTab) => Promise<AttentionResponse>;
 }
 
 const MORE = [
@@ -34,7 +37,7 @@ const MORE = [
 // numbers, the notes and today's bookings, two charts and the bookings table; the rest is on the
 // Sales and Performance pages. Pure: it only draws the data it is given, so the layout can be
 // previewed and tested without signing in.
-export default function DashboardView({ data, loading = false, failed = false, loadBookings }: DashboardViewProps) {
+export default function DashboardView({ data, loading = false, failed = false, loadBookings, loadAttention }: DashboardViewProps) {
   const { kpis } = data;
   const { granularity, points } = data.trend;
 
@@ -94,7 +97,9 @@ export default function DashboardView({ data, loading = false, failed = false, l
             </Card>
           </div>
 
-          {loadBookings ? (
+          {loadAttention ? (
+            <NeedsAttentionQueue load={loadAttention} />
+          ) : loadBookings ? (
             <BookingsTable load={loadBookings} />
           ) : (
             <Card as="section" aria-label="Next appointments" className="flex min-w-0 flex-col gap-3"><SectionHeader size="card" title="Next appointments" />

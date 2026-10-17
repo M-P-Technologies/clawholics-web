@@ -88,6 +88,10 @@ export function trackerSteps(a: TrackInput, { settledDetail = "Settled with the 
   ];
 
   // A cancelled or refunded booking stops at the first step it hadn't finished
+  // A no-show stops at the visit: confirmed, but the client didn't come
+  if (status === "NO_SHOW") {
+    return steps.map((step) => (step.key === "completed" ? { ...step, state: "stopped", detail: `Didn't show up for ${visit}` } : { ...step, state: "done" }));
+  }
   if (status === "CANCELLED" || status === "CANCELED" || status === "REFUNDED") {
     const stoppedAt = steps.findIndex((step) => step.state !== "done");
     const word = status === "REFUNDED" ? "Refunded" : "Cancelled";

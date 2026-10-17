@@ -2,7 +2,7 @@ import "server-only";
 import { getSql } from "./db";
 import { toId } from "./http";
 import { PROOF_TO_REVIEW_SQL } from "./proofRules";
-import { TO_COMPLETE_SQL, manilaNow } from "./visitsToComplete";
+import { PHOTOS_TO_ADD_SQL, TO_COMPLETE_SQL, manilaNow } from "./visitsToComplete";
 
 // Appointment queries and booking rules, ported from worker-api/src/index.ts. Same columns
 // and rules as the Worker so the frontend can't tell which backend answered.
@@ -115,6 +115,8 @@ export interface AppointmentPageQuery {
   proofToReview: boolean;
   /** Only confirmed visits that are over, waiting to be completed (the dashboard's "Visits to complete") */
   toComplete?: boolean;
+  /** Only completed visits whose nail photos are still to add */
+  photosToAdd?: boolean;
   /** Only this day, or this day and later (YYYY-MM-DD) */
   on: string | null;
   from: string | null;
@@ -151,7 +153,8 @@ const COUNT_FROM = `
 /** For completing a visit from the list: the downpayments paid, and the record once completed */
 const PAID_DOWNPAYMENT = `(select coalesce(sum(p.amount), 0)::int from payments p where p.appointment_id = a.id and upper(trim(p.status)) = 'PAID')`;
 const COMPLETION = `(
-  select json_build_object('balance_amount', vc.balance_amount, 'payment_method', vc.payment_method, 'nailist_id', vc.nailist_id, 'nailist_name', vn.name)
+  select json_build_object('balance_amount', vc.balance_amount, 'payment_method', vc.payment_method, 'nailist_id', vc.nailist_id, 'nailist_name', vn.name,
+    'arrived_at', vc.arrived_at, 'late_fee', vc.late_fee, 'photos_added', vc.photos_added, 'photo_url', vc.photo_url)
   from visit_completions vc left join nailists vn on vn.id = vc.nailist_id where vc.appointment_id = a.id
 )`;
 const PAGE_SELECT = `${APPOINTMENT_SELECT.slice(0, FROM_START)}, ${LATEST_PROOF} as latest_proof, ${CLIENT_VISITS} as client_visits,
@@ -173,6 +176,7 @@ export async function listAppointmentPage(query: AppointmentPageQuery) {
       ? sql.unsafe(PROOF_TO_REVIEW_SQL("a"))
       : null,
     query.toComplete ? sql.unsafe(TO_COMPLETE_SQL("a", manilaNow().today, manilaNow().clock)) : null,
+    query.photosToAdd ? sql.unsafe(PHOTOS_TO_ADD_SQL("a")) : null,
     query.on ? sql`a.appointment_date = ${query.on}` : null,
     query.from ? sql`a.appointment_date >= ${query.from}` : null,
     query.artist ? sql`coalesce(n.name, a.nailist_name) = ${query.artist}` : null,

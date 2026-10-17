@@ -135,7 +135,7 @@ export default function StripEditor({ services, strip, onChange, upload, uploadi
           <Plus size={14} aria-hidden="true" />
           Add a slide
         </Button>
-        <Button type="button" variant="bare" onClick={() => onChange(null)} className="gap-1 rounded-md px-3 py-1.5 text-sm 2xl:text-base font-bold text-gray-red hover:bg-crimson-light/30">
+        <Button type="button" variant="bare" onClick={() => onChange(null)} className="gap-1 rounded-md px-3 py-1.5 text-sm font-bold text-gray-red hover:bg-crimson-light/30">
           <RotateCcw size={14} aria-hidden="true" />
           Show every service again
         </Button>

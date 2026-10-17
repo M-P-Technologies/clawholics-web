@@ -133,7 +133,7 @@ export default function DesignSystem() {
             <DialogDemo />
           </GallerySection>
           <GallerySection title="TopBar">
-            <TopBar title="Example" greeting="Welcome, Ana!" today="Wednesday, Oct 14" account={{ name: "Ana Cruz", email: "ana@example.com", imageUrl: "" }} />
+            <TopBar title="Example" greeting="Welcome, Ana!" account={{ name: "Ana Cruz", email: "ana@example.com", imageUrl: "" }} />
           </GallerySection>
           <GallerySection title="SideBar">
             <div className="h-120">
