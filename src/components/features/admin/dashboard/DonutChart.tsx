@@ -22,9 +22,10 @@ export default function DonutChart({ title, slices, centerLabel, emptyText }: Do
 
   return (
     // The legend sits beside the ring only when the card itself has room (a container query):
-    // in a narrow card it goes underneath, so the names and figures stay inside
-    <div className="@container w-full">
-      <div className="flex flex-col items-center gap-3 @md:flex-row">
+    // in a narrow card it goes underneath, so the names and figures stay inside. It fills the rest
+    // of its card and sits in the middle of it, so a card made taller by its row has no gap below.
+    <div className="@container flex w-full flex-1 items-center">
+      <div className="flex w-full flex-col items-center gap-3 @md:flex-row">
         <div className="relative h-44 w-44 shrink-0">
           <svg role="img" aria-label={summary} viewBox="0 0 100 100" className="h-full w-full -rotate-90">
             <circle cx="50" cy="50" r={R} fill="none" stroke={TRACK} strokeWidth="14" />
@@ -51,7 +52,7 @@ export default function DonutChart({ title, slices, centerLabel, emptyText }: Do
           </div>
         </div>
 
-        <ul className="flex min-w-0 flex-1 flex-col gap-3 self-stretch text-sm text-gray-red">
+        <ul className="flex min-w-0 flex-1 flex-col gap-1.5 self-stretch text-sm @md:self-center text-gray-red">
           {slices.map((s) => (
             <li key={s.label} className="flex items-center gap-3">
               <span aria-hidden="true" className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: s.color }} />

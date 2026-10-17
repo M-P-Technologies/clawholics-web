@@ -40,13 +40,16 @@ export default function ReportPage({ title, children }: { title: string; childre
 
   return (
     <AdminShell title={title} actions={wide && <div className="min-w-0"><PeriodSwitch value={range} onChange={setRange} /></div>}>
-      {/* shrink-0: the frame is a screen-high column, and a sideways-scrolling row would be squashed in it */}
-      {!wide && (
-        <div className="shrink-0">
-          <PeriodSwitch value={range} onChange={setRange} />
-        </div>
-      )}
-      {children({ data, loading, failed })}
+      {/* The page scrolls under the top bar, with the switch (below `2xl`) as its first row */}
+      <div className="flex min-h-0 flex-col gap-3 overflow-y-auto pb-2 pr-1 md:gap-6">
+        {/* shrink-0: the scroller is a column, and a sideways-scrolling row would be squashed in it */}
+        {!wide && (
+          <div className="shrink-0">
+            <PeriodSwitch value={range} onChange={setRange} />
+          </div>
+        )}
+        {children({ data, loading, failed })}
+      </div>
     </AdminShell>
   );
 }

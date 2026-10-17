@@ -18,9 +18,6 @@ function useMinWidth(width: string) {
 /** From Tailwind's `md` up the admin's tables show as tables; below it, as cards */
 export const useTableLayout = () => useMinWidth("48rem");
 
-/** From Tailwind's `md` up, e.g. a chart's labels grow from text-sm to text-base */
-export const useMediumUp = () => useMinWidth("48rem");
-
 /** From Tailwind's `lg` up the client app's sidebar can open fully; below it, it stays an icon rail */
 export const useClientWideLayout = () => useMinWidth("64rem");
 

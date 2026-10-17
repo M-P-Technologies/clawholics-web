@@ -94,8 +94,8 @@ export default function SalonNotes({ data }: { data: DashboardResponse }) {
         </div>
 
         <header className="pr-12">
-          <h2 className="font-display text-2xl font-normal leading-tight text-gray-red lg:text-xl xl:text-2xl">Salon notes</h2>
-          <p className="text-sm text-gray-red">{PERIOD_LABELS[data.range]}</p>
+          <h2 className="font-display text-2xl font-normal leading-tight text-berry lg:text-xl xl:text-2xl">Salon notes</h2>
+          <p className="text-sm text-crimson-ink">{PERIOD_LABELS[data.range]}</p>
         </header>
 
         <section aria-label="Needs attention" className="flex flex-col gap-3">

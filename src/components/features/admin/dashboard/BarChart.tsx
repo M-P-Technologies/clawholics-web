@@ -1,6 +1,5 @@
 
 import { useEffect, useRef, useState } from "react";
-import { useMediumUp } from "@/hooks/useMinWidth";
 
 interface BarChartProps {
   title: string;
@@ -15,8 +14,8 @@ interface BarChartProps {
 const W = 300;
 // The least the drawing is tall; in a taller card it grows to fill it (see useDrawingHeight)
 const MIN_H = 156;
-// The labels' size on screen, in pixels: text-sm, text-base from `md`
-const LABEL_PX = { small: 14, medium: 16 } as const;
+// The labels' size on screen, in pixels: text-sm at every width
+const LABEL_PX = 14;
 
 // Up to about four evenly spaced gridlines, at round numbers (1, 2 or 5 times a power of ten),
 // from 0 to the first one at or above `max`
@@ -56,7 +55,7 @@ function useDrawingHeight() {
 // scaled on its own value, with rounded ends. Labelled gridlines run behind them.
 export default function BarChart({ title, data, aLabel, bLabel, aColor, bColor, emptyText }: BarChartProps) {
   const { boxRef, height: H, scale } = useDrawingHeight();
-  const labelPx = useMediumUp() ? LABEL_PX.medium : LABEL_PX.small;
+  const labelPx = LABEL_PX;
   const max = Math.max(...data.map((d) => Math.max(d.a, d.b)), 0);
   if (max === 0) return <p className="text-sm text-gray-red">{emptyText}</p>;
 
