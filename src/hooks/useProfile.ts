@@ -442,6 +442,9 @@ export function useProfile() {
   const handleHistoryFilterChange = (e: ChangeEvent<HTMLSelectElement>) => setHistoryFilter(e.target.value);
   const handleHistorySortChange = (e: ChangeEvent<HTMLSelectElement>) => setHistorySortBy(e.target.value);
 
+  // The birthday can't be changed once set (the birthday voucher follows it); the server keeps it too
+  const isLocked = (key: string, locked?: boolean) => Boolean(locked) || (key === "dob" && /^\d{4}-\d{2}-\d{2}/.test(dbUser?.dob ?? ""));
+
   // The details shown in the "My Details" tab: plain text until Edit is pressed, then inputs
   const profileFields = PROFILE_FIELDS.map((field) => ({
     id: field.id,
@@ -453,8 +456,8 @@ export function useProfile() {
     displayValue: field.key === "dob" ? formatDisplayDate(dbUser?.dob || "") : dbUser?.[field.key],
     value: formData?.[field.key] || "",
     onChange: handleChange,
-    disabled: field.locked,
-    readOnly: field.locked,
+    disabled: isLocked(field.key, field.locked),
+    readOnly: isLocked(field.key, field.locked),
     max: field.key === "dob" ? todayIso : undefined,
   }));
 

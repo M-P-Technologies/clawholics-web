@@ -386,7 +386,7 @@ export async function sendBirthdayVoucherEmails(
         "Happy Birthday!",
         v.first_name,
         `Happy birthday from all of us at Clawholics! 🎂 To celebrate, here's <strong>${escapeHtml(v.discount_pct)}% off</strong> a service of your choice this month.
-         Claim it on <a href="https://clawholicsbymax.com/profile" style="color: #CC798B; font-weight: bold;">your profile</a>, then book your visit; the discount comes off the service price you pay at the salon.`,
+         Claim it on <a href="${SITE}/my" style="color: #CC798B; font-weight: bold;">your profile</a>, then book your visit; the discount comes off the service price you pay at the salon.`,
         [
           clientRow("Voucher code", v.code, HIGHLIGHT),
           clientRow("Discount", `${v.discount_pct}% off the service price`),

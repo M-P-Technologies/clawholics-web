@@ -12,24 +12,29 @@ interface CompleteVisitFormProps {
   onSaved?: () => void;
   /** Cancels the visit for coming 25+ minutes late (the downpayment is kept). Without it the suggestion has no button. */
   onCancelLate?: () => void;
+  /** In a dialog (CompleteVisitDialog): the form is always open, and its Cancel closes the dialog */
+  onCancel?: () => void;
+  /** Once completed, Edit calls this (e.g. to open the dialog) instead of opening the form in place */
+  onEdit?: () => void;
 }
 
 // Completing a visit: when the client came in (a late fee by the salon's terms), the balance paid
 // at the salon (prefilled with the menu price less the downpayment, plus that fee, editable), how
 // it was paid and who did the nails. Shown locked before the visit's day; once completed it shows
 // what was recorded, with Edit, and the visit's photo is added from its own window (optional).
-export default function CompleteVisitForm({ visit, artists, onSaved, onCancelLate }: CompleteVisitFormProps) {
+export default function CompleteVisitForm({ visit, artists, onSaved, onCancelLate, onCancel, onEdit }: CompleteVisitFormProps) {
   const form = useCompleteVisit(visit, onSaved);
   const id = useId();
+  const inDialog = Boolean(onCancel);
 
-  if (form.completed && !form.formOpen) {
+  if (form.completed && !form.formOpen && !inDialog) {
     return (
       <div className="mt-1 flex flex-col gap-1.5 text-[13px] text-gray-red">
         <div className="flex flex-wrap items-center gap-3">
           <span>
             Paid at the salon: <span className="font-bold">{form.summary || "not recorded"}</span>
           </span>
-          <Button type="button" size="sm" variant="secondary" onClick={form.startEditing}>
+          <Button type="button" size="sm" variant="secondary" onClick={onEdit ?? form.startEditing}>
             Edit
           </Button>
         </div>
@@ -43,13 +48,13 @@ export default function CompleteVisitForm({ visit, artists, onSaved, onCancelLat
       </div>
     );
   }
-  if (!form.formOpen) return null;
+  if (!form.formOpen && !inDialog) return null;
 
   const disabled = form.locked || form.busy;
   return (
     <form
       aria-label="Complete visit"
-      className="mt-1 flex flex-col gap-3 rounded-xl border border-crimson-light/60 bg-light-orange/40 p-3"
+      className={inDialog ? "flex flex-col gap-3" : "mt-1 flex flex-col gap-3 rounded-xl border border-crimson-light/60 bg-light-orange/40 p-3"}
       onSubmit={(e) => {
         e.preventDefault();
         void form.submit();
@@ -61,7 +66,8 @@ export default function CompleteVisitForm({ visit, artists, onSaved, onCancelLat
           {form.lockedNote}
         </p>
       )}
-      <div className="grid gap-3 sm:grid-cols-2">
+      {/* One field per row in the dialog; two columns inline */}
+      <div className={inDialog ? "flex flex-col gap-3" : "grid gap-3 sm:grid-cols-2"}>
         <div className="flex flex-col gap-1">
           <label htmlFor={`${id}-arrived`} className="text-xs font-bold text-gray-red">
             Time they came in
@@ -117,7 +123,53 @@ export default function CompleteVisitForm({ visit, artists, onSaved, onCancelLat
             triggerClassName="h-9! py-0! text-[13px]"
           />
         </div>
+        <div className="flex flex-col gap-1 sm:col-span-2">
+          <label htmlFor={`${id}-voucher`} className="text-xs font-bold text-gray-red">
+            Voucher (optional)
+          </label>
+          {form.voucherApplied ? (
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="text-xs font-bold text-success-ink">{form.voucherLine}</p>
+              <button type="button" onClick={form.removeVoucher} disabled={disabled} className="text-xs font-bold text-crimson-ink underline underline-offset-2">
+                Remove
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-3">
+              <Input
+                id={`${id}-voucher`}
+                value={form.voucherInput}
+                onChange={(e) => form.setVoucherInput(e.target.value)}
+                placeholder="e.g. K7MX4QPA"
+                autoComplete="off"
+                disabled={disabled}
+                className="h-9 font-mono text-[13px] uppercase"
+              />
+              <Button type="button" size="sm" variant="secondary" onClick={() => void form.applyVoucher()} disabled={disabled || form.checkingVoucher} className="shrink-0">
+                {form.checkingVoucher ? "Checking…" : "Apply"}
+              </Button>
+            </div>
+          )}
+          {form.voucherError && (
+            <p role="alert" className="text-xs font-bold text-danger-ink">
+              {form.voucherError}
+            </p>
+          )}
+        </div>
       </div>
+      {/* How the suggested balance is worked out, the late fee from the time they came in */}
+      <dl aria-label="Balance breakdown" className="flex flex-col gap-1 rounded-lg bg-milk/70 p-3 text-xs text-gray-red">
+        {form.breakdown.map((row) => (
+          <div key={row.label} className="flex justify-between gap-3">
+            <dt>{row.label}</dt>
+            <dd className="font-bold">{row.value}</dd>
+          </div>
+        ))}
+        <div className="flex justify-between gap-3 border-t border-crimson-light/60 pt-1">
+          <dt className="font-bold">Balance to pay</dt>
+          <dd className="font-bold">{form.suggested}</dd>
+        </div>
+      </dl>
       {form.lateCancel && !form.completed && (
         <div role="note" className="flex flex-col gap-3 rounded-lg border border-warning/40 bg-warning/10 p-3">
           <p className="text-xs font-bold text-warning-ink">
@@ -139,8 +191,8 @@ export default function CompleteVisitForm({ visit, artists, onSaved, onCancelLat
         <Button type="submit" size="sm" disabled={disabled}>
           {form.busy ? "Saving…" : form.completed ? "Save changes" : "Complete visit"}
         </Button>
-        {form.completed && (
-          <Button type="button" size="sm" variant="secondary" onClick={form.cancelEditing} disabled={form.busy}>
+        {(form.completed || inDialog) && (
+          <Button type="button" size="sm" variant="secondary" onClick={onCancel ?? form.cancelEditing} disabled={form.busy}>
             Cancel
           </Button>
         )}

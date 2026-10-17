@@ -39,8 +39,8 @@ describe("Birthday voucher pop-up", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it("stays away from booking and payment, and when there's nothing to claim", () => {
-    pathname = "/booking/3";
+  it("stays away from sign-in and onboarding, and when there's nothing to claim", () => {
+    pathname = "/onboarding";
     const { unmount } = render(<BirthdayVoucherPopup />);
     expect(screen.queryByRole("dialog")).toBeNull();
     unmount();

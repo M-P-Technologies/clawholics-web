@@ -1,4 +1,4 @@
-import { Cake, CalendarClock, CalendarDays, CalendarX, Mail, MessageCircle, Phone, Sparkles } from "lucide-react";
+import { Cake, CalendarClock, CalendarDays, CalendarX, Gift, Mail, MessageCircle, Phone, Sparkles } from "lucide-react";
 import type { ComponentType } from "react";
 import { FacebookIcon, InstagramIcon, type BadgeTone } from "@/components/atoms";
 import type { ClientAppointment, ClientDetails } from "../../services/clientNotesService";
@@ -47,14 +47,29 @@ export const CLIENT_TABS: { value: ClientTab; label: string }[] = [
 /** A date of birth ("1998-03-14") as "Mar 14, 1998"; null when there is none or it is not a date */
 export const birthdayLabel = (dob?: string | null) => (dob && /^\d{4}-\d{2}-\d{2}/.test(dob) ? dateLabel(dob.slice(0, 10)) : null);
 
+/**
+ * This year's birthday voucher, for the client info: "K7MX4QPA · 20% off · claimed, until Oct 31, 2026",
+ * "… · used on Oct 12, 2026" or "… · expired"; null when they have none
+ */
+export const voucherLabel = (voucher: ClientDetails["birthday_voucher"]) => {
+  if (!voucher) return null;
+  const state =
+    voucher.status === "USED"
+      ? `used${voucher.used_on ? ` on ${dateLabel(voucher.used_on)}` : ""}`
+      : voucher.status === "EXPIRED"
+        ? "expired"
+        : `${voucher.status === "CLAIMED" ? "claimed" : "not claimed yet"}, until ${dateLabel(voucher.valid_until)}`;
+  return `${voucher.code} · ${voucher.discount_pct}% off · ${state}`;
+};
+
 export interface ClientInfoRow {
   label: string;
   value: string | null;
   Icon: ComponentType<{ className?: string }>;
 }
 
-/** The Client info list: contact details, when they joined, and their last and next visits */
-export const clientInfoRows = ({ client, summary }: Pick<ClientDetails, "client" | "summary">): ClientInfoRow[] =>
+/** The Client info list: contact details, when they joined, their last and next visits, and their birthday voucher */
+export const clientInfoRows = ({ client, summary, birthday_voucher }: Pick<ClientDetails, "client" | "summary" | "birthday_voucher">): ClientInfoRow[] =>
   [
     { label: "Email", value: client.email, Icon: Mail },
     { label: "Phone", value: client.phone, Icon: Phone },
@@ -63,6 +78,7 @@ export const clientInfoRows = ({ client, summary }: Pick<ClientDetails, "client"
     { label: "Facebook", value: client.facebook_handle, Icon: FacebookIcon },
     { label: "Prefers", value: client.preferred_contact_method, Icon: MessageCircle },
     { label: "Birthday", value: birthdayLabel(client.dob), Icon: Cake },
+    { label: "Birthday voucher", value: voucherLabel(birthday_voucher), Icon: Gift },
     { label: "Client since", value: client.created_at ? dateLabel(client.created_at.slice(0, 10)) : null, Icon: CalendarDays },
     { label: "Last visit", value: summary.lastVisit ? dateLabel(summary.lastVisit) : null, Icon: Sparkles },
     { label: "Next visit", value: summary.nextVisit ? dateLabel(summary.nextVisit) : null, Icon: CalendarClock },
@@ -86,7 +102,7 @@ export const nextVisitHighlight = (next?: ClientAppointment) => ({
 });
 
 /** The client panel's rows, with their icons */
-export const clientPanelRows = (details: Pick<ClientDetails, "client" | "summary">) =>
+export const clientPanelRows = (details: Pick<ClientDetails, "client" | "summary" | "birthday_voucher">) =>
   clientInfoRows(details).map(({ label, value, Icon }) => ({ label, value, icon: Icon }));
 
 /** "1 stamp", "4 stamps" */

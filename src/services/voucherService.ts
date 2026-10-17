@@ -21,6 +21,19 @@ export const fetchBirthdayVoucher = (auth: Auth): Promise<BirthdayVoucher | null
 export const claimBirthdayVoucher = (auth: Auth): Promise<BirthdayVoucher> =>
   call<BirthdayVoucher>("/vouchers/birthday/claim", { method: "POST" }, auth);
 
+/** A voucher the admin can put on a visit, and the pesos it takes off the service price */
+export interface VoucherForVisit {
+  id: number;
+  code: string;
+  discount_pct: number;
+  valid_until: string;
+  discount: number;
+}
+
+/** Admin: whether the code the client shows can go on this visit */
+export const checkVoucherForVisit = (code: string, appointmentId: number, auth: Auth): Promise<VoucherForVisit> =>
+  call<VoucherForVisit>(`/vouchers/check?code=${encodeURIComponent(code.trim())}&appointment_id=${appointmentId}`, { method: "GET" }, auth);
+
 /** Whether the voucher can still be claimed or used (in its month, not used yet) */
 export const isLiveVoucher = (v: BirthdayVoucher | null | undefined): v is BirthdayVoucher =>
   !!v && (v.status === "ISSUED" || v.status === "CLAIMED");
