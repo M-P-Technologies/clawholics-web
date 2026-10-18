@@ -1,5 +1,3 @@
-import { useState } from "react";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { Link } from "@/lib/router";
 import { ATTENTION_ROWS, ATTENTION_TABS, attentionKind, attentionLink, attentionViewAll, waitingLabel } from "@/lib/admin/attention";
@@ -7,31 +5,26 @@ import { dateLabel } from "@/lib/admin/clientPage";
 import { timeRangeLabel } from "@/lib/timeFormat";
 import { useTableLayout } from "@/hooks/useMinWidth";
 import { QUEUE_ROW } from "@/hooks/admin/useQueueRows";
-import { ADMIN_APPOINTMENTS_KEY } from "@/services/appointmentService";
+import { useAttentionQueue, type AttentionLoader } from "@/hooks/admin/useAttentionQueue";
 import type { AttentionResponse, AttentionTab } from "@/services/dashboardTypes";
 import { Card } from "@/components/atoms";
-import { SectionHeader, SegmentedControl } from "@/components/molecules";
+import { Pagination, SectionHeader, SegmentedControl, pageView } from "@/components/molecules";
 import { CardFields, RowCard, RowCards, TableFrame } from "@/components/organisms";
 import { ListSkeleton } from "@/components/features/admin/skeletons/ListSkeleton";
 
 type Item = AttentionResponse["items"][number];
 const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("") || "?";
 
-// The dashboard's queue: the things most worth acting on now (`rows` of them, five unless the
-// dashboard fits more beside its notes), one row each with its action.
+// The dashboard's queue: the things most worth acting on now, a page of `rows` at a time (five unless
+// the dashboard fits more beside its notes), one row each with its action.
 // Bookings to confirm first (a screenshot sent first, then the longest waiting), proofs to review,
 // visits to complete (the latest first), visit photos to add, then warm leads.
-export default function NeedsAttentionQueue({ load, rows = ATTENTION_ROWS }: { load: (tab: AttentionTab) => Promise<AttentionResponse>; rows?: number }) {
-  const [tab, setTab] = useState<AttentionTab>("all");
+export default function NeedsAttentionQueue({ load, rows = ATTENTION_ROWS }: { load: AttentionLoader; rows?: number }) {
+  const { tab, setTab, setPage, data, stale, failed, pageFailed } = useAttentionQueue(load, rows);
   const asTable = useTableLayout();
-  const query = useQuery({
-    // Under the appointments key, so a confirmation or completion anywhere refreshes it (adminDataChanged)
-    queryKey: [...ADMIN_APPOINTMENTS_KEY, "attention", tab],
-    queryFn: () => load(tab),
-    placeholderData: keepPreviousData,
-  });
-  const data = query.data;
-  const items = data?.items.slice(0, rows) ?? [];
+  const items = data?.items ?? [];
+  // Numbered by the rows shown, which are the page before while the next one loads
+  const pager = data ? pageView(items, data.page, data.pageSize, data.total) : null;
   const viewAll = data ? attentionViewAll(tab, data.counts) : null;
   const now = Date.now();
 
@@ -74,14 +67,14 @@ export default function NeedsAttentionQueue({ load, rows = ATTENTION_ROWS }: { l
   );
 
   return (
-    <Card as="section" aria-label="To act on" className="flex min-w-0 flex-col gap-3">
+    <Card as="section" aria-label="To act on" aria-busy={stale} className="flex min-w-0 flex-col gap-3">
       {/* The title and the tabs share a row, at either end; the tabs wrap under it when it's narrow */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <SectionHeader size="card" title="To act on" />
         <SegmentedControl label="What to show" options={ATTENTION_TABS} value={tab} onChange={(value) => setTab(value as AttentionTab)} />
       </div>
 
-      {query.isError && !data ? (
+      {failed ? (
         <p className="text-sm text-gray-red">We couldn&apos;t load what needs attention.</p>
       ) : !data ? (
         <ListSkeleton label="Loading what needs attention" columns={5} />
@@ -130,6 +123,12 @@ export default function NeedsAttentionQueue({ load, rows = ATTENTION_ROWS }: { l
             </RowCard>
           ))}
         </RowCards>
+      )}
+
+      {pageFailed && <p className="text-sm text-danger-ink">We couldn&apos;t load that page.</p>}
+
+      {pager && items.length > 0 && (
+        <Pagination page={pager.current} totalPages={pager.pages} onPageChange={setPage} summary={pager.pages > 1 ? pager : undefined} />
       )}
 
       {viewAll && viewAll.count > 0 && (

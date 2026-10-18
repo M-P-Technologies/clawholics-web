@@ -43,6 +43,8 @@ export const adminKeys = {
   clientNextSteps: (clientId: number) => [ADMIN, "clients", clientId, "nextSteps"] as const,
   scanHistory: () => [ADMIN, "scanHistory"] as const,
   nailists: () => [ADMIN, "nailists"] as const,
+  /** A page of the dashboard's To act on queue: under "appointments", so a change to a booking refreshes it */
+  attention: (tab: string, page: number, pageSize: number) => [ADMIN, "appointments", "attention", tab, page, pageSize] as const,
   /** The bell's notifications of new bookings */
   notifications: () => [ADMIN, "notifications"] as const,
   /** An appointment's payment proofs */

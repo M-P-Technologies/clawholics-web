@@ -49,9 +49,14 @@ export const fetchUtilization = async (date: string, token?: string | null, cler
   return res.json();
 };
 
-// The queue of what to act on, for one of its tabs (admin only)
-export const fetchAttention = async (tab: AttentionTab, token?: string | null, clerkId?: string | null): Promise<AttentionResponse> => {
-  const res = await fetch(`${API_BASE_URL}/attention?tab=${tab}`, {
+// A page of the queue of what to act on, for one of its tabs (admin only)
+export const fetchAttention = async (
+  { tab, page, pageSize }: { tab: AttentionTab; page: number; pageSize: number },
+  token?: string | null,
+  clerkId?: string | null,
+): Promise<AttentionResponse> => {
+  const query = new URLSearchParams({ tab, page: String(page), pageSize: String(pageSize) });
+  const res = await fetch(`${API_BASE_URL}/attention?${query}`, {
     headers: {
       "x-clawholics-origin": "frontend",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),

@@ -148,5 +148,10 @@ export interface AttentionResponse {
     since: string;
     has_screenshot?: boolean;
   }[];
+  /** Every kind's count, whichever tab is open */
   counts: { confirm: number; review: number; complete: number; photos: number; leads: number };
+  /** How many the tab holds in all */
+  total: number;
+  page: number;
+  pageSize: number;
 }
