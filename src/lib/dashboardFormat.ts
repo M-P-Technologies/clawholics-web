@@ -31,3 +31,16 @@ export const shortDay = (ymd: string) => {
   const [year, month, day] = ymd.split("-").map(Number);
   return new Date(year, month - 1, day).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 };
+
+export const WEEKDAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+// The Busiest weekdays card beside Bookings per artist: as many days as that card has artists, the
+// busiest first (a tie goes to the earlier day), so the two cards are the same height. With no
+// artists, or seven or more, every day from Monday to Sunday.
+export function busiestWeekdays(weekdays: { weekday: number; bookings: number }[], artists: number): { label: string; value: number }[] {
+  const days = [...weekdays].sort((x, y) => x.weekday - y.weekday);
+  const shown = artists === 0 || artists >= WEEKDAY_NAMES.length
+    ? days
+    : [...days].sort((x, y) => y.bookings - x.bookings || x.weekday - y.weekday).slice(0, artists);
+  return shown.map((d) => ({ label: WEEKDAY_NAMES[d.weekday - 1], value: d.bookings }));
+}

@@ -359,17 +359,30 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
         </Button>
       </div>
 
-      {/* One row from md (the filters and the search share it, giving way rather than wrapping); a column below */}
+      {/* One row from md, the search on the left and the filters on the right (giving way rather than
+          wrapping); a column below, the search first */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center">
+        <label className="relative w-full md:w-72 md:min-w-40">
+          <span className="sr-only">Search appointments</span>
+          <input
+            type="search"
+            aria-label="Search appointments"
+            value={query}
+            onChange={(e) => choose(setQuery)(e.target.value)}
+            placeholder="Search client, service, artist, ID…"
+            className="h-9 w-full rounded-full border border-crimson-light bg-milk pl-3 pr-9 text-[13px] text-gray-red outline-none placeholder:text-gray-red/60 focus:ring-2 focus:ring-crimson"
+          />
+          <Search size={16} aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-red" />
+        </label>
         {asTable ? (
-          filters.map((filter) => (
+          filters.map((filter, i) => (
             <Select
               key={filter.key}
               aria-label={filter.title}
               value={filter.value}
               onChange={(e) => filter.pick(e.target.value)}
               options={filter.options}
-              className={clsx("min-w-0 flex-1", filter.key === "artist" ? "max-w-40" : "max-w-44")}
+              className={clsx("min-w-0 flex-1", filter.key === "artist" ? "max-w-40" : "max-w-44", i === 0 && "md:ml-auto")}
               triggerClassName="h-9! py-0! text-[13px]"
             />
           ))
@@ -390,18 +403,6 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
             ))}
           </div>
         )}
-        <label className="relative w-full md:ml-auto md:w-72 md:min-w-40">
-          <span className="sr-only">Search appointments</span>
-          <input
-            type="search"
-            aria-label="Search appointments"
-            value={query}
-            onChange={(e) => choose(setQuery)(e.target.value)}
-            placeholder="Search client, service, artist, ID…"
-            className="h-9 w-full rounded-full border border-crimson-light bg-milk pl-3 pr-9 text-[13px] text-gray-red outline-none placeholder:text-gray-red/60 focus:ring-2 focus:ring-crimson"
-          />
-          <Search size={16} aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-red" />
-        </label>
       </div>
 
       {!asTable &&
@@ -477,7 +478,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
           head={
             <tr className="text-left text-xs text-gray-red">
               {["Client", "Phone", "Joined", "Last active", "Visits", "Service", "Artist", "Date", "Time", "Proof", "Status", "Manage"].map((h) => (
-                <th key={h} scope="col" className={clsx("pb-2 pr-3 font-medium", h === "Manage" && "pr-0 text-center", h === "Visits" && "text-right")}>
+                <th key={h} scope="col" className={clsx("pb-2 pr-3 font-medium", h === "Manage" && "pr-0 text-center", h === "Visits" && "text-center")}>
                   {h}
                 </th>
               ))}
@@ -495,7 +496,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
               <td className={clsx(cell, "whitespace-nowrap")}>{facts.phone}</td>
               <td className={clsx(cell, "whitespace-nowrap")}>{facts.joined}</td>
               <td className={clsx(cell, "whitespace-nowrap")}>{facts.lastActive}</td>
-              <td className={clsx(cell, "text-right font-bold")}>{facts.visits}</td>
+              <td className={clsx(cell, "text-center font-bold")}>{facts.visits}</td>
               <td className={cell}>
                 {a.service_name || "–"}
                 <span className="block text-xs text-gray-red">#{a.id}</span>

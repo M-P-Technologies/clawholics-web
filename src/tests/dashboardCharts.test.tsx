@@ -44,6 +44,19 @@ describe("BarChart", () => {
     expect(ticks).toEqual(["0", "20", "40", "60"]);
   });
 
+  it("shows only as many labels under the bars as fit, the last always, and every full name in the tooltips", () => {
+    const days = Array.from({ length: 30 }, (_, i) => ({ label: `Oct ${i + 1}`, title: `October ${i + 1}`, a: i % 4, b: 1 }));
+    const { container } = render(<BarChart title="Bookings over time" data={days} aLabel="Completed" bLabel="Cancelled" aColor="#b83a62" bColor="#2f6fa8" emptyText="No bookings yet" />);
+    const labels = [...container.querySelectorAll("text:not([data-tick])")].map((t) => t.textContent);
+    expect(labels.length).toBeGreaterThan(1);
+    expect(labels.length).toBeLessThan(10);
+    expect(labels[labels.length - 1]).toBe("Oct 30");
+    const tips = [...container.querySelectorAll("title")].map((t) => t.textContent);
+    expect(tips).toHaveLength(30);
+    expect(tips[0]).toBe("October 1: 0 completed, 1 cancelled");
+    expect(within(screen.getByRole("table", { name: "Bookings over time" })).getByText("October 30")).toBeInTheDocument();
+  });
+
   it("says so instead of drawing an empty chart", () => {
     render(<BarChart title="Bookings per month" data={data.map((d) => ({ ...d, a: 0, b: 0 }))} aLabel="Completed" bLabel="Cancelled" aColor="#b83a62" bColor="#2f6fa8" emptyText="No bookings yet" />);
     expect(screen.getByText("No bookings yet")).toBeInTheDocument();

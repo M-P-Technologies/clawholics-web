@@ -15,7 +15,8 @@ import { SectionHeader } from "@/components/molecules";
 import SalonNotes from "@/components/features/admin/dashboard/SalonNotes";
 import GlanceCards from "@/components/features/admin/dashboard/GlanceCards";
 import { OTHER_COLOR, SERIES_COLORS, STACK_COLORS } from "@/components/features/admin/dashboard/chartColors";
-import { ViewBody, monthName } from "@/components/features/admin/dashboard/dashboardParts";
+import { ViewBody } from "@/components/features/admin/dashboard/dashboardParts";
+import { formatAxisLabel, formatBucketLabel } from "@/lib/dashboardTrend";
 
 interface DashboardViewProps {
   data: DashboardResponse;
@@ -30,7 +31,7 @@ interface DashboardViewProps {
 
 const MORE = [
   { to: "/sales", label: "Sales", hint: "money, top services and the sales record" },
-  { to: "/performance", label: "Performance", hint: "visits done, key rates, artist utilization and weekdays" },
+  { to: "/performance", label: "Performance", hint: "key rates, artist utilization and weekdays" },
 ];
 
 // Everything below the title row: only what the salon checks every day. The salon at a glance
@@ -40,8 +41,18 @@ const MORE = [
 export default function DashboardView({ data, loading = false, failed = false, loadBookings, loadAttention }: DashboardViewProps) {
   // The queue shows as many rows as keep its column level with the notes beside it
   const { columnRef, besideRef, rows } = useQueueRows();
-  // All time: the Dashboard has no period
-  const serviceSlices = data.allTime.services.map((s, i) => ({
+  // All time has nothing before it to compare with: no change pills then
+  const compare = data.range !== "all";
+  // The bookings chart: a short date under each bar pair, the full one in its tooltip
+  const bars = data.bookingsTrend;
+  const years = new Set(bars.points.map((b) => b.date.slice(0, 4))).size > 1;
+  const barData = bars.points.map((b) => ({
+    label: formatAxisLabel(bars.granularity, b.date, years),
+    title: formatBucketLabel(bars.granularity, b.date),
+    a: b.completed,
+    b: b.cancelled,
+  }));
+  const serviceSlices = data.overview.services.map((s, i) => ({
     label: s.name,
     value: s.bookings,
     color: s.name === "Other" ? OTHER_COLOR : SERIES_COLORS[i % SERIES_COLORS.length],
@@ -49,7 +60,7 @@ export default function DashboardView({ data, loading = false, failed = false, l
 
   return (
     <ViewBody loading={loading} failed={failed}>
-      <GlanceCards totals={data.totals} granularity={data.trend.granularity} />
+      <GlanceCards totals={data.totals} granularity={data.trend.granularity} compare={compare} />
 
       {/* Words on the right, figures on the left. On a phone the notes come straight after the
           stat cards; from lg up they take one column of the same four-column grid as the stat cards, so
@@ -62,15 +73,15 @@ export default function DashboardView({ data, loading = false, failed = false, l
 
         <div ref={columnRef} className="flex min-w-0 flex-col gap-3 md:gap-6 lg:col-span-2">
           <div className="grid grid-cols-1 gap-3 md:gap-6 xl:grid-cols-2">
-            <Card as="section" aria-label="Bookings per month" className="flex min-w-0 flex-col gap-3"><SectionHeader size="card" title="Bookings per month" />
+            <Card as="section" aria-label="Bookings over time" className="flex min-w-0 flex-col gap-3"><SectionHeader size="card" title="Bookings over time" />
               <BarChart
-                title="Bookings per month"
-                data={data.monthly.map((m) => ({ label: monthName(m.month), a: m.completed, b: m.cancelled }))}
+                title="Bookings over time"
+                data={barData}
                 aLabel="Completed"
                 bLabel="Cancelled"
                 aColor={STACK_COLORS.done}
                 bColor={STACK_COLORS.lost}
-                emptyText="No bookings in these months yet."
+                emptyText="No bookings in this period yet."
               />
             </Card>
 

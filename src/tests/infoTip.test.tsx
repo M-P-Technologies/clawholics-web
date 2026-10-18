@@ -58,9 +58,8 @@ describe("the report pages' stat cards", () => {
       </>,
     );
     const labels = [
-      "Collected", "Sales", "Bookings", "Returning clients",
       "Gross income", "Unearned income", "Forfeits & late fees", "Revenue",
-      "Cancellation rate", "Booking conversion", "Lead conversion", "Repeat rate", "Average sale", "Client lifetime value", "Churn", "Loyalty",
+      "Cancellation rate", "Booking conversion", "Lead conversion", "Repeat rate",
       "Total clients", "Total services", "Artists", "Appointments",
     ];
     for (const label of labels) expect(screen.getByRole("button", { name: `About ${label}` })).toBeInTheDocument();

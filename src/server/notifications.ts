@@ -5,10 +5,10 @@ import { recordVisitsToComplete } from "./visitsToComplete";
 // The admins' notifications of new bookings (the bell in the admin top bar). An event is
 // recorded once, for every admin; each admin's read state is the newest one they've seen.
 
-export type AdminNotificationKind = "booking_paid" | "proof_uploaded" | "visit_to_complete" | "payment_to_check";
+type AdminNotificationKind = "booking_paid" | "proof_uploaded" | "visit_to_complete" | "payment_to_check";
 
 /** How many of the newest notifications the bell lists */
-export const NOTIFICATIONS_SHOWN = 20;
+const NOTIFICATIONS_SHOWN = 20;
 
 export interface AdminNotification {
   id: number;

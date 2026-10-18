@@ -80,7 +80,7 @@ export const getBookedSlots = ported(async (req) => {
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 /** The longest range /booking/slots-range answers, in days: the booking calendar asks for a month */
-export const MAX_SLOTS_RANGE_DAYS = 62;
+const MAX_SLOTS_RANGE_DAYS = 62;
 
 // GET /booking/slots-range?nailist_id=&from=YYYY-MM-DD&to=YYYY-MM-DD (public): the taken times
 // of every day in the range in one query, for the booking calendar's fully booked days (it used
@@ -274,7 +274,7 @@ export const createAdminBooking = ported(async (req) => {
 });
 
 /** The most rows one page of the admin list returns */
-export const MAX_APPOINTMENT_PAGE_SIZE = 50;
+const MAX_APPOINTMENT_PAGE_SIZE = 50;
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 
 // GET /booking/appointments and /appointments[?status=A,B] (admin): every appointment.

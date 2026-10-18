@@ -2,7 +2,7 @@ import type { HomeOffer, HomeSections } from "../homeSections";
 import { fillName, isBirthdayMonth } from "./birthday";
 import { CLIENT_PATHS } from "./clientNav";
 
-export interface OfferBanner extends HomeOffer {
+interface OfferBanner extends HomeOffer {
   key: string;
   birthday: boolean;
 }

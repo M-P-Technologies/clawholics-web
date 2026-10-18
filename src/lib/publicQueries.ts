@@ -47,7 +47,7 @@ export const SERVICE_NOT_FOUND = "Service not found";
 export { PUBLIC };
 
 /** The home content keys (Admin > Homepage and Contact Us), e.g. home_title */
-export type HomeContentMap = HomeContent & Record<string, string>;
+type HomeContentMap = HomeContent & Record<string, string>;
 
 export const publicQueries = {
   home: () => queryOptions({ queryKey: publicKeys.home, queryFn: (): Promise<HomeContentMap> => fetchHomeContent() }),

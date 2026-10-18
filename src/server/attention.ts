@@ -10,7 +10,7 @@ import { END_CLOCK_SQL, PHOTOS_TO_ADD_SQL, TO_COMPLETE_SQL, manilaNow } from "./
 // to review, 3 visits to complete (the latest first), 4 visit photos to add, 5 warm leads (the
 // newest first). Each tab lists its own kinds.
 
-export type AttentionKind = "confirm" | "review" | "complete" | "photos" | "lead";
+type AttentionKind = "confirm" | "review" | "complete" | "photos" | "lead";
 export type AttentionTab = "all" | "confirm" | "complete" | "leads";
 export const ATTENTION_TABS: AttentionTab[] = ["all", "confirm", "complete", "leads"];
 const TAB_KINDS: Record<AttentionTab, AttentionKind[]> = {
@@ -20,7 +20,7 @@ const TAB_KINDS: Record<AttentionTab, AttentionKind[]> = {
   leads: ["lead"],
 };
 
-export interface AttentionItem {
+interface AttentionItem {
   kind: AttentionKind;
   /** The booking, or null for a warm lead */
   appointment_id: number | null;

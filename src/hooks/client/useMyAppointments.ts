@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useClientWideLayout } from "../useMinWidth";
 import { useMyAccount } from "./useMyAccount";
 
-export type AppointmentsTab = "upcoming" | "past";
+type AppointmentsTab = "upcoming" | "past";
 
 // The Appointments screen: the account's visits, which list is shown (upcoming or past), the ids of
 // the visits already reviewed, and (as in Explore) the visit shown in the panel beside the list

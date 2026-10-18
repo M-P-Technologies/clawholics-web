@@ -18,7 +18,7 @@ export interface DirectoryUser {
   instagramHandle?: string;
 }
 
-export interface DirectoryUserPayload {
+interface DirectoryUserPayload {
   firstName: string;
   lastName: string;
   phoneNumber: string;
@@ -371,7 +371,7 @@ export async function fetchDirectoryProfiles(
 }
 
 /** One page of the admin accounts, and every admin's Clerk id (for the stat cards) */
-export interface AdminPage {
+interface AdminPage {
   rows: DirectoryUser[];
   total: number;
   page: number;

@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
-  DASHBOARD_RANGES, addDays, isDashboardRange, manilaClock, manilaToday, monthKeys, resolvePeriod,
+  DASHBOARD_RANGES, addDays, isDashboardRange, manilaClock, manilaToday, resolvePeriod,
 } from "@/lib/dashboardPeriods";
 
 describe("dashboard periods", () => {
-  it("knows the five ranges", () => {
-    expect(DASHBOARD_RANGES).toEqual(["week", "month", "last30", "last90", "year"]);
+  it("knows the six ranges, All time last", () => {
+    expect(DASHBOARD_RANGES).toEqual(["week", "month", "last30", "last90", "year", "all"]);
     expect(isDashboardRange("month")).toBe(true);
     expect(isDashboardRange("decade")).toBe(false);
     expect(isDashboardRange(undefined)).toBe(false);
@@ -62,10 +62,5 @@ describe("dashboard periods", () => {
     expect(addDays(period.from, 89)).toBe(period.to);
     expect(addDays(previous.from, 89)).toBe(previous.to);
     expect(addDays(previous.to, 1)).toBe(period.from);
-  });
-
-  it("lists the last months, oldest first, across a year end", () => {
-    expect(monthKeys("2026-10-14", 6)).toEqual(["2026-05", "2026-06", "2026-07", "2026-08", "2026-09", "2026-10"]);
-    expect(monthKeys("2026-02-10", 4)).toEqual(["2025-11", "2025-12", "2026-01", "2026-02"]);
   });
 });

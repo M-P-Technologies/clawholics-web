@@ -17,7 +17,7 @@ export const PAYMENT_METHOD_CHOICES = [
   { value: "MANUAL", label: "Payment proof", hint: "Clients pay outside the site and upload a photo of the receipt, which an admin reviews." },
 ];
 
-export const MAX_DOWNPAYMENT = 100000;
+const MAX_DOWNPAYMENT = 100000;
 /** The most stamps a loyalty card can need (the card shows one box per stamp) */
 export const MAX_LOYALTY_STAMPS = 20;
 /** The shortest and longest a new booking can hold its slot while the client pays, in minutes */

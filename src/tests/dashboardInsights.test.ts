@@ -4,17 +4,17 @@ import type { DashboardResponse } from "@/services/dashboardTypes";
 import { dashboardData } from "./dashboardFixture";
 
 // A busy, steady salon with nothing remarkable over all time: no wins, no watch-outs, no tips
-const steady = (allTime: Partial<DashboardResponse["allTime"]> = {}, rest: Partial<DashboardResponse> = {}): DashboardResponse => ({
+const steady = (overview: Partial<DashboardResponse["overview"]> = {}, rest: Partial<DashboardResponse> = {}): DashboardResponse => ({
   ...dashboardData,
   lapsedClients: 0,
   attention: { today: 0, proofsToReview: 0, toConfirm: 0, toComplete: 0, photosToAdd: 0, unpaid: 0, warmLeads: 0 },
   ...rest,
-  allTime: {
+  overview: {
     services: [{ name: "Gel", bookings: 10, estimatedSales: 0 }, { name: "Art", bookings: 10, estimatedSales: 0 }],
     weekdays: [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({ weekday, bookings: 3 })),
     artists: [{ name: "Jun", bookings: 10 }, { name: "Maxine", bookings: 10 }],
     decided: 20, cancellation: 0.1, conversion: 0.9, returningClients: 0, loyaltyRedeemed: 0,
-    ...allTime,
+    ...overview,
   },
 });
 const texts = (items: { text: string }[]) => items.map((i) => i.text);
@@ -28,7 +28,7 @@ describe("buildInsights: a steady salon", () => {
   });
 
   it("never compares with a previous period, whatever the period's numbers", () => {
-    const i = buildInsights(steady({}, { kpis: { ...dashboardData.kpis, collected: { value: 100, previous: 10000 } } }));
+    const i = buildInsights(steady({}, { rates: { ...dashboardData.rates, cancellation: { value: 0, previous: 0.9 } } }));
     expect(i.status).toBe("steady");
   });
 });

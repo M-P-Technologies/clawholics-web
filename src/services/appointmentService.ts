@@ -118,31 +118,6 @@ const getHeaders = (token?: string | null, clerkId?: string | null) => {
   return headers;
 };
 
-export const fetchAppointments = async (
-  statuses?: AppointmentStatus[],
-  token?: string | null,
-  clerkId?: string | null
-): Promise<Appointment[]> => {
-  const queryParts = [];
-  if (statuses && statuses.length > 0) {
-    queryParts.push(`status=${encodeURIComponent(statuses.join(","))}`);
-  }
-  queryParts.push(`t=${Date.now()}`);
-  
-  const query = `?${queryParts.join("&")}`;
-
-  const res = await fetch(`${BASE_URL}${query}`, {
-    headers: getHeaders(token, clerkId)
-  });
-
-  if (!res.ok) {
-    if (res.status === 403) window.location.href = "/";
-    throw new Error("Failed to fetch appointments");
-  }
-
-  return res.json();
-};
-
 export const fetchAppointmentById = async (
   id: number,
   token?: string | null,

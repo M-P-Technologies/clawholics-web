@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-export interface PollingOptions {
+interface PollingOptions {
   intervalMs: number;
   /** Give up after this long. Without it, polling only ends when the task says so. */
   maxMs?: number;

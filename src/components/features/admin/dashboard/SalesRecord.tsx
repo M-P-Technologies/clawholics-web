@@ -68,7 +68,7 @@ export default function SalesRecord({ sales }: { sales: DashboardResponse["sales
             head={
               <tr className="text-left text-xs text-gray-red">
                 {["Service", "Customer", "Artist", "Date", "Fee"].map((h) => (
-                  <th key={h} scope="col" className={h === "Fee" ? "pb-2 text-right font-medium" : "pb-2 font-medium"}>
+                  <th key={h} scope="col" className="pb-2 font-medium">
                     {h}
                   </th>
                 ))}
@@ -89,7 +89,7 @@ export default function SalesRecord({ sales }: { sales: DashboardResponse["sales
               </td>
               <td className={cell}>{s.nailist_name}</td>
               <td className={`${cell} whitespace-nowrap`}>{dateLabel(s.date)}</td>
-              <td className={`${cell} pr-0 text-right font-bold`}>{s.fee === null ? "–" : peso(s.fee)}</td>
+              <td className={`${cell} pr-0 font-bold`}>{s.fee === null ? "–" : peso(s.fee)}</td>
             </tr>
           ))}
           </TableFrame>

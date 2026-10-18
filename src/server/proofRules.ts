@@ -5,9 +5,6 @@ import { getSql } from "./db";
 // AWAITING_PROOF) and a booking paid online waiting for the salon (AWAITING_CONFIRMATION) both
 // carry one, and an admin checks it before the booking is confirmed.
 
-/** The statuses whose latest proof an admin reviews */
-export const PROOF_REVIEW_STATUSES = ["PENDING", "AWAITING_PROOF", "AWAITING_CONFIRMATION"];
-
 const LATEST_PROOF_STATUS = (alias: string) =>
   `(select pp.status from payment_proofs pp where pp.appointment_id = ${alias}.id order by pp.created_at desc, pp.id desc limit 1)`;
 

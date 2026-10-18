@@ -55,7 +55,7 @@ describe("the Performance page", () => {
   it("shows the key rates and loads artist utilization", async () => {
     render(<Performance />);
     const rates = await screen.findByRole("region", { name: "Key rates" });
-    expect(within(rates).getByRole("group", { name: "Churn" })).toBeInTheDocument();
+    expect(within(rates).getByRole("group", { name: "Repeat rate" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Performance" })).toBeInTheDocument();
     expect(await screen.findByRole("region", { name: "Artist utilization" })).toBeInTheDocument();
     expect(fetchUtilization).toHaveBeenCalled();

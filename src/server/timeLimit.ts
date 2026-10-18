@@ -7,7 +7,7 @@ import "server-only";
 // does without that piece (the browser fetches the content itself).
 
 /** How long a page waits for one read */
-export const READ_LIMIT_MS = 3000;
+const READ_LIMIT_MS = 3000;
 
 /** The read's result, or a rejection once it has taken longer than `ms` */
 export function withTimeLimit<T>(read: () => PromiseLike<T>, label: string, ms = READ_LIMIT_MS): Promise<T> {

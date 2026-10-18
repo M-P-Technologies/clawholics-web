@@ -94,7 +94,7 @@ export default function NeedsAttentionQueue({ load, rows = ATTENTION_ROWS }: { l
           head={
             <tr className="text-left text-xs text-gray-red">
               {["Client", "What's needed", "Booking", "Waiting", ""].map((h, i) => (
-                <th key={h || i} scope="col" className={clsx("pb-2 pr-3 font-medium", i === 4 && "pr-0 text-right")}>
+                <th key={h || i} scope="col" className={clsx("pb-2 pr-3 font-medium", i === 4 && "pr-0 text-center")}>
                   {h || <span className="sr-only">Action</span>}
                 </th>
               ))}
@@ -109,7 +109,7 @@ export default function NeedsAttentionQueue({ load, rows = ATTENTION_ROWS }: { l
                 <td className={cell}>{need(item)}</td>
                 <td className={clsx(cell, "max-w-64")}>{booking(item)}</td>
                 <td className={clsx(cell, "whitespace-nowrap")}>{waitingLabel(item.since, now)}</td>
-                <td className={clsx(cell, "pr-0 text-right")}>{action(item)}</td>
+                <td className={clsx(cell, "pr-0 text-center")}>{action(item)}</td>
               </tr>
             );
           })}

@@ -10,7 +10,7 @@ export type AppointmentFilterStatus =
   | "PHOTOS_TO_ADD";
 
 /** A confirmed visit that is over (Manila time), waiting to be completed: the server's TO_COMPLETE_SQL */
-export function isVisitToComplete(appointment: Appointment, now: number): boolean {
+function isVisitToComplete(appointment: Appointment, now: number): boolean {
   if ((appointment.status ?? "").trim().toUpperCase() !== "CONFIRMED") return false;
   const manila = new Date(now + 8 * 3600 * 1000).toISOString();
   const [today, clock] = [manila.slice(0, 10), manila.slice(11, 16)];

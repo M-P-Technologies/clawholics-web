@@ -11,7 +11,7 @@ import { manilaTimeOfDay } from "../../lib/timeFormat";
 import { fetchScannedClient, recordScanAction, type ScanRecord, type ScannedClient } from "../../services/scanService";
 
 /** What the last scanned code turned out to be: a client, or why it couldn't be used */
-export interface LastScan {
+interface LastScan {
   userId: string;
   client?: ScannedClient;
   error?: string;

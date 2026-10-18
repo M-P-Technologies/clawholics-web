@@ -12,7 +12,7 @@ const STEP_STYLE: Record<StepState, { dot: string; bar: string; title: string }>
 };
 
 /** A step state, read out after the step's title */
-export const stepStateLabel = (state: StepState) =>
+const stepStateLabel = (state: StepState) =>
   state === "done" ? "done" : state === "current" ? "in progress" : state === "stopped" ? "stopped" : "not yet";
 
 // Where something is, step by step (a booking from booked to the finished visit): numbered dots

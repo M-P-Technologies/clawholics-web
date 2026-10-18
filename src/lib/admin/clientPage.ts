@@ -45,13 +45,13 @@ export const CLIENT_TABS: { value: ClientTab; label: string }[] = [
 
 
 /** A date of birth ("1998-03-14") as "Mar 14, 1998"; null when there is none or it is not a date */
-export const birthdayLabel = (dob?: string | null) => (dob && /^\d{4}-\d{2}-\d{2}/.test(dob) ? dateLabel(dob.slice(0, 10)) : null);
+const birthdayLabel = (dob?: string | null) => (dob && /^\d{4}-\d{2}-\d{2}/.test(dob) ? dateLabel(dob.slice(0, 10)) : null);
 
 /**
  * This year's birthday voucher, for the client info: "K7MX4QPA · 20% off · claimed, until Oct 31, 2026",
  * "… · used on Oct 12, 2026" or "… · expired"; null when they have none
  */
-export const voucherLabel = (voucher: ClientDetails["birthday_voucher"]) => {
+const voucherLabel = (voucher: ClientDetails["birthday_voucher"]) => {
   if (!voucher) return null;
   const state =
     voucher.status === "USED"
@@ -62,14 +62,14 @@ export const voucherLabel = (voucher: ClientDetails["birthday_voucher"]) => {
   return `${voucher.code} · ${voucher.discount_pct}% off · ${state}`;
 };
 
-export interface ClientInfoRow {
+interface ClientInfoRow {
   label: string;
   value: string | null;
   Icon: ComponentType<{ className?: string }>;
 }
 
 /** The Client info list: contact details, when they joined, their last and next visits, and their birthday voucher */
-export const clientInfoRows = ({ client, summary, birthday_voucher }: Pick<ClientDetails, "client" | "summary" | "birthday_voucher">): ClientInfoRow[] =>
+const clientInfoRows = ({ client, summary, birthday_voucher }: Pick<ClientDetails, "client" | "summary" | "birthday_voucher">): ClientInfoRow[] =>
   [
     { label: "Email", value: client.email, Icon: Mail },
     { label: "Phone", value: client.phone, Icon: Phone },

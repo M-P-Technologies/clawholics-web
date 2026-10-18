@@ -7,7 +7,7 @@ import { nextApiEnabled } from "./worker";
 // send, or the same-origin __session cookie). Unlike the Worker, the `clerk_id` header is
 // never trusted. Roles come from users.role, as on the Worker.
 
-export interface Requester {
+interface Requester {
   clerkId: string;
   role: string | null;
 }

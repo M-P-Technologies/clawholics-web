@@ -33,7 +33,7 @@ async function getSalonSettings(): Promise<SalonSettings> {
 const isWholeIn = (value: unknown, min: number, max: number) => Number.isInteger(value) && (value as number) >= min && (value as number) <= max;
 
 /** An error message, or null when the body is a valid settings update. */
-export function validateSalonSettings(body: unknown): string | null {
+function validateSalonSettings(body: unknown): string | null {
   const paymentError = validatePaymentSettings(body);
   if (paymentError) return paymentError;
   const { birthday_discount_pct: pct, loyalty_stamps_required: stamps, booking_hold_minutes: hold } = body as Record<string, unknown>;

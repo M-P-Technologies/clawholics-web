@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import { StatCard } from "@/components/molecules";
 
-export interface DirectoryStat {
+interface DirectoryStat {
   label: string;
   /** null while it loads or when it couldn't be worked out: the card shows a dash */
   value: number | null;

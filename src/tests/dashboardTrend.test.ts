@@ -55,9 +55,9 @@ describe("trend buckets", () => {
 
 describe("bucketTrend", () => {
   const byDay = {
-    "2026-10-12": { collected: 500, bookings: 1 },
-    "2026-10-14": { collected: 300, estimatedSales: 800, bookings: 2, newClients: 1, recurringClients: 0 },
-    "2026-10-20": { collected: 9999 }, // after the buckets: ignored
+    "2026-10-12": { bookings: 1 },
+    "2026-10-14": { bookings: 2 },
+    "2026-10-20": { bookings: 9999 }, // after the buckets: ignored
   };
 
   it("adds up every day in a bucket, and missing days count as zero", () => {
@@ -65,15 +65,15 @@ describe("bucketTrend", () => {
     const trend = bucketTrend("day", buckets, byDay);
     expect(trend.granularity).toBe("day");
     expect(trend.points).toEqual([
-      { date: "2026-10-12", collected: 500, estimatedSales: 0, bookings: 1, newClients: 0, recurringClients: 0 },
-      { date: "2026-10-13", collected: 0, estimatedSales: 0, bookings: 0, newClients: 0, recurringClients: 0 },
-      { date: "2026-10-14", collected: 300, estimatedSales: 800, bookings: 2, newClients: 1, recurringClients: 0 },
+      { date: "2026-10-12", bookings: 1 },
+      { date: "2026-10-13", bookings: 0 },
+      { date: "2026-10-14", bookings: 2 },
     ]);
   });
 
   it("a weekly bucket sums its days", () => {
     const trend = bucketTrend("week", [{ from: "2026-10-12", to: "2026-10-18" }], byDay);
-    expect(trend.points[0]).toEqual({ date: "2026-10-12", collected: 800, estimatedSales: 800, bookings: 3, newClients: 1, recurringClients: 0 });
+    expect(trend.points[0]).toEqual({ date: "2026-10-12", bookings: 3 });
   });
 });
 

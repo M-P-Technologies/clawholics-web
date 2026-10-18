@@ -3,7 +3,9 @@ import { useEffect, useRef, useState } from "react";
 
 interface BarChartProps {
   title: string;
-  data: { label: string; a: number; b: number }[];
+  /** `label` sits under the bars (shown only as often as it fits); `title`, the full name, is in the
+   *  tooltip and the table read to screen readers (the label when left out) */
+  data: { label: string; title?: string; a: number; b: number }[];
   aLabel: string;
   bLabel: string;
   aColor: string;
@@ -74,7 +76,13 @@ export default function BarChart({ title, data, aLabel, bLabel, aColor, bColor, 
   const barW = Math.min(12, (slot * 0.6 - GAP) / 2);
   const base = TOP + innerH;
   const y = (value: number) => base - (value / top) * innerH;
-  const summary = `${title}: ${data.map((d) => `${d.label} ${d.a} ${aLabel.toLowerCase()}, ${d.b} ${bLabel.toLowerCase()}`).join("; ")}`;
+  const name = (d: (typeof data)[number]) => d.title ?? d.label;
+  const summary = `${title}: ${data.map((d) => `${name(d)} ${d.a} ${aLabel.toLowerCase()}, ${d.b} ${bLabel.toLowerCase()}`).join("; ")}`;
+  // Every `every`th label, counted back from the last, so they never run into each other: each
+  // needs its own width (about 0.6em a character) and a little room, in on-screen pixels
+  const widest = Math.max(...data.map((d) => d.label.length)) * labelPx * 0.6 + 8;
+  const every = Math.max(1, Math.ceil(widest / (slot * scale)));
+  const labelled = (i: number) => (data.length - 1 - i) % every === 0;
 
   const bar = (series: "a" | "b", value: number, x: number, color: string) => {
     if (value <= 0) return null;
@@ -112,13 +120,13 @@ export default function BarChart({ title, data, aLabel, bLabel, aColor, bColor, 
           const ax = center - GAP / 2 - barW;
           const bx = center + GAP / 2;
           return (
-            <g key={d.label}>
-              <title>{`${d.label}: ${d.a} ${aLabel.toLowerCase()}, ${d.b} ${bLabel.toLowerCase()}`}</title>
-              {/* a wider, invisible target so the whole month shows its tooltip */}
+            <g key={`${i}-${d.label}`}>
+              <title>{`${name(d)}: ${d.a} ${aLabel.toLowerCase()}, ${d.b} ${bLabel.toLowerCase()}`}</title>
+              {/* a wider, invisible target so the whole slot shows its tooltip */}
               <rect x={LEFT + slot * i} y={TOP} width={slot} height={innerH} fill="transparent" />
               {bar("a", d.a, ax, aColor)}
               {bar("b", d.b, bx, bColor)}
-              <text x={center} y={H - px(4)} textAnchor="middle" fontSize={fontSize} fill="#7a5f5a">{d.label}</text>
+              {labelled(i) && <text x={center} y={H - px(4)} textAnchor="middle" fontSize={fontSize} fill="#7a5f5a">{d.label}</text>}
             </g>
           );
         })}
@@ -126,10 +134,10 @@ export default function BarChart({ title, data, aLabel, bLabel, aColor, bColor, 
       </div>
 
       <table aria-label={title} className="sr-only">
-        <thead><tr><th>Month</th><th>{aLabel}</th><th>{bLabel}</th></tr></thead>
+        <thead><tr><th>When</th><th>{aLabel}</th><th>{bLabel}</th></tr></thead>
         <tbody>
-          {data.map((d) => (
-            <tr key={d.label}><td>{d.label}</td><td>{d.a}</td><td>{d.b}</td></tr>
+          {data.map((d, i) => (
+            <tr key={`${i}-${d.label}`}><td>{name(d)}</td><td>{d.a}</td><td>{d.b}</td></tr>
           ))}
         </tbody>
       </table>

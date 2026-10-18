@@ -10,13 +10,16 @@ interface MoneyCardsProps {
   money: Money;
   /** What each of `money.points` covers */
   granularity?: Granularity;
+  /** false: no change pills (All time has nothing before it to compare with) */
+  compare?: boolean;
 }
 
 // The period's money for the salon's financial statements (see Money): what it earned (revenue),
 // what came in (refunds are taken off it), the downpayments still held for visits to come, and what
 // was kept from cancellations and no-shows plus late fees. Each card has a small line over the
 // period, like the stat cards.
-export default function MoneyCards({ money, granularity = "day" }: MoneyCardsProps) {
+export default function MoneyCards({ money, granularity = "day", compare = true }: MoneyCardsProps) {
+  const change = (c: { value: number; previous: number }) => (compare ? describeChange(c.value, c.previous) : undefined);
   const line = (label: string, key: Exclude<keyof MoneyPoint, "date">) => {
     const points = money.points;
     if (points.length === 0) return undefined;
@@ -36,7 +39,7 @@ export default function MoneyCards({ money, granularity = "day" }: MoneyCardsPro
         icon={TrendingUp}
         label="Revenue" info={<StatInfoTip label="Revenue" which="revenue" />}
         value={peso(money.revenue.value)}
-        change={describeChange(money.revenue.value, money.revenue.previous)}
+        change={change(money.revenue)}
         hint="earned from visits done"
         sparkline={line("Revenue", "revenue")}
       />
@@ -44,7 +47,7 @@ export default function MoneyCards({ money, granularity = "day" }: MoneyCardsPro
         icon={Banknote}
         label="Gross income" info={<StatInfoTip label="Gross income" which="grossReceipts" />}
         value={peso(money.grossReceipts.value)}
-        change={describeChange(money.grossReceipts.value, money.grossReceipts.previous)}
+        change={change(money.grossReceipts)}
         hint="payments in, less refunds"
         sparkline={line("Gross income", "grossReceipts")}
       />
@@ -52,7 +55,7 @@ export default function MoneyCards({ money, granularity = "day" }: MoneyCardsPro
         icon={Hourglass}
         label="Unearned income" info={<StatInfoTip label="Unearned income" which="unearned" />}
         value={peso(money.unearned.value)}
-        change={describeChange(money.unearned.value, money.unearned.previous)}
+        change={change(money.unearned)}
         hint="held today for upcoming visits"
         sparkline={line("Unearned income", "unearned")}
       />
@@ -60,7 +63,7 @@ export default function MoneyCards({ money, granularity = "day" }: MoneyCardsPro
         icon={ReceiptText}
         label="Forfeits & late fees" info={<StatInfoTip label="Forfeits & late fees" which="otherIncome" />}
         value={peso(money.otherIncome.value)}
-        change={describeChange(money.otherIncome.value, money.otherIncome.previous)}
+        change={change(money.otherIncome)}
         hint="kept downpayments + late fees"
         sparkline={line("Forfeits and late fees", "otherIncome")}
       />

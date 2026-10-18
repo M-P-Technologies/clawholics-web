@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import clsx from "clsx";
 import { Button } from "../atoms";
 
-export const PAGE_SIZE = 10;
+const PAGE_SIZE = 10;
 
 /** One page of `items` (`size` rows to a page), and what the pager needs to show it */
 export function paginate<T>(items: T[], page: number, size = PAGE_SIZE) {
