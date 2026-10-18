@@ -23,7 +23,7 @@ const base = (over: Partial<DashboardResponse> = {}): DashboardResponse => ({
   lapsedClients: 0, leads: { accounts: 4, booked: 2 }, clientBase: { clients: 5, lifetimeValue: 1120, churn: 0.2 }, totals: { clients: 17, services: 35, artists: 5, appointments: 6, trend: [], growth: { clients: 15, appointments: 4, servicesBooked: { value: 8, previous: 10 }, artistsBooked: { value: 5, previous: 5 } } }, sales: [],
   loyalty: { stamps: 0, redeemed: 0 },
   attention: { today: 0, proofsToReview: 0, toConfirm: 0, toComplete: 0, photosToAdd: 0, unpaid: 0, warmLeads: 0 },
-  money: { grossReceipts: { value: 0, previous: 0 }, unearned: { value: 0, previous: 0 }, otherIncome: { value: 0, previous: 0 }, refunds: { value: 0, previous: 0 }, points: [] },
+  money: { grossReceipts: { value: 0, previous: 0 }, unearned: { value: 0, previous: 0 }, revenue: { value: 0, previous: 0 }, otherIncome: { value: 0, previous: 0 }, refunds: { value: 0, previous: 0 }, points: [] },
   trend: { granularity: "day", points: [] },
   monthly: ["2026-05", "2026-06", "2026-07", "2026-08", "2026-09", "2026-10"].map((month) => ({ month, completed: 5, cancelled: 0 })),
   services: [], weekdays: [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({ weekday, bookings: 2 })),

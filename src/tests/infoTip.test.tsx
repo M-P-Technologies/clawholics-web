@@ -59,12 +59,12 @@ describe("the report pages' stat cards", () => {
     );
     const labels = [
       "Collected", "Sales", "Bookings", "Returning clients",
-      "Gross receipts", "Unearned", "Forfeits & late fees", "Refunds",
+      "Gross income", "Unearned income", "Forfeits & late fees", "Revenue",
       "Cancellation rate", "Booking conversion", "Lead conversion", "Repeat rate", "Average sale", "Client lifetime value", "Churn", "Loyalty",
       "Total clients", "Total services", "Artists", "Appointments",
     ];
     for (const label of labels) expect(screen.getByRole("button", { name: `About ${label}` })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "About Unearned" }));
+    fireEvent.click(screen.getByRole("button", { name: "About Unearned income" }));
     expect(screen.getByRole("tooltip")).toHaveTextContent(STAT_INFO.unearned.how);
   });
 });

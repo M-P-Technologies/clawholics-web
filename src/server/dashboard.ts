@@ -64,10 +64,10 @@ const BALANCE = "coalesce(recorded_balance, greatest(coalesce(price, 0) - paid, 
 
 const rate = (part: number, whole: number) => (whole === 0 ? null : part / whole);
 
-// From October 2026 the Bookings per month chart, the Service mix and the Salon notes' busiest
-// weekday and artist count a visit only once it
-// was completed with the booking tracker (confirmed, then Complete visit); visits before it still
-// count by their status, as they did before the tracker
+// From October 2026 the Bookings per month chart, the Service mix, the Salon notes' busiest
+// weekday and artist, and the Sales page's Top services and How bookings ended count a visit only
+// once it was completed with the booking tracker (confirmed, then Complete visit); visits before it
+// still count by their status, as they did before the tracker
 export const TRACKER_FROM = "2026-10-01";
 // A completed visit's day for the chart: before TRACKER_FROM the visit's day if its status is
 // Completed, from it the day it was completed with the tracker
@@ -94,17 +94,21 @@ const DOWNPAYMENT_FLOWS = `${APPT} select ${LOCAL_DATE(PAID_AT)} as in_d,
 type Flow = { in_d: string; out_d: string | null; kind: "earned" | "refunded" | "forfeited" | null; amount: number };
 
 // The four money figures for a span, from the flows and the visits completed in it (their balances
-// and late fees): gross receipts (money in: downpayments paid, balances paid at the salon, less
-// refunds), other income (forfeited downpayments and late fees), refunds, and the downpayments still
-// held at its end (unearned: a liability until the visit is done)
+// and late fees): gross income (money in: downpayments paid, balances paid at the salon, less
+// refunds), revenue (what the salon earned: the downpayments and balances of the visits completed
+// in it, plus forfeited downpayments; a recorded balance already holds the visit's late fee), other
+// income (forfeited downpayments and late fees), refunds, and the downpayments still held at its end
+// (unearned: a liability until the visit is done)
 function moneyFor(flows: Flow[], span: Span, completed: { balance: number; lateFees: number }) {
   const sum = (pick: (f: Flow) => boolean) => flows.filter(pick).reduce((total, f) => total + f.amount, 0);
   const inSpan = (d: string | null) => d !== null && d >= span.from && d <= span.to;
   const received = sum((f) => inSpan(f.in_d));
   const refunds = sum((f) => f.kind === "refunded" && inSpan(f.out_d));
   const forfeited = sum((f) => f.kind === "forfeited" && inSpan(f.out_d));
+  const earned = sum((f) => f.kind === "earned" && inSpan(f.out_d));
   return {
     grossReceipts: received + completed.balance - refunds,
+    revenue: earned + completed.balance + forfeited,
     otherIncome: forfeited + completed.lateFees,
     refunds,
     unearned: sum((f) => f.in_d <= span.to && (f.out_d === null || f.out_d > span.to)),
@@ -254,10 +258,12 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
            union all
            select substr(d, 1, 7), 0, 1 from appt where st in ${CANCELLED} and d between $1 and $2
          ) m group by 1`, [`${months[0]}-01`, `${months[months.length - 1]}-31`]),
+      // The Sales page's Top services: booked in the period by the October rule (MIX_BOOKED), and
+      // what the completed ones sold for (DONE_D)
       rows<{ name: string; bookings: number; estimated_sales: number }>(
         `${APPT} select service_name as name, count(*)::int as bookings,
-           coalesce(sum(${SALE}) filter (where st = 'COMPLETED'), 0)::int as estimated_sales
-         from appt where d between $1 and $2 and st in ${BOOKED}
+           coalesce(sum(${SALE}) filter (where ${DONE_D} is not null), 0)::int as estimated_sales
+         from appt where d between $1 and $2 and ${MIX_BOOKED}
          group by service_name order by bookings desc, estimated_sales desc, service_name`, p),
       rows<{ weekday: number; bookings: number }>(
         `${APPT} select extract(isodow from d::date)::int as weekday, count(*)::int as bookings
@@ -266,8 +272,11 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
         `${APPT} select nailist_name as name, count(*)::int as bookings
          from appt where d between $1 and $2 and st in ${BOOKED}
          group by nailist_name order by bookings desc, nailist_name`, p),
+      // How bookings ended: by status, but from October a booking marked Completed without the
+      // tracker's Complete visit is left out
       rows<{ st: string; n: number }>(
-        `${APPT} select st, count(*)::int as n from appt where d between $1 and $2 group by st`, p),
+        `${APPT} select st, count(*)::int as n from appt
+         where d between $1 and $2 and not (st = 'COMPLETED' and d >= '${TRACKER_FROM}' and tracked_d is null) group by st`, p),
       rows<DashboardResponse["next"][number]>(
         `${APPT} select id, client_name, service_name, nailist_name, d as appointment_date, t as appointment_time
          from appt
@@ -467,6 +476,7 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
     money: {
       grossReceipts: { value: moneyNow.grossReceipts, previous: moneyBefore.grossReceipts },
       unearned: { value: moneyNow.unearned, previous: moneyBefore.unearned },
+      revenue: { value: moneyNow.revenue, previous: moneyBefore.revenue },
       otherIncome: { value: moneyNow.otherIncome, previous: moneyBefore.otherIncome },
       refunds: { value: moneyNow.refunds, previous: moneyBefore.refunds },
       points: moneyPoints,

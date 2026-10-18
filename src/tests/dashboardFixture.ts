@@ -16,7 +16,7 @@ export const dashboardData: DashboardResponse = {
   lapsedClients: 2, leads: { accounts: 4, booked: 2 }, clientBase: { clients: 5, lifetimeValue: 1120, churn: 0.4 }, totals: { clients: 17, services: 35, artists: 5, appointments: 6, trend: [], growth: { clients: 15, appointments: 4, servicesBooked: { value: 8, previous: 10 }, artistsBooked: { value: 5, previous: 5 } } }, sales: [],
   loyalty: { stamps: 0, redeemed: 0 },
   attention: { today: 0, proofsToReview: 1, toConfirm: 0, toComplete: 0, photosToAdd: 0, unpaid: 0, warmLeads: 0 },
-  money: { grossReceipts: { value: 0, previous: 0 }, unearned: { value: 0, previous: 0 }, otherIncome: { value: 0, previous: 0 }, refunds: { value: 0, previous: 0 }, points: [] },
+  money: { grossReceipts: { value: 0, previous: 0 }, unearned: { value: 0, previous: 0 }, revenue: { value: 0, previous: 0 }, otherIncome: { value: 0, previous: 0 }, refunds: { value: 0, previous: 0 }, points: [] },
   trend: {
     granularity: "day",
     points: [

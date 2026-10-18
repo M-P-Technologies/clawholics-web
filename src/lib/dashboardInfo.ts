@@ -36,13 +36,13 @@ export const STAT_INFO = {
     about: "Downpayment money held today for visits that haven't happened yet. It's the same for every period, since every period ends today.",
     how: "Every paid downpayment whose visit isn't completed, cancelled, refunded or a no-show yet. A payment that came after its booking was cancelled is held too, until refunded.",
   },
-  otherIncome: {
-    about: "Money kept as penalties. It's already part of Gross receipts, not extra.",
-    how: "Downpayments kept when a client didn't show up or cancelled too late (on the day it happened) + late fees (on the day the visit was completed).",
+  revenue: {
+    about: "What the salon earned in the period: the visits done, plus downpayments it kept. Unlike Gross income, it doesn't count downpayments for visits still to come.",
+    how: "Downpayments + balances paid at the salon (late fees included) of the visits finished with Complete visit, on the day completed + downpayments kept when a client cancelled too late or didn't show up, on the day it happened.",
   },
-  refunds: {
-    about: "Downpayments given back to clients.",
-    how: "Counted on the day refunded, and taken off Gross receipts. A refund made outside the app isn't counted.",
+  otherIncome: {
+    about: "Money kept as penalties. It's already part of Gross income, not extra.",
+    how: "Downpayments kept when a client didn't show up or cancelled too late (on the day it happened) + late fees (on the day the visit was completed).",
   },
 
   // Performance: the key rates

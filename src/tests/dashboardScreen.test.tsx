@@ -65,7 +65,7 @@ const base = (over: Partial<DashboardResponse> = {}): DashboardResponse => ({
   lapsedClients: 1, leads: { accounts: 4, booked: 2 }, clientBase: { clients: 5, lifetimeValue: 1120, churn: 0.2 }, totals: { clients: 17, services: 35, artists: 5, appointments: 6, trend: [], growth: { clients: 15, appointments: 4, servicesBooked: { value: 8, previous: 10 }, artistsBooked: { value: 5, previous: 5 } } }, sales: [],
   loyalty: { stamps: 3, redeemed: 1 },
   attention: { today: 2, proofsToReview: 2, toConfirm: 0, toComplete: 0, photosToAdd: 0, unpaid: 2, warmLeads: 0 },
-  money: { grossReceipts: { value: 0, previous: 0 }, unearned: { value: 0, previous: 0 }, otherIncome: { value: 0, previous: 0 }, refunds: { value: 0, previous: 0 }, points: [] },
+  money: { grossReceipts: { value: 0, previous: 0 }, unearned: { value: 0, previous: 0 }, revenue: { value: 0, previous: 0 }, otherIncome: { value: 0, previous: 0 }, refunds: { value: 0, previous: 0 }, points: [] },
   trend: { granularity: "day", points: [] },
   monthly: [
     { month: "2026-05", completed: 0, cancelled: 0 }, { month: "2026-06", completed: 1, cancelled: 0 },
@@ -169,7 +169,7 @@ describe("Dashboard", () => {
   it("asks again when the period changes (Sales)", async () => {
     fetchDashboard.mockResolvedValue(base());
     render(<Sales />);
-    await screen.findByRole("group", { name: "Gross receipts" });
+    await screen.findByRole("group", { name: "Gross income" });
     fireEvent.click(screen.getByRole("tab", { name: "This week" }));
     await waitFor(() => expect(fetchDashboard).toHaveBeenCalledWith("week", "tok", "admin_1"));
   });
@@ -179,7 +179,7 @@ describe("Dashboard", () => {
       base({ range, money: { ...base().money, grossReceipts: { value, previous: 1 } } });
     fetchDashboard.mockResolvedValueOnce(base()); // the first load (month)
     render(<Sales />);
-    await screen.findByRole("group", { name: "Gross receipts" });
+    await screen.findByRole("group", { name: "Gross income" });
 
     // choose "This week" (its answer is slow), then "Last 30 days" (answered at once)
     let releaseWeek: (d: DashboardResponse) => void = () => {};

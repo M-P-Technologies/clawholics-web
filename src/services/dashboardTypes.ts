@@ -10,6 +10,7 @@ export interface MoneyPoint {
   date: string;
   grossReceipts: number;
   unearned: number;
+  revenue: number;
   otherIncome: number;
   refunds: number;
 }
@@ -22,9 +23,12 @@ export interface Money {
   grossReceipts: Change;
   /** Downpayments held at the period's end (today at the latest) for visits not done yet: a liability */
   unearned: Change;
+  /** What the salon earned: the downpayments and balances (late fees included) of the visits
+   * completed, plus the downpayments kept from cancellations and no-shows */
+  revenue: Change;
   /** Downpayments kept from cancellations and no-shows, plus late fees */
   otherIncome: Change;
-  /** Downpayments returned to clients */
+  /** Downpayments returned to clients (taken off Gross income; no card of its own) */
   refunds: Change;
   /** A point per trend bucket (unearned as of its last day) */
   points: MoneyPoint[];

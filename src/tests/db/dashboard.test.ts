@@ -312,6 +312,10 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
       // cancelled_at; no late fees
       otherIncome: { value: 500, previous: 0 },
       refunds: { value: 0, previous: 0 },
+      // earned: the downpayments of the visits done in October (p1, p2, p3 with the tracker; p8, a4's,
+      // marked completed on 8 Oct before the tracker) + their balances (300 + 0 + 1,200) + a5's kept
+      // downpayment. September: p6 + p7, balances 0 + 700
+      revenue: { value: 4000, previous: 1700 },
     });
   });
 
@@ -332,12 +336,15 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
         unearned: { value: 500, previous: 0 },
         otherIncome: { value: 500, previous: 0 },
         refunds: { value: 500, previous: 0 },
+        // as before: a8's held downpayment isn't earned yet, and p9 was refunded
+        revenue: { value: 4000, previous: 1700 },
       });
       const points = d.money.points;
       // a point per trend day, 1 to 14 Oct
       expect(points.map((p) => p.date)).toEqual(d.trend.points.map((p) => p.date));
-      const sum = (key: "grossReceipts" | "otherIncome" | "refunds") => points.reduce((total, p) => total + p[key], 0);
+      const sum = (key: "grossReceipts" | "revenue" | "otherIncome" | "refunds") => points.reduce((total, p) => total + p[key], 0);
       expect(sum("grossReceipts")).toBe(d.money.grossReceipts.value);
+      expect(sum("revenue")).toBe(d.money.revenue.value);
       expect(sum("otherIncome")).toBe(d.money.otherIncome.value);
       expect(sum("refunds")).toBe(d.money.refunds.value);
       const on = (date: string) => points.find((p) => p.date === date)!;
@@ -360,6 +367,7 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
         // a5's only: p9 isn't a forfeit
         otherIncome: { value: 500, previous: 0 },
         refunds: { value: 0, previous: 0 },
+        revenue: { value: 4000, previous: 1700 },
       });
     } finally {
       await db`delete from payments where external_id = 'p9'`;
@@ -380,17 +388,19 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
       // from October only the visits completed with the tracker, by the day completed: a1, a2, a3 (not a4)
       { month: "2026-10", completed: 3, cancelled: 2 },
     ]);
+    // October: only the visits completed with the tracker (a1, a2, a3), not a4 (only marked
+    // completed) nor the confirmed ones still to come
     expect(d.services).toEqual([
-      { name: "Gel Manicure", bookings: 3, estimatedSales: 1300 },
-      { name: "Soft Gel Extensions", bookings: 2, estimatedSales: 1700 },
-      { name: "Nail Art", bookings: 2, estimatedSales: 300 },
+      { name: "Gel Manicure", bookings: 2, estimatedSales: 1300 },
+      { name: "Soft Gel Extensions", bookings: 1, estimatedSales: 1700 },
     ]);
     expect(d.weekdays).toEqual([
       { weekday: 1, bookings: 0 }, { weekday: 2, bookings: 2 }, { weekday: 3, bookings: 2 }, { weekday: 4, bookings: 2 },
       { weekday: 5, bookings: 1 }, { weekday: 6, bookings: 0 }, { weekday: 7, bookings: 0 },
     ]);
     expect(d.artists).toEqual([{ name: "Jun", bookings: 4 }, { name: "Maxine", bookings: 3 }]);
-    expect(d.outcomes).toEqual({ confirmed: 3, completed: 4, pending: 2, cancelled: 1, refunded: 1 });
+    // completed with the tracker: a1, a2, a3; a4, only marked completed, is left out
+    expect(d.outcomes).toEqual({ confirmed: 3, completed: 3, pending: 2, cancelled: 1, refunded: 1 });
     // 09:00 today is already past at 10:00; the walk-in client is named from the appointment
     expect(d.next.map((n) => [n.appointment_date, n.appointment_time, n.client_name])).toEqual([
       ["2026-10-14", "15:00-16:00", "Dana D"],
@@ -550,8 +560,8 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     expect([d.services, d.artists, d.next]).toEqual([[], [], []]);
     expect(d.attention).toEqual({ today: 0, proofsToReview: 0, unpaid: 0, toConfirm: 0, toComplete: 0, photosToAdd: 0, warmLeads: 0 });
     expect(d.money).toEqual({
-      grossReceipts: { value: 0, previous: 0 }, unearned: { value: 0, previous: 0 }, otherIncome: { value: 0, previous: 0 }, refunds: { value: 0, previous: 0 },
-      points: expect.any(Array),
+      grossReceipts: { value: 0, previous: 0 }, unearned: { value: 0, previous: 0 }, revenue: { value: 0, previous: 0 },
+      otherIncome: { value: 0, previous: 0 }, refunds: { value: 0, previous: 0 }, points: expect.any(Array),
     });
     expect(d.lapsedClients).toBe(0);
     expect(d.sales).toEqual([]);
