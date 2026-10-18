@@ -71,7 +71,7 @@ describe.skipIf(!TEST_DATABASE_URL)("the Needs attention queue (Postgres)", () =
   });
 
   it("puts the most urgent first: confirmations (with a screenshot first), proofs, visits to complete (latest first), photos, leads", async () => {
-    const { items, counts } = await attention.listAttention("all", NOW);
+    const { items, counts } = await attention.listAttention("all", {}, NOW);
     expect(items.map((i: Item) => [i.kind, i.appointment_id])).toEqual([
       ["confirm", ids.c2],
       ["confirm", ids.c1],
@@ -89,13 +89,13 @@ describe.skipIf(!TEST_DATABASE_URL)("the Needs attention queue (Postgres)", () =
   });
 
   it("each tab has its own kinds: to confirm, to complete (with photos to add), and warm leads", async () => {
-    expect((await attention.listAttention("confirm", NOW)).items.map((i: Item) => i.kind)).toEqual(["confirm", "confirm", "review"]);
-    expect((await attention.listAttention("complete", NOW)).items.map((i: Item) => [i.kind, i.appointment_id])).toEqual([
+    expect((await attention.listAttention("confirm", {}, NOW)).items.map((i: Item) => i.kind)).toEqual(["confirm", "confirm", "review"]);
+    expect((await attention.listAttention("complete", {}, NOW)).items.map((i: Item) => [i.kind, i.appointment_id])).toEqual([
       ["complete", ids.v2],
       ["complete", ids.v1],
       ["photos", ids.p1],
     ]);
-    expect((await attention.listAttention("leads", NOW)).items).toEqual([
+    expect((await attention.listAttention("leads", {}, NOW)).items).toEqual([
       expect.objectContaining({ kind: "lead", appointment_id: null, user_id: ids.cara, client_name: "Cara X", since: "2026-10-15 05:00:00" }),
     ]);
   });
@@ -109,17 +109,41 @@ describe.skipIf(!TEST_DATABASE_URL)("the Needs attention queue (Postgres)", () =
     expect((await callRoute(getAttention, "/api/attention")).status).toBe(200);
   });
 
+  it("answers a page at a time, carrying on across kinds in the queue's order", async () => {
+    const order = [["confirm", ids.c2], ["confirm", ids.c1], ["review", ids.r1], ["complete", ids.v2], ["complete", ids.v1], ["photos", ids.p1], ["lead", null]];
+    const pages = await Promise.all([1, 2, 3, 4].map((page) => attention.listAttention("all", { page, pageSize: 2 }, NOW)));
+    expect(pages.flatMap((p) => p.items.map((i: Item) => [i.kind, i.appointment_id]))).toEqual(order);
+    expect(pages.map((p) => [p.page, p.pageSize, p.total, p.items.length])).toEqual([[1, 2, 7, 2], [2, 2, 7, 2], [3, 2, 7, 2], [4, 2, 7, 1]]);
+    // A tab's total is its own kinds'; a page past the end is empty
+    const complete = await attention.listAttention("complete", { page: 2, pageSize: 2 }, NOW);
+    expect(complete.items.map((i: Item) => [i.kind, i.appointment_id])).toEqual([["photos", ids.p1]]);
+    expect(complete.total).toBe(3);
+    expect((await attention.listAttention("confirm", { page: 5, pageSize: 2 }, NOW)).items).toEqual([]);
+  });
+
+  it("checks the page it's asked for", async () => {
+    const { getAttention } = await import("../../server/handlers/dashboard");
+    as("user_admin");
+    for (const q of ["page=0", "page=x", "pageSize=0", "pageSize=51", "page=1.5"]) {
+      expect((await callRoute(getAttention, `/api/attention?tab=all&${q}`)).status).toBe(400);
+    }
+    const res = await callRoute(getAttention, "/api/attention?tab=leads&page=1&pageSize=1");
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ page: 1, pageSize: 1, total: 1 });
+  });
+
   // Last: it adds leads the tests above would see
-  it("counts every warm lead, not just the ones it lists, on every tab", async () => {
+  it("counts every warm lead, not just the ones on the page, on every tab", async () => {
     for (let i = 1; i <= ATTENTION_MOST; i++) {
       await db`insert into users (clerk_id, email, role, created_at) values (${`user_lead${i}`}, ${`lead${i}@x.test`}, 'customer', ${`2026-09-${String(i).padStart(2, "0")} 05:00:00`})`;
     }
     const all = ATTENTION_MOST + 1; // with Cara
-    const leads = await attention.listAttention("leads", NOW);
+    const leads = await attention.listAttention("leads", {}, NOW);
     expect(leads.items).toHaveLength(ATTENTION_MOST);
-    expect(leads.items[0]).not.toHaveProperty("total");
     expect(leads.counts.leads).toBe(all);
-    expect((await attention.listAttention("all", NOW)).counts.leads).toBe(all);
-    expect((await attention.listAttention("confirm", NOW)).counts.leads).toBe(all);
+    expect(leads.total).toBe(all);
+    expect((await attention.listAttention("leads", { page: 2 }, NOW)).items).toHaveLength(1);
+    expect((await attention.listAttention("all", {}, NOW)).counts.leads).toBe(all);
+    expect((await attention.listAttention("confirm", {}, NOW)).counts.leads).toBe(all);
   });
 });

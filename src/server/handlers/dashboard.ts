@@ -2,7 +2,8 @@ import "server-only";
 import { requireAdmin } from "../auth";
 import { buildDashboard, listWarmLeads as warmLeadIds } from "../dashboard";
 import { buildUtilization } from "../utilization";
-import { ATTENTION_TABS, listAttention, type AttentionTab } from "../attention";
+import { ATTENTION_TABS, MAX_ATTENTION_PAGE_SIZE, listAttention, type AttentionTab } from "../attention";
+import { ATTENTION_MOST } from "../../lib/admin/attention";
 import { DEFAULT_RANGE, isDashboardRange, manilaToday } from "../../lib/dashboardPeriods";
 import { ported } from "../worker";
 
@@ -40,12 +41,20 @@ export const getUtilization = ported(async (req) => {
   return Response.json(await buildUtilization(week));
 });
 
-// GET /attention?tab=all|confirm|complete|leads (admin only): the Needs attention queue, the fifteen
-// most urgent things to act on, and how many of each kind there are. Not on the Worker either.
+// GET /attention?tab=all|confirm|complete|leads&page=N&pageSize=M (admin only): the Needs attention
+// queue a page at a time, most urgent first, as { items, counts, total, page, pageSize }: counts has
+// every kind's count, total how many the tab holds. page defaults to 1, pageSize (1-50) to 15. Not on
+// the Worker either.
 export const getAttention = ported(async (req) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
-  const tab = new URL(req.url).searchParams.get("tab") ?? "all";
+  const params = new URL(req.url).searchParams;
+  const tab = params.get("tab") ?? "all";
   if (!ATTENTION_TABS.includes(tab as AttentionTab)) return Response.json({ error: "Unknown tab." }, { status: 400 });
-  return Response.json(await listAttention(tab as AttentionTab));
+  const page = params.has("page") ? Number(params.get("page")) : 1;
+  const pageSize = params.has("pageSize") ? Number(params.get("pageSize")) : ATTENTION_MOST;
+  if (!Number.isInteger(page) || page < 1 || !Number.isInteger(pageSize) || pageSize < 1 || pageSize > MAX_ATTENTION_PAGE_SIZE) {
+    return Response.json({ error: `page must be 1 or more, and pageSize 1 to ${MAX_ATTENTION_PAGE_SIZE}` }, { status: 400 });
+  }
+  return Response.json(await listAttention(tab as AttentionTab, { page, pageSize }));
 });
