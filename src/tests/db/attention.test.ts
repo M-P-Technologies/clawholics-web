@@ -3,6 +3,7 @@
 import type postgres from "postgres";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { TEST_DATABASE_URL, callRoute, resetTestDatabase } from "./testDatabase";
+import { ATTENTION_MOST } from "@/lib/admin/attention";
 
 const authMock = vi.fn(async () => ({ userId: null as string | null }));
 vi.mock("@clerk/nextjs/server", () => ({
@@ -106,5 +107,19 @@ describe.skipIf(!TEST_DATABASE_URL)("the Needs attention queue (Postgres)", () =
     as("user_admin");
     expect((await callRoute(getAttention, "/api/attention?tab=nope")).status).toBe(400);
     expect((await callRoute(getAttention, "/api/attention")).status).toBe(200);
+  });
+
+  // Last: it adds leads the tests above would see
+  it("counts every warm lead, not just the ones it lists, on every tab", async () => {
+    for (let i = 1; i <= ATTENTION_MOST; i++) {
+      await db`insert into users (clerk_id, email, role, created_at) values (${`user_lead${i}`}, ${`lead${i}@x.test`}, 'customer', ${`2026-09-${String(i).padStart(2, "0")} 05:00:00`})`;
+    }
+    const all = ATTENTION_MOST + 1; // with Cara
+    const leads = await attention.listAttention("leads", NOW);
+    expect(leads.items).toHaveLength(ATTENTION_MOST);
+    expect(leads.items[0]).not.toHaveProperty("total");
+    expect(leads.counts.leads).toBe(all);
+    expect((await attention.listAttention("all", NOW)).counts.leads).toBe(all);
+    expect((await attention.listAttention("confirm", NOW)).counts.leads).toBe(all);
   });
 });

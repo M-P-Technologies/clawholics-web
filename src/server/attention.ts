@@ -102,27 +102,36 @@ export async function listAttention(tab: AttentionTab, now: Date = new Date()): 
   const warm = [warmSince(today)];
 
   const appointmentKinds = ["confirm", "review", "complete", "photos"] as const;
+  // A tab listing leads counts them in the same query (the count is taken before the limit)
+  const listLeads = TAB_KINDS[tab].includes("lead");
   const [rows, counts, leads, leadCount] = await Promise.all([
     Promise.all(appointmentKinds.map((kind) => (TAB_KINDS[tab].includes(kind) ? sql.unsafe<AttentionItem[]>(queries[kind].rows, [limit]) : Promise.resolve([])))),
     sql.unsafe<{ confirm: number; review: number; complete: number; photos: number }[]>(
       `select ${appointmentKinds.map((kind) => `count(*) filter (where ${queries[kind].where})::int as ${kind}`).join(", ")} from appointments a`,
       [],
     ),
-    TAB_KINDS[tab].includes("lead")
-      ? sql.unsafe<AttentionItem[]>(
+    listLeads
+      ? sql.unsafe<(AttentionItem & { total: number })[]>(
           `select 'lead' as kind, null::int as appointment_id, u.id as user_id,
              coalesce(nullif(trim(coalesce(cp.first_name, '') || ' ' || coalesce(cp.last_name, '')), ''), u.email) as client_name,
-             u.email, null as service_name, null as nailist_name, null as appointment_date, null as appointment_time, u.created_at as since
+             u.email, null as service_name, null as nailist_name, null as appointment_date, null as appointment_time, u.created_at as since,
+             count(*) over ()::int as total
            from users u left join customer_profiles cp on cp.user_id = u.id
            where u.clerk_id in (${WARM_LEADS})
            order by u.created_at desc, u.id desc limit $2`,
           [...warm, limit],
         )
       : Promise.resolve([]),
-    sql.unsafe<{ n: number }[]>(`select count(*)::int as n from (${WARM_LEADS}) w`, warm),
+    // Counted over the same rows as the list above, so every tab shows the same number
+    listLeads ? Promise.resolve(null) : sql.unsafe<{ n: number }[]>(`select count(*)::int as n from users u where u.clerk_id in (${WARM_LEADS})`, warm),
   ]);
 
-  const items = [...rows.flat(), ...leads].slice(0, ATTENTION_MOST).map((item) => ({ ...item }));
+  const leadTotal = leadCount ? leadCount[0].n : (leads[0]?.total ?? 0);
+  const items = [...rows.flat(), ...leads].slice(0, ATTENTION_MOST).map((row) => {
+    const item: AttentionItem & { total?: number } = { ...row };
+    delete item.total;
+    return item;
+  });
   const [c] = counts;
-  return { items, counts: { confirm: c.confirm, review: c.review, complete: c.complete, photos: c.photos, leads: leadCount[0].n } };
+  return { items, counts: { confirm: c.confirm, review: c.review, complete: c.complete, photos: c.photos, leads: leadTotal } };
 }
