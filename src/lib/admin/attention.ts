@@ -3,6 +3,10 @@ import type { AttentionResponse, AttentionTab } from "../../services/dashboardTy
 
 // The dashboard's queue of what to act on: each kind's words, colour and action, and where it leads
 
+/** The most rows the queue is sent; the dashboard shows as many as fit beside the notes (5 when stacked) */
+export const ATTENTION_MOST = 15;
+export const ATTENTION_ROWS = 5;
+
 type Item = AttentionResponse["items"][number];
 type Kind = Item["kind"];
 

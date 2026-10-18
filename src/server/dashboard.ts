@@ -4,12 +4,11 @@ import { SERVICE_PRICE_SQL } from "./appointments";
 import { PROOF_TO_REVIEW_SQL } from "./proofRules";
 import { PHOTOS_TO_ADD_SQL, TO_COMPLETE_SQL } from "./visitsToComplete";
 import {
-  LAPSED_DAYS, addDays, manilaClock, manilaToday, monthEnd, monthKeys, resolvePeriod,
+  LAPSED_DAYS, addDays, manilaClock, manilaToday, monthKeys, resolvePeriod,
   type DashboardRange, type Span,
 } from "../lib/dashboardPeriods";
-import { bucketTrend, trendBuckets, type DayValues, type TrendPoint } from "../lib/dashboardTrend";
+import { bucketTrend, trendBuckets, type DayValues } from "../lib/dashboardTrend";
 import type { DashboardResponse } from "../services/dashboardTypes";
-import { RESERVATION_FEE } from "../lib/visitCompletion";
 
 // Every number on the dashboard, computed in SQL. Dates: appointment_date is already local text;
 // created_at is UTC, so it is shifted to Manila's day (+8h) before it is compared.
@@ -35,7 +34,11 @@ const APPT = `
       coalesce(u.clerk_id = 'walkin_guest', false) as is_guest,
       trim(coalesce(a.walkin_first_name, cp.first_name, '') || ' ' || coalesce(a.walkin_last_name, cp.last_name, '')) as client_name,
       (select coalesce(sum(p.amount), 0) from payments p where p.appointment_id = a.id and upper(trim(p.status)) = 'PAID') as paid,
-      vc.balance_amount as recorded_balance
+      vc.balance_amount as recorded_balance, coalesce(vc.late_fee, 0) as late_fee,
+      -- When it was cancelled (or a no-show) or refunded; before those were recorded, the visit's day,
+      -- or today for a visit still to come (it was cancelled by now, just not dated)
+      coalesce(${LOCAL_DATE("a.cancelled_at")}, least(a.appointment_date, ${LOCAL_DATE("clawholics_utc_now()")})) as cancel_d,
+      coalesce(${LOCAL_DATE("a.refunded_at")}, least(a.appointment_date, ${LOCAL_DATE("clawholics_utc_now()")})) as refund_d, a.cancelled_at
     from appointments a
     left join nailists n on n.id = a.nailist_id
     left join nailist_categories nc on nc.id = n.category_id
@@ -61,20 +64,51 @@ const BALANCE = "coalesce(recorded_balance, greatest(coalesce(price, 0) - paid, 
 
 const rate = (part: number, whole: number) => (whole === 0 ? null : part / whole);
 
-// What a confirmed visit still has to pay at the salon: its list price less the downpayment paid,
-// of which the reservation fee doesn't go toward the service (as Complete visit prefills it)
-const STILL_TO_PAY = `greatest(coalesce(price, 0) - greatest(paid - ${RESERVATION_FEE}, 0), 0)`;
+// From October 2026 the Bookings per month chart, the Service mix and the Salon notes' busiest
+// weekday and artist count a visit only once it
+// was completed with the booking tracker (confirmed, then Complete visit); visits before it still
+// count by their status, as they did before the tracker
+export const TRACKER_FROM = "2026-10-01";
+// A completed visit's day for the chart: before TRACKER_FROM the visit's day if its status is
+// Completed, from it the day it was completed with the tracker
+const DONE_D = `(case when d < '${TRACKER_FROM}' then (case when st = 'COMPLETED' then d end) else tracked_d end)`;
+// Booked for the Service mix and the Salon notes' weekdays and artists: confirmed or completed before TRACKER_FROM, completed with the tracker from it
+const MIX_BOOKED = `((d < '${TRACKER_FROM}' and st in ${BOOKED}) or (d >= '${TRACKER_FROM}' and tracked_d is not null))`;
 
-// Booked ahead's points, from today to the end of the period: a day each, or a month each for the
-// year (so its line doesn't have hundreds of points)
-function aheadBuckets(range: DashboardRange, today: string, to: string): Span[] {
-  const buckets: Span[] = [];
-  for (let from = today; from <= to; ) {
-    const end = range === "year" ? monthEnd(from) : from;
-    buckets.push({ from, to: end < to ? end : to });
-    from = addDays(end, 1);
-  }
-  return buckets;
+// Every paid downpayment, grouped: the day it came in (in_d), and the day it stopped being held
+// for a visit to come (out_d) and how: earned (the visit was completed: with the tracker, by that
+// day, or before the tracker by the visit's day), refunded, or forfeited (kept from a cancellation
+// or a no-show). Still held: no out_d. A payment that arrived after its booking was cancelled
+// (the admins are told to check it) wasn't kept from a cancellation: it's owed back, so it stays
+// held until it's refunded. The Sales page's money cards are worked out from these.
+const PAID_AT = "coalesce(p.paid_at, p.created_at)";
+const FORFEITED = `v.st in ('CANCELLED', 'CANCELED', 'NO_SHOW') and (v.cancelled_at is null or ${PAID_AT}::timestamp <= v.cancelled_at::timestamp)`;
+const DOWNPAYMENT_FLOWS = `${APPT} select ${LOCAL_DATE(PAID_AT)} as in_d,
+    case when v.tracked_d is not null then v.tracked_d when v.st = 'COMPLETED' then v.d
+         when v.st = 'REFUNDED' then v.refund_d when ${FORFEITED} then v.cancel_d end as out_d,
+    case when v.tracked_d is not null or v.st = 'COMPLETED' then 'earned' when v.st = 'REFUNDED' then 'refunded'
+         when ${FORFEITED} then 'forfeited' end as kind,
+    sum(p.amount)::int as amount
+  from payments p join appt v on v.id = p.appointment_id
+  where upper(trim(p.status)) = 'PAID' group by 1, 2, 3`;
+type Flow = { in_d: string; out_d: string | null; kind: "earned" | "refunded" | "forfeited" | null; amount: number };
+
+// The four money figures for a span, from the flows and the visits completed in it (their balances
+// and late fees): gross receipts (money in: downpayments paid, balances paid at the salon, less
+// refunds), other income (forfeited downpayments and late fees), refunds, and the downpayments still
+// held at its end (unearned: a liability until the visit is done)
+function moneyFor(flows: Flow[], span: Span, completed: { balance: number; lateFees: number }) {
+  const sum = (pick: (f: Flow) => boolean) => flows.filter(pick).reduce((total, f) => total + f.amount, 0);
+  const inSpan = (d: string | null) => d !== null && d >= span.from && d <= span.to;
+  const received = sum((f) => inSpan(f.in_d));
+  const refunds = sum((f) => f.kind === "refunded" && inSpan(f.out_d));
+  const forfeited = sum((f) => f.kind === "forfeited" && inSpan(f.out_d));
+  return {
+    grossReceipts: received + completed.balance - refunds,
+    otherIncome: forfeited + completed.lateFees,
+    refunds,
+    unearned: sum((f) => f.in_d <= span.to && (f.out_d === null || f.out_d > span.to)),
+  };
 }
 
 // A client who has booked: at least one confirmed or completed appointment
@@ -95,33 +129,21 @@ export const WARM_LEADS = `
     and ${LOCAL_DATE("greatest(u.created_at::timestamp, a.last_started)")} >= $1`;
 export const warmSince = (today: string) => addDays(today, -LAPSED_DAYS);
 
-// Each client's first visit completed with the tracker (by the day it was completed, as the money
-// is dated), for "returning revenue" (a completed visit before the period). Read from the tables
-// directly so the APPT query it's joined to is used once, and stays filtered by date instead of
-// being built in full for every row it's compared with.
-const FIRST_VISIT = `first_visit as (
-    select a.user_id, min(${LOCAL_DATE("vc.created_at")}) as first_d
-    from appointments a join visit_completions vc on vc.appointment_id = a.id
-    where upper(trim(a.status)) = 'COMPLETED' group by a.user_id
-  )`;
+// A running total as of a day, from per-day counts
+const countBy = (days: { d: string; n: number }[], end: string) => days.reduce((sum, r) => (r.d <= end ? sum + r.n : sum), 0);
 
-// The glance cards' lines, one point per trend bucket: client accounts at the bucket's end (today's
-// count less the accounts made after it), and the different services and artists booked in it
-function glanceTrend(points: TrendPoint[], buckets: Span[], dayMix: { d: string; services: string[]; artists: string[] }[], clientsNow: number, noShowDays: { d: string; no_shows: number }[]) {
-  let madeLater = 0;
-  const clientsAtEnd = points.map(() => 0);
-  for (let i = points.length - 1; i >= 0; i--) {
-    clientsAtEnd[i] = clientsNow - madeLater;
-    madeLater += points[i].newClients;
-  }
-  return buckets.map((bucket, i) => {
+// The glance cards' lines, one point per trend bucket: clients with a completed visit by the
+// bucket's end (each counted from their first one's day), the different services and artists
+// booked in it, and the visits completed with the tracker by its end (a running total, like the card)
+function glanceTrend(buckets: Span[], dayMix: { d: string; services: string[]; artists: string[] }[], firstVisits: { d: string; n: number }[], completedVisits: { d: string; n: number }[]) {
+  return buckets.map((bucket) => {
     const days = dayMix.filter((r) => r.d >= bucket.from && r.d <= bucket.to);
     return {
       date: bucket.from,
-      clients: clientsAtEnd[i],
+      clients: countBy(firstVisits, bucket.to),
       services: new Set(days.flatMap((r) => r.services)).size,
       artists: new Set(days.flatMap((r) => r.artists)).size,
-      noShows: noShowDays.filter((r) => r.d >= bucket.from && r.d <= bucket.to).reduce((sum, r) => sum + r.no_shows, 0),
+      appointments: countBy(completedVisits, bucket.to),
     };
   });
 }
@@ -134,17 +156,17 @@ export async function listWarmLeads(now: Date = new Date()): Promise<string[]> {
 // What is measured for one span (the period, then the one before it)
 async function spanMetrics(span: Span) {
   const p = [span.from, span.to];
-  const [counts, booked, newClients, conversion, returning, leads, returningRevenue] = await Promise.all([
-    // The money (Collected, Sales, Balance at the salon): the visits an admin completed with the
-    // booking tracker in the period, dated by that day (tracked_d), so never a refunded one, and
+  const [counts, booked, newClients, conversion, returning, leads] = await Promise.all([
+    // The money (Collected, Sales, the balances and late fees): the visits an admin completed with
+    // the booking tracker in the period, dated by that day (tracked_d), so never a refunded one, and
     // always with the balance recorded. Cancellations and the outcome counts stay by the visit's day.
-    one<{ estimated_sales: number; collected: number; balance_at_salon: number; sold: number; lost: number; completed: number; cancelled: number; no_shows: number; decided: number }>(
+    one<{ estimated_sales: number; collected: number; balance_at_salon: number; late_fees: number; sold: number; completed: number; cancelled: number; no_shows: number; decided: number }>(
       `${APPT} select
          coalesce(sum(${SALE}) filter (where tracked_d between $1 and $2), 0)::int as estimated_sales,
          coalesce(sum(paid) filter (where tracked_d between $1 and $2), 0)::int as collected,
          coalesce(sum(${BALANCE}) filter (where tracked_d between $1 and $2), 0)::int as balance_at_salon,
+         coalesce(sum(late_fee) filter (where tracked_d between $1 and $2), 0)::int as late_fees,
          count(*) filter (where tracked_d between $1 and $2)::int as sold,
-         coalesce(sum(price) filter (where st in ${CANCELLED} and d between $1 and $2), 0)::int as lost,
          count(*) filter (where st = 'COMPLETED' and d between $1 and $2)::int as completed,
          count(*) filter (where st in ${CANCELLED} and d between $1 and $2)::int as cancelled,
          count(*) filter (where st = 'NO_SHOW' and d between $1 and $2)::int as no_shows,
@@ -169,17 +191,12 @@ async function spanMetrics(span: Span) {
     one<{ leads: number; booked: number }>(
       `select count(*)::int as leads, count(*) filter (where ${HAS_BOOKED})::int as booked
        from users u where ${CLIENT_ACCOUNT} and ${LOCAL_DATE("u.created_at")} between $1 and $2`, p),
-    // the same "returning" as the rate: a client with a completed visit before the period
-    one<{ value: number }>(
-      `${APPT}, ${FIRST_VISIT} select coalesce(sum(${SALE}), 0)::int as value
-       from appt v join first_visit f on f.user_id = v.user_id and f.first_d < $1
-       where not v.is_guest and v.tracked_d between $1 and $2`, p),
   ]);
   return {
     bookings: booked.n,
     estimatedSales: counts.estimated_sales,
     balanceAtSalon: counts.balance_at_salon,
-    lost: counts.lost,
+    lateFees: counts.late_fees,
     completed: counts.completed,
     cancelled: counts.cancelled,
     decided: counts.decided,
@@ -193,7 +210,6 @@ async function spanMetrics(span: Span) {
     leadConversion: rate(leads.booked, leads.leads),
     leadAccounts: leads.leads,
     leadBooked: leads.booked,
-    returningRevenue: returningRevenue.value,
   };
 }
 
@@ -205,18 +221,11 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
   const { granularity, buckets } = trendBuckets(range, period, today);
   // The trend line runs from the period's first day to today, so only those days are read
   const trendSpan = buckets.length === 0 ? null : [buckets[0].from, buckets[buckets.length - 1].to];
-  // Booked ahead looks from today to the end of the period (just today for one that ends today).
-  // It's compared with the same stretch of the previous period: as many days into it, to its end.
-  const aheadTo = period.to > today ? period.to : today;
-  const ahead = [today, aheadTo];
-  const daysIn = Math.round((Date.parse(today) - Date.parse(period.from)) / 86_400_000);
-  const shifted = addDays(previous.from, daysIn);
-  const aheadBefore = [shifted < previous.to ? shifted : previous.to, previous.to];
 
   // Both counts match the lists they link to on the Appointments screen: "Pending" is the PENDING
   // filter, "Proofs to review" is the PROOF_PENDING filter (an awaiting-proof booking whose latest
   // upload is still pending).
-  const [current, before, loyalty, attention, lapsed, monthlyRows, serviceRows, weekdayRows, artistRows, outcomeRows, next, dayAppts, dayLost, recurringSince, dayBooked, dayClients, aheadTotal, aheadPrevious, warm, base, counts, sales, aheadDays, dayMix] =
+  const [current, before, loyalty, attention, lapsed, monthlyRows, serviceRows, weekdayRows, artistRows, outcomeRows, next, dayAppts, firstVisits, recurringSince, dayBooked, dayClients, flows, warm, base, counts, sales, dayMix, allServices, allWeekdays, allArtists, allRates, completedVisits, mixBooked] =
     await Promise.all([
       spanMetrics(period),
       spanMetrics(previous),
@@ -236,13 +245,15 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
          from appointments a`, [today]),
       one<{ n: number }>(
         `${APPT} select count(*)::int as n
-         from (select user_id, max(d) as last_d from appt where st = 'COMPLETED' and not is_guest group by user_id) t
+         from (select user_id, max(tracked_d) as last_d from appt where tracked_d is not null and not is_guest group by user_id) t
          where last_d < $1`, [addDays(today, -LAPSED_DAYS)]),
+      // Bookings per month: visits completed (by DONE_D) and cancelled, refunded or no-show (by the visit's day)
       rows<{ month: string; completed: number; cancelled: number }>(
-        `${APPT} select substr(d, 1, 7) as month,
-           count(*) filter (where st = 'COMPLETED')::int as completed,
-           count(*) filter (where st in ${CANCELLED})::int as cancelled
-         from appt where d >= $1 and d <= $2 group by 1`, [`${months[0]}-01`, `${months[months.length - 1]}-31`]),
+        `${APPT} select month, sum(completed)::int as completed, sum(cancelled)::int as cancelled from (
+           select substr(${DONE_D}, 1, 7) as month, 1 as completed, 0 as cancelled from appt where ${DONE_D} between $1 and $2
+           union all
+           select substr(d, 1, 7), 0, 1 from appt where st in ${CANCELLED} and d between $1 and $2
+         ) m group by 1`, [`${months[0]}-01`, `${months[months.length - 1]}-31`]),
       rows<{ name: string; bookings: number; estimated_sales: number }>(
         `${APPT} select service_name as name, count(*)::int as bookings,
            coalesce(sum(${SALE}) filter (where st = 'COMPLETED'), 0)::int as estimated_sales
@@ -262,24 +273,24 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
          from appt
          where st = 'CONFIRMED' and (d > $1 or (d = $1 and lpad(split_part(t, '-', 1), 5, '0') >= $2))
          order by d, lpad(split_part(t, '-', 1), 5, '0'), id limit 5`, [today, manilaClock(now)]),
-      // The same day by day, for the lines: also the money cards' values, worked out as on the
-      // cards ("returning" means a completed visit before the period's first day, $1)
+      // The same day by day, for the lines (with the balances and late fees for the money cards')
       trendSpan
-        ? rows<{ d: string; sales: number; collected: number; balance: number; returning: number }>(
-            `${APPT}, ${FIRST_VISIT} select tracked_d as d,
+        ? rows<{ d: string; sales: number; collected: number; balance: number; late_fees: number }>(
+            `${APPT} select tracked_d as d,
                coalesce(sum(${SALE}), 0)::int as sales,
                coalesce(sum(paid), 0)::int as collected,
                coalesce(sum(${BALANCE}), 0)::int as balance,
-               coalesce(sum(${SALE}) filter (where not is_guest and f.first_d < $1), 0)::int as returning
-             from appt v left join first_visit f on f.user_id = v.user_id
-             where tracked_d between $1 and $2 group by tracked_d`, trendSpan)
+               coalesce(sum(late_fee), 0)::int as late_fees
+             from appt where tracked_d between $1 and $2 group by tracked_d`, trendSpan)
         : Promise.resolve([]),
-      // What cancellations cost, and the no-shows, by the visit's day like their cards
-      trendSpan
-        ? rows<{ d: string; n: number; no_shows: number }>(
-            `${APPT} select d, coalesce(sum(price), 0)::int as n, count(*) filter (where st = 'NO_SHOW')::int as no_shows from appt
-             where st in ${CANCELLED} and d between $1 and $2 group by d`, trendSpan)
-        : Promise.resolve([]),
+      // Total clients' line: the day each client's first visit was completed with the booking tracker
+      // (confirmed, then Complete visit), the day they became one
+      rows<{ d: string; n: number }>(
+        `select first_d as d, count(*)::int as n from (
+           select a.user_id, min(${LOCAL_DATE("vc.created_at")}) as first_d
+           from appointments a join visit_completions vc on vc.appointment_id = a.id join users u on u.id = a.user_id
+           where upper(trim(a.status)) = 'COMPLETED' and ${CLIENT_ACCOUNT} group by a.user_id
+         ) t group by 1`, []),
       // Returning clients: the day each client's second confirmed and completed visit was completed
       // (as the Bookings card dates them), the day they became one; the walk-in guest isn't a client
       rows<{ d: string; n: number }>(
@@ -298,33 +309,29 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
              where coalesce(role, 'customer') = 'customer' and clerk_id <> 'walkin_guest'
                and ${LOCAL_DATE("created_at")} between $1 and $2 group by 1`, trendSpan)
         : Promise.resolve([]),
-      // Booked ahead: confirmed visits from today to the period's end, and what they still have to pay
-      one<{ value: number; visits: number }>(
-        `${APPT} select coalesce(sum(${STILL_TO_PAY}), 0)::int as value, count(*)::int as visits
-         from appt where st = 'CONFIRMED' and d between $1 and $2`, ahead),
-      // The same for that stretch of the previous period: its visits are past, so those confirmed
-      // or completed (by status), at what they had to pay at the salon the same way
-      one<{ value: number }>(
-        `${APPT} select coalesce(sum(${STILL_TO_PAY}), 0)::int as value
-         from appt where st in ${BOOKED} and d between $1 and $2`, aheadBefore),
+      rows<Flow>(DOWNPAYMENT_FLOWS, []),
       one<{ n: number }>(`select count(*)::int as n from (${WARM_LEADS}) w`, [warmSince(today)]),
-      // the same clients as Lapsed clients: anyone but the walk-in guest with a completed visit
+      // the same clients as Lapsed clients: anyone but the walk-in guest with a visit completed with
+      // the booking tracker (tracked_d), and what those visits sold for
       one<{ clients: number; spent: number }>(
         `${APPT} select count(distinct user_id)::int as clients, coalesce(sum(${SALE}), 0)::int as spent
-         from appt where st = 'COMPLETED' and not is_guest`, []),
+         from appt where tracked_d is not null and not is_guest`, []),
+      // The Dashboard's glance cards, as of today: clients with a visit completed with the booking
+      // tracker (an admin confirmed it, then pressed Complete visit: a visit_completions row; a status
+      // set to COMPLETED any other way doesn't count), the services on the Services page (active, in
+      // an active category) and the artists on the Artists page (all)
       one<{ clients: number; services: number; artists: number }>(
-        `select (select count(*)::int from users u where ${CLIENT_ACCOUNT}) as clients,
-           (select count(*)::int from services where is_active = 1) as services,
+        `select (select count(distinct a.user_id)::int from appointments a
+                 join visit_completions vc on vc.appointment_id = a.id join users u on u.id = a.user_id
+                 where upper(trim(a.status)) = 'COMPLETED' and ${CLIENT_ACCOUNT}) as clients,
+           (select count(*)::int from services s left join service_categories c on c.id = s.category_id
+             where s.is_active = 1 and (c.id is null or c.is_active = 1)) as services,
            (select count(*)::int from nailists) as artists`, []),
       rows<DashboardResponse["sales"][number]>(
         `${APPT} select id, d as date, t as time, coalesce(nullif(client_name, ''), 'Client') as client_name,
            case when is_guest then null else user_id end as user_id, service_name, nailist_name, ${SALE}::int as fee
          from appt where tracked_d between $1 and $2
          order by tracked_d desc, d desc, lpad(split_part(t, '-', 1), 5, '0') desc, id desc`, p),
-      // The same day by day, for its line
-      rows<{ d: string; value: number; visits: number }>(
-        `${APPT} select d, coalesce(sum(${STILL_TO_PAY}), 0)::int as value, count(*)::int as visits from appt
-         where st = 'CONFIRMED' and d between $1 and $2 group by d`, ahead),
       // Which services and artists were booked each day, for the glance cards' lines (merged per
       // week or month below, so a service booked on two days of a week counts once)
       trendSpan
@@ -332,28 +339,66 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
             `${APPT} select d, to_json(array_agg(distinct service_name)) as services, to_json(array_agg(distinct nailist_name)) as artists
              from appt where d between $1 and $2 and st in ${BOOKED} group by d`, trendSpan)
         : Promise.resolve([]),
+      // All time, whatever the period, for the Dashboard's Service mix and Salon notes: the services,
+      // weekdays and artists booked (MIX_BOOKED), the rates, and the rewards redeemed
+      rows<{ name: string; bookings: number; estimated_sales: number }>(
+        `${APPT} select service_name as name, count(*)::int as bookings,
+           coalesce(sum(${SALE}) filter (where st = 'COMPLETED'), 0)::int as estimated_sales
+         from appt where ${MIX_BOOKED}
+         group by service_name order by bookings desc, estimated_sales desc, service_name`, []),
+      rows<{ weekday: number; bookings: number }>(
+        `${APPT} select extract(isodow from d::date)::int as weekday, count(*)::int as bookings
+         from appt where ${MIX_BOOKED} group by 1`, []),
+      rows<{ name: string; bookings: number }>(
+        `${APPT} select nailist_name as name, count(*)::int as bookings
+         from appt where ${MIX_BOOKED} group by nailist_name order by bookings desc, nailist_name`, []),
+      one<{ cancelled: number; decided: number; created: number; converted: number; redeemed: number }>(
+        `${APPT} select
+           count(*) filter (where st in ${CANCELLED})::int as cancelled,
+           count(*) filter (where st in ${DECIDED})::int as decided,
+           count(*) filter (where not is_guest)::int as created,
+           count(*) filter (where not is_guest and st in ${BOOKED})::int as converted,
+           (select count(*)::int from scan_history where action = 'redeem') as redeemed
+         from appt`, []),
+      // The Appointments glance card: every visit completed with the booking tracker (confirmed, then
+      // Complete visit), one each, walk-ins too, by the day completed (its line is a running total)
+      rows<{ d: string; n: number }>(
+        `${APPT} select tracked_d as d, count(*)::int as n from appt where tracked_d is not null group by 1`, []),
+      // The Total services and Artists badges: how many different services and artists were booked
+      // (confirmed or completed, by the visit's day) in the period and in the one before
+      one<{ services: number; services_before: number; artists: number; artists_before: number }>(
+        `${APPT} select
+           count(distinct service_name) filter (where d between $1 and $2)::int as services,
+           count(distinct service_name) filter (where d between $3 and $4)::int as services_before,
+           count(distinct nailist_name) filter (where d between $1 and $2)::int as artists,
+           count(distinct nailist_name) filter (where d between $3 and $4)::int as artists_before
+         from appt where st in ${BOOKED}`, [period.from, period.to, previous.from, previous.to]),
     ]);
 
   const byDay: Record<string, Partial<DayValues>> = {};
   const day = (d: string) => (byDay[d] ??= {});
-  for (const r of dayAppts as { d: string; sales: number; collected: number; balance: number; returning: number }[]) {
-    Object.assign(day(r.d), { estimatedSales: r.sales, collected: r.collected, balanceAtSalon: r.balance, returningRevenue: r.returning });
-  }
-  for (const r of dayLost as { d: string; n: number }[]) day(r.d).lost = r.n;
+  const completedDays = dayAppts as { d: string; sales: number; collected: number; balance: number; late_fees: number }[];
+  for (const r of completedDays) Object.assign(day(r.d), { estimatedSales: r.sales, collected: r.collected });
   for (const r of dayBooked as { d: string; n: number }[]) day(r.d).bookings = r.n;
   for (const r of dayClients as { d: string; n: number }[]) day(r.d).newClients = r.n;
 
   // Five rows at most, Other included: with more than five services, the top four and Other
-  const shown = serviceRows.length > 5 ? 4 : 5;
-  const topServices = serviceRows.slice(0, shown).map((r) => ({ name: r.name, bookings: r.bookings, estimatedSales: r.estimated_sales }));
-  const otherServices = serviceRows.slice(shown);
-  if (otherServices.length > 0) {
-    topServices.push({
-      name: "Other",
-      bookings: otherServices.reduce((sum, r) => sum + r.bookings, 0),
-      estimatedSales: otherServices.reduce((sum, r) => sum + r.estimated_sales, 0),
-    });
-  }
+  const topOf = (found: { name: string; bookings: number; estimated_sales: number }[]) => {
+    const shown = found.length > 5 ? 4 : 5;
+    const top = found.slice(0, shown).map((r) => ({ name: r.name, bookings: r.bookings, estimatedSales: r.estimated_sales }));
+    const other = found.slice(shown);
+    if (other.length > 0) {
+      top.push({
+        name: "Other",
+        bookings: other.reduce((sum, r) => sum + r.bookings, 0),
+        estimatedSales: other.reduce((sum, r) => sum + r.estimated_sales, 0),
+      });
+    }
+    return top;
+  };
+  // Monday to Sunday, a day with no bookings at 0
+  const everyWeekday = (found: { weekday: number; bookings: number }[]) =>
+    Array.from({ length: 7 }, (_, i) => ({ weekday: i + 1, bookings: found.find((r) => r.weekday === i + 1)?.bookings ?? 0 }));
 
   // Returning clients as of a day: those whose second completed visit came on or before it. The
   // card counts them as of the period's end (today at the latest), and its line as of each point's end.
@@ -361,6 +406,18 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
   const asOf = (span: Span) => recurringBy(span.to < today ? span.to : today);
   const trend = bucketTrend(granularity, buckets, byDay);
   trend.points.forEach((point, i) => (point.recurringClients = recurringBy(buckets[i].to)));
+  // The money cards: the period (its held downpayments as of today at the latest), the one before,
+  // and a point per trend bucket
+  const flowRows = flows as Flow[];
+  const money = (span: Span, metrics: { balanceAtSalon: number; lateFees: number }) =>
+    moneyFor(flowRows, { from: span.from, to: span.to < today ? span.to : today }, { balance: metrics.balanceAtSalon, lateFees: metrics.lateFees });
+  const moneyNow = money(period, current);
+  const moneyBefore = money(previous, before);
+  const moneyPoints = buckets.map((bucket) => {
+    const inside = completedDays.filter((r) => r.d >= bucket.from && r.d <= bucket.to);
+    const completed = { balance: inside.reduce((t, r) => t + r.balance, 0), lateFees: inside.reduce((t, r) => t + r.late_fees, 0) };
+    return { date: bucket.from, ...moneyFor(flowRows, bucket, completed) };
+  });
   const outcome = (...statuses: string[]) => outcomeRows.filter((r) => statuses.includes(r.st)).reduce((sum, r) => sum + r.n, 0);
 
   return {
@@ -388,8 +445,16 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
       clients: counts.clients,
       services: counts.services,
       artists: counts.artists,
-      noShows: current.noShows,
-      trend: glanceTrend(trend.points, buckets, dayMix as { d: string; services: string[]; artists: string[] }[], counts.clients, dayLost as { d: string; no_shows: number }[]),
+      appointments: (completedVisits as { d: string; n: number }[]).reduce((sum, r) => sum + r.n, 0),
+      // For the growth badges: clients and visits completed as of the previous period's end, and the
+      // different services and artists booked in the period and the one before
+      growth: {
+        clients: countBy(firstVisits as { d: string; n: number }[], previous.to),
+        appointments: countBy(completedVisits as { d: string; n: number }[], previous.to),
+        servicesBooked: { value: mixBooked.services, previous: mixBooked.services_before },
+        artistsBooked: { value: mixBooked.artists, previous: mixBooked.artists_before },
+      },
+      trend: glanceTrend(buckets, dayMix as { d: string; services: string[]; artists: string[] }[], firstVisits as { d: string; n: number }[], completedVisits as { d: string; n: number }[]),
     },
     clientBase: {
       clients: base.clients,
@@ -400,29 +465,29 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
     loyalty,
     attention: { today: attention.today, proofsToReview: attention.proofs_to_review, toConfirm: attention.to_confirm, toComplete: attention.to_complete, photosToAdd: attention.photos_to_add, unpaid: attention.unpaid, warmLeads: warm.n },
     money: {
-      balanceAtSalon: { value: current.balanceAtSalon, previous: before.balanceAtSalon },
-      returningRevenue: { value: current.returningRevenue, previous: before.returningRevenue },
-      lostToCancellations: { value: current.lost, previous: before.lost },
-      bookedAhead: {
-        ...aheadTotal,
-        previous: aheadPrevious.value,
-        granularity: range === "year" ? "month" : "day",
-        days: aheadBuckets(range, today, aheadTo).map((bucket) => {
-          const inside = aheadDays.filter((r) => r.d >= bucket.from && r.d <= bucket.to);
-          return { date: bucket.from, value: inside.reduce((sum, r) => sum + r.value, 0), visits: inside.reduce((sum, r) => sum + r.visits, 0) };
-        }),
-      },
+      grossReceipts: { value: moneyNow.grossReceipts, previous: moneyBefore.grossReceipts },
+      unearned: { value: moneyNow.unearned, previous: moneyBefore.unearned },
+      otherIncome: { value: moneyNow.otherIncome, previous: moneyBefore.otherIncome },
+      refunds: { value: moneyNow.refunds, previous: moneyBefore.refunds },
+      points: moneyPoints,
     },
     monthly: months.map((month) => {
       const found = monthlyRows.find((r) => r.month === month);
       return { month, completed: found?.completed ?? 0, cancelled: found?.cancelled ?? 0 };
     }),
-    services: topServices,
-    weekdays: Array.from({ length: 7 }, (_, i) => ({
-      weekday: i + 1,
-      bookings: weekdayRows.find((r) => r.weekday === i + 1)?.bookings ?? 0,
-    })),
+    services: topOf(serviceRows),
+    weekdays: everyWeekday(weekdayRows),
     artists: artistRows,
+    allTime: {
+      services: topOf(allServices),
+      weekdays: everyWeekday(allWeekdays),
+      artists: allArtists,
+      decided: allRates.decided,
+      cancellation: rate(allRates.cancelled, allRates.decided),
+      conversion: rate(allRates.converted, allRates.created),
+      returningClients: recurringBy(today),
+      loyaltyRedeemed: allRates.redeemed,
+    },
     outcomes: {
       confirmed: outcome("CONFIRMED"),
       completed: outcome("COMPLETED"),

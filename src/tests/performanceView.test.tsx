@@ -8,9 +8,9 @@ vi.mock("@/lib/router", () => ({
 }));
 
 describe("PerformanceView", () => {
-  it("shows the salon at a glance, the key rates, then the weekday and artist charts", () => {
+  it("shows the visits done, the key rates, then the weekday and artist charts", () => {
     render(<PerformanceView data={data} />);
-    const glance = screen.getByRole("region", { name: "Salon at a glance" });
+    const glance = screen.getByRole("region", { name: "Visits done" });
     const rates = screen.getByRole("region", { name: "Key rates" });
     const weekdays = screen.getByRole("region", { name: "Busiest weekdays" });
     expect(glance.compareDocumentPosition(rates) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();

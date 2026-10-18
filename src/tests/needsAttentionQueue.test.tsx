@@ -60,6 +60,17 @@ describe("the dashboard's queue of what to act on", () => {
     expect(within(rows[5]).getByRole("link", { name: "Open Dee Go" })).toHaveAttribute("href", "/clients/15");
   });
 
+  it("shows only as many rows as it's given room for", async () => {
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <NeedsAttentionQueue load={load} rows={3} />
+      </QueryClientProvider>,
+    );
+    const queue = within(await screen.findByRole("region", { name: "To act on" }));
+    expect((await queue.findAllByRole("row")).slice(1)).toHaveLength(3);
+    expect(queue.queryByText("Cara Uy")).toBeNull();
+  });
+
   it("switches tabs, asking the server for that tab, with a link to the whole list", async () => {
     const user = renderQueue();
     await screen.findByRole("region", { name: "To act on" });

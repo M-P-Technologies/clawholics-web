@@ -56,7 +56,7 @@ describe("trend buckets", () => {
 describe("bucketTrend", () => {
   const byDay = {
     "2026-10-12": { collected: 500, bookings: 1 },
-    "2026-10-14": { collected: 300, estimatedSales: 800, bookings: 2, newClients: 1, recurringClients: 0, balanceAtSalon: 0, returningRevenue: 0, lost: 0 },
+    "2026-10-14": { collected: 300, estimatedSales: 800, bookings: 2, newClients: 1, recurringClients: 0 },
     "2026-10-20": { collected: 9999 }, // after the buckets: ignored
   };
 
@@ -65,15 +65,15 @@ describe("bucketTrend", () => {
     const trend = bucketTrend("day", buckets, byDay);
     expect(trend.granularity).toBe("day");
     expect(trend.points).toEqual([
-      { date: "2026-10-12", collected: 500, estimatedSales: 0, bookings: 1, newClients: 0, recurringClients: 0, balanceAtSalon: 0, returningRevenue: 0, lost: 0 },
-      { date: "2026-10-13", collected: 0, estimatedSales: 0, bookings: 0, newClients: 0, recurringClients: 0, balanceAtSalon: 0, returningRevenue: 0, lost: 0 },
-      { date: "2026-10-14", collected: 300, estimatedSales: 800, bookings: 2, newClients: 1, recurringClients: 0, balanceAtSalon: 0, returningRevenue: 0, lost: 0 },
+      { date: "2026-10-12", collected: 500, estimatedSales: 0, bookings: 1, newClients: 0, recurringClients: 0 },
+      { date: "2026-10-13", collected: 0, estimatedSales: 0, bookings: 0, newClients: 0, recurringClients: 0 },
+      { date: "2026-10-14", collected: 300, estimatedSales: 800, bookings: 2, newClients: 1, recurringClients: 0 },
     ]);
   });
 
   it("a weekly bucket sums its days", () => {
     const trend = bucketTrend("week", [{ from: "2026-10-12", to: "2026-10-18" }], byDay);
-    expect(trend.points[0]).toEqual({ date: "2026-10-12", collected: 800, estimatedSales: 800, bookings: 3, newClients: 1, recurringClients: 0, balanceAtSalon: 0, returningRevenue: 0, lost: 0 });
+    expect(trend.points[0]).toEqual({ date: "2026-10-12", collected: 800, estimatedSales: 800, bookings: 3, newClients: 1, recurringClients: 0 });
   });
 });
 
@@ -82,15 +82,5 @@ describe("bucket labels", () => {
     expect(formatBucketLabel("day", "2026-10-03")).toBe("Oct 3");
     expect(formatBucketLabel("week", "2026-10-09")).toBe("Week of Oct 9");
     expect(formatBucketLabel("month", "2026-10-01")).toBe("Oct 2026");
-  });
-});
-
-describe("bucketTrend: the money lines", () => {
-  it("adds up the balance at the salon, returning clients' revenue and what cancellations cost per bucket", () => {
-    const trend = bucketTrend("week", [{ from: "2026-10-05", to: "2026-10-11" }], {
-      "2026-10-05": { balanceAtSalon: 300, returningRevenue: 800, lost: 500 },
-      "2026-10-08": { balanceAtSalon: 1000, lost: 1500 },
-    });
-    expect(trend.points[0]).toMatchObject({ date: "2026-10-05", balanceAtSalon: 1300, returningRevenue: 800, lost: 2000 });
   });
 });

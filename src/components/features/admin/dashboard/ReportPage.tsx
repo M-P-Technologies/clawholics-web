@@ -9,13 +9,23 @@ import AdminShell from "@/components/features/admin/shell/AdminShell";
 import PeriodSwitch from "@/components/features/admin/dashboard/PeriodSwitch";
 import { ReportSkeleton } from "@/components/features/admin/skeletons/skeletons";
 
-// The frame of the Dashboard, Sales and Performance pages: the period switch, the numbers for
+// The frame of the Dashboard, Sales and Performance pages: the period switch (not on the Dashboard,
+// which is all time and today: it keeps the default period, for its cards' lines), the numbers for
 // that period (hooks/admin/useReports), a skeleton of the page the first time, and a retry when they
 // can't be loaded. Each page draws its own cards from the same numbers. The switch sits in the top
 // bar from `2xl`; below that it gets its own row under the top bar, above the cards.
-export default function ReportPage({ title, children }: { title: string; children: (report: ReportProps) => ReactNode }) {
+interface ReportPageProps {
+  title: string;
+  /** false: no period switch (the Dashboard) */
+  periodSwitch?: boolean;
+  children: (report: ReportProps) => ReactNode;
+}
+
+export default function ReportPage({ title, periodSwitch = true, children }: ReportPageProps) {
   const { range, setRange, data, loading, failed, retry } = useDashboardReport(title);
   const wide = useReportWideLayout();
+  const switchIn = periodSwitch && wide;
+  const switchRow = periodSwitch && !wide;
 
   if (!data && loading) return <ReportSkeleton title={title} />;
 
@@ -39,11 +49,11 @@ export default function ReportPage({ title, children }: { title: string; childre
   }
 
   return (
-    <AdminShell title={title} actions={wide && <div className="min-w-0"><PeriodSwitch value={range} onChange={setRange} /></div>}>
+    <AdminShell title={title} actions={switchIn && <div className="min-w-0"><PeriodSwitch value={range} onChange={setRange} /></div>}>
       {/* The page scrolls under the top bar, with the switch (below `2xl`) as its first row */}
       <div className="flex min-h-0 flex-col gap-3 overflow-y-auto pb-2 pr-1 md:gap-6">
         {/* shrink-0: the scroller is a column, and a sideways-scrolling row would be squashed in it */}
-        {!wide && (
+        {switchRow && (
           <div className="shrink-0">
             <PeriodSwitch value={range} onChange={setRange} />
           </div>

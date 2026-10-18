@@ -402,7 +402,14 @@ export const updateAppointmentStatus = ported<IdContext>(async (req, { params })
       }
       const [changed] = await tx<{ was: string | null }[]>`
         update appointments a set status = ${upperStatus},
-          expires_at = case when ${upperStatus} in ('CANCELLED', 'REFUNDED') then null else a.expires_at end
+          expires_at = case when ${upperStatus} in ('CANCELLED', 'REFUNDED') then null else a.expires_at end,
+          -- When it was cancelled (or marked a no-show) or refunded, for the Sales page's money: the
+          -- latest time it went into that state, so a booking reactivated and cancelled again later
+          -- is dated by the later one (moving between cancelled and no-show keeps the date)
+          cancelled_at = case when ${upperStatus} in ('CANCELLED', 'CANCELED', 'NO_SHOW')
+            and upper(trim(coalesce(old.was, ''))) not in ('CANCELLED', 'CANCELED', 'NO_SHOW') then clawholics_utc_now() else a.cancelled_at end,
+          refunded_at = case when ${upperStatus} = 'REFUNDED'
+            and upper(trim(coalesce(old.was, ''))) <> 'REFUNDED' then clawholics_utc_now() else a.refunded_at end
         from (select id, status as was from appointments where id = ${id}) old
         where a.id = old.id
         returning old.was
@@ -600,8 +607,13 @@ export const refundAppointment = ported<IdContext>(async (_req, { params }) => {
     }
 
     // No expiry any more: a late payment for it then doesn't bring it back (the webhook only revives
-    // a booking whose hold ran out)
-    await tx`update appointments set status = ${finalStatus}, expires_at = null where id = ${id}`;
+    // a booking whose hold ran out). Dated for the Sales page's money (it was still to happen, so
+    // this is when it was cancelled).
+    await tx`
+      update appointments set status = ${finalStatus}, expires_at = null,
+        cancelled_at = clawholics_utc_now(),
+        refunded_at = case when ${finalStatus} = 'REFUNDED' then clawholics_utc_now() else refunded_at end
+      where id = ${id}`;
     return { finalStatus, isLateCancellation, manualRefundAmount };
   });
   if (result instanceof Response) return result;

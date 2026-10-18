@@ -11,13 +11,9 @@ export interface DayValues {
   newClients: number;
   /** Clients with two or more confirmed and completed visits by the point's last day (not a sum) */
   recurringClients: number;
-  /** The money cards' lines, by appointment date: see Money in dashboardTypes */
-  balanceAtSalon: number;
-  returningRevenue: number;
-  lost: number;
 }
 // The values added up day by day (recurringClients is a running count, set by the server)
-const KEYS: (keyof DayValues)[] = ["collected", "estimatedSales", "bookings", "newClients", "balanceAtSalon", "returningRevenue", "lost"];
+const KEYS: (keyof DayValues)[] = ["collected", "estimatedSales", "bookings", "newClients"];
 export interface TrendPoint extends DayValues {
   /** The first day the point covers, "YYYY-MM-DD" */
   date: string;

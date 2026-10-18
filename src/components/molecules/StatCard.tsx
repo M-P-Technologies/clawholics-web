@@ -20,6 +20,8 @@ interface StatCardProps {
   icon?: LucideIcon;
   /** A small line along the bottom of the card, e.g. a Sparkline */
   sparkline?: ReactNode;
+  /** Beside the label: e.g. an ⓘ note (InfoTip) saying what the number is */
+  info?: ReactNode;
   /** While the figure loads: a placeholder bar in place of the value */
   loading?: boolean;
   className?: string;
@@ -36,7 +38,7 @@ const WORDS = {
 // A headline number. The change is a soft pill with an arrow, a figure and (for screen readers)
 // words, so it never relies on color alone.
 export default function StatCard({
-  label, value, change, hint, lowerIsBetter = false, size = "normal", variant = "card", icon: CardIcon, sparkline, loading = false, className,
+  label, value, change, hint, lowerIsBetter = false, size = "normal", variant = "card", icon: CardIcon, sparkline, info, loading = false, className,
 }: StatCardProps) {
   const Icon = change?.kind === "up" ? ArrowUpRight : change?.kind === "down" ? ArrowDownRight : change?.kind === "new" ? Sparkles : Minus;
   const good = change?.kind === "up" || change?.kind === "new" ? !lowerIsBetter : change?.kind === "down" ? lowerIsBetter : null;
@@ -74,7 +76,10 @@ export default function StatCard({
           <CardIcon className="h-4 w-4 sm:h-5 sm:w-5 lg:h-4 lg:w-4 xl:h-5 xl:w-5" strokeWidth={1.75} />
         </span>
       )}
-      <p className={clsx("text-[13px] font-medium text-gray-red", CardIcon && "pr-9")}>{label}</p>
+      <div className={clsx("flex items-center gap-1 text-[13px] font-medium text-gray-red", CardIcon && "pr-9")}>
+        <span>{label}</span>
+        {info}
+      </div>
       {loading ? (
         // As tall as the figure it stands in for, so the card doesn't change size when it arrives.
         // Read as part of the card ("New clients, Loading"), not as a live region: a row of cards

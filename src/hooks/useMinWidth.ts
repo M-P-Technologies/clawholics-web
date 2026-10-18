@@ -24,5 +24,8 @@ export const useClientWideLayout = () => useMinWidth("64rem");
 /** From Tailwind's `lg` up the admin shows its computer layout (sidebar, one-row top bar) */
 export const useAdminWideLayout = () => useMinWidth("64rem");
 
+/** From Tailwind's `md` up an ⓘ note opens as a tooltip; below it, as a bottom sheet */
+export const useTooltipLayout = () => useMinWidth("48rem");
+
 /** From Tailwind's `2xl` up the report pages' period switch fits in the top bar; below it, it sits under it */
 export const useReportWideLayout = () => useMinWidth("96rem");

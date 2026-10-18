@@ -62,10 +62,10 @@ const base = (over: Partial<DashboardResponse> = {}): DashboardResponse => ({
     returning: { value: 1 / 3, previous: 0 },
     averageSale: { value: 775, previous: 567 }, leadConversion: { value: 0.5, previous: 0.5 },
   },
-  lapsedClients: 1, leads: { accounts: 4, booked: 2 }, clientBase: { clients: 5, lifetimeValue: 1120, churn: 0.2 }, totals: { clients: 17, services: 35, artists: 5, noShows: 0, trend: [] }, sales: [],
+  lapsedClients: 1, leads: { accounts: 4, booked: 2 }, clientBase: { clients: 5, lifetimeValue: 1120, churn: 0.2 }, totals: { clients: 17, services: 35, artists: 5, appointments: 6, trend: [], growth: { clients: 15, appointments: 4, servicesBooked: { value: 8, previous: 10 }, artistsBooked: { value: 5, previous: 5 } } }, sales: [],
   loyalty: { stamps: 3, redeemed: 1 },
   attention: { today: 2, proofsToReview: 2, toConfirm: 0, toComplete: 0, photosToAdd: 0, unpaid: 2, warmLeads: 0 },
-  money: { balanceAtSalon: { value: 0, previous: 0 }, returningRevenue: { value: 0, previous: 0 }, lostToCancellations: { value: 0, previous: 0 }, bookedAhead: { value: 0, previous: 0, visits: 0, granularity: "day", days: [] } },
+  money: { grossReceipts: { value: 0, previous: 0 }, unearned: { value: 0, previous: 0 }, otherIncome: { value: 0, previous: 0 }, refunds: { value: 0, previous: 0 }, points: [] },
   trend: { granularity: "day", points: [] },
   monthly: [
     { month: "2026-05", completed: 0, cancelled: 0 }, { month: "2026-06", completed: 1, cancelled: 0 },
@@ -75,7 +75,7 @@ const base = (over: Partial<DashboardResponse> = {}): DashboardResponse => ({
   services: [{ name: "Gel Manicure", bookings: 3, estimatedSales: 1300 }, { name: "Nail Art", bookings: 2, estimatedSales: 300 }],
   weekdays: [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({ weekday, bookings: weekday === 3 ? 2 : 0 })),
   artists: [{ name: "Jun", bookings: 4 }],
-  outcomes: { confirmed: 3, completed: 4, pending: 2, cancelled: 1, refunded: 1 },
+  allTime: { services: [], weekdays: [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({ weekday, bookings: 2 })), artists: [], decided: 10, cancellation: 0.1, conversion: 0.9, returningClients: 0, loyaltyRedeemed: 0 }, outcomes: { confirmed: 3, completed: 4, pending: 2, cancelled: 1, refunded: 1 },
   next: [{ id: 1, client_name: "Dana D", service_name: "Gel Manicure", nailist_name: "Maxine", appointment_date: "2026-10-14", appointment_time: "15:00-16:00" }],
   ...over,
 });
@@ -90,11 +90,14 @@ describe("Dashboard", () => {
   it("shows the headline numbers with how they moved", async () => {
     fetchDashboard.mockResolvedValue(base());
     render(<Dashboard />);
-    const collected = await screen.findByRole("group", { name: "Collected" });
-    expect(within(collected).getByText("₱2,000")).toBeInTheDocument();
-    expect(within(collected).getByText("+100%")).toBeInTheDocument();
-    expect(within(screen.getByRole("group", { name: "Sales" })).getByText("₱3,100")).toBeInTheDocument();
-    expect(within(screen.getByRole("group", { name: "Bookings" })).getByText("new")).toBeInTheDocument(); // previous was 0
+    // the salon at a glance: clients who came, services, artists and confirmed appointments
+    const clients = await screen.findByRole("group", { name: "Total clients" });
+    expect(within(clients).getByText("17")).toBeInTheDocument();
+    expect(within(screen.getByRole("group", { name: "Total services" })).getByText("35")).toBeInTheDocument();
+    expect(within(screen.getByRole("group", { name: "Artists" })).getByText("5")).toBeInTheDocument();
+    expect(within(screen.getByRole("group", { name: "Appointments" })).getByText("6")).toBeInTheDocument();
+    // the visits done moved to Performance
+    expect(screen.queryByRole("group", { name: "Collected" })).toBeNull();
     expect(await screen.findByText("Dana D")).toBeInTheDocument();
     // the written summary of the period sits above the numbers
     expect(screen.getByRole("region", { name: "Salon notes" })).toBeInTheDocument();
@@ -108,7 +111,7 @@ describe("Dashboard", () => {
         <Dashboard />
       </StrictMode>,
     );
-    await screen.findByRole("group", { name: "Collected" });
+    await screen.findByRole("group", { name: "Total clients" });
     expect(fetchDashboard).toHaveBeenCalledTimes(1);
   });
 
@@ -116,7 +119,7 @@ describe("Dashboard", () => {
     fetchDashboard.mockResolvedValue(base());
     clerk.userId = undefined;
     const { rerender } = render(<Dashboard />);
-    await screen.findByRole("group", { name: "Collected" });
+    await screen.findByRole("group", { name: "Total clients" });
     clerk.userId = "admin_1";
     rerender(<Dashboard />);
     await new Promise((resolve) => setTimeout(resolve, 20));
@@ -133,7 +136,7 @@ describe("Dashboard", () => {
 
     clerk.loaded = true;
     rerender(<Dashboard />);
-    await screen.findByRole("group", { name: "Collected" });
+    await screen.findByRole("group", { name: "Total clients" });
     expect(fetchDashboard).toHaveBeenCalledTimes(1);
   });
 
@@ -145,7 +148,7 @@ describe("Dashboard", () => {
         <Dashboard />
       </QueryClientProvider>,
     );
-    await screen.findByRole("group", { name: "Collected" });
+    await screen.findByRole("group", { name: "Total clients" });
     rerender(
       <QueryClientProvider client={client}>
         <Sales />
@@ -155,31 +158,39 @@ describe("Dashboard", () => {
     expect(fetchDashboard).toHaveBeenCalledTimes(1);
   });
 
-  it("asks again when the period changes", async () => {
+  it("has no period switch: it's all time and today", async () => {
     fetchDashboard.mockResolvedValue(base());
     render(<Dashboard />);
-    await screen.findByRole("group", { name: "Collected" });
+    await screen.findByRole("group", { name: "Total clients" });
+    expect(screen.queryByRole("tab", { name: "This week" })).toBeNull();
+    expect(fetchDashboard).toHaveBeenCalledWith("month", "tok", "admin_1");
+  });
+
+  it("asks again when the period changes (Sales)", async () => {
+    fetchDashboard.mockResolvedValue(base());
+    render(<Sales />);
+    await screen.findByRole("group", { name: "Gross receipts" });
     fireEvent.click(screen.getByRole("tab", { name: "This week" }));
     await waitFor(() => expect(fetchDashboard).toHaveBeenCalledWith("week", "tok", "admin_1"));
   });
 
-  it("a slow earlier answer cannot replace the one for the period now chosen", async () => {
-    const withCollected = (range: DashboardResponse["range"], value: number) =>
-      base({ range, kpis: { ...base().kpis, collected: { value, previous: 1 } } });
+  it("a slow earlier answer cannot replace the one for the period now chosen (Sales)", async () => {
+    const withReceipts = (range: DashboardResponse["range"], value: number) =>
+      base({ range, money: { ...base().money, grossReceipts: { value, previous: 1 } } });
     fetchDashboard.mockResolvedValueOnce(base()); // the first load (month)
-    render(<Dashboard />);
-    await screen.findByRole("group", { name: "Collected" });
+    render(<Sales />);
+    await screen.findByRole("group", { name: "Gross receipts" });
 
     // choose "This week" (its answer is slow), then "Last 30 days" (answered at once)
     let releaseWeek: (d: DashboardResponse) => void = () => {};
     fetchDashboard.mockImplementationOnce(() => new Promise<DashboardResponse>((resolve) => { releaseWeek = resolve; }));
-    fetchDashboard.mockResolvedValueOnce(withCollected("last30", 777));
+    fetchDashboard.mockResolvedValueOnce(withReceipts("last30", 777));
     fireEvent.click(screen.getByRole("tab", { name: "This week" }));
     await waitFor(() => expect(fetchDashboard).toHaveBeenCalledTimes(2));
     fireEvent.click(screen.getByRole("tab", { name: "Last 30 days" }));
     expect(await screen.findByText("₱777")).toBeInTheDocument();
 
-    releaseWeek(withCollected("week", 999)); // arrives late
+    releaseWeek(withReceipts("week", 999)); // arrives late
     await new Promise((resolve) => setTimeout(resolve, 20));
     expect(screen.getByText("₱777")).toBeInTheDocument();
     expect(screen.queryByText("₱999")).toBeNull();
@@ -210,6 +221,6 @@ describe("Dashboard", () => {
     // the rest of the admin is still one tap away
     expect(screen.getByRole("link", { name: "Open appointments" })).toHaveAttribute("href", "/clients");
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
-    expect(await screen.findByRole("group", { name: "Collected" })).toBeInTheDocument();
+    expect(await screen.findByRole("group", { name: "Total clients" })).toBeInTheDocument();
   });
 });

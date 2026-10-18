@@ -40,7 +40,7 @@ export const getUtilization = ported(async (req) => {
   return Response.json(await buildUtilization(week));
 });
 
-// GET /attention?tab=all|confirm|complete|leads (admin only): the Needs attention queue, the five
+// GET /attention?tab=all|confirm|complete|leads (admin only): the Needs attention queue, the fifteen
 // most urgent things to act on, and how many of each kind there are. Not on the Worker either.
 export const getAttention = ported(async (req) => {
   const admin = await requireAdmin();

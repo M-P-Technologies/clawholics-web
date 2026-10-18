@@ -69,7 +69,7 @@ describe.skipIf(!TEST_DATABASE_URL)("the Needs attention queue (Postgres)", () =
     await getSql().end();
   });
 
-  it("puts the five most urgent first: confirmations (with a screenshot first), proofs, then visits to complete (latest first)", async () => {
+  it("puts the most urgent first: confirmations (with a screenshot first), proofs, visits to complete (latest first), photos, leads", async () => {
     const { items, counts } = await attention.listAttention("all", NOW);
     expect(items.map((i: Item) => [i.kind, i.appointment_id])).toEqual([
       ["confirm", ids.c2],
@@ -77,6 +77,8 @@ describe.skipIf(!TEST_DATABASE_URL)("the Needs attention queue (Postgres)", () =
       ["review", ids.r1],
       ["complete", ids.v2],
       ["complete", ids.v1],
+      ["photos", ids.p1],
+      ["lead", null],
     ]);
     expect(counts).toEqual({ confirm: 2, review: 1, complete: 2, photos: 1, leads: 1 });
     expect(items[0]).toMatchObject({ client_name: "Bea X", service_name: "Gel", nailist_name: "Maxine", has_screenshot: true });

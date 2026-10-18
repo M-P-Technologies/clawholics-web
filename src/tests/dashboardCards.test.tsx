@@ -46,7 +46,8 @@ describe("StatCard icon", () => {
 
   it("keeps the label clear of the badge", () => {
     render(<StatCard label="Estimated sales" value="₱1" icon={Wallet} />);
-    expect(screen.getByText("Estimated sales").className).toContain("pr-9");
+    // the label's row (with its ⓘ note, if any)
+    expect(screen.getByText("Estimated sales").parentElement!.className).toContain("pr-9");
   });
 });
 

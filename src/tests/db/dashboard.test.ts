@@ -171,10 +171,12 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     // September's Cara and Dana neither
     expect(d.rates.returning).toEqual({ value: 0, previous: 0 });
     expect(d.rates.averageSale).toEqual({ value: 1000, previous: 850 }); // Sales over the visits completed with the tracker
-    expect(d.lapsedClients).toBe(1); // Eve, last seen 1 June
-    // everyone with a completed visit: Ana 800+1500, Bea 500, Cara 300+500, Dana 1200 (+ a service
-    // with no price), Eve 800 = 5,600 over 5 clients; Eve has lapsed
-    expect(d.clientBase).toEqual({ clients: 5, lifetimeValue: 1160, churn: 1 / 5 });
+    // by the tracker: Eve's June visit and Cara's a4 have no record, so Eve isn't a client yet and
+    // nobody's last completed visit (Cara 15 Sep, Dana 20 Sep) is over 60 days back
+    expect(d.lapsedClients).toBe(0);
+    // what the visits completed with the tracker sold for: Ana 800+1700, Bea 500, Cara 500, Dana 1200
+    // = 4,700 over 4 clients (not the retired service's or a4, no record)
+    expect(d.clientBase).toEqual({ clients: 4, lifetimeValue: 1175, churn: 0 });
     expect(d.loyalty).toEqual({ stamps: 3, redeemed: 1 });
     // proofs to review: a booking whose latest upload is still pending, paid by proof (a11, a12);
     // unpaid: bookings still PENDING (a11), the same list the Appointments filter shows
@@ -186,35 +188,94 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     expect(d.leads).toEqual({ accounts: 2, booked: 2 });
   });
 
-  it("the salon at a glance: clients, services on the menu, artists, upcoming appointments", async () => {
-    await db`insert into services (name, master_price, junior_price, is_active) values ('Retired Polish', 100, 100, 0)`;
-    const [{ services }] = await db<{ services: number }[]>`select count(*)::int as services from services where is_active = 1`;
-    const [{ artists }] = await db<{ artists: number }[]>`select count(*)::int as artists from nailists`;
-    const d = await dashboard.buildDashboard("week", NOW);
-    expect(d.totals).toMatchObject({
-      clients: 5, // Ana, Bea, Cara, Dana, Eve: not the walk-in guest or the admin
-      services, // the inactive one left out
-      artists,
-      noShows: 0, // none in the fixture's week
-    });
-    expect(d.totals.trend.every((p) => p.noShows === 0)).toBe(true);
+  it("lapsed clients, churn and lifetime value count only visits completed with the tracker", async () => {
+    // Eve's 1 June visit, completed with Complete visit that day (no downpayment, 800 at the salon)
+    const [eve] = await db<{ id: number }[]>`select id from appointments where appointment_date = '2026-06-01'`;
+    await db`insert into visit_completions (appointment_id, balance_amount, payment_method, nailist_id, created_at) values (${eve.id}, 800, 'Cash', (select nailist_id from appointments where id = ${eve.id}), '2026-06-01 05:00:00')`;
+    try {
+      const d = await dashboard.buildDashboard("month", NOW);
+      expect(d.lapsedClients).toBe(1); // Eve, last completed 1 June
+      // 4,700 + Eve's 800 over 5 clients; Eve has lapsed
+      expect(d.clientBase).toEqual({ clients: 5, lifetimeValue: 1100, churn: 1 / 5 });
+    } finally {
+      await db`delete from visit_completions where appointment_id = ${eve.id}`;
+    }
   });
 
-  it("the salon at a glance: lines for clients, services and artists booked, and upcoming visits per day", async () => {
+  it("the salon at a glance: clients who came, the Services and Artists pages, visits completed", async () => {
+    await db`insert into services (name, master_price, junior_price, is_active) values ('Retired Polish', 100, 100, 0)`;
+    // as the Services page shows them: active, in an active category (or none)
+    const [{ services }] = await db<{ services: number }[]>`
+      select count(*)::int as services from services s left join service_categories c on c.id = s.category_id
+      where s.is_active = 1 and (c.id is null or c.is_active = 1)`;
+    const [{ artists }] = await db<{ artists: number }[]>`select count(*)::int as artists from nailists`;
+    const d = await dashboard.buildDashboard("week", NOW);
+    expect(d.totals).toEqual({
+      // a visit confirmed and finished with Complete visit: Ana (a1, a3), Bea (a2), Cara (a7), Dana (a13);
+      // not Eve, whose June visit was only marked completed, nor the walk-in guest or the admin
+      clients: 4,
+      services, // the inactive one left out
+      artists,
+      // visits confirmed and finished with Complete visit, one each: a1, a2, a3, a7, a13 (not a4 or the
+      // older ones, only marked completed; not the confirmed ones still to come)
+      appointments: 5,
+      trend: expect.any(Array),
+      growth: expect.any(Object),
+    });
+    // a running total of those, by the day completed: nothing completed this week, so 5 throughout
+    expect(d.totals.trend.map((p) => [p.date, p.appointments])).toEqual([["2026-10-12", 5], ["2026-10-13", 5], ["2026-10-14", 5]]);
+  });
+
+  it("the salon at a glance: lines for clients, services and artists booked, and visits completed", async () => {
     const d = await dashboard.buildDashboard("month", NOW);
     const points = d.totals.trend;
     expect(points.map((p) => p.date)).toEqual(d.trend.points.map((p) => p.date)); // the same days as the other lines
-    // clients: a running total that ends at today's count; Ana signed up on the 3rd, so the 2nd has one fewer
+    // clients: a running total from the day each one's first visit was completed with the tracker,
+    // ending at today's count; Bea's was on the 2nd, so the 1st has one fewer
     expect(points[points.length - 1].clients).toBe(d.totals.clients);
-    expect(points.find((p) => p.date === "2026-10-02")!.clients).toBe(d.totals.clients - 1);
+    expect(points.find((p) => p.date === "2026-10-01")!.clients).toBe(d.totals.clients - 1);
+    expect(points.find((p) => p.date === "2026-10-02")!.clients).toBe(d.totals.clients);
+    // visits completed with the tracker, a running total by the day completed: September's a7 and
+    // a13, then a1 on the 1st, a2 on the 2nd, a3 on the 7th; a5 on the 9th was cancelled
+    expect(points.find((p) => p.date === "2026-10-01")!.appointments).toBe(3);
+    expect(points.find((p) => p.date === "2026-10-02")!.appointments).toBe(4);
+    expect(points.find((p) => p.date === "2026-10-09")!.appointments).toBe(5);
+    expect(points[points.length - 1].appointments).toBe(d.totals.appointments);
+    // the growth badges: as of 30 Sep, Cara and Dana had a visit completed (a7, a13); booked
+    // (confirmed or completed) in October: Gel Manicure, Soft Gel, Nail Art with Maxine and Jun; in
+    // September: Gel Manicure, Soft Gel and the retired service, all with Jun
+    expect(d.totals.growth).toEqual({
+      clients: 2,
+      appointments: 2,
+      servicesBooked: { value: 3, previous: 3 },
+      artistsBooked: { value: 2, previous: 1 },
+    });
     // 1 Oct: Ana's Gel Manicure with Maxine; 6 Oct: Ana's Soft Gel with Maxine
     expect(points.find((p) => p.date === "2026-10-01")).toMatchObject({ services: 1, artists: 1 });
     expect(points.find((p) => p.date === "2026-10-05")).toMatchObject({ services: 0, artists: 0 });
-    // upcoming visits per day: two today, the walk-in's on the 20th
-    const days = d.money.bookedAhead.days;
-    expect(days.find((x) => x.date === "2026-10-14")?.visits).toBe(2);
-    expect(days.find((x) => x.date === "2026-10-20")?.visits).toBe(1);
-    expect(days.reduce((n, x) => n + x.visits, 0)).toBe(d.money.bookedAhead.visits);
+  });
+
+  it("all time, whatever the period: the Dashboard's Service mix and Salon notes", async () => {
+    const [counts] = await db<{ booked: number; cancelled: number; decided: number }[]>`
+      select count(*) filter (where upper(trim(status)) in ('CONFIRMED', 'COMPLETED'))::int as booked,
+        count(*) filter (where upper(trim(status)) in ('CANCELLED', 'CANCELED', 'REFUNDED', 'NO_SHOW'))::int as cancelled,
+        count(*) filter (where upper(trim(status)) in ('CONFIRMED', 'COMPLETED', 'CANCELLED', 'CANCELED', 'REFUNDED', 'NO_SHOW'))::int as decided
+      from appointments`;
+    const week = await dashboard.buildDashboard("week", NOW);
+    const year = await dashboard.buildDashboard("year", NOW);
+    expect(week.allTime).toEqual(year.allTime);
+    const { allTime } = week;
+    // the Service mix: confirmed or completed before October (a7, a13, the retired service, Eve's
+    // June visit), and from October only the visits completed with the tracker (a1, a2, a3; not a4,
+    // only marked completed, nor the confirmed ones still to come)
+    expect(allTime.services.reduce((n, s) => n + s.bookings, 0)).toBe(7);
+    expect(allTime.weekdays.reduce((n, d) => n + d.bookings, 0)).toBe(7); // the same visits
+    expect(allTime.artists.reduce((n, a) => n + a.bookings, 0)).toBe(7);
+    expect(counts.booked).toBe(11); // every confirmed or completed booking, for comparison
+    expect(allTime.decided).toBe(counts.decided);
+    expect(allTime.cancellation).toBeCloseTo(counts.cancelled / counts.decided);
+    // a second visit done with the tracker: Ana (a1, a3)
+    expect(allTime.returningClients).toBe(1);
   });
 
   it("the salon at a glance over a year: services and artists counted once per month", async () => {
@@ -238,46 +299,74 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     expect(sept.sales.map((s) => [s.date, s.fee])).toEqual([["2026-09-20", 1200], ["2026-09-15", 500]]);
   });
 
-  it("the month: the money cards' lines add up to the cards, and Booked ahead looks to the period's end", async () => {
+  it("the month: money for the financial statements, from the downpayments and the completed visits", async () => {
     const d = await dashboard.buildDashboard("month", NOW);
-    const sum = (key: "balanceAtSalon" | "returningRevenue" | "lost") => d.trend.points.reduce((total, p) => total + p[key], 0);
-    // every October visit is on or before today (14 Oct), so the line up to today covers them all
-    expect(sum("balanceAtSalon")).toBe(d.money.balanceAtSalon.value);
-    expect(sum("returningRevenue")).toBe(d.money.returningRevenue.value);
-    expect(sum("lost")).toBe(d.money.lostToCancellations.value);
-    const ahead = d.money.bookedAhead.days;
-    // a day each from today (14 Oct) to 31 Oct; no downpayment is paid on these yet, so each
-    // still has its list price to pay
-    expect(d.money.bookedAhead.granularity).toBe("day");
-    expect(ahead).toHaveLength(18);
-    expect(ahead[0].date).toBe("2026-10-14");
-    expect(ahead[17].date).toBe("2026-10-31");
-    expect(ahead.find((x) => x.date === "2026-10-14")?.value).toBe(800 + 1200);
-    expect(ahead.find((x) => x.date === "2026-10-20")?.value).toBe(300);
-    expect(ahead.reduce((total, x) => total + x.value, 0)).toBe(d.money.bookedAhead.value);
-    // the year: a month each from today; the last 30 days end today, so just today's visits
-    const year = (await dashboard.buildDashboard("year", NOW)).money.bookedAhead;
-    expect(year.granularity).toBe("month");
-    expect(year.days.map((x) => [x.date, x.value])).toEqual([["2026-10-14", 2300], ["2026-11-01", 0], ["2026-12-01", 0]]);
-    expect((await dashboard.buildDashboard("last30", NOW)).money.bookedAhead).toMatchObject({ value: 2000, visits: 2 });
+    expect(d.money).toMatchObject({
+      // money in by the day paid: p1, p2 (1 Oct in Manila), p3, p5 (not p4, unpaid; not p8, November),
+      // plus the balances recorded at completion: a1 300, a2 0, a3 1,200; none refunded.
+      // September: p6 + p7, and a7 0 + a13 700
+      grossReceipts: { value: 3500, previous: 1700 },
+      // every paid downpayment by today was earned or forfeited; September's were all earned by its end
+      unearned: { value: 0, previous: 0 },
+      // a5 was cancelled, so its downpayment was kept: dated by its visit's day (9 Oct), as it has no
+      // cancelled_at; no late fees
+      otherIncome: { value: 500, previous: 0 },
+      refunds: { value: 0, previous: 0 },
+    });
   });
 
-  it("the month: money worked out from list prices and downpayments", async () => {
-    const d = await dashboard.buildDashboard("month", NOW);
-    expect(d.money).toEqual({
-      // the balance recorded with Complete visit, by the day completed: a1 300, a2 0, a3 1,200;
-      // September: a7 0, a13 700 (a4 and the retired service's visit have no record)
-      balanceAtSalon: { value: 1500, previous: 700 },
-      // visits completed by clients with one completed before the period: none (Ana's first was
-      // 1 Oct; Cara's October visit, a4, has no record); in September nobody had come before
-      returningRevenue: { value: 0, previous: 0 },
-      // cancelled a5 (Gel with a junior, 500) and refunded (Soft Gel with a master, 1500)
-      lostToCancellations: { value: 2000, previous: 0 },
-      // confirmed from today on: a8 800, Soft Gel with a junior 1200, the walk-in's Nail Art 300
-      // against 14 to 30 Sep, as many days into September: a7 500 less 400 (its 500 downpayment
-      // without the 100 fee), a13 1,200 less 400
-      bookedAhead: { value: 2300, previous: 900, visits: 3, granularity: "day", days: expect.any(Array) },
-    });
+  it("the month: held, forfeited and refunded downpayments by the days they were recorded, with lines that add up", async () => {
+    const [refunded] = await db<{ id: number }[]>`select id from appointments where status = 'REFUNDED' and appointment_date = '2026-10-10'`;
+    // a8 (confirmed for today) paid on 5 Oct; a5 cancelled on 3 Oct; the refunded booking paid on 2 Oct, refunded on 11 Oct
+    await db`update payments set status = 'PAID', paid_at = '2026-10-05 02:00:00' where external_id = 'p4'`;
+    await db`update appointments set cancelled_at = '2026-10-03 02:00:00' where id = (select appointment_id from payments where external_id = 'p5')`;
+    await db`update appointments set cancelled_at = '2026-10-11 02:00:00', refunded_at = '2026-10-11 02:00:00' where id = ${refunded.id}`;
+    await db`insert into payments (id, appointment_id, amount, status, payment_method, external_id, created_at, paid_at)
+             values (${crypto.randomUUID()}, ${refunded.id}, 500, 'PAID', 'MANUAL', 'p9', '2026-10-02 02:00:00', '2026-10-02 02:00:00')`;
+    try {
+      const d = await dashboard.buildDashboard("month", NOW);
+      expect(d.money).toMatchObject({
+        // 3,500 as before, plus p4 and p9 paid, less p9 refunded
+        grossReceipts: { value: 4000, previous: 1700 },
+        // a8's downpayment, held for today's visit
+        unearned: { value: 500, previous: 0 },
+        otherIncome: { value: 500, previous: 0 },
+        refunds: { value: 500, previous: 0 },
+      });
+      const points = d.money.points;
+      // a point per trend day, 1 to 14 Oct
+      expect(points.map((p) => p.date)).toEqual(d.trend.points.map((p) => p.date));
+      const sum = (key: "grossReceipts" | "otherIncome" | "refunds") => points.reduce((total, p) => total + p[key], 0);
+      expect(sum("grossReceipts")).toBe(d.money.grossReceipts.value);
+      expect(sum("otherIncome")).toBe(d.money.otherIncome.value);
+      expect(sum("refunds")).toBe(d.money.refunds.value);
+      const on = (date: string) => points.find((p) => p.date === date)!;
+      // the forfeit on the day it was cancelled, the refund on the day it was refunded
+      expect(on("2026-10-03").otherIncome).toBe(500);
+      expect(on("2026-10-11").refunds).toBe(500);
+      // held at the end of 4 Oct: p3 (a3, completed on 7 Oct) and p9 (refunded on 11 Oct)
+      expect(on("2026-10-04").unearned).toBe(1000);
+      expect(points[points.length - 1].unearned).toBe(d.money.unearned.value);
+      // A payment that arrived after its booking was cancelled is owed back, not kept: held until
+      // refunded. p9 paid on 12 Oct, two days after the booking (now cancelled) was cancelled.
+      await db`update appointments set status = 'CANCELLED', refunded_at = null where id = ${refunded.id}`;
+      await db`update payments set paid_at = '2026-10-12 02:00:00', created_at = '2026-10-12 02:00:00' where external_id = 'p9'`;
+      const late = await dashboard.buildDashboard("month", NOW);
+      expect(late.money).toMatchObject({
+        // 3,500, plus p4 and p9 paid; nothing refunded
+        grossReceipts: { value: 4500, previous: 1700 },
+        // a8's downpayment and p9, owed back
+        unearned: { value: 1000, previous: 0 },
+        // a5's only: p9 isn't a forfeit
+        otherIncome: { value: 500, previous: 0 },
+        refunds: { value: 0, previous: 0 },
+      });
+    } finally {
+      await db`delete from payments where external_id = 'p9'`;
+      await db`update payments set status = 'PENDING', paid_at = null where external_id = 'p4'`;
+      await db`update appointments set status = 'REFUNDED' where id = ${refunded.id}`;
+      await db`update appointments set cancelled_at = null, refunded_at = null where cancelled_at is not null or refunded_at is not null`;
+    }
   });
 
   it("the month: charts and lists", async () => {
@@ -288,7 +377,8 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
       { month: "2026-07", completed: 0, cancelled: 0 },
       { month: "2026-08", completed: 0, cancelled: 0 },
       { month: "2026-09", completed: 3, cancelled: 0 },
-      { month: "2026-10", completed: 4, cancelled: 2 },
+      // from October only the visits completed with the tracker, by the day completed: a1, a2, a3 (not a4)
+      { month: "2026-10", completed: 3, cancelled: 2 },
     ]);
     expect(d.services).toEqual([
       { name: "Gel Manicure", bookings: 3, estimatedSales: 1300 },
@@ -316,8 +406,8 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     expect(day("2026-10-01")).toMatchObject({ date: "2026-10-01", collected: 500, estimatedSales: 800, bookings: 1, newClients: 1 }); // a1's downpayment and Bea, 1 Oct in Manila
     expect(day("2026-10-02")).toMatchObject({ date: "2026-10-02", collected: 500, estimatedSales: 500, bookings: 1, newClients: 0 }); // a2, though paid on 1 Oct
     expect(day("2026-10-03")).toMatchObject({ date: "2026-10-03", collected: 0, estimatedSales: 0, bookings: 0, newClients: 1 }); // p3 was paid today, for a3 on the 6th
-    expect(day("2026-10-06")).toMatchObject({ collected: 0, estimatedSales: 0, balanceAtSalon: 0, bookings: 0 }); // a3's visit day; it was completed the 7th
-    expect(day("2026-10-07")).toMatchObject({ collected: 500, estimatedSales: 1700, balanceAtSalon: 1200, bookings: 1, recurringClients: 1 }); // a3's completion was recorded the next day; Ana's second visit
+    expect(day("2026-10-06")).toMatchObject({ collected: 0, estimatedSales: 0, bookings: 0 }); // a3's visit day; it was completed the 7th
+    expect(day("2026-10-07")).toMatchObject({ collected: 500, estimatedSales: 1700, bookings: 1, recurringClients: 1 }); // a3's completion was recorded the next day; Ana's second visit
     expect(day("2026-10-06")).toMatchObject({ recurringClients: 0 });
     expect(day("2026-10-14")).toMatchObject({ recurringClients: 1 }); // a running count
     expect(day("2026-10-08")).toMatchObject({ collected: 0, estimatedSales: 0, bookings: 0 }); // a4 has no completion record
@@ -460,8 +550,8 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     expect([d.services, d.artists, d.next]).toEqual([[], [], []]);
     expect(d.attention).toEqual({ today: 0, proofsToReview: 0, unpaid: 0, toConfirm: 0, toComplete: 0, photosToAdd: 0, warmLeads: 0 });
     expect(d.money).toEqual({
-      balanceAtSalon: { value: 0, previous: 0 }, returningRevenue: { value: 0, previous: 0 }, lostToCancellations: { value: 0, previous: 0 },
-      bookedAhead: { value: 0, previous: 0, visits: 0, granularity: "day", days: expect.any(Array) },
+      grossReceipts: { value: 0, previous: 0 }, unearned: { value: 0, previous: 0 }, otherIncome: { value: 0, previous: 0 }, refunds: { value: 0, previous: 0 },
+      points: expect.any(Array),
     });
     expect(d.lapsedClients).toBe(0);
     expect(d.sales).toEqual([]);

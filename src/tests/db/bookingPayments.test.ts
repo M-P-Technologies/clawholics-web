@@ -396,6 +396,30 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       expect(await statusOf(body.appointment_id)).toBe("COMPLETED");
       await db`update appointments set status = 'CANCELLED' where id = ${body.appointment_id}`;
     });
+
+    it("TC-BK-15: a cancellation and a refund are dated by the latest time the booking went into them", async () => {
+      const { body } = await book("user_a", nextDate());
+      const id = body.appointment_id;
+      const params = { id: String(id) };
+      const setStatus = (status: string) => callRoute(booking.updateAppointmentStatus, "/x", { method: "PATCH", body: { status }, params });
+      const dates = async () => (await db<{ cancelled_at: string | null; refunded_at: string | null }[]>`select cancelled_at, refunded_at from appointments where id = ${id}`)[0];
+      as("user_admin");
+      await db`update appointments set status = 'CONFIRMED' where id = ${id}`;
+      expect((await setStatus("CANCELLED")).status).toBe(200);
+      expect((await dates()).cancelled_at).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
+      // cancelled long ago, then reactivated and cancelled again: the later one counts
+      await db`update appointments set cancelled_at = '2026-01-01 00:00:00' where id = ${id}`;
+      expect((await setStatus("CONFIRMED")).status).toBe(200);
+      expect((await setStatus("NO_SHOW")).status).toBe(200);
+      const again = (await dates()).cancelled_at!;
+      expect(again > "2026-01-01 00:00:00").toBe(true);
+      // moving between cancelled and no-show keeps the date; refunding dates the refund
+      await db`update appointments set cancelled_at = '2026-01-02 00:00:00' where id = ${id}`;
+      expect((await setStatus("CANCELLED")).status).toBe(200);
+      expect((await dates()).cancelled_at).toBe("2026-01-02 00:00:00");
+      expect((await setStatus("REFUNDED")).status).toBe(200);
+      expect((await dates()).refunded_at).toMatch(/^\d{4}-/);
+    });
   });
 
   describe("payments", () => {

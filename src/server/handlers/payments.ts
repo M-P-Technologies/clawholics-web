@@ -118,7 +118,7 @@ export const xenditWebhook = ported(
         // and the repeat must change nothing. An appointment already paid by an approved payment
         // proof is skipped too, so it isn't paid twice.
         const [paid] = await tx<{ appointment_id: number }[]>`
-          update payments set status = 'PAID'
+          update payments set status = 'PAID', paid_at = coalesce(paid_at, clawholics_utc_now())
           where external_id = ${externalId} and upper(status) <> 'PAID'
             and not exists (
               select 1 from payments p2
@@ -364,8 +364,8 @@ export const reviewPaymentProof = ported<IdContext>(async (req, { params }) => {
     `;
     await tx`update payments set status = 'FAILED' where appointment_id = ${proof.appointment_id} and upper(status) = 'PENDING'`;
     await tx`
-      insert into payments (id, appointment_id, amount, status, payment_method, external_id, invoice_url)
-      values (${crypto.randomUUID()}, ${proof.appointment_id}, ${downpayment_amount}, 'PAID', 'MANUAL', ${`proof-${proof.id}`}, null)
+      insert into payments (id, appointment_id, amount, status, payment_method, external_id, invoice_url, paid_at)
+      values (${crypto.randomUUID()}, ${proof.appointment_id}, ${downpayment_amount}, 'PAID', 'MANUAL', ${`proof-${proof.id}`}, null, clawholics_utc_now())
     `;
     return openPayments.map((p) => p.external_id);
   }).catch((error) => {

@@ -9,11 +9,12 @@ vi.mock("@/lib/router", () => ({
 }));
 
 const data = dashboardData;
+const GLANCE = ["Total clients", "Total services", "Artists", "Appointments"];
 
 describe("DashboardView layout", () => {
-  it("puts the four stat cards first, then the salon notes, then the rest", () => {
+  it("puts the salon at a glance first, then the salon notes, then the rest", () => {
     render(<DashboardView data={data} />);
-    const collected = screen.getByRole("group", { name: "Collected" });
+    const collected = screen.getByRole("region", { name: "Salon at a glance" });
     const notes = screen.getByRole("region", { name: "Salon notes" });
     const charts = screen.getByRole("region", { name: "Bookings per month" });
     expect(collected.compareDocumentPosition(notes) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
@@ -38,7 +39,7 @@ describe("DashboardView layout", () => {
 
   it("spaces every card the same: gap-3, and gap-6 from md up", () => {
     render(<DashboardView data={data} />);
-    const statGrid = screen.getByRole("group", { name: "Collected" }).parentElement as HTMLElement;
+    const statGrid = screen.getByRole("region", { name: "Salon at a glance" });
     const column = screen.getByRole("region", { name: "Salon notes" }).parentElement as HTMLElement;
     const lower = column.parentElement as HTMLElement;
     const charts = screen.getByRole("region", { name: "Bookings per month" }).parentElement as HTMLElement;
@@ -50,59 +51,35 @@ describe("DashboardView layout", () => {
     }
   });
 
-  it("lays the stat cards out two across, and four across from xl, all the same width", () => {
+  it("lays the glance cards out two across, and four across from lg, all the same width", () => {
     render(<DashboardView data={data} />);
-    const grid = screen.getByRole("group", { name: "Collected" }).parentElement as HTMLElement;
+    const grid = screen.getByRole("region", { name: "Salon at a glance" });
     expect(grid.className).toContain("grid-cols-2");
-    expect(grid.className).toContain("xl:grid-cols-4");
-    for (const name of ["Collected", "Sales", "Bookings", "Returning clients"]) {
+    expect(grid.className).toContain("lg:grid-cols-4");
+    for (const name of GLANCE) {
       const card = screen.getByRole("group", { name });
       expect(card.parentElement).toBe(grid);
       expect(card.className).not.toContain("col-span");
     }
   });
 
-  it("draws a small line on each stat card, described in words", () => {
+  it("gives each of the four glance cards an icon", () => {
     render(<DashboardView data={data} />);
-    expect(screen.getByRole("img", { name: "Collected per day, from ₱0 to ₱500" })).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "Sales per day, from ₱0 to ₱800" })).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "Bookings per day, from 1 to 2" })).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "Returning clients per day, from 3 to 4" })).toBeInTheDocument();
-  });
-
-  it("names each point in its tooltip", () => {
-    render(<DashboardView data={data} />);
-    const line = screen.getByRole("img", { name: "Collected per day, from ₱0 to ₱500" });
-    expect([...line.querySelectorAll("title")].map((t) => t.textContent)).toEqual(["Oct 12: ₱0", "Oct 13: ₱300", "Oct 14: ₱500"]);
-  });
-
-  it("speaks of weeks and months when the line has weekly or monthly points", () => {
-    render(<DashboardView data={{ ...data, trend: { granularity: "month", points: [{ date: "2026-09-01", collected: 100, estimatedSales: 0, bookings: 0, newClients: 0, recurringClients: 0, balanceAtSalon: 0, returningRevenue: 0, lost: 0 }, { date: "2026-10-01", collected: 400, estimatedSales: 0, bookings: 0, newClients: 0, recurringClients: 0, balanceAtSalon: 0, returningRevenue: 0, lost: 0 }] } }} />);
-    expect(screen.getByRole("img", { name: "Collected per month, from ₱100 to ₱400" })).toBeInTheDocument();
-  });
-
-  it("draws no line when there are no points", () => {
-    render(<DashboardView data={{ ...data, trend: { granularity: "day", points: [] } }} />);
-    expect(screen.queryByRole("img", { name: /Collected per day/ })).toBeNull();
-  });
-
-  it("gives each of the four stat cards an icon", () => {
-    render(<DashboardView data={data} />);
-    for (const name of ["Collected", "Sales", "Bookings", "Returning clients"]) {
+    for (const name of GLANCE) {
       expect(within(screen.getByRole("group", { name })).getByTestId("kpi-icon")).toBeInTheDocument();
     }
   });
 
-  it("keeps only the essentials: the stat cards, the notes, two charts and the bookings", async () => {
+  it("keeps only the essentials: the glance cards, the notes, two charts and the bookings", async () => {
     render(<DashboardView data={data} loadBookings={paged(async () => [])} />);
     for (const name of ["Salon notes", "Bookings per month", "Service mix"]) expect(screen.getByRole("region", { name })).toBeInTheDocument();
     expect(await screen.findByRole("region", { name: "Bookings" })).toBeInTheDocument();
     expect(await screen.findByRole("region", { name: "Active bookings" })).toBeInTheDocument();
     // moved to the Sales and Performance pages
-    for (const name of ["Money", "Sales record", "Top services", "How bookings ended", "Key rates", "Salon at a glance", "Busiest weekdays", "Bookings per artist", "Artist utilization"]) {
+    for (const name of ["Money", "Sales record", "Top services", "How bookings ended", "Key rates", "Visits done", "Busiest weekdays", "Bookings per artist", "Artist utilization"]) {
       expect(screen.queryByRole("region", { name })).toBeNull();
     }
-    expect(screen.getAllByRole("group").map((g) => g.getAttribute("aria-label"))).toEqual(["Collected", "Sales", "Bookings", "Returning clients"]);
+    expect(screen.getAllByRole("group").map((g) => g.getAttribute("aria-label"))).toEqual(GLANCE);
   });
 
   it("links to the Sales and Performance pages for the rest", () => {
@@ -145,12 +122,5 @@ describe("DashboardView next appointments (without the bookings table)", () => {
   it("says so when there are none", () => {
     render(<DashboardView data={{ ...data, next: [] }} />);
     expect(screen.getByText("No upcoming confirmed appointments.")).toBeInTheDocument();
-  });
-});
-
-describe("the Sales card", () => {
-  it("says what it adds up: the downpayments and balances of completed visits", () => {
-    render(<DashboardView data={data} />);
-    expect(within(screen.getByRole("group", { name: "Sales" })).getByText("downpayment + balance")).toBeInTheDocument();
   });
 });
