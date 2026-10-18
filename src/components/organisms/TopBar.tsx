@@ -53,7 +53,7 @@ export default function TopBar({ title, greeting, titleAside, leading, actions, 
 
       {/* One row on a computer: the screen's controls give way (and scroll sideways) before anything wraps */}
       {/* clsx, not a template string: Tailwind only finds whole words, and "lg:justify-end${" isn't one */}
-      <div className={clsx("flex min-w-0 flex-wrap items-center gap-3 lg:flex-1 lg:flex-nowrap lg:justify-end", !actionsOnPhone && "max-lg:hidden")}>
+      <div className={clsx("flex min-w-0 flex-wrap items-center gap-3 lg:flex-1 lg:flex-nowrap lg:justify-end", (!actions || !actionsOnPhone) && "max-lg:hidden")}>
         {actions}
         <a
           href="/"
@@ -70,9 +70,9 @@ export default function TopBar({ title, greeting, titleAside, leading, actions, 
 
         <div className="hidden shrink-0 items-center gap-3 border-l border-crimson-light/60 pl-3 lg:flex">
           <Avatar name={account.name} imageUrl={account.imageUrl} />
-          <div className="hidden min-w-0 flex-col leading-tight 2xl:flex">
-            <span className="max-w-40 truncate text-[13px] font-bold text-gray-red">{account.name}</span>
-            <span className="max-w-40 truncate text-xs text-gray-red">{account.email}</span>
+          <div className="hidden flex-col leading-tight md:flex">
+            <span className="whitespace-nowrap text-[13px] font-bold text-gray-red">{account.name}</span>
+            <span className="whitespace-nowrap text-xs text-gray-red">{account.email}</span>
           </div>
         </div>
       </div>

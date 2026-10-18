@@ -224,7 +224,7 @@ export async function cancelExpiredPendingAppointments() {
   const now = new Date().toISOString();
   await getSql()`
     with expired as (
-      update appointments set status = 'CANCELLED'
+      update appointments set status = 'CANCELLED', cancelled_at = clawholics_utc_now()
       where upper(status) = 'PENDING' and expires_at <= ${now}
         and not exists (select 1 from payment_proofs pp where pp.appointment_id = appointments.id and pp.status = 'PENDING')
       returning id

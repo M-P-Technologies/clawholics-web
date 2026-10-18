@@ -4,7 +4,7 @@ import { peso } from "@/lib/dashboardFormat";
 import { Link } from "@/lib/router";
 import type { DashboardResponse } from "@/services/dashboardTypes";
 import { CARDS_PER_PAGE, CardFields, RowCard, RowCards, TableFrame } from "@/components/organisms";
-import { Pagination, paginate, PAGE_SIZE } from "@/components/molecules";
+import { Pagination, paginate } from "@/components/molecules";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const dateLabel = (ymd: string) => {
@@ -12,14 +12,14 @@ const dateLabel = (ymd: string) => {
   return `${MONTHS[m - 1]} ${d}, ${y}`;
 };
 
-// The period's sales, one row per completed visit: the service, the customer and the fee (what
-// the visit sold for: the downpayment and the balance recorded, or its list price before those
-// were recorded), with the total above. It adds up to Sales. On a phone each sale is a
-// card, five to a page.
+// The period's sales, one row per visit completed with the booking tracker: the service, the
+// customer and the fee (what it sold for: the downpayment and the balance recorded), with the
+// total above. It adds up to Sales. Five to a page, as a table, or on a phone as cards.
 export default function SalesRecord({ sales }: { sales: DashboardResponse["sales"] }) {
   const [page, setPage] = useState(1);
   const asTable = useTableLayout();
-  const view = paginate(sales, page, asTable ? PAGE_SIZE : CARDS_PER_PAGE);
+  // Five sales a page, as a table or as cards
+  const view = paginate(sales, page, CARDS_PER_PAGE);
   const total = sales.reduce((sum, s) => sum + (s.fee ?? 0), 0);
   const cell = "border-t border-dotted border-crimson-light py-3 pr-3";
 

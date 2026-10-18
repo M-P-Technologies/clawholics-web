@@ -3,7 +3,6 @@ import Bow from "@/assets/bow.svg";
 import { Link } from "@/lib/router";
 import { buildInsights, type Insight, type Tip } from "@/lib/dashboardInsights";
 import type { DashboardResponse } from "@/services/dashboardTypes";
-import { PERIOD_LABELS } from "@/components/features/admin/dashboard/PeriodSwitch";
 
 // Each group has an icon and a heading as well as a color, so the meaning never rests on color alone
 const TONES = {
@@ -52,10 +51,10 @@ function Group({ title, icon: Icon, tone, items }: GroupProps) {
 }
 
 // The words on the dashboard, kept apart from the figures: what needs doing now, then what went
-// well, what to watch and what to try. Empty groups are left out, and nothing the stat cards
+// well, what to watch and what to try, over all time (the Dashboard has no period). Empty groups are left out, and nothing the stat cards
 // already say is repeated here. Rules, not a model: see lib/dashboardInsights.ts.
 export default function SalonNotes({ data }: { data: DashboardResponse }) {
-  const insights = buildInsights(data, { repeatKpis: false });
+  const insights = buildInsights(data);
   const todos = [
     { label: "Today's appointments", count: data.attention.today, to: "/schedule" },
     { label: "Bookings to confirm", count: data.attention.toConfirm, to: "/clients?status=AWAITING_CONFIRMATION" },
@@ -94,8 +93,8 @@ export default function SalonNotes({ data }: { data: DashboardResponse }) {
         </div>
 
         <header className="pr-12">
-          <h2 className="font-display text-2xl font-normal leading-tight text-gray-red lg:text-xl xl:text-2xl">Salon notes</h2>
-          <p className="text-sm text-gray-red">{PERIOD_LABELS[data.range]}</p>
+          <h2 className="font-display text-2xl font-normal leading-tight text-berry lg:text-xl xl:text-2xl">Salon notes</h2>
+          <p className="text-sm text-crimson-ink">All time</p>
         </header>
 
         <section aria-label="Needs attention" className="flex flex-col gap-3">
@@ -126,7 +125,7 @@ export default function SalonNotes({ data }: { data: DashboardResponse }) {
       <div className="flex flex-col gap-6 p-6">
         {message && <p className="text-sm text-gray-red">{message}</p>}
         {insights.status === "no-data" && (
-          <p className="-mt-3 text-xs text-gray-red">Insights appear once there are a few bookings to compare.</p>
+          <p className="-mt-3 text-xs text-gray-red">Insights appear once there are a few bookings.</p>
         )}
 
         {groups.map((group) => (

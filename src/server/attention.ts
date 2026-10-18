@@ -2,6 +2,7 @@ import "server-only";
 import { getSql } from "./db";
 import { WARM_LEADS, warmSince } from "./dashboard";
 import { PROOF_TO_REVIEW_SQL } from "./proofRules";
+import { ATTENTION_MOST } from "@/lib/admin/attention";
 import { END_CLOCK_SQL, PHOTOS_TO_ADD_SQL, TO_COMPLETE_SQL, manilaNow } from "./visitsToComplete";
 
 // The dashboard's Needs attention queue: the few things to act on now, most urgent first.
@@ -18,8 +19,6 @@ const TAB_KINDS: Record<AttentionTab, AttentionKind[]> = {
   complete: ["complete", "photos"],
   leads: ["lead"],
 };
-/** The queue shows five */
-export const ATTENTION_SHOWN = 5;
 
 export interface AttentionItem {
   kind: AttentionKind;
@@ -99,7 +98,7 @@ export async function listAttention(tab: AttentionTab, now: Date = new Date()): 
   const sql = getSql();
   const { today, clock } = manilaNow(now);
   const queries = kindQueries(today, clock);
-  const limit = String(ATTENTION_SHOWN);
+  const limit = String(ATTENTION_MOST);
   const warm = [warmSince(today)];
 
   const appointmentKinds = ["confirm", "review", "complete", "photos"] as const;
@@ -123,7 +122,7 @@ export async function listAttention(tab: AttentionTab, now: Date = new Date()): 
     sql.unsafe<{ n: number }[]>(`select count(*)::int as n from (${WARM_LEADS}) w`, warm),
   ]);
 
-  const items = [...rows.flat(), ...leads].slice(0, ATTENTION_SHOWN).map((item) => ({ ...item }));
+  const items = [...rows.flat(), ...leads].slice(0, ATTENTION_MOST).map((item) => ({ ...item }));
   const [c] = counts;
   return { items, counts: { confirm: c.confirm, review: c.review, complete: c.complete, photos: c.photos, leads: leadCount[0].n } };
 }

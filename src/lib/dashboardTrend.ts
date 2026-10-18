@@ -9,12 +9,11 @@ export interface DayValues {
   estimatedSales: number;
   bookings: number;
   newClients: number;
-  /** The money cards' lines, by appointment date: see Money in dashboardTypes */
-  balanceAtSalon: number;
-  returningRevenue: number;
-  lost: number;
+  /** Clients with two or more confirmed and completed visits by the point's last day (not a sum) */
+  recurringClients: number;
 }
-const KEYS: (keyof DayValues)[] = ["collected", "estimatedSales", "bookings", "newClients", "balanceAtSalon", "returningRevenue", "lost"];
+// The values added up day by day (recurringClients is a running count, set by the server)
+const KEYS: (keyof DayValues)[] = ["collected", "estimatedSales", "bookings", "newClients"];
 export interface TrendPoint extends DayValues {
   /** The first day the point covers, "YYYY-MM-DD" */
   date: string;
@@ -63,7 +62,7 @@ export function bucketTrend(granularity: Granularity, buckets: Span[], byDay: Re
       if (!values) continue;
       for (const key of KEYS) sum[key] += values[key] ?? 0;
     }
-    return { date: bucket.from, ...sum };
+    return { date: bucket.from, ...sum, recurringClients: 0 };
   });
   return { granularity, points };
 }

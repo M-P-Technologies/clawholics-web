@@ -4,75 +4,68 @@ import MoneyCards from "@/components/features/admin/dashboard/MoneyCards";
 import type { Money } from "@/services/dashboardTypes";
 
 const money: Money = {
-  balanceAtSalon: { value: 1300, previous: 700 },
-  returningRevenue: { value: 300, previous: 0 },
-  lostToCancellations: { value: 2000, previous: 0 },
-  bookedAhead: { value: 2300, visits: 3, days: [{ date: "2026-10-14", value: 2000, visits: 1 }, { date: "2026-10-15", value: 0, visits: 1 }, { date: "2026-10-16", value: 300, visits: 1 }] },
+  grossReceipts: { value: 1300, previous: 700 },
+  unearned: { value: 600, previous: 0 },
+  revenue: { value: 2000, previous: 1600 },
+  otherIncome: { value: 400, previous: 400 },
+  refunds: { value: 300, previous: 0 },
+  points: [
+    { date: "2026-10-12", grossReceipts: 0, unearned: 300, revenue: 900, otherIncome: 400, refunds: 300 },
+    { date: "2026-10-13", grossReceipts: 1300, unearned: 600, revenue: 1100, otherIncome: 0, refunds: 0 },
+  ],
 };
 
 describe("MoneyCards", () => {
-  it("shows the balance collected at the salon, with its change", () => {
+  it("shows the gross income, with their change", () => {
     render(<MoneyCards money={money} />);
-    const card = within(screen.getByRole("group", { name: "Balance at the salon" }));
+    const card = within(screen.getByRole("group", { name: "Gross income" }));
     expect(card.getByText("₱1,300")).toBeInTheDocument();
     expect(card.getByText("+86%")).toBeInTheDocument();
-    expect(card.getByText("as recorded when completed")).toBeInTheDocument();
+    expect(card.getByText("payments in, less refunds")).toBeInTheDocument();
   });
 
-  it("shows what confirmed upcoming visits are worth", () => {
+  it("shows the downpayments held for visits not done yet", () => {
     render(<MoneyCards money={money} />);
-    const card = within(screen.getByRole("group", { name: "Booked ahead" }));
-    expect(card.getByText("₱2,300")).toBeInTheDocument();
-    expect(card.getByText("3 confirmed visits from today")).toBeInTheDocument();
-  });
-
-  it("shows what cancellations cost, with one visit in the singular", () => {
-    render(<MoneyCards money={{ ...money, bookedAhead: { value: 800, visits: 1, days: [] } }} />);
-    expect(within(screen.getByRole("group", { name: "Lost to cancellations" })).getByText("₱2,000")).toBeInTheDocument();
-    expect(screen.getByText("1 confirmed visit from today")).toBeInTheDocument();
-  });
-
-  it("shows revenue from returning clients and its share of all revenue", () => {
-    render(<MoneyCards money={money} revenue={1200} />);
-    const card = within(screen.getByRole("group", { name: "From returning clients" }));
-    expect(card.getByText("₱300")).toBeInTheDocument();
+    const card = within(screen.getByRole("group", { name: "Unearned income" }));
+    expect(card.getByText("₱600")).toBeInTheDocument();
     expect(card.getByText("new")).toBeInTheDocument();
-    expect(card.getByText("25% of sales, from clients who visited before")).toBeInTheDocument();
+    expect(card.getByText("held today for upcoming visits")).toBeInTheDocument();
   });
 
-  it("leaves the share out when there were no sales", () => {
-    render(<MoneyCards money={{ ...money, returningRevenue: { value: 0, previous: 0 } }} revenue={0} />);
-    expect(within(screen.getByRole("group", { name: "From returning clients" })).getByText("from clients who visited before")).toBeInTheDocument();
-  });
-
-  it("sits in one row named Money", () => {
+  it("shows the forfeits and late fees, and the revenue in place of the refunds", () => {
     render(<MoneyCards money={money} />);
-    expect(within(screen.getByRole("region", { name: "Money" })).getAllByRole("group")).toHaveLength(4);
+    expect(within(screen.getByRole("group", { name: "Forfeits & late fees" })).getByText("₱400")).toBeInTheDocument();
+    const revenue = within(screen.getByRole("group", { name: "Revenue" }));
+    expect(revenue.getByText("₱2,000")).toBeInTheDocument();
+    expect(revenue.getByText("+25%")).toBeInTheDocument();
+    expect(revenue.getByText("earned from visits done")).toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Refunds" })).toBeNull();
+  });
+
+  it("sits in one row named Money, Revenue first", () => {
+    render(<MoneyCards money={money} />);
+    const cards = within(screen.getByRole("region", { name: "Money" })).getAllByRole("group");
+    expect(cards.map((c) => c.getAttribute("aria-label"))).toEqual(["Revenue", "Gross income", "Unearned income", "Forfeits & late fees"]);
   });
 });
 
 describe("MoneyCards: the lines", () => {
-  const trend = {
-    granularity: "day" as const,
-    points: [
-      { date: "2026-10-12", collected: 0, estimatedSales: 0, bookings: 0, newClients: 0, balanceAtSalon: 0, returningRevenue: 0, lost: 500 },
-      { date: "2026-10-13", collected: 0, estimatedSales: 0, bookings: 0, newClients: 0, balanceAtSalon: 300, returningRevenue: 800, lost: 0 },
-    ],
-  };
-
   it("draws a small line on each of the four cards, described in words", () => {
-    render(<MoneyCards money={money} trend={trend} />);
-    expect(screen.getByRole("img", { name: "Balance at the salon per day, from ₱0 to ₱300" })).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "From returning clients per day, from ₱0 to ₱800" })).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "Lost to cancellations per day, from ₱500 to ₱0" })).toBeInTheDocument();
-    // Booked ahead looks forward: one point per day from today
-    const ahead = screen.getByRole("img", { name: "Booked ahead per day for the next 3 days, from ₱2,000 to ₱300" });
-    expect([...ahead.querySelectorAll("title")].map((t) => t.textContent)).toEqual(["Oct 14: ₱2,000", "Oct 15: ₱0", "Oct 16: ₱300"]);
+    render(<MoneyCards money={money} granularity="day" />);
+    expect(screen.getByRole("img", { name: "Gross income per day, from ₱0 to ₱1,300" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Unearned income per day, from ₱300 to ₱600" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Forfeits and late fees per day, from ₱400 to ₱0" })).toBeInTheDocument();
+    const revenue = screen.getByRole("img", { name: "Revenue per day, from ₱900 to ₱1,100" });
+    expect([...revenue.querySelectorAll("title")].map((t) => t.textContent)).toEqual(["Oct 12: ₱900", "Oct 13: ₱1,100"]);
+  });
+
+  it("speaks of weeks when the points are weekly", () => {
+    render(<MoneyCards money={money} granularity="week" />);
+    expect(screen.getByRole("img", { name: "Gross income per week, from ₱0 to ₱1,300" })).toBeInTheDocument();
   });
 
   it("draws no lines without points", () => {
-    render(<MoneyCards money={{ ...money, bookedAhead: { ...money.bookedAhead, days: [] } }} trend={{ granularity: "day", points: [] }} />);
+    render(<MoneyCards money={{ ...money, points: [] }} />);
     expect(screen.queryByRole("img")).toBeNull();
   });
 });
-

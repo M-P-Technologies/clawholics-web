@@ -7,13 +7,18 @@ export const fetchDashboard = async (
   token?: string | null,
   clerkId?: string | null,
 ): Promise<DashboardResponse> => {
-  const res = await fetch(`${API_BASE_URL}/dashboard?range=${range}`, {
-    headers: {
-      "x-clawholics-origin": "frontend",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(clerkId ? { clerk_id: clerkId } : {}),
-    },
-  });
+  const load = () =>
+    fetch(`${API_BASE_URL}/dashboard?range=${range}`, {
+      headers: {
+        "x-clawholics-origin": "frontend",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(clerkId ? { clerk_id: clerkId } : {}),
+      },
+    });
+  let res = await load();
+  // 503: the server gave up waiting for the database and has opened new connections by now,
+  // so asking once more usually works (as the Schedule does)
+  if (res.status === 503) res = await load();
   if (!res.ok) throw new Error(`Failed to load the dashboard (${res.status})`);
   return res.json();
 };

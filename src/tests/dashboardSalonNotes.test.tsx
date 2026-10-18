@@ -14,28 +14,28 @@ const base = (over: Partial<DashboardResponse> = {}): DashboardResponse => ({
   previous: { from: "2026-09-01", to: "2026-09-30" },
   kpis: {
     collected: { value: 1000, previous: 1000 }, estimatedSales: { value: 3000, previous: 3000 },
-    bookings: { value: 10, previous: 10 }, newClients: { value: 2, previous: 2 },
+    bookings: { value: 10, previous: 10 }, newClients: { value: 2, previous: 2 }, recurringClients: { value: 0, previous: 0 },
   },
   rates: {
     cancellation: { value: 0.05, previous: 0.05 }, conversion: { value: 0.9, previous: 0.9 },
     returning: { value: 0.4, previous: 0.4 }, averageSale: { value: 1000, previous: 1000 }, leadConversion: { value: 0.5, previous: 0.5 },
   },
-  lapsedClients: 0, leads: { accounts: 4, booked: 2 }, clientBase: { clients: 5, lifetimeValue: 1120, churn: 0.2 }, totals: { clients: 17, services: 35, artists: 5, upcoming: 7, trend: [] }, sales: [],
+  lapsedClients: 0, leads: { accounts: 4, booked: 2 }, clientBase: { clients: 5, lifetimeValue: 1120, churn: 0.2 }, totals: { clients: 17, services: 35, artists: 5, appointments: 6, trend: [], growth: { clients: 15, appointments: 4, servicesBooked: { value: 8, previous: 10 }, artistsBooked: { value: 5, previous: 5 } } }, sales: [],
   loyalty: { stamps: 0, redeemed: 0 },
   attention: { today: 0, proofsToReview: 0, toConfirm: 0, toComplete: 0, photosToAdd: 0, unpaid: 0, warmLeads: 0 },
-  money: { balanceAtSalon: { value: 0, previous: 0 }, returningRevenue: { value: 0, previous: 0 }, lostToCancellations: { value: 0, previous: 0 }, bookedAhead: { value: 0, visits: 0, days: [] } },
+  money: { grossReceipts: { value: 0, previous: 0 }, unearned: { value: 0, previous: 0 }, revenue: { value: 0, previous: 0 }, otherIncome: { value: 0, previous: 0 }, refunds: { value: 0, previous: 0 }, points: [] },
   trend: { granularity: "day", points: [] },
   monthly: ["2026-05", "2026-06", "2026-07", "2026-08", "2026-09", "2026-10"].map((month) => ({ month, completed: 5, cancelled: 0 })),
   services: [], weekdays: [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({ weekday, bookings: 2 })),
-  artists: [], outcomes: { confirmed: 0, completed: 0, pending: 0, cancelled: 0, refunded: 0 }, next: [],
+  artists: [], allTime: { services: [], weekdays: [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({ weekday, bookings: 2 })), artists: [], decided: 10, cancellation: 0.1, conversion: 0.9, returningClients: 0, loyaltyRedeemed: 0 }, outcomes: { confirmed: 0, completed: 0, pending: 0, cancelled: 0, refunded: 0 }, next: [],
   ...over,
 });
 
 describe("SalonNotes", () => {
-  it("is one card named for the period", () => {
+  it("is one card about all time (the Dashboard has no period)", () => {
     render(<SalonNotes data={base()} />);
     const notes = within(screen.getByRole("region", { name: "Salon notes" }));
-    expect(notes.getByText("This month")).toBeInTheDocument();
+    expect(notes.getByText("All time")).toBeInTheDocument();
   });
 
   it("lists only the things that need attention, each linked to where to do it", () => {
@@ -52,13 +52,13 @@ describe("SalonNotes", () => {
   });
 
   it("shows only the groups that have something in them", () => {
-    render(<SalonNotes data={base({ rates: { ...base().rates, cancellation: { value: 0.3, previous: 0.05 } } })} />);
+    render(<SalonNotes data={base({ allTime: { ...base().allTime, cancellation: 0.3 } })} />);
     expect(screen.queryByRole("region", { name: "Wins" })).toBeNull();
-    expect(within(screen.getByRole("region", { name: "Watch-outs" })).getByText("30% of bookings were cancelled or refunded (up from 5%).")).toBeInTheDocument();
+    expect(within(screen.getByRole("region", { name: "Watch-outs" })).getByText("30% of bookings were cancelled, refunded or no-shows.")).toBeInTheDocument();
     expect(within(screen.getByRole("region", { name: "Try this" })).getByText("Send clients a reminder the day before to cut cancellations.")).toBeInTheDocument();
   });
 
-  it("does not repeat what the stat cards already show", () => {
+  it("never compares with a previous period", () => {
     render(<SalonNotes data={base({ kpis: { ...base().kpis, collected: { value: 500, previous: 1000 } } })} />);
     expect(screen.queryByText(/Collected is down/)).toBeNull();
     expect(screen.queryByText(/collected this month/)).toBeNull();
@@ -69,11 +69,11 @@ describe("SalonNotes", () => {
     expect(within(screen.getByRole("region", { name: "Try this" })).getByRole("link", { name: "Open clients" })).toHaveAttribute("href", "/clients#clients");
   });
 
-  it("says when the period is steady, or too quiet to compare", () => {
+  it("says when all is steady, or there is too little to judge", () => {
     const { unmount } = render(<SalonNotes data={base()} />);
-    expect(screen.getByText("Steady this month: nothing needs attention.")).toBeInTheDocument();
+    expect(screen.getByText("Steady: nothing needs attention.")).toBeInTheDocument();
     unmount();
-    render(<SalonNotes data={base({ kpis: { ...base().kpis, bookings: { value: 1, previous: 0 } } })} />);
+    render(<SalonNotes data={base({ allTime: { ...base().allTime, decided: 1 } })} />);
     expect(screen.getByText("Not enough data yet for insights.")).toBeInTheDocument();
   });
 

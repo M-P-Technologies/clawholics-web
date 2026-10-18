@@ -5,43 +5,68 @@ type Change = { value: number; previous: number };
 // A fraction (0..1) or an amount; null means there was nothing to divide by
 type Rate = { value: number | null; previous: number | null };
 
-/** Money worked out from list prices and downpayments: nothing is entered by hand */
+/** One point of the money cards' lines (a trend bucket); see Money */
+export interface MoneyPoint {
+  date: string;
+  grossReceipts: number;
+  unearned: number;
+  revenue: number;
+  otherIncome: number;
+  refunds: number;
+}
+
+/** The period's money for the salon's financial statements, from the paid downpayments (dated by
+ *  when they were paid, refunded, or forfeited by a cancellation or no-show) and the visits
+ *  completed with the booking tracker (their balances and late fees, by the day completed). */
 export interface Money {
-  /** Completed visits' list price less their paid downpayments: the balance paid at the salon */
-  balanceAtSalon: Change;
-  /** List price of completed visits by clients who had a completed visit before the period */
-  returningRevenue: Change;
-  /** List price of cancelled and refunded visits */
-  lostToCancellations: Change;
-  /** Confirmed visits from today on, at list price (not tied to the period); days: the next 14, for its line */
-  bookedAhead: { value: number; visits: number; days: { date: string; value: number; visits: number }[] };
+  /** Money in: downpayments paid, plus balances paid at the salon, less refunds */
+  grossReceipts: Change;
+  /** Downpayments held at the period's end (today at the latest) for visits not done yet: a liability */
+  unearned: Change;
+  /** What the salon earned: the downpayments and balances (late fees included) of the visits
+   * completed, plus the downpayments kept from cancellations and no-shows */
+  revenue: Change;
+  /** Downpayments kept from cancellations and no-shows, plus late fees */
+  otherIncome: Change;
+  /** Downpayments returned to clients (taken off Gross income; no card of its own) */
+  refunds: Change;
+  /** A point per trend bucket (unearned as of its last day) */
+  points: MoneyPoint[];
 }
 
 export interface DashboardResponse {
   range: DashboardRange;
   period: { from: string; to: string };
   previous: { from: string; to: string };
-  kpis: { collected: Change; estimatedSales: Change; bookings: Change; newClients: Change };
+  /** recurringClients: clients with two or more confirmed and completed visits, as of the period's end (today at the latest) */
+  kpis: { collected: Change; estimatedSales: Change; bookings: Change; newClients: Change; recurringClients: Change };
   /** leadConversion: client accounts made in the period that went on to book (confirmed or completed) */
   rates: { cancellation: Rate; conversion: Rate; returning: Rate; averageSale: Rate; leadConversion: Rate };
+  /** Clients whose last visit completed with the booking tracker was completed over 60 days ago */
   lapsedClients: number;
   /** The period's new client accounts, and how many of them went on to book (lead conversion's parts) */
   leads: { accounts: number; booked: number };
-  /** Every client with a completed visit, as of today (not the period): what an average one has
-   * spent so far (list price), and the share who have lapsed (no visit in 60 days) */
+  /** Every client with a visit completed with the booking tracker, as of today (not the period): what
+   * an average one has spent so far (downpayments + balances), and the share who have lapsed */
   clientBase: { clients: number; lifetimeValue: number | null; churn: number | null };
-  /** As of today: client accounts, active services on the menu, artists, and confirmed appointments from today on */
+  /** The Dashboard's glance cards, as of today: clients with a completed appointment, the services on
+   * the Services page, the artists on the Artists page, and the confirmed appointments */
   totals: {
     clients: number;
     services: number;
     artists: number;
-    upcoming: number;
-    /** For the cards' lines, on the same days (or weeks, or months) as `trend`: client accounts at the
-     * end of each, and how many different services and artists were booked in each */
-    trend: { date: string; clients: number; services: number; artists: number }[];
+    /** Visits completed with the booking tracker (confirmed, then Complete visit), one each, as of today */
+    appointments: number;
+    /** For the cards' lines, on the same days (or weeks, or months) as `trend`: clients with a
+     * completed visit by the end of each, how many different services and artists were booked in
+     * each, and the visits completed with the tracker by the end of each */
+    trend: { date: string; clients: number; services: number; artists: number; appointments: number }[];
+    /** For the growth badges: clients and completed visits as of the previous period's end (to
+     * compare with today's), and the different services and artists booked in the period vs the one before */
+    growth: { clients: number; appointments: number; servicesBooked: Change; artistsBooked: Change };
   };
-  /** Every completed visit in the period, newest first. fee: the list price for the artist's tier
-   * (null for a service no longer on the menu); user_id: null for a walk-in */
+  /** Every visit completed with the booking tracker in the period, latest completed first. date:
+   * the visit's day; fee: what it sold for (downpayment + recorded balance); user_id: null for a walk-in */
   sales: { id: number; date: string; time: string; client_name: string; user_id: number | null; service_name: string; nailist_name: string; fee: number | null }[];
   loyalty: { stamps: number; redeemed: number };
   /** warmLeads: clients active in the last 60 days who haven't booked a visit (see /leads) */
@@ -50,9 +75,24 @@ export interface DashboardResponse {
   /** One point per day, week or month of the period (up to today), for the lines on the stat cards */
   trend: Trend;
   monthly: { month: string; completed: number; cancelled: number }[];
+  /** The period's services by bookings, five rows at most: with more, the top four and "Other" */
   services: { name: string; bookings: number; estimatedSales: number }[];
   weekdays: { weekday: number; bookings: number }[];
   artists: { name: string; bookings: number }[];
+  /** All time, whatever the period: the Dashboard's Service mix and Salon notes. Services, weekdays
+   *  and artists by bookings (confirmed or completed); the share of decided visits cancelled,
+   *  refunded or no-shows (of `decided`); the share of clients' bookings that were paid; clients
+   *  with two or more visits done with the tracker; loyalty rewards redeemed */
+  allTime: {
+    services: { name: string; bookings: number; estimatedSales: number }[];
+    weekdays: { weekday: number; bookings: number }[];
+    artists: { name: string; bookings: number }[];
+    decided: number;
+    cancellation: number | null;
+    conversion: number | null;
+    returningClients: number;
+    loyaltyRedeemed: number;
+  };
   outcomes: { confirmed: number; completed: number; pending: number; cancelled: number; refunded: number };
   next: {
     id: number;

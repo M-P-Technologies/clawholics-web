@@ -1,19 +1,19 @@
 import { timeRangeLabel } from "@/lib/timeFormat";
 import { Card } from "@/components/atoms";
-import { ArrowRight, CalendarHeart, Receipt, UserPlus, Wallet } from "lucide-react";
-import { describeChange, peso, shortDay } from "@/lib/dashboardFormat";
-import { formatBucketLabel, granularityWord, type DayValues } from "@/lib/dashboardTrend";
+import { ArrowRight } from "lucide-react";
+import { shortDay } from "@/lib/dashboardFormat";
 import { Link } from "@/lib/router";
 import type { BookingsLoader } from "@/hooks/admin/useReports";
+import { useQueueRows } from "@/hooks/admin/useQueueRows";
 import type { DashboardResponse, AttentionResponse, AttentionTab } from "@/services/dashboardTypes";
 import ActiveBookings from "@/components/features/admin/dashboard/ActiveBookings";
 import BarChart from "@/components/features/admin/dashboard/BarChart";
 import BookingsTable from "@/components/features/admin/dashboard/BookingsTable";
 import NeedsAttentionQueue from "@/components/features/admin/dashboard/NeedsAttentionQueue";
 import DonutChart from "@/components/features/admin/dashboard/DonutChart";
-import { StatCard, SectionHeader } from "@/components/molecules";
+import { SectionHeader } from "@/components/molecules";
 import SalonNotes from "@/components/features/admin/dashboard/SalonNotes";
-import Sparkline from "@/components/features/admin/dashboard/Sparkline";
+import GlanceCards from "@/components/features/admin/dashboard/GlanceCards";
 import { OTHER_COLOR, SERIES_COLORS, STACK_COLORS } from "@/components/features/admin/dashboard/chartColors";
 import { ViewBody, monthName } from "@/components/features/admin/dashboard/dashboardParts";
 
@@ -30,31 +30,18 @@ interface DashboardViewProps {
 
 const MORE = [
   { to: "/sales", label: "Sales", hint: "money, top services and the sales record" },
-  { to: "/performance", label: "Performance", hint: "key rates, artist utilization and weekdays" },
+  { to: "/performance", label: "Performance", hint: "visits done, key rates, artist utilization and weekdays" },
 ];
 
-// Everything below the title row: only what the salon checks every day. The four headline
-// numbers, the notes and today's bookings, two charts and the bookings table; the rest is on the
+// Everything below the title row: only what the salon checks every day. The salon at a glance
+// (clients, services, artists, confirmed appointments), the notes and today's bookings, two charts and the bookings table; the rest is on the
 // Sales and Performance pages. Pure: it only draws the data it is given, so the layout can be
 // previewed and tested without signing in.
 export default function DashboardView({ data, loading = false, failed = false, loadBookings, loadAttention }: DashboardViewProps) {
-  const { kpis } = data;
-  const { granularity, points } = data.trend;
-
-  // A small line for one measure: a point per day, week or month, named in its tooltip and
-  // described in words for screen readers
-  const spark = (label: string, key: keyof DayValues, format: (n: number) => string) => {
-    if (points.length === 0) return undefined;
-    const values = points.map((p) => p[key]);
-    return (
-      <Sparkline
-        values={values}
-        labels={points.map((p) => `${formatBucketLabel(granularity, p.date)}: ${format(p[key])}`)}
-        ariaLabel={`${label} ${granularityWord(granularity)}, from ${format(values[0])} to ${format(values[values.length - 1])}`}
-      />
-    );
-  };
-  const serviceSlices = data.services.map((s, i) => ({
+  // The queue shows as many rows as keep its column level with the notes beside it
+  const { columnRef, besideRef, rows } = useQueueRows();
+  // All time: the Dashboard has no period
+  const serviceSlices = data.allTime.services.map((s, i) => ({
     label: s.name,
     value: s.bookings,
     color: s.name === "Other" ? OTHER_COLOR : SERIES_COLORS[i % SERIES_COLORS.length],
@@ -62,23 +49,18 @@ export default function DashboardView({ data, loading = false, failed = false, l
 
   return (
     <ViewBody loading={loading} failed={failed}>
-      <div className="grid grid-cols-2 gap-3 md:gap-6 xl:grid-cols-4">
-        <StatCard icon={Wallet} label="Collected" value={peso(kpis.collected.value)} change={describeChange(kpis.collected.value, kpis.collected.previous)} hint="downpayments from completed visits" sparkline={spark("Collected", "collected", peso)} />
-        <StatCard icon={Receipt} label="Sales" value={peso(kpis.estimatedSales.value)} change={describeChange(kpis.estimatedSales.value, kpis.estimatedSales.previous)} hint="downpayments + balance of completed visits" sparkline={spark("Sales", "estimatedSales", peso)} />
-        <StatCard icon={CalendarHeart} label="Bookings" value={String(kpis.bookings.value)} change={describeChange(kpis.bookings.value, kpis.bookings.previous)} hint="confirmed and completed" sparkline={spark("Bookings", "bookings", String)} />
-        <StatCard icon={UserPlus} label="New clients" value={String(kpis.newClients.value)} change={describeChange(kpis.newClients.value, kpis.newClients.previous)} hint="new accounts" sparkline={spark("New clients", "newClients", String)} />
-      </div>
+      <GlanceCards totals={data.totals} granularity={data.trend.granularity} />
 
       {/* Words on the right, figures on the left. On a phone the notes come straight after the
           stat cards; from lg up they take one column of the same four-column grid as the stat cards, so
           they are exactly one card wide, and stay in view while the charts scroll. */}
       <div className="grid grid-cols-1 gap-3 md:gap-6 lg:grid-cols-3 lg:items-start">
-        <div className="flex flex-col gap-3 md:gap-6 lg:sticky lg:top-0 lg:order-last">
+        <div ref={besideRef} className="flex flex-col gap-3 md:gap-6 lg:sticky lg:top-0 lg:order-last">
           <SalonNotes data={data} />
           {loadBookings && <ActiveBookings load={loadBookings} />}
         </div>
 
-        <div className="flex min-w-0 flex-col gap-3 md:gap-6 lg:col-span-2">
+        <div ref={columnRef} className="flex min-w-0 flex-col gap-3 md:gap-6 lg:col-span-2">
           <div className="grid grid-cols-1 gap-3 md:gap-6 xl:grid-cols-2">
             <Card as="section" aria-label="Bookings per month" className="flex min-w-0 flex-col gap-3"><SectionHeader size="card" title="Bookings per month" />
               <BarChart
@@ -93,12 +75,12 @@ export default function DashboardView({ data, loading = false, failed = false, l
             </Card>
 
             <Card as="section" aria-label="Service mix" className="flex min-w-0 flex-col gap-3"><SectionHeader size="card" title="Service mix" />
-              <DonutChart title="Service mix" slices={serviceSlices} centerLabel="bookings" emptyText="No bookings in this period." />
+              <DonutChart title="Service mix" slices={serviceSlices} centerLabel="bookings" emptyText="No bookings yet." />
             </Card>
           </div>
 
           {loadAttention ? (
-            <NeedsAttentionQueue load={loadAttention} />
+            <NeedsAttentionQueue load={loadAttention} rows={rows} />
           ) : loadBookings ? (
             <BookingsTable load={loadBookings} />
           ) : (

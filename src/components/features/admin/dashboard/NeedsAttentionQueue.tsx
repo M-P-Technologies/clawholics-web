@@ -2,10 +2,11 @@ import { useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { Link } from "@/lib/router";
-import { ATTENTION_TABS, attentionKind, attentionLink, attentionViewAll, waitingLabel } from "@/lib/admin/attention";
+import { ATTENTION_ROWS, ATTENTION_TABS, attentionKind, attentionLink, attentionViewAll, waitingLabel } from "@/lib/admin/attention";
 import { dateLabel } from "@/lib/admin/clientPage";
 import { timeRangeLabel } from "@/lib/timeFormat";
 import { useTableLayout } from "@/hooks/useMinWidth";
+import { QUEUE_ROW } from "@/hooks/admin/useQueueRows";
 import { ADMIN_APPOINTMENTS_KEY } from "@/services/appointmentService";
 import type { AttentionResponse, AttentionTab } from "@/services/dashboardTypes";
 import { Card } from "@/components/atoms";
@@ -16,10 +17,11 @@ import { ListSkeleton } from "@/components/features/admin/skeletons/ListSkeleton
 type Item = AttentionResponse["items"][number];
 const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("") || "?";
 
-// The dashboard's queue: the five things most worth acting on now, one row each with its action.
+// The dashboard's queue: the things most worth acting on now (`rows` of them, five unless the
+// dashboard fits more beside its notes), one row each with its action.
 // Bookings to confirm first (a screenshot sent first, then the longest waiting), proofs to review,
 // visits to complete (the latest first), visit photos to add, then warm leads.
-export default function NeedsAttentionQueue({ load }: { load: (tab: AttentionTab) => Promise<AttentionResponse> }) {
+export default function NeedsAttentionQueue({ load, rows = ATTENTION_ROWS }: { load: (tab: AttentionTab) => Promise<AttentionResponse>; rows?: number }) {
   const [tab, setTab] = useState<AttentionTab>("all");
   const asTable = useTableLayout();
   const query = useQuery({
@@ -29,6 +31,7 @@ export default function NeedsAttentionQueue({ load }: { load: (tab: AttentionTab
     placeholderData: keepPreviousData,
   });
   const data = query.data;
+  const items = data?.items.slice(0, rows) ?? [];
   const viewAll = data ? attentionViewAll(tab, data.counts) : null;
   const now = Date.now();
 
@@ -82,7 +85,7 @@ export default function NeedsAttentionQueue({ load }: { load: (tab: AttentionTab
         <p className="text-sm text-gray-red">We couldn&apos;t load what needs attention.</p>
       ) : !data ? (
         <ListSkeleton label="Loading what needs attention" columns={5} />
-      ) : data.items.length === 0 ? (
+      ) : items.length === 0 ? (
         <p className="text-sm text-gray-red">Nothing needs attention right now.</p>
       ) : asTable ? (
         <TableFrame
@@ -98,10 +101,10 @@ export default function NeedsAttentionQueue({ load }: { load: (tab: AttentionTab
             </tr>
           }
         >
-          {data.items.map((item) => {
+          {items.map((item) => {
             const cell = "border-t border-dotted border-crimson-light py-3 pr-3 align-middle";
             return (
-              <tr key={`${item.kind}-${item.appointment_id ?? item.user_id}`}>
+              <tr key={`${item.kind}-${item.appointment_id ?? item.user_id}`} {...{ [QUEUE_ROW]: "" }}>
                 <th scope="row" className={clsx(cell, "max-w-60 text-left font-normal")}>{client(item)}</th>
                 <td className={cell}>{need(item)}</td>
                 <td className={clsx(cell, "max-w-64")}>{booking(item)}</td>
@@ -113,7 +116,7 @@ export default function NeedsAttentionQueue({ load }: { load: (tab: AttentionTab
         </TableFrame>
       ) : (
         <RowCards label="To act on">
-          {data.items.map((item) => (
+          {items.map((item) => (
             <RowCard key={`${item.kind}-${item.appointment_id ?? item.user_id}`}>
               {client(item)}
               <CardFields

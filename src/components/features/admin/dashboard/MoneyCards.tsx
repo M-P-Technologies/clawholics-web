@@ -1,75 +1,68 @@
-import { CalendarClock, CircleSlash, HandCoins, Repeat } from "lucide-react";
+import { Banknote, Hourglass, ReceiptText, TrendingUp } from "lucide-react";
 import { describeChange, peso } from "@/lib/dashboardFormat";
-import { formatBucketLabel, granularityWord, type DayValues, type Trend } from "@/lib/dashboardTrend";
-import type { Money } from "@/services/dashboardTypes";
+import { formatBucketLabel, granularityWord, type Granularity } from "@/lib/dashboardTrend";
+import type { Money, MoneyPoint } from "@/services/dashboardTypes";
 import { StatCard } from "@/components/molecules";
 import Sparkline from "@/components/features/admin/dashboard/Sparkline";
-
-const visits = (n: number) => `${n} confirmed ${n === 1 ? "visit" : "visits"} from today`;
+import StatInfoTip from "@/components/features/admin/dashboard/StatInfoTip";
 
 interface MoneyCardsProps {
   money: Money;
-  /** The period's sales, for the returning clients' share of it */
-  revenue?: number;
-  /** The period day by day (or week, or month), for the cards' lines */
-  trend?: Trend;
+  /** What each of `money.points` covers */
+  granularity?: Granularity;
 }
 
-// Money worked out from list prices and downpayments, so it needs nothing entered by hand. Each
-// card has a small line like the stat cards: over the period, except Booked ahead, which looks
-// forward over the next days.
-export default function MoneyCards({ money, revenue = 0, trend }: MoneyCardsProps) {
-  const share = revenue > 0 ? `${Math.round((money.returningRevenue.value / revenue) * 100)}% of sales, ` : "";
-
-  const line = (label: string, key: keyof DayValues) => {
-    const points = trend?.points ?? [];
-    if (!trend || points.length === 0) return undefined;
+// The period's money for the salon's financial statements (see Money): what it earned (revenue),
+// what came in (refunds are taken off it), the downpayments still held for visits to come, and what
+// was kept from cancellations and no-shows plus late fees. Each card has a small line over the
+// period, like the stat cards.
+export default function MoneyCards({ money, granularity = "day" }: MoneyCardsProps) {
+  const line = (label: string, key: Exclude<keyof MoneyPoint, "date">) => {
+    const points = money.points;
+    if (points.length === 0) return undefined;
     const values = points.map((p) => p[key]);
     return (
       <Sparkline
         values={values}
-        labels={points.map((p) => `${formatBucketLabel(trend.granularity, p.date)}: ${peso(p[key])}`)}
-        ariaLabel={`${label} ${granularityWord(trend.granularity)}, from ${peso(values[0])} to ${peso(values[values.length - 1])}`}
+        labels={points.map((p) => `${formatBucketLabel(granularity, p.date)}: ${peso(p[key])}`)}
+        ariaLabel={`${label} ${granularityWord(granularity)}, from ${peso(values[0])} to ${peso(values[values.length - 1])}`}
       />
     );
   };
-  const days = money.bookedAhead.days;
-  const aheadLine =
-    days.length === 0 ? undefined : (
-      <Sparkline
-        values={days.map((d) => d.value)}
-        labels={days.map((d) => `${formatBucketLabel("day", d.date)}: ${peso(d.value)}`)}
-        ariaLabel={`Booked ahead per day for the next ${days.length} days, from ${peso(days[0].value)} to ${peso(days[days.length - 1].value)}`}
-      />
-    );
 
   return (
     <section aria-label="Money" className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:gap-6 xl:grid-cols-4">
       <StatCard
-        icon={HandCoins}
-        label="Balance at the salon"
-        value={peso(money.balanceAtSalon.value)}
-        change={describeChange(money.balanceAtSalon.value, money.balanceAtSalon.previous)}
-        hint="as recorded when completed"
-        sparkline={line("Balance at the salon", "balanceAtSalon")}
+        icon={TrendingUp}
+        label="Revenue" info={<StatInfoTip label="Revenue" which="revenue" />}
+        value={peso(money.revenue.value)}
+        change={describeChange(money.revenue.value, money.revenue.previous)}
+        hint="earned from visits done"
+        sparkline={line("Revenue", "revenue")}
       />
       <StatCard
-        icon={Repeat}
-        label="From returning clients"
-        value={peso(money.returningRevenue.value)}
-        change={describeChange(money.returningRevenue.value, money.returningRevenue.previous)}
-        hint={`${share}from clients who visited before`}
-        sparkline={line("From returning clients", "returningRevenue")}
+        icon={Banknote}
+        label="Gross income" info={<StatInfoTip label="Gross income" which="grossReceipts" />}
+        value={peso(money.grossReceipts.value)}
+        change={describeChange(money.grossReceipts.value, money.grossReceipts.previous)}
+        hint="payments in, less refunds"
+        sparkline={line("Gross income", "grossReceipts")}
       />
-      <StatCard icon={CalendarClock} label="Booked ahead" value={peso(money.bookedAhead.value)} hint={visits(money.bookedAhead.visits)} sparkline={aheadLine} />
       <StatCard
-        icon={CircleSlash}
-        label="Lost to cancellations"
-        value={peso(money.lostToCancellations.value)}
-        change={describeChange(money.lostToCancellations.value, money.lostToCancellations.previous)}
-        hint="list price of cancelled and refunded visits"
-        lowerIsBetter
-        sparkline={line("Lost to cancellations", "lost")}
+        icon={Hourglass}
+        label="Unearned income" info={<StatInfoTip label="Unearned income" which="unearned" />}
+        value={peso(money.unearned.value)}
+        change={describeChange(money.unearned.value, money.unearned.previous)}
+        hint="held today for upcoming visits"
+        sparkline={line("Unearned income", "unearned")}
+      />
+      <StatCard
+        icon={ReceiptText}
+        label="Forfeits & late fees" info={<StatInfoTip label="Forfeits & late fees" which="otherIncome" />}
+        value={peso(money.otherIncome.value)}
+        change={describeChange(money.otherIncome.value, money.otherIncome.previous)}
+        hint="kept downpayments + late fees"
+        sparkline={line("Forfeits and late fees", "otherIncome")}
       />
     </section>
   );

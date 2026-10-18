@@ -22,8 +22,9 @@ function createClient(): Sql {
     // while every connection is busy (the dashboard runs about thirty at once), and Supabase's
     // transaction pooler stalls on pipelined queries: the database waits for the rest of a query
     // that never comes (ClientRead) until the statement times out. Extra queries now wait for a
-    // free connection instead.
-    max_pipeline: 1,
+    // free connection instead. It must be 0, not 1: postgres.js counts only the queries queued
+    // behind the running one, so 1 still sent a second query down a busy connection.
+    max_pipeline: 0,
     // The pooler (or the network, after a sleep or a Wi-Fi change) can drop a connection without
     // telling us. The default would then leave a request waiting about 100 seconds before the
     // dead socket is noticed. These make that detection quick and retire connections early.
