@@ -64,15 +64,16 @@ const BALANCE = "coalesce(recorded_balance, greatest(coalesce(price, 0) - paid, 
 
 const rate = (part: number, whole: number) => (whole === 0 ? null : part / whole);
 
-// From October 2026 the Bookings per month chart, the Service mix, the Salon notes' busiest
-// weekday and artist, and the Sales page's Top services and How bookings ended count a visit only
-// once it was completed with the booking tracker (confirmed, then Complete visit); visits before it
-// still count by their status, as they did before the tracker
-export const TRACKER_FROM = "2026-10-01";
+// From 18 October 2026 (the visit's day) the Bookings per month chart, the Service mix, the Salon
+// notes' busiest weekday and artist, and the Sales page's Top services and How bookings ended count
+// a visit only once it was completed with the booking tracker (confirmed, then Complete visit);
+// visits before it still count by their status, as they did before the tracker
+export const TRACKER_FROM = "2026-10-18";
 // A completed visit's day for the chart: before TRACKER_FROM the visit's day if its status is
 // Completed, from it the day it was completed with the tracker
 const DONE_D = `(case when d < '${TRACKER_FROM}' then (case when st = 'COMPLETED' then d end) else tracked_d end)`;
-// Booked for the Service mix and the Salon notes' weekdays and artists: confirmed or completed before TRACKER_FROM, completed with the tracker from it
+// Booked for the Service mix, Top services and the Salon notes' weekdays and artists: confirmed or
+// completed before TRACKER_FROM, completed with the tracker from it
 const MIX_BOOKED = `((d < '${TRACKER_FROM}' and st in ${BOOKED}) or (d >= '${TRACKER_FROM}' and tracked_d is not null))`;
 
 // Every paid downpayment, grouped: the day it came in (in_d), and the day it stopped being held
@@ -258,8 +259,8 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
            union all
            select substr(d, 1, 7), 0, 1 from appt where st in ${CANCELLED} and d between $1 and $2
          ) m group by 1`, [`${months[0]}-01`, `${months[months.length - 1]}-31`]),
-      // The Sales page's Top services: booked in the period by the October rule (MIX_BOOKED), and
-      // what the completed ones sold for (DONE_D)
+      // The Sales page's Top services: booked in the period (MIX_BOOKED), and what the completed ones
+      // sold for (DONE_D)
       rows<{ name: string; bookings: number; estimated_sales: number }>(
         `${APPT} select service_name as name, count(*)::int as bookings,
            coalesce(sum(${SALE}) filter (where ${DONE_D} is not null), 0)::int as estimated_sales
@@ -272,7 +273,7 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
         `${APPT} select nailist_name as name, count(*)::int as bookings
          from appt where d between $1 and $2 and st in ${BOOKED}
          group by nailist_name order by bookings desc, nailist_name`, p),
-      // How bookings ended: by status, but from October a booking marked Completed without the
+      // How bookings ended: by status, but from TRACKER_FROM a booking marked Completed without the
       // tracker's Complete visit is left out
       rows<{ st: string; n: number }>(
         `${APPT} select st, count(*)::int as n from appt

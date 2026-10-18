@@ -265,12 +265,11 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     const year = await dashboard.buildDashboard("year", NOW);
     expect(week.allTime).toEqual(year.allTime);
     const { allTime } = week;
-    // the Service mix: confirmed or completed before October (a7, a13, the retired service, Eve's
-    // June visit), and from October only the visits completed with the tracker (a1, a2, a3; not a4,
-    // only marked completed, nor the confirmed ones still to come)
-    expect(allTime.services.reduce((n, s) => n + s.bookings, 0)).toBe(7);
-    expect(allTime.weekdays.reduce((n, d) => n + d.bookings, 0)).toBe(7); // the same visits
-    expect(allTime.artists.reduce((n, a) => n + a.bookings, 0)).toBe(7);
+    // the Service mix: confirmed or completed before 18 Oct (every booked visit but the walk-in's on
+    // the 20th), and from it only the visits completed with the tracker (none yet)
+    expect(allTime.services.reduce((n, s) => n + s.bookings, 0)).toBe(10);
+    expect(allTime.weekdays.reduce((n, d) => n + d.bookings, 0)).toBe(10); // the same visits
+    expect(allTime.artists.reduce((n, a) => n + a.bookings, 0)).toBe(10);
     expect(counts.booked).toBe(11); // every confirmed or completed booking, for comparison
     expect(allTime.decided).toBe(counts.decided);
     expect(allTime.cancellation).toBeCloseTo(counts.cancelled / counts.decided);
@@ -385,27 +384,51 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
       { month: "2026-07", completed: 0, cancelled: 0 },
       { month: "2026-08", completed: 0, cancelled: 0 },
       { month: "2026-09", completed: 3, cancelled: 0 },
-      // from October only the visits completed with the tracker, by the day completed: a1, a2, a3 (not a4)
-      { month: "2026-10", completed: 3, cancelled: 2 },
+      // visits before 18 Oct by their status, on the visit's day: a1, a2, a3, a4
+      { month: "2026-10", completed: 4, cancelled: 2 },
     ]);
-    // October: only the visits completed with the tracker (a1, a2, a3), not a4 (only marked
-    // completed) nor the confirmed ones still to come
+    // booked in October before 18 Oct (not the walk-in's on the 20th, not completed with the
+    // tracker); sales from the completed ones, a4 at its list price
     expect(d.services).toEqual([
-      { name: "Gel Manicure", bookings: 2, estimatedSales: 1300 },
-      { name: "Soft Gel Extensions", bookings: 1, estimatedSales: 1700 },
+      { name: "Gel Manicure", bookings: 3, estimatedSales: 1300 },
+      { name: "Soft Gel Extensions", bookings: 2, estimatedSales: 1700 },
+      { name: "Nail Art", bookings: 1, estimatedSales: 300 },
     ]);
     expect(d.weekdays).toEqual([
       { weekday: 1, bookings: 0 }, { weekday: 2, bookings: 2 }, { weekday: 3, bookings: 2 }, { weekday: 4, bookings: 2 },
       { weekday: 5, bookings: 1 }, { weekday: 6, bookings: 0 }, { weekday: 7, bookings: 0 },
     ]);
     expect(d.artists).toEqual([{ name: "Jun", bookings: 4 }, { name: "Maxine", bookings: 3 }]);
-    // completed with the tracker: a1, a2, a3; a4, only marked completed, is left out
-    expect(d.outcomes).toEqual({ confirmed: 3, completed: 3, pending: 2, cancelled: 1, refunded: 1 });
+    // by status: every visit is before 18 Oct but the walk-in's, still confirmed
+    expect(d.outcomes).toEqual({ confirmed: 3, completed: 4, pending: 2, cancelled: 1, refunded: 1 });
     // 09:00 today is already past at 10:00; the walk-in client is named from the appointment
     expect(d.next.map((n) => [n.appointment_date, n.appointment_time, n.client_name])).toEqual([
       ["2026-10-14", "15:00-16:00", "Dana D"],
       ["2026-10-20", "10:00-11:00", "Walk In"],
     ]);
+  });
+
+  it("from 18 Oct a visit marked completed without the tracker isn't counted as done", async () => {
+    // the walk-in's visit on the 20th, marked completed without Complete visit
+    const [walkIn] = await db<{ id: number }[]>`select id from appointments where appointment_date = '2026-10-20'`;
+    await db`update appointments set status = 'COMPLETED' where id = ${walkIn.id}`;
+    try {
+      const d = await dashboard.buildDashboard("month", NOW);
+      expect(d.monthly.find((m) => m.month === "2026-10")).toEqual({ month: "2026-10", completed: 4, cancelled: 2 });
+      expect(d.outcomes).toMatchObject({ confirmed: 2, completed: 4 }); // left out of both
+      expect(d.services.find((s) => s.name === "Nail Art")).toEqual({ name: "Nail Art", bookings: 1, estimatedSales: 300 });
+      expect(d.allTime.services.reduce((n, s) => n + s.bookings, 0)).toBe(10);
+      // completed with the tracker, it counts
+      await db`insert into visit_completions (appointment_id, balance_amount, payment_method, nailist_id, created_at)
+               values (${walkIn.id}, 300, 'Cash', (select nailist_id from appointments where id = ${walkIn.id}), '2026-10-20 05:00:00')`;
+      const done = await dashboard.buildDashboard("month", NOW);
+      expect(done.outcomes).toMatchObject({ completed: 5 });
+      expect(done.services.find((s) => s.name === "Nail Art")).toEqual({ name: "Nail Art", bookings: 2, estimatedSales: 600 });
+      expect(done.allTime.services.reduce((n, s) => n + s.bookings, 0)).toBe(11);
+    } finally {
+      await db`delete from visit_completions where appointment_id = ${walkIn.id}`;
+      await db`update appointments set status = 'CONFIRMED' where id = ${walkIn.id}`;
+    }
   });
 
   it("the trend: a point per day up to today, weekly and monthly for the longer ranges", async () => {
