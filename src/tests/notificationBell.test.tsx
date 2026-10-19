@@ -78,14 +78,14 @@ describe("NotificationBell", () => {
     fireEvent.click(bell);
     const list = within(screen.getByRole("region", { name: "New bookings" }));
     expect(list.getByText("Payment proof to review")).toBeInTheDocument();
-    expect(list.getByText("Booking paid, to confirm")).toBeInTheDocument();
+    expect(list.getByText("New booking paid")).toBeInTheDocument();
     expect(list.getAllByText("New")).toHaveLength(2);
     expect(list.getByText("Bea Lim · Gel manicure with Maxine · Oct 20, 2:00 PM")).toBeInTheDocument();
 
     // A proof opens the proofs to review, a paid booking its client's page
     const links = list.getAllByRole("link");
     expect(links[0]).toHaveAttribute("href", "/clients?status=PROOF_PENDING");
-    expect(links[1]).toHaveAttribute("href", "/clients?status=AWAITING_CONFIRMATION");
+    expect(links[1]).toHaveAttribute("href", "/clients/7");
   });
 
   it("marks them read for this admin when opened", async () => {
@@ -121,11 +121,11 @@ describe("NotificationBell", () => {
   it("announces a booking that arrives while the screen is open, but not the ones already there", async () => {
     view();
     await screen.findByRole("button", { name: "Notifications, 2 new" });
-    expect(screen.queryByText("Booking paid, to confirm")).toBeNull();
+    expect(screen.queryByText("New booking paid")).toBeNull();
 
     answer = { unread: 3, notifications: [note(3, { client_name: "Cara Diaz" }), ...answer.notifications] };
     await act(() => client.invalidateQueries({ queryKey: adminKeys.notifications() }));
-    expect(await screen.findByText("Booking paid, to confirm")).toBeInTheDocument();
+    expect(await screen.findByText("New booking paid")).toBeInTheDocument();
     expect(screen.getByText("Cara Diaz · Gel manicure with Maxine · Oct 20, 2:00 PM")).toBeInTheDocument();
   });
 });
@@ -134,7 +134,7 @@ describe("NotificationBell alerts", () => {
   const arrive = async () => {
     answer = { unread: 3, notifications: [note(3, { client_name: "Cara Diaz" }), ...answer.notifications] };
     await act(() => client.invalidateQueries({ queryKey: adminKeys.notifications() }));
-    await screen.findByText("Booking paid, to confirm");
+    await screen.findByText("New booking paid");
   };
 
   it("plays a chime for a new booking, unless the sound is turned off", async () => {
@@ -170,7 +170,7 @@ describe("NotificationBell alerts", () => {
 
     const visibility = vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
     await arrive();
-    expect(showDesktopAlert).toHaveBeenCalledWith("Booking paid, to confirm", expect.stringContaining("Cara Diaz"), "booking-3", expect.any(Function));
+    expect(showDesktopAlert).toHaveBeenCalledWith("New booking paid", expect.stringContaining("Cara Diaz"), "booking-3", expect.any(Function));
     visibility.mockRestore();
   });
 });
@@ -180,8 +180,9 @@ describe("notification wording", () => {
     expect(notificationLine(note(1, { client_name: "", nailist_name: "", appointment_time: "" }))).toBe("A client · Gel manicure · Oct 20");
   });
 
-  it("opens the bookings waiting to be confirmed for a paid booking", () => {
-    expect(notificationLink(note(1, { client_user_id: null }))).toBe("/clients?status=AWAITING_CONFIRMATION");
+  it("opens the client's page for a paid booking, or the confirmed bookings for a walk-in", () => {
+    expect(notificationLink(note(1))).toBe("/clients/7");
+    expect(notificationLink(note(1, { client_user_id: null }))).toBe("/clients?status=CONFIRMED");
   });
 
   it("tells how long ago it came", () => {

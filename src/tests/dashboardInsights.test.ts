@@ -7,7 +7,7 @@ import { dashboardData } from "./dashboardFixture";
 const steady = (allTime: Partial<DashboardResponse["allTime"]> = {}, rest: Partial<DashboardResponse> = {}): DashboardResponse => ({
   ...dashboardData,
   lapsedClients: 0,
-  attention: { today: 0, proofsToReview: 0, toConfirm: 0, toComplete: 0, photosToAdd: 0, unpaid: 0, warmLeads: 0 },
+  attention: { today: 0, proofsToReview: 0, toComplete: 0, photosToAdd: 0, unpaid: 0, warmLeads: 0 },
   ...rest,
   allTime: {
     services: [{ name: "Gel", bookings: 10, estimatedSales: 0 }, { name: "Art", bookings: 10, estimatedSales: 0 }],

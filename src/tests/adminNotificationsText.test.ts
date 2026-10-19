@@ -19,6 +19,8 @@ describe("the bell's visit to complete", () => {
 
   it("keeps the other kinds' words and links", () => {
     expect(notificationTitle(note({ kind: "proof_uploaded" }))).toBe("Payment proof to review");
-    expect(notificationLink(note({ kind: "booking_paid" }))).toBe("/clients?status=AWAITING_CONFIRMATION");
+    expect(notificationTitle(note({ kind: "booking_paid" }))).toBe("New booking paid");
+    expect(notificationLink(note({ kind: "booking_paid" }))).toBe("/clients/3");
+    expect(notificationLink(note({ kind: "booking_paid", client_user_id: null }))).toBe("/clients?status=CONFIRMED");
   });
 });

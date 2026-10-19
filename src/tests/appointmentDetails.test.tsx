@@ -51,24 +51,11 @@ describe("appointment details drawer", () => {
   });
 });
 
-describe("confirming a booking paid online", () => {
-  it("waits for the client's screenshot", () => {
-    render(<AppointmentDetailsModal appointment={appt({ status: "AWAITING_CONFIRMATION", latest_proof: null })} onClose={vi.fn()} onStatusChange={vi.fn()} />);
-    expect(screen.getByRole("button", { name: "Confirm booking" })).toBeDisabled();
-    expect(screen.getByText("Waiting for the client's payment screenshot.")).toBeInTheDocument();
-  });
-
-  it("confirms once the screenshot is in", async () => {
-    const onStatusChange = vi.fn();
-    render(
-      <AppointmentDetailsModal
-        appointment={appt({ status: "AWAITING_CONFIRMATION", latest_proof: { id: 9, status: "PENDING", image_url: "https://img/s.webp", created_at: "2026-10-16T10:00:00Z" } })}
-        onClose={vi.fn()}
-        onStatusChange={onStatusChange}
-      />,
-    );
-    await userEvent.click(screen.getByRole("button", { name: "Confirm booking" }));
-    expect(onStatusChange).toHaveBeenCalledWith(24, "CONFIRMED");
+describe("a booking paid online", () => {
+  it("has no confirm step: the payment confirms it", () => {
+    render(<AppointmentDetailsModal appointment={appt({ status: "CONFIRMED", latest_proof: null })} onClose={vi.fn()} onStatusChange={vi.fn()} />);
+    expect(screen.queryByRole("button", { name: "Confirm booking" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Allow anyway" })).toBeNull();
   });
 });
 
