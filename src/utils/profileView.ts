@@ -36,7 +36,7 @@ export function pickNext(views: AppointmentView[]): AppointmentView | null {
 /** The dot of a client's appointment status */
 export function statusDotTone(status: string): BadgeTone {
   const s = status.toLowerCase();
-  if (s === "pending" || s === "awaiting_proof" || s === "awaiting_confirmation") return "warning";
+  if (s === "pending" || s === "awaiting_proof") return "warning";
   if (s === "confirmed") return "info";
   if (s === "completed") return "success";
   if (s === "cancelled" || s === "no_show") return "danger";

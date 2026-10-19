@@ -57,7 +57,6 @@ export default function SalonNotes({ data }: { data: DashboardResponse }) {
   const insights = buildInsights(data);
   const todos = [
     { label: "Today's appointments", count: data.attention.today, to: "/schedule" },
-    { label: "Bookings to confirm", count: data.attention.toConfirm, to: "/clients?status=AWAITING_CONFIRMATION" },
     { label: "Proofs to review", count: data.attention.proofsToReview, to: "/clients?status=PROOF_PENDING" },
     { label: "Visits to complete", count: data.attention.toComplete, to: "/clients?status=TO_COMPLETE" },
     { label: "Visit photos to add", count: data.attention.photosToAdd, to: "/clients?status=PHOTOS_TO_ADD" },

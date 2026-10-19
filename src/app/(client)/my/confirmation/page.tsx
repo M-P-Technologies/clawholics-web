@@ -2,14 +2,13 @@
 
 import { CircleCheckBig as CheckIcon } from "lucide-react";
 import { Button, Card, LoadingBar } from "@/components/atoms";
-import PaymentProofCard from "@/components/features/client/appointments/PaymentProofCard";
 import { SectionHeader, EmptyState, SummaryRow } from "@/components/molecules";
 import ClientScreen from "@/components/features/client/shell/ClientScreen";
 import { usePaymentConfirmation } from "@/hooks/client/usePaymentConfirmation";
 import { CLIENT_PATHS } from "@/lib/client/clientNav";
 
 export default function PaymentConfirmation() {
-  const { isFailed, isConfirmed, awaitingSalon, appointment_id, data, dateLabel, timeLabel, payment, loading, timedOut, checkAgain, proofCard } = usePaymentConfirmation();
+  const { isFailed, isConfirmed, appointment_id, data, dateLabel, timeLabel, payment, loading, timedOut, checkAgain, instagram } = usePaymentConfirmation();
 
   if (!appointment_id) {
     return (
@@ -92,42 +91,24 @@ export default function PaymentConfirmation() {
       <div className="mx-auto flex min-h-[60vh] w-full max-w-3xl flex-col items-center gap-3 text-center md:gap-6">
         <CheckIcon size={56} className="text-crimson" strokeWidth={1.5} aria-hidden="true" />
 
-        <SectionHeader size="section" title={awaitingSalon ? "Payment received" : "Booking confirmed"} className="items-center" />
+        <SectionHeader size="section" title="Booking confirmed" className="items-center" />
 
-        {awaitingSalon ? (
-          <p className="mx-auto max-w-xl text-gray-red">
-            Thank you, {payment?.first_name}! Your downpayment of{" "}
-            <b>₱500 via {payment?.payment_method ?? "N/A"}</b> has been received, and your time slot is
-            held for you. Your booking is confirmed once the salon confirms it: we&apos;ll email you at{" "}
-            <b>{payment?.email ?? "your email"}</b> as soon as it is. You can follow it in My Schedule.
-          </p>
-        ) : (
-          <p className="mx-auto max-w-xl text-gray-red">
-            Thank you, {payment?.first_name}! Your downpayment of{" "}
-            <b>₱500 via {payment?.payment_method ?? "N/A"}</b> has been received and the salon has
-            confirmed your booking. Please check your email <b>({payment?.email ?? "your email"})</b> for
-            your complete appointment details and a few reminders. We look forward to pampering you soon!
-          </p>
-        )}
+        <p className="mx-auto max-w-xl text-gray-red">
+          Thank you, {payment?.first_name}! Your downpayment of{" "}
+          <b>₱500 via {payment?.payment_method ?? "N/A"}</b> has been received and your booking is
+          confirmed. Please check your email <b>({payment?.email ?? "your email"})</b> for your
+          complete appointment details and a few reminders. We look forward to pampering you soon!
+        </p>
 
-        {proofCard && (
-          <div className="flex w-full max-w-xl flex-col gap-3 text-left">
-            {(!proofCard.appointment.latest_proof || proofCard.appointment.latest_proof.status === "REJECTED") && (
-              <Card role="note" className="border-warning/40 bg-warning/10">
-                <p className="text-sm font-bold text-warning-ink">
-                  Important: send a screenshot of your payment. The salon can&apos;t confirm your booking until it has it.
-                </p>
-              </Card>
-            )}
-            <PaymentProofCard
-              appointment={proofCard.appointment}
-              now={0}
-              tokenFetcher={proofCard.tokenFetcher}
-              clerkId={proofCard.clerkId}
-              onUploaded={proofCard.onUploaded}
-            />
-          </div>
-        )}
+        <Card role="note" className="w-full max-w-xl border-crimson/40 bg-crimson-light/20 text-left">
+          <p className="text-sm text-gray-red">
+            Please send a screenshot of your payment to us on{" "}
+            <a href={instagram} target="_blank" rel="noopener noreferrer" className="font-bold text-crimson-ink underline underline-offset-2">
+              Instagram
+            </a>
+            , with your name and booking date, so we have it on file for your visit.
+          </p>
+        </Card>
 
         {data ? (
           <Card className="w-full max-w-xl text-left">

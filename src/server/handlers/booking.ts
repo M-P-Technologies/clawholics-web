@@ -17,11 +17,10 @@ import {
 } from "../appointments";
 import { canAccess, requireAdmin, requireUserRow } from "../auth";
 import { getSql } from "../db";
-import { sendAppointmentConfirmation, sendCancellationEmails, sendConfirmationEmail, sendRescheduleEmails } from "../email";
+import { sendCancellationEmails, sendConfirmationEmail, sendRescheduleEmails } from "../email";
 import { inBackground, readJson, routeNotFound, toId } from "../http";
 import { createXenditRefund, expireXenditInvoice, getXenditInvoices } from "../payments";
 import { getBookingHoldMinutes } from "../bookingHold";
-import { usableProof } from "../proofRules";
 import { checkSlot, hasStarted, normalizeSlot } from "../slotRules";
 import { ported } from "../worker";
 import { releaseVoucherOf } from "../birthdayVouchers";
@@ -335,12 +334,10 @@ export const getAppointmentById = ported<IdContext>(async (_req, { params }) => 
   return Response.json(appt);
 });
 
-class ScreenshotGone extends Error {}
-
 /** Every status an appointment can have (the admin's status menu offers these) */
-const APPOINTMENT_STATUSES = ["PENDING", "AWAITING_PROOF", "AWAITING_CONFIRMATION", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUNDED", "NO_SHOW"];
+const APPOINTMENT_STATUSES = ["PENDING", "AWAITING_PROOF", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUNDED", "NO_SHOW"];
 /** Still to happen: a booking that can be moved or cancelled */
-const OPEN_STATUSES = ["PENDING", "AWAITING_PROOF", "AWAITING_CONFIRMATION", "CONFIRMED"];
+const OPEN_STATUSES = ["PENDING", "AWAITING_PROOF", "CONFIRMED"];
 const statusOf = (status: string | null | undefined) => String(status ?? "").trim().toUpperCase();
 /** The appointment's start has passed (Manila time); an unreadable time counts from the day's start */
 const appointmentStarted = (date: string, time: string) => hasStarted(date, normalizeSlot(time) ?? "00:00-00:00");
@@ -351,7 +348,7 @@ export const updateAppointmentStatus = ported<IdContext>(async (req, { params })
   if (admin instanceof Response) return admin;
   const id = toId((await params).id);
   if (id === null) return routeNotFound();
-  const { status, without_screenshot } = await readJson<{ status?: unknown; without_screenshot?: unknown }>(req);
+  const { status } = await readJson<{ status?: unknown }>(req);
   const upperStatus = String(status || "").trim().toUpperCase();
   if (!APPOINTMENT_STATUSES.includes(upperStatus)) {
     return Response.json({ error: true, code: "INVALID_STATUS", message: `status must be one of ${APPOINTMENT_STATUSES.join(", ")}` }, { status: 400 });
@@ -375,32 +372,9 @@ export const updateAppointmentStatus = ported<IdContext>(async (req, { params })
       { status: 409 },
     );
   }
-  // Confirming a booking paid online needs the client's screenshot of the payment; confirming
-  // approves it
-  // "Allow anyway": the admin checked the payment arrived though the client sent no screenshot
-  const confirmingPaid = upperStatus === "CONFIRMED" && was === "AWAITING_CONFIRMATION" && without_screenshot !== true;
-  const proof = confirmingPaid ? await usableProof(id) : null;
-  if (confirmingPaid && !proof) {
-    return Response.json(
-      { error: true, code: "PROOF_REQUIRED", message: "The client hasn't sent a screenshot of their payment yet." },
-      { status: 409 },
-    );
-  }
-  const reviewer = proof?.status === "PENDING" ? await requireUserRow() : null;
-
-  let confirmedPaidBooking = false;
   try {
-    // Confirming a booking the client paid online (AWAITING_CONFIRMATION) is what confirms it for
-    // them: that's when the confirmation email goes out
-    confirmedPaidBooking = await sql.begin(async (tx) => {
-      // The screenshot read above may have been rejected since: checked again, locked, before confirming
-      if (confirmingPaid) {
-        const [latest] = await tx<{ status: string }[]>`
-          select status from payment_proofs where appointment_id = ${id}
-          order by created_at desc, id desc limit 1 for update`;
-        if (latest?.status !== "PENDING" && latest?.status !== "APPROVED") throw new ScreenshotGone();
-      }
-      const [changed] = await tx<{ was: string | null }[]>`
+    await sql.begin(async (tx) => {
+      await tx`
         update appointments a set status = ${upperStatus},
           expires_at = case when ${upperStatus} in ('CANCELLED', 'REFUNDED') then null else a.expires_at end,
           -- When it was cancelled (or marked a no-show) or refunded, for the Sales page's money: the
@@ -412,30 +386,14 @@ export const updateAppointmentStatus = ported<IdContext>(async (req, { params })
             and upper(trim(coalesce(old.was, ''))) <> 'REFUNDED' then clawholics_utc_now() else a.refunded_at end
         from (select id, status as was from appointments where id = ${id}) old
         where a.id = old.id
-        returning old.was
       `;
-      const confirmed = upperStatus === "CONFIRMED" && String(changed?.was ?? "").trim().toUpperCase() === "AWAITING_CONFIRMATION";
-      if (confirmed && proof?.status === "PENDING") {
-        await tx`
-          update payment_proofs set status = 'APPROVED', reviewed_by = ${reviewer instanceof Response ? null : reviewer?.id ?? null},
-            updated_at = clawholics_utc_now()
-          where id = ${proof.id} and status = 'PENDING'
-        `;
-      }
       // Leaving COMPLETED: the visit's record (what was paid, who did it) no longer stands
       if (was === "COMPLETED" && upperStatus !== "COMPLETED") {
         await tx`delete from visit_completions where appointment_id = ${id}`;
         await releaseVoucherOf(tx, id);
       }
-      return confirmed;
     });
   } catch (error) {
-    if (error instanceof ScreenshotGone) {
-      return Response.json(
-        { error: true, code: "PROOF_REQUIRED", message: "The client's payment screenshot was just rejected. Ask them for a new one." },
-        { status: 409 },
-      );
-    }
     // e.g. re-activating a cancelled booking whose slot was taken since
     if (isSlotConflict(error)) {
       return Response.json(
@@ -445,7 +403,6 @@ export const updateAppointmentStatus = ported<IdContext>(async (req, { params })
     }
     throw error;
   }
-  if (confirmedPaidBooking) inBackground("booking confirmation email", () => sendAppointmentConfirmation(id));
   return Response.json(await getAppointment(id));
 });
 

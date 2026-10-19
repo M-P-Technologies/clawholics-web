@@ -98,14 +98,11 @@ export function useClientPage() {
     );
   };
   // A status change from the tracker, then everything that shows it loads again
-  const changeStatus = async (appointmentId: number, status: AppointmentStatus, done: string, options: { withoutScreenshot?: boolean } = {}) => {
-    if (await run(async () => updateAppointmentStatus(appointmentId, status, await getToken(), user?.id, options), done)) {
+  const changeStatus = async (appointmentId: number, status: AppointmentStatus, done: string) => {
+    if (await run(async () => updateAppointmentStatus(appointmentId, status, await getToken(), user?.id), done)) {
       await adminDataChanged(queryClient);
     }
   };
-  /** Confirms a booking paid online: approves the client's screenshot (or, with withoutScreenshot, goes without), emails the client */
-  const confirmBooking = (appointmentId: number, options: { withoutScreenshot?: boolean } = {}) =>
-    changeStatus(appointmentId, "CONFIRMED", "Booking confirmed", options);
   /** The client didn't come (the downpayment is kept) */
   const markNoShow = (appointmentId: number) => changeStatus(appointmentId, "NO_SHOW", "Marked as a no-show");
   /** Cancelled for coming 25+ minutes late (the downpayment is kept) */
@@ -144,7 +141,6 @@ export function useClientPage() {
     stampsLabel: stampsLabel(details?.summary.stamps ?? 0),
     /** The artists, for the Complete visit form's "Done by" */
     artists: (artistsQuery.data ?? []).map((n) => ({ id: n.id, name: n.name })),
-    confirmBooking,
     markNoShow,
     cancelLate,
     highlight: nextVisitHighlight(nextAppointment),

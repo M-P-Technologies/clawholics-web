@@ -36,3 +36,11 @@ export function readSocialLinks(content: object | null | undefined): SocialLink[
     return [{ platform, name: typeof name === "string" ? name : "", url }];
   });
 }
+
+/** The salon's Instagram, where clients send their payment screenshots */
+export const DEFAULT_INSTAGRAM_URL = "https://www.instagram.com/claw_holics/";
+
+/** The Instagram link of the saved social links, or the salon's own until one is saved */
+export function instagramUrl(content: object | null | undefined): string {
+  return readSocialLinks(content).find((link) => link.platform === "instagram")?.url.trim() || DEFAULT_INSTAGRAM_URL;
+}

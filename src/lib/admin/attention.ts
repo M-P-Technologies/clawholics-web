@@ -18,7 +18,6 @@ export const ATTENTION_TABS: { value: AttentionTab; label: string }[] = [
 ];
 
 const KINDS: Record<Kind, { need: string; tone: string; action: string; list: string; actionName: (name: string) => string }> = {
-  confirm: { need: "Confirm booking", tone: "bg-warning/15 text-warning-ink", action: "Confirm", list: "/clients?status=AWAITING_CONFIRMATION", actionName: (n) => `Confirm ${n}'s booking` },
   review: { need: "Review screenshot", tone: "bg-warning/15 text-warning-ink", action: "Review", list: "/clients?status=PROOF_PENDING", actionName: (n) => `Review ${n}'s screenshot` },
   complete: { need: "Complete visit", tone: "bg-crimson-light/50 text-berry", action: "Complete", list: "/clients?status=TO_COMPLETE", actionName: (n) => `Complete ${n}'s visit` },
   photos: { need: "Add photo", tone: "bg-info/15 text-gray-red", action: "Add photo", list: "/clients?status=PHOTOS_TO_ADD", actionName: (n) => `Add a photo for ${n}'s visit` },
@@ -32,7 +31,7 @@ export const attentionLink = (item: Item) => (item.user_id ? `/clients/${item.us
 
 /** A tab's whole list and how many are in it; none for All, which mixes kinds */
 export function attentionViewAll(tab: AttentionTab, counts: AttentionResponse["counts"]): { to: string; count: number } | null {
-  if (tab === "confirm") return { to: KINDS.confirm.list, count: counts.confirm + counts.review };
+  if (tab === "confirm") return { to: KINDS.review.list, count: counts.review };
   if (tab === "complete") return { to: KINDS.complete.list, count: counts.complete + counts.photos };
   if (tab === "leads") return { to: KINDS.lead.list, count: counts.leads };
   return null;
