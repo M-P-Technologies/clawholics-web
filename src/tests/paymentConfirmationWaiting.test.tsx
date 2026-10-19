@@ -47,19 +47,6 @@ describe("payment confirmation inside the client app", () => {
 });
 
 describe("payment confirmation when paid", () => {
-  it("says the payment is in and the salon will confirm the booking", () => {
-    hook.mockReturnValue({
-      ...waiting, isConfirmed: true, awaitingSalon: true,
-      payment: { first_name: "Ana", payment_method: "QR Ph", email: "ana@example.com" },
-      data: { service_name: "Hard Gel", appointment_date: "2026-10-20", appointment_time: "9:00 AM - 11:00 AM" },
-      dateLabel: "October 20, 2026",
-      timeLabel: "9:00 AM - 11:00 AM",
-    });
-    render(<PaymentConfirmation />);
-    expect(screen.getByRole("heading", { name: "Payment received" })).toBeInTheDocument();
-    expect(screen.getByText(/confirmed once the salon confirms it/)).toBeInTheDocument();
-  });
-
   it("thanks the client and lists the booking", () => {
     hook.mockReturnValue({
       ...waiting, isConfirmed: true,

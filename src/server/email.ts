@@ -185,49 +185,7 @@ export async function sendConfirmationEmail(data: ConfirmationData) {
   ]);
 }
 
-/**
- * After an online (Xendit) payment: the downpayment is in, but the booking is only confirmed when
- * an admin confirms it. The client hears that the salon will confirm; the salon hears there's a
- * booking to confirm. The confirmation email (sendAppointmentConfirmation) follows the admin's confirm.
- */
-export async function sendPaymentReceived(appointmentId: number) {
-  const det = await getAppointment(appointmentId);
-  if (!det) return;
-  const clientRows = [
-    clientRow("Appointment ID", det.id),
-    clientRow("Payment ID", det.payment_id),
-    clientRow("Service", det.service_name),
-    clientRow("Nailist", det.nailist_name),
-    clientRow("Date", det.appointment_date, HIGHLIGHT),
-    clientRow("Time", det.appointment_time, HIGHLIGHT),
-    clientRow("Payment Method", det.payment_method),
-  ].join("");
-  const customerHtml = baseEmailTemplate(
-    "Downpayment Received",
-    det.client_name,
-    `Thank you, <strong>${escapeHtml(det.client_name)}</strong>! We've received your downpayment. Your booking with <strong>${escapeHtml(det.nailist_name)}</strong> is waiting for the salon to confirm it, and we'll email you as soon as it's confirmed. Your time slot is held for you meanwhile.<br/><br/>
-     <strong>Important:</strong> please <a href="${screenshotLink(det.id)}" style="color: #CC798B; font-weight: bold;">send a screenshot of your payment</a> in My account › Appointments. The salon confirms your booking once it has it.`,
-    clientRows,
-    false,
-  );
-  const adminRows = [
-    adminRow("Status", "AWAITING CONFIRMATION", " color: #b26a00; font-weight: bold;"),
-    adminRow("Customer", escapeHtml(det.client_name)),
-    adminRow("Email", escapeHtml(det.email)),
-    adminRow("Appointment ID", escapeHtml(det.id)),
-    adminRow("Payment ID", escapeHtml(det.payment_id)),
-    adminRow("Service", escapeHtml(det.service_name)),
-    adminRow("Nailist", escapeHtml(det.nailist_name)),
-    adminRow("Date", escapeHtml(det.appointment_date), " font-weight: bold;"),
-    adminRow("Time", escapeHtml(det.appointment_time), " font-weight: bold;"),
-  ].join("");
-  await Promise.all([
-    sendEmail(det.email, "We've received your downpayment | Clawholics by Max", customerHtml),
-    sendEmail(adminEmail(), "BOOKING PAID: PLEASE CONFIRM", baseAdminEmailTemplate("Booking Paid, Waiting for Your Confirmation", adminRows)),
-  ]);
-}
-
-/** Confirmation emails once the salon confirms: an admin confirming a paid booking, or approving a payment proof. */
+/** Confirmation emails once a booking is confirmed: a Xendit payment, an admin confirming a booking, or approving a payment proof. */
 export async function sendAppointmentConfirmation(appointmentId: number) {
   const det = await getAppointment(appointmentId);
   if (!det) return;
@@ -400,33 +358,6 @@ export async function sendBirthdayVoucherEmails(
 }
 
 const SITE = (process.env.NEXT_PUBLIC_SITE_URL || "https://clawholicsbymax.com").replace(/\/+$/, "");
-/** The client app's appointment, where the client sends the screenshot of their payment */
-const screenshotLink = (appointmentId: unknown) => `${SITE}/my/appointments?appointment_id=${encodeURIComponent(String(appointmentId))}`;
-
-/** The reminder for clients who haven't sent the screenshot of their payment, one email each. */
-export async function sendScreenshotReminders(
-  bookings: { id: number; email: string; first_name: string; service_name: string; appointment_date: string; appointment_time: string }[],
-) {
-  await sendEmailBatch(
-    bookings.map((b) => ({
-      to: b.email,
-      subject: "Send your payment screenshot | Clawholics by Max",
-      html: baseEmailTemplate(
-        "One More Step",
-        b.first_name,
-        `We've received your downpayment, but we still need a <strong>screenshot of your payment</strong> before we can confirm your booking.
-         Please <a href="${screenshotLink(b.id)}" style="color: #CC798B; font-weight: bold;">send it in My account › Appointments</a>. Your time slot is held for you meanwhile.`,
-        [
-          clientRow("Service", b.service_name),
-          clientRow("Date", b.appointment_date, HIGHLIGHT),
-          clientRow("Time", b.appointment_time, HIGHLIGHT),
-        ].join(""),
-        false,
-        "Your Booking",
-      ),
-    })),
-  );
-}
 
 /** The contact form, sent to the salon. */
 export async function sendContactMessage(data: { name: string; email: string; mobile?: string; description: string }) {

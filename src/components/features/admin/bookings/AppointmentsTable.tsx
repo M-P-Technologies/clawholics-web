@@ -36,7 +36,6 @@ const STATUS_OPTIONS: { label: string; value: AppointmentFilterStatus }[] = [
   { label: "Awaiting proof", value: "AWAITING_PROOF" },
   { label: "Proofs to review", value: "PROOF_PENDING" },
   { label: "Proof overdue", value: "PROOF_OVERDUE" },
-  { label: "Awaiting confirmation", value: "AWAITING_CONFIRMATION" },
   { label: "Visits to complete", value: "TO_COMPLETE" },
   { label: "Confirmed", value: "CONFIRMED" },
   { label: "Completed", value: "COMPLETED" },
@@ -62,14 +61,13 @@ const SORT_PARAM: Record<string, AppointmentSort> = {
 // Five to a page, like the dashboard's bookings table
 const ROWS_PER_PAGE = 5;
 
-const STATUSES: AppointmentStatus[] = ["PENDING", "AWAITING_PROOF", "AWAITING_CONFIRMATION", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUNDED", "NO_SHOW"];
+const STATUSES: AppointmentStatus[] = ["PENDING", "AWAITING_PROOF", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUNDED", "NO_SHOW"];
 
 // Dot beside each status, so the colour says what it means before you read it
 const statusDotClass = (status: AppointmentStatus) => {
   switch (status) {
     case "PENDING":
     case "AWAITING_PROOF":
-    case "AWAITING_CONFIRMATION":
       return "bg-warning";
     case "CONFIRMED":
       return "bg-info";
@@ -220,9 +218,9 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
     setPage(1);
   };
 
-  const changeStatus = async (id: number, next: AppointmentStatus, options: { withoutScreenshot?: boolean } = {}) => {
+  const changeStatus = async (id: number, next: AppointmentStatus) => {
     try {
-      const updated = await updateAppointmentStatus(id, next, await getToken(), currentUser?.id, options);
+      const updated = await updateAppointmentStatus(id, next, await getToken(), currentUser?.id);
       const updatedStatus = statusOf(updated);
       toast.show("success", "Appointment updated", `Appointment #${id} is now ${updatedStatus.toLowerCase().replace(/_/g, " ")}.`);
       void refresh();
@@ -535,7 +533,6 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
           tokenFetcher={getToken}
           clerkId={currentUser?.id}
           artists={(artistList ?? []).map((n) => ({ id: n.id, name: artistName(n) }))}
-          onConfirmWithoutScreenshot={(id) => changeStatus(id, "CONFIRMED", { withoutScreenshot: true })}
           onProofReviewed={async () => {
             setSelected(null);
             await refresh();

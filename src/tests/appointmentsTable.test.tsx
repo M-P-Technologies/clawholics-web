@@ -87,7 +87,7 @@ describe("Appointments table", () => {
       pageSize: 5,
       proofToReview: true,
       sort: "upcoming",
-      statuses: ["PENDING", "AWAITING_PROOF", "AWAITING_CONFIRMATION", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUNDED", "NO_SHOW"],
+      statuses: ["PENDING", "AWAITING_PROOF", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUNDED", "NO_SHOW"],
     });
   });
 
@@ -141,8 +141,9 @@ describe("Appointments table", () => {
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: /Status of appointment #2/ }));
     expect(screen.getByRole("option", { name: "Awaiting proof" })).toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "Awaiting confirmation" })).toBeNull();
     await user.click(screen.getByRole("option", { name: "Confirmed" }));
-    await waitFor(() => expect(updateAppointmentStatus).toHaveBeenCalledWith(2, "CONFIRMED", "tok", "admin_1", {}));
+    await waitFor(() => expect(updateAppointmentStatus).toHaveBeenCalledWith(2, "CONFIRMED", "tok", "admin_1"));
     expect(show).toHaveBeenCalledWith("success", "Appointment updated", "Appointment #2 is now confirmed.");
   });
 
@@ -250,7 +251,7 @@ describe("parseStatusParam", () => {
 describe("the payment screenshot column", () => {
   it("shows the latest screenshot as a thumbnail that opens it, or None yet", async () => {
     fetchAppointments.mockResolvedValue([
-      appt(1, { status: "AWAITING_CONFIRMATION", latest_proof: { id: 9, status: "PENDING", image_url: "https://img/s.webp", created_at: "2026-10-16T10:00:00Z" } }),
+      appt(1, { status: "PENDING", latest_proof: { id: 9, status: "PENDING", image_url: "https://img/s.webp", created_at: "2026-10-16T10:00:00Z" } }),
       appt(2),
     ]);
     render(<AppointmentsTable />);
@@ -295,7 +296,7 @@ describe("after a status change from the drawer", () => {
   const pendingProof = { id: 9, status: "PENDING" as const, image_url: "https://img/s.webp", created_at: "2026-10-16T10:00:00Z" };
 
   it("keeps what the list knew about the booking (its downpayment), not just what the change answered", async () => {
-    fetchAppointments.mockResolvedValue([appt(1, { status: "AWAITING_CONFIRMATION", latest_proof: pendingProof, paid_downpayment: 500 })]);
+    fetchAppointments.mockResolvedValue([appt(1, { status: "AWAITING_PROOF", latest_proof: pendingProof, paid_downpayment: 500 })]);
     updateAppointmentStatus.mockResolvedValue({ id: 1, status: "CONFIRMED" });
     params = new URLSearchParams("status=ALL");
     render(<AppointmentsTable />);
@@ -305,11 +306,11 @@ describe("after a status change from the drawer", () => {
   });
 
   it("says why the server refused a change", async () => {
-    fetchAppointments.mockResolvedValue([appt(1, { status: "AWAITING_CONFIRMATION", latest_proof: pendingProof })]);
-    updateAppointmentStatus.mockRejectedValue(new Error(JSON.stringify({ error: true, code: "PROOF_REQUIRED", message: "The client hasn't sent a screenshot of their payment yet." })));
+    fetchAppointments.mockResolvedValue([appt(1, { status: "AWAITING_PROOF", latest_proof: pendingProof })]);
+    updateAppointmentStatus.mockRejectedValue(new Error(JSON.stringify({ error: true, code: "INVALID_STATUS", message: "This booking can't move to that status." })));
     render(<AppointmentsTable />);
     await userEvent.click(await screen.findByRole("button", { name: "Review the payment proof for appointment #1" }));
     await userEvent.click(screen.getByRole("button", { name: "Set confirmed" }));
-    await waitFor(() => expect(show).toHaveBeenCalledWith("error", "Status not changed", "The client hasn't sent a screenshot of their payment yet."));
+    await waitFor(() => expect(show).toHaveBeenCalledWith("error", "Status not changed", "This booking can't move to that status."));
   });
 });

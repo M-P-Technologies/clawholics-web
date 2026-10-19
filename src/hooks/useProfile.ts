@@ -385,7 +385,7 @@ export function useProfile() {
 
       const isEligible = isEligibleForChanges(appt.appointment_date, appt.appointment_time);
       const canReschedule = displayStatus.toLowerCase() === "confirmed" && isEligible;
-      const canCancel = ["pending", "awaiting_proof", "awaiting_confirmation", "confirmed"].includes(displayStatus.toLowerCase());
+      const canCancel = ["pending", "awaiting_proof", "confirmed"].includes(displayStatus.toLowerCase());
 
       return {
         appt,

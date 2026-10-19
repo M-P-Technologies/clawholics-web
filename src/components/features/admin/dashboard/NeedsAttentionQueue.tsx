@@ -17,8 +17,7 @@ const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2)
 
 // The dashboard's queue: the things most worth acting on now, a page of `rows` at a time (five unless
 // the dashboard fits more beside its notes), one row each with its action.
-// Bookings to confirm first (a screenshot sent first, then the longest waiting), proofs to review,
-// visits to complete (the latest first), visit photos to add, then warm leads.
+// Proofs to review first, then visits to complete (the latest first), visit photos to add, then warm leads.
 export default function NeedsAttentionQueue({ load, rows = ATTENTION_ROWS }: { load: AttentionLoader; rows?: number }) {
   const { tab, setTab, setPage, data, stale, failed, pageFailed } = useAttentionQueue(load, rows);
   const asTable = useTableLayout();
@@ -42,7 +41,6 @@ export default function NeedsAttentionQueue({ load, rows = ATTENTION_ROWS }: { l
   const need = (item: Item) => (
     <span className="flex flex-col items-start gap-1">
       <span className={clsx("whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-bold", attentionKind(item.kind).tone)}>{attentionKind(item.kind).need}</span>
-      {item.has_screenshot && <span className="text-xs text-gray-red">Screenshot sent</span>}
     </span>
   );
   const booking = (item: Item) =>

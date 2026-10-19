@@ -11,7 +11,6 @@ const GROUP_OF: Record<string, Group> = {
   CONFIRMED: "confirmed",
   PENDING: "pending",
   AWAITING_PROOF: "pending",
-  AWAITING_CONFIRMATION: "pending",
   COMPLETED: "completed",
   CANCELLED: "cancelled",
   CANCELED: "cancelled",

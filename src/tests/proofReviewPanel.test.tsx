@@ -118,10 +118,11 @@ describe("ProofReviewPanel", () => {
   });
 });
 
-describe("reviewing a screenshot of a payment made online", () => {
-  it("offers Approve while the booking waits for the salon, and for a manual booking still pending", async () => {
-    setup({ status: "AWAITING_CONFIRMATION", proofDueAt: null });
-    expect(await screen.findByRole("button", { name: /Approve/ })).toBeInTheDocument();
+describe("which bookings a proof can be approved for", () => {
+  it("offers no Approve once the booking is confirmed (a payment made online confirms it)", async () => {
+    setup({ status: "CONFIRMED", proofDueAt: null });
+    expect(await screen.findByAltText(/latest payment screenshot/i)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Approve/ })).toBeNull();
   });
 
   it("offers Approve for a proof on a PENDING booking", async () => {

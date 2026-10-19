@@ -9,7 +9,11 @@ import { workingTimeWait } from "./loopTimer";
 
 type Sql = ReturnType<typeof postgres>;
 
-const globalForDb = globalThis as unknown as { clawholicsSql?: Sql };
+const globalForDb = globalThis as unknown as { clawholicsSql?: Sql; clawholicsSqlSetup?: string };
+
+// Bumped when createClient's setup changes, so a dev server that hot-reloads this file replaces
+// the client it kept on globalThis instead of reusing one built the old way
+const CLIENT_SETUP = "transactions-pool-1";
 
 function createClient(): Sql {
   const url = process.env.DATABASE_URL;
@@ -72,7 +76,14 @@ function createBuildClient(): Sql {
 /** Lazily created, so importing this module never needs DATABASE_URL (e.g. at build time). */
 export function getSql(): Sql {
   if (isBuild()) return createBuildClient();
-  globalForDb.clawholicsSql ??= createClient();
+  if (globalForDb.clawholicsSql && globalForDb.clawholicsSqlSetup !== CLIENT_SETUP) {
+    globalForDb.clawholicsSql.end({ timeout: 5 }).catch(() => {});
+    globalForDb.clawholicsSql = undefined;
+  }
+  if (!globalForDb.clawholicsSql) {
+    globalForDb.clawholicsSql = createClient();
+    globalForDb.clawholicsSqlSetup = CLIENT_SETUP;
+  }
   return globalForDb.clawholicsSql;
 }
 

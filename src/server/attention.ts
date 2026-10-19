@@ -6,21 +6,20 @@ import { ATTENTION_MOST } from "@/lib/admin/attention";
 import { END_CLOCK_SQL, PHOTOS_TO_ADD_SQL, TO_COMPLETE_SQL, manilaNow } from "./visitsToComplete";
 
 // The dashboard's Needs attention queue: the things to act on now, most urgent first, a page at a time.
-// 1 bookings to confirm (paid; with a screenshot first, then the longest waiting), 2 payment proofs
-// to review, 3 visits to complete (the latest first), 4 visit photos to add, 5 warm leads (the
-// newest first). Each tab lists its own kinds.
+// 1 payment proofs to review, 2 visits to complete (the latest first), 3 visit photos to add,
+// 4 warm leads (the newest first). Each tab lists its own kinds.
 
-export type AttentionKind = "confirm" | "review" | "complete" | "photos" | "lead";
+export type AttentionKind = "review" | "complete" | "photos" | "lead";
 export type AttentionTab = "all" | "confirm" | "complete" | "leads";
 export const ATTENTION_TABS: AttentionTab[] = ["all", "confirm", "complete", "leads"];
 const TAB_KINDS: Record<AttentionTab, AttentionKind[]> = {
-  all: ["confirm", "review", "complete", "photos", "lead"],
-  confirm: ["confirm", "review"],
+  all: ["review", "complete", "photos", "lead"],
+  confirm: ["review"],
   complete: ["complete", "photos"],
   leads: ["lead"],
 };
 /** The kinds in the queue's order */
-const KIND_ORDER: AttentionKind[] = ["confirm", "review", "complete", "photos", "lead"];
+const KIND_ORDER: AttentionKind[] = ["review", "complete", "photos", "lead"];
 /** The largest page the queue answers */
 export const MAX_ATTENTION_PAGE_SIZE = 50;
 
@@ -38,14 +37,12 @@ export interface AttentionItem {
   appointment_time: string | null;
   /** Waiting since (UTC "YYYY-MM-DD HH:MM:SS"): the payment, the proof, the visit's end, the completion, the sign-up */
   since: string;
-  /** A confirmation whose client sent the screenshot */
-  has_screenshot?: boolean;
 }
 
 export interface AttentionPage {
   items: AttentionItem[];
   /** Each kind's count, whichever tab is open */
-  counts: Record<"confirm" | "review" | "complete" | "photos" | "leads", number>;
+  counts: Record<"review" | "complete" | "photos" | "leads", number>;
   /** How many the tab holds in all */
   total: number;
   page: number;
@@ -64,31 +61,19 @@ const BOOKING_FROM = `
   left join users u on u.id = a.user_id
   left join customer_profiles cp on cp.user_id = a.user_id
   left join nailists n on n.id = a.nailist_id`;
-const LATEST_PROOF = (alias: string) =>
-  `(select pp.status from payment_proofs pp where pp.appointment_id = ${alias}.id order by pp.created_at desc, pp.id desc limit 1)`;
 
 // Each kind's rows (the same columns in each, so they can be put together), their order within the
 // kind, and which appointments it counts. `warm` is the parameter holding the warm leads' cut-off.
 function kindQueries(today: string, clock: string, warm: string): Record<AttentionKind, { rows: string; order: string; where: string }> {
-  const confirmWhere = `upper(trim(a.status)) = 'AWAITING_CONFIRMATION'`;
-  const reviewWhere = `${PROOF_TO_REVIEW_SQL("a")} and upper(trim(a.status)) <> 'AWAITING_CONFIRMATION'`;
+  const reviewWhere = PROOF_TO_REVIEW_SQL("a");
   const completeWhere = TO_COMPLETE_SQL("a", today, clock);
   const photosWhere = PHOTOS_TO_ADD_SQL("a");
   const leadWhere = `u.clerk_id in (${WARM_LEADS.replaceAll("$1", warm)})`;
   return {
-    confirm: {
-      where: confirmWhere,
-      rows: `${BOOKING}, 'confirm' as kind,
-          coalesce((select min(p.created_at) from payments p where p.appointment_id = a.id and upper(trim(p.status)) = 'PAID'), a.created_at) as since,
-          coalesce(${LATEST_PROOF("a")} in ('PENDING', 'APPROVED'), false) as has_screenshot
-        ${BOOKING_FROM} where ${confirmWhere}`,
-      order: "has_screenshot desc, since asc, appointment_id",
-    },
     review: {
       where: reviewWhere,
       rows: `${BOOKING}, 'review' as kind,
-          (select pp.created_at from payment_proofs pp where pp.appointment_id = a.id order by pp.created_at desc, pp.id desc limit 1) as since,
-          null::boolean as has_screenshot
+          (select pp.created_at from payment_proofs pp where pp.appointment_id = a.id order by pp.created_at desc, pp.id desc limit 1) as since
         ${BOOKING_FROM} where ${reviewWhere}`,
       order: "since asc, appointment_id",
     },
@@ -96,16 +81,14 @@ function kindQueries(today: string, clock: string, warm: string): Record<Attenti
       where: completeWhere,
       // The visit's end, Manila time, as UTC like the other kinds; the latest visit first
       rows: `${BOOKING}, 'complete' as kind,
-          to_char((a.appointment_date || ' ' || ${END_CLOCK_SQL("a")})::timestamp - interval '8 hours', 'YYYY-MM-DD HH24:MI:SS') as since,
-          null::boolean as has_screenshot
+          to_char((a.appointment_date || ' ' || ${END_CLOCK_SQL("a")})::timestamp - interval '8 hours', 'YYYY-MM-DD HH24:MI:SS') as since
         ${BOOKING_FROM} where ${completeWhere}`,
       order: "since desc, appointment_id",
     },
     photos: {
       where: photosWhere,
       rows: `${BOOKING}, 'photos' as kind,
-          (select vc.created_at from visit_completions vc where vc.appointment_id = a.id) as since,
-          null::boolean as has_screenshot
+          (select vc.created_at from visit_completions vc where vc.appointment_id = a.id) as since
         ${BOOKING_FROM} where ${photosWhere}`,
       order: "appointment_date desc, appointment_id",
     },
@@ -114,7 +97,7 @@ function kindQueries(today: string, clock: string, warm: string): Record<Attenti
       rows: `select null::int as appointment_id, u.id as user_id,
           coalesce(nullif(trim(coalesce(cp.first_name, '') || ' ' || coalesce(cp.last_name, '')), ''), u.email) as client_name,
           u.email, null::text as service_name, null::text as nailist_name, null::text as appointment_date, null::text as appointment_time,
-          'lead' as kind, u.created_at as since, null::boolean as has_screenshot
+          'lead' as kind, u.created_at as since
         from users u left join customer_profiles cp on cp.user_id = u.id
         where ${leadWhere}`,
       order: "since desc, user_id desc",
@@ -134,11 +117,11 @@ export async function listAttention(
   const kinds = KIND_ORDER.filter((kind) => TAB_KINDS[tab].includes(kind));
   // The page's rows: $1 the page size, $2 the offset, and $3 the warm leads' cut-off when the tab lists them
   const queries = kindQueries(today, clock, "$3");
-  const appointmentKinds = ["confirm", "review", "complete", "photos"] as const;
+  const appointmentKinds = ["review", "complete", "photos"] as const;
 
   const [rows, [c]] = await Promise.all([
-    sql.unsafe<(AttentionItem & { has_screenshot: boolean | null })[]>(
-      `select appointment_id, user_id, client_name, email, service_name, nailist_name, appointment_date, appointment_time, kind, since, has_screenshot
+    sql.unsafe<AttentionItem[]>(
+      `select appointment_id, user_id, client_name, email, service_name, nailist_name, appointment_date, appointment_time, kind, since
        from (${kinds
          // A kind's rows can't come before their place within it, so none past the page's end is needed
          .map((kind) => `select k.*, ${KIND_ORDER.indexOf(kind)} as kind_rank, row_number() over (order by ${queries[kind].order}) as kind_row
@@ -156,9 +139,7 @@ export async function listAttention(
     ),
   ]);
 
-  const counts = { confirm: c.confirm, review: c.review, complete: c.complete, photos: c.photos, leads: c.leads };
+  const counts = { review: c.review, complete: c.complete, photos: c.photos, leads: c.leads };
   const total = kinds.reduce((sum, kind) => sum + counts[kind === "lead" ? "leads" : kind], 0);
-  // Only a confirmation says whether its screenshot was sent
-  const items = rows.map(({ has_screenshot, ...item }) => (item.kind === "confirm" ? { ...item, has_screenshot: Boolean(has_screenshot) } : { ...item }));
-  return { items, counts, total, page, pageSize };
+  return { items: rows.map((item) => ({ ...item })), counts, total, page, pageSize };
 }
