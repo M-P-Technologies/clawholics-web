@@ -38,7 +38,17 @@ function createClient(): Sql {
     // lists as json instead.
     fetch_types: false,
   };
-  return postgres(url, options);
+  const client = postgres(url, options);
+  // postgres.js only marks a transaction's connection as reserved when max_pipeline is above 0,
+  // so with 0 every sql.begin fails with UNSAFE_TRANSACTION. Transactions run on their own small
+  // pool with the default pipelining, which is harmless there: a transaction holds its connection.
+  const transactions = postgres(url, { ...options, max: 3, max_pipeline: 100 });
+  client.begin = transactions.begin.bind(transactions) as Sql["begin"];
+  const end = client.end.bind(client);
+  client.end = async (endOptions?: { timeout?: number | null }) => {
+    await Promise.all([end(endOptions), transactions.end(endOptions)]);
+  };
+  return client;
 }
 
 /**
