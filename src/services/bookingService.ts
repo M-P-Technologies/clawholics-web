@@ -14,7 +14,8 @@ interface BookingPayload {
   nailist_id: number;
   appointment_date: string;
   appointment_time: string;
-  variant_id?: number | null;
+  /** The service's options the client added (extras on top of its price) */
+  option_ids?: number[];
   addon_ids?: number[];
 }
 

@@ -1,11 +1,10 @@
+import { Plus, Trash2 } from "lucide-react";
 import type { ServiceCategory } from "@/services/catalogService";
 import type { NailService } from "@/services/serviceService";
-import { Button, Select } from "@/components/atoms";
+import { Button, IconButton, Select } from "@/components/atoms";
 
-type VariantDraft = { name: string; price: string };
-
-const variantInputClass =
-  "min-w-0 flex-1 bg-milk rounded-md px-3 py-1.5 text-sm text-gray-red outline-none focus:ring-2 focus:ring-crimson disabled:opacity-70 border border-crimson-light";
+/** An option: an extra a client may add when booking, its price added to the service's. id is the saved option's. */
+type VariantDraft = { id?: number; name: string; price: string };
 
 export type PricingDraft = {
   categoryId: number | null;
@@ -35,7 +34,7 @@ export const draftFromService = (service?: NailService): PricingDraft => {
     masterPrice: service.master_price > 0 ? String(service.master_price) : "",
     juniorPrice: service.junior_price > 0 ? String(service.junior_price) : "",
     flatPrice: service.price > 0 ? String(service.price) : "",
-    variants: (service.variants ?? []).map((v) => ({ name: v.name, price: String(v.price) })),
+    variants: (service.variants ?? []).map((v) => ({ id: v.id, name: v.name, price: String(v.price) })),
   };
 };
 
@@ -44,16 +43,17 @@ export const validateDraft = (draft: PricingDraft): string | null => {
 
   for (const v of draft.variants) {
     if (!v.name.trim() || !(Number(v.price) > 0)) {
-      return "Every option needs a name and a price above 0.";
+      return "Every option needs a name and an extra price above 0.";
     }
   }
 
+  // Options are extras on top of the service's price, so the service needs its own
   if (draft.pricingType === "tiered") {
-    if (toNumber(draft.masterPrice) <= 0 && toNumber(draft.juniorPrice) <= 0 && draft.variants.length === 0) {
+    if (toNumber(draft.masterPrice) <= 0 && toNumber(draft.juniorPrice) <= 0) {
       return "Set a price for at least one technician tier.";
     }
-  } else if (toNumber(draft.flatPrice) <= 0 && draft.variants.length === 0) {
-    return "Set a price or at least one option.";
+  } else if (toNumber(draft.flatPrice) <= 0) {
+    return "Set the service's price.";
   }
   return null;
 };
@@ -63,7 +63,7 @@ export const payloadFromDraft = (draft: PricingDraft) => ({
   master_price: draft.pricingType === "tiered" ? toNumber(draft.masterPrice) : 0,
   junior_price: draft.pricingType === "tiered" ? toNumber(draft.juniorPrice) : 0,
   price: draft.pricingType === "flat" ? toNumber(draft.flatPrice) : 0,
-  variants: draft.variants.map((v) => ({ name: v.name.trim(), price: Number(v.price) })),
+  variants: draft.variants.map((v) => ({ ...(v.id ? { id: v.id } : {}), name: v.name.trim(), price: Number(v.price) })),
 });
 
 type Props = {
@@ -76,6 +76,7 @@ type Props = {
 const card = "flex flex-col gap-1.5";
 const fieldClass =
   "w-full rounded-md border border-crimson-light bg-milk px-3 py-2 text-sm text-gray-red outline-none focus:ring-2 focus:ring-crimson disabled:cursor-not-allowed disabled:opacity-70";
+const optionLabelClass = "flex flex-col gap-1 text-xs font-medium text-gray-red";
 
 const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
   <div className={card}>
@@ -87,6 +88,8 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
 export default function ServicePricingFields({ draft, onChange, isEditing, categories }: Props) {
   const set = (patch: Partial<PricingDraft>) => onChange({ ...draft, ...patch });
   const digits = (value: string) => value.replace(/[^0-9]/g, "");
+  const setVariant = (index: number, patch: Partial<VariantDraft>) =>
+    set({ variants: draft.variants.map((v, i) => (i === index ? { ...v, ...patch } : v)) });
 
   return (
     <>
@@ -147,7 +150,7 @@ export default function ServicePricingFields({ draft, onChange, isEditing, categ
         <Field label="Price">
           <input
             aria-label="Price"
-            placeholder="Leave empty when you use options"
+            placeholder="e.g. 650"
             disabled={!isEditing}
             inputMode="numeric"
             value={draft.flatPrice}
@@ -157,56 +160,70 @@ export default function ServicePricingFields({ draft, onChange, isEditing, categ
         </Field>
       )}
 
-      <div className="flex flex-col gap-1.5">
-        <h3 className="text-[13px] font-medium text-gray-red">Options (optional)</h3>
-        <p className="text-sm text-gray-red mb-2">
-          Use options when a service has several fully priced choices, for example "Cat Eye - Volume" and "Cat Eye - Mega Volume". Clients must pick one.
+      <fieldset className="flex flex-col gap-3 rounded-lg border border-crimson-light p-3">
+        <legend className="px-1 text-[13px] font-medium text-gray-red">Add-on options (optional)</legend>
+        <p className="text-sm text-gray-red">
+          Extras a client can add when booking, for example &quot;Chrome finish&quot; for ₱150. Each one&apos;s price is added on
+          top of the service price and paid at the salon; the booking deposit stays the same.
         </p>
 
-        <div className="flex flex-col gap-3">
-          {draft.variants.map((variant, index) => (
-            <div key={index} className="flex items-center gap-3">
-              <input
-                aria-label={`Option ${index + 1} name`}
-                className={variantInputClass}
-                disabled={!isEditing}
-                value={variant.name}
-                onChange={(e) => set({ variants: draft.variants.map((v, i) => (i === index ? { ...v, name: e.target.value } : v)) })}
-              />
-              <input
-                aria-label={`Option ${index + 1} price`}
-                className={`${variantInputClass} max-w-27.5 flex-none`}
-                disabled={!isEditing}
-                inputMode="numeric"
-                value={variant.price}
-                onChange={(e) => set({ variants: draft.variants.map((v, i) => (i === index ? { ...v, price: digits(e.target.value) } : v)) })}
-              />
-              {isEditing && (
-                <Button
-                  variant="secondary"
-                  type="button"
-                  aria-label={`Remove option ${index + 1}`}
-                  
-                  onClick={() => set({ variants: draft.variants.filter((_, i) => i !== index) })}
-                >
-                  Remove
-                </Button>
-              )}
-            </div>
-          ))}
-        </div>
+        {draft.variants.length === 0 ? (
+          <p className="text-sm text-gray-red">No options yet.</p>
+        ) : (
+          <ul className="flex flex-col gap-3">
+            {draft.variants.map((variant, index) => (
+              <li key={variant.id ?? `new-${index}`} className="flex items-end gap-2">
+                <label className={`min-w-0 flex-1 ${optionLabelClass}`}>
+                  Option name
+                  <input
+                    aria-label={`Option ${index + 1} name`}
+                    placeholder="e.g. Chrome finish"
+                    className={fieldClass}
+                    disabled={!isEditing}
+                    value={variant.name}
+                    onChange={(e) => setVariant(index, { name: e.target.value })}
+                  />
+                </label>
+                <label className={`w-28 flex-none ${optionLabelClass}`}>
+                  Extra price
+                  <span className="relative">
+                    <span aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-red">
+                      +₱
+                    </span>
+                    <input
+                      aria-label={`Option ${index + 1} extra price`}
+                      placeholder="150"
+                      className={`${fieldClass} pl-8`}
+                      disabled={!isEditing}
+                      inputMode="numeric"
+                      value={variant.price}
+                      onChange={(e) => setVariant(index, { price: digits(e.target.value) })}
+                    />
+                  </span>
+                </label>
+                {isEditing && (
+                  <IconButton
+                    icon={Trash2}
+                    label={`Remove option ${index + 1}`}
+                    onClick={() => set({ variants: draft.variants.filter((_, i) => i !== index) })}
+                  />
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
 
         {isEditing && (
           <Button
             variant="secondary"
             type="button"
-            className="mt-3"
+            className="self-start"
             onClick={() => set({ variants: [...draft.variants, { name: "", price: "" }] })}
           >
-            Add option
+            <Plus size={16} aria-hidden="true" /> Add option
           </Button>
         )}
-      </div>
+      </fieldset>
     </>
   );
 }

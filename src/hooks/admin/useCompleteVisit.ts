@@ -18,8 +18,8 @@ const dayLabel = (ymd: string) => {
 /**
  * The Complete visit form: when the client came in (the late fee follows the salon's terms), their
  * birthday voucher code if they show one (checked with the server, its discount comes off the
- * service price), the balance (prefilled with the service's balance less that discount plus the
- * fee, editable), how it was paid, who did it, and photos (optional: they can be added later).
+ * service price), the balance (prefilled with the final price: the service less that discount, plus
+ * the options the client added when booking, less the downpayment, plus the fee; editable), how it was paid, who did it, and photos (optional: they can be added later).
  * Shown locked before the visit's day.
  */
 export function useCompleteVisit(visit: VisitToComplete, onSaved?: () => void) {
@@ -47,9 +47,13 @@ export function useCompleteVisit(visit: VisitToComplete, onSaved?: () => void) {
   const [voucherError, setVoucherError] = useState("");
 
   const discount = voucher?.discount ?? 0;
-  const base = expectedBalance(visit.price === null ? null : Math.max(0, visit.price - discount), visit.paid_downpayment);
-  /** The downpayment taken off the bill (without the reservation fee), up to the price less the voucher */
-  const credit = Math.min(Math.max(0, visit.paid_downpayment - RESERVATION_FEE), Math.max(0, (visit.price ?? 0) - discount));
+  const options = visit.options ?? [];
+  const optionsTotal = options.reduce((sum, o) => sum + o.price, 0);
+  /** The final price: the service less the voucher (it's only off the service), plus the options */
+  const finalPrice = visit.price === null ? null : Math.max(0, visit.price - discount) + optionsTotal;
+  const base = expectedBalance(finalPrice, visit.paid_downpayment);
+  /** The downpayment taken off the bill (without the reservation fee), up to the final price */
+  const credit = Math.min(Math.max(0, visit.paid_downpayment - RESERVATION_FEE), finalPrice ?? 0);
 
   const minutes = minutesLate(visit.appointment_time, arrivedAt);
   const late = lateFee(minutes);
@@ -141,10 +145,12 @@ export function useCompleteVisit(visit: VisitToComplete, onSaved?: () => void) {
       setArrivedAt(value);
       followSuggestion();
     },
-    /** How the suggested balance is made up: the service, the voucher, the downpayment, the late fee */
+    /** How the suggested balance is made up: the service, the voucher, the options, the final price, the downpayment, the late fee */
     breakdown: [
       { label: "Service price", value: peso(visit.price ?? 0) },
       discount > 0 && { label: voucher?.pct ? `Voucher (${voucher.pct}% off)` : "Voucher", value: `−${peso(discount)}` },
+      ...options.map((o) => ({ label: `Option: ${o.name}`, value: `+${peso(o.price)}` })),
+      (discount > 0 || options.length > 0) && { label: "Final price", value: peso(finalPrice ?? 0) },
       // Never more than what's left of the price, as the balance counts it
       credit > 0 && {
         label: `Downpayment (less the ${peso(RESERVATION_FEE)} reservation fee)`,

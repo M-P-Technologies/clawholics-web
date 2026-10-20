@@ -32,7 +32,7 @@ describe("step layout", () => {
     booking.mockReturnValue({
       ...common, priceLabel: "₱650", pageData: {}, isPageLoading: false, pageError: "", nailists: [], selectedNailist: null, timeSlots: [],
       modalAction: undefined, modalButtonText: "OK", service_category: "Gel", service_description: "", service_name: "Hard Gel", service_image: "",
-      variants: [], selectedVariantId: null, setSelectedVariantId: vi.fn(), selectedAddonIds: [], setSelectedAddonIds: vi.fn(), addons: [],
+      variants: [], selectedVariantIds: [], setSelectedVariantIds: vi.fn(), optionsLabel: "", selectedAddonIds: [], setSelectedAddonIds: vi.fn(), addons: [],
       locationUrl: "", locationText: "", formatSlot: (s: string) => s, handleContinue: vi.fn(), isSubmitting: false,
       handleArtistChange: vi.fn(), closeModal: vi.fn(), reloadPage: vi.fn(),
     });

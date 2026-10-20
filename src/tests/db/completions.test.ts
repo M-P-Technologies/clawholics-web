@@ -168,6 +168,12 @@ describe.skipIf(!TEST_DATABASE_URL)("completing a visit (Postgres)", () => {
       completion: null, paid_downpayment: 500, expected_balance: 1100, proof_image_url: "https://images.test/payment-proofs/p.png", nailist_id: maxine,
     });
 
+    // The options the client added go on top of the service's price; the deposit paid is the same
+    await db`insert into appointment_options (appointment_id, name, price) values (${id}, 'Chrome finish', 150), (${id}, 'Gems', 100)`;
+    expect(await clientRow(id)).toMatchObject({
+      options: [{ name: "Chrome finish", price: 150 }, { name: "Gems", price: 100 }], paid_downpayment: 500, expected_balance: 1350,
+    });
+
     await complete(id, { balance_amount: "1300", payment_method: "Maya", nailist_id: String(jun) });
     expect((await clientRow(id)).completion).toEqual({ balance_amount: 1300, payment_method: "Maya", nailist_id: jun, nailist_name: "Jun", arrived_at: null, late_fee: 0, photos_added: 0, photo_url: null, voucher_code: null, voucher_pct: null, voucher_discount: 0 });
   });

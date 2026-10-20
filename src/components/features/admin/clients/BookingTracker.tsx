@@ -39,6 +39,7 @@ export default function BookingTracker({ appointments, today, artists, onNoShow,
     appointment_time: tracked.appointment_time,
     nailist_id: tracked.nailist_id ?? null,
     price: tracked.price,
+    options: tracked.options ?? [],
     paid_downpayment: tracked.paid_downpayment ?? 0,
     completion: tracked.completion ?? null,
   };

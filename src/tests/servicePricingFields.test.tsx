@@ -24,14 +24,14 @@ describe("draft helpers", () => {
     });
   });
 
-  it("turns a flat draft with variants into a payload", () => {
+  it("turns a flat draft with options into a payload, keeping a saved option's id", () => {
     const draft: PricingDraft = {
-      categoryId: 2, pricingType: "flat", masterPrice: "", juniorPrice: "", flatPrice: "",
-      variants: [{ name: "Volume", price: "550" }, { name: "Mega Volume", price: "650" }],
+      categoryId: 2, pricingType: "flat", masterPrice: "", juniorPrice: "", flatPrice: "500",
+      variants: [{ id: 7, name: "Volume", price: "50" }, { name: " Mega Volume ", price: "150" }],
     };
     expect(payloadFromDraft(draft)).toEqual({
-      pricing_type: "flat", master_price: 0, junior_price: 0, price: 0,
-      variants: [{ name: "Volume", price: 550 }, { name: "Mega Volume", price: 650 }],
+      pricing_type: "flat", master_price: 0, junior_price: 0, price: 500,
+      variants: [{ id: 7, name: "Volume", price: 50 }, { name: "Mega Volume", price: 150 }],
     });
   });
 
@@ -56,8 +56,11 @@ describe("draft helpers", () => {
   it("validates a draft", () => {
     expect(validateDraft({ ...tiered, categoryId: null })).toMatch(/category/i);
     expect(validateDraft({ ...tiered, juniorPrice: "" })).toMatch(/at least one/i);
-    expect(validateDraft({ ...tiered, pricingType: "flat", flatPrice: "" })).toMatch(/price or at least one option/i);
-    expect(validateDraft({ ...tiered, pricingType: "flat", flatPrice: "", variants: [{ name: "", price: "100" }] })).toMatch(/option/i);
+    expect(validateDraft({ ...tiered, pricingType: "flat", flatPrice: "" })).toMatch(/service's price/i);
+    // Options are extras: they don't stand in for the service's own price
+    expect(validateDraft({ ...tiered, pricingType: "flat", flatPrice: "", variants: [{ name: "Gems", price: "100" }] })).toMatch(/service's price/i);
+    expect(validateDraft({ ...tiered, variants: [{ name: "", price: "100" }] })).toMatch(/option/i);
+    expect(validateDraft({ ...tiered, variants: [{ name: "Gems", price: "100" }] })).toBeNull();
     expect(validateDraft(tiered)).toBeNull();
   });
 
@@ -95,6 +98,23 @@ describe("ServicePricingFields", () => {
     render(<ServicePricingFields draft={tiered} onChange={vi.fn()} isEditing categories={categories} />);
     await userEvent.setup().click(screen.getByRole("button", { name: /^category$/i }));
     expect(screen.getByRole("option", { name: "Lashes" })).toBeInTheDocument();
+  });
+
+  it("adds and removes labelled options", async () => {
+    const onChange = vi.fn();
+    const withOption = { ...tiered, variants: [{ id: 3, name: "Gems", price: "100" }] };
+    const { rerender } = render(<ServicePricingFields draft={tiered} onChange={onChange} isEditing categories={categories} />);
+    expect(screen.getByText(/no options yet/i)).toBeInTheDocument();
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: /add option/i }));
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ variants: [{ name: "", price: "" }] }));
+
+    rerender(<ServicePricingFields draft={withOption} onChange={onChange} isEditing categories={categories} />);
+    expect(screen.getByLabelText(/option 1 name/i)).toHaveValue("Gems");
+    expect(screen.getByLabelText(/option 1 extra price/i)).toHaveValue("100");
+    await user.click(screen.getByRole("button", { name: /remove option 1/i }));
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ variants: [] }));
   });
 
   it("disables the inputs when not editing", () => {

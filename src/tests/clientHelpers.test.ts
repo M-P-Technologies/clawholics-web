@@ -16,9 +16,9 @@ describe("service prices", () => {
     expect(priceLabel(flat)).toBe("₱800");
     expect(shortPriceLabel(flat)).toBe("₱800");
   });
-  it("shows the cheapest variant", () => {
+  it("shows the service's own price: options are extras on top", () => {
     const s = { ...flat, variants: [{ id: 1, price: 700 }, { id: 2, price: 500 }] };
-    expect(priceLabel(s)).toBe("from ₱500");
+    expect(priceLabel(s)).toBe("₱800");
   });
   it("shows nothing rather than ₱0 when no price is set", () => {
     const none = { pricing_type: "tiered" as const, master_price: 0, junior_price: 0, price: 0, variants: [] };

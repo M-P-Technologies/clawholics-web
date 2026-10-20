@@ -12,7 +12,7 @@ import ClientScreen from "@/components/features/client/shell/ClientScreen";
 import { useBooking } from "@/hooks/client/useBooking";
 
 export default function Booking() {
-  const { priceLabel, pageData, isPageLoading, pageError, nailists, selectedNailist, selectedDate, selectedTime, setSelectedTime, timeSlots, month, setMonth, modalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, locationUrl, locationText, isDisabledDate, formatSlot, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage } = useBooking();
+  const { priceLabel, pageData, isPageLoading, pageError, nailists, selectedNailist, selectedDate, selectedTime, setSelectedTime, timeSlots, month, setMonth, modalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, variants, selectedVariantIds, setSelectedVariantIds, optionsLabel, selectedAddonIds, setSelectedAddonIds, addons, locationUrl, locationText, isDisabledDate, formatSlot, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage } = useBooking();
 
   if (isPageLoading) {
     return <LoadingBar label="Loading booking details" />;
@@ -56,9 +56,9 @@ export default function Booking() {
             <BookingOptions
               variants={variants}
               addons={addons}
-              variantId={selectedVariantId}
+              variantIds={selectedVariantIds}
               addonIds={selectedAddonIds}
-              onVariantChange={setSelectedVariantId}
+              onVariantsChange={setSelectedVariantIds}
               onAddonsChange={setSelectedAddonIds}
             />
 
@@ -149,6 +149,7 @@ export default function Booking() {
               <SummaryRow label="Preferred artist" value={selectedNailist ? selectedNailist.name : "-"} />
               <SummaryRow label="Date" value={selectedDate || "-"} />
               <SummaryRow label="Time" value={selectedTime ? formatSlot(selectedTime) : "-"} />
+              {optionsLabel && <SummaryRow label="Options" value={optionsLabel} />}
               <SummaryRow label="Price" value={priceLabel} />
               <SummaryRow label="Location" value={
                   locationUrl && locationText ? (

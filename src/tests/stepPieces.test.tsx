@@ -44,10 +44,10 @@ describe("time slots", () => {
 
 describe("booking options", () => {
   it("titles each group in sentence case", () => {
-    render(<BookingOptions variants={[{ id: 1, name: "Short", price: 500 }]} addons={[{ id: 2, name: "Chrome", price: 150 }]} variantId={1} addonIds={[]} onVariantChange={vi.fn()} onAddonsChange={vi.fn()} />);
-    expect(screen.getByText("Choose an option")).toBeInTheDocument();
+    render(<BookingOptions variants={[{ id: 1, name: "Short", price: 500 }]} addons={[{ id: 2, name: "Chrome", price: 150 }]} variantIds={[1]} addonIds={[]} onVariantsChange={vi.fn()} onAddonsChange={vi.fn()} />);
+    expect(screen.getByText("Add-on options (optional)")).toBeInTheDocument();
     expect(screen.getByText("Add-ons")).toBeInTheDocument();
-    expect(screen.queryByText("CHOOSE AN OPTION")).toBeNull();
+    expect(screen.queryByText("ADD-ON OPTIONS (OPTIONAL)")).toBeNull();
   });
 });
 

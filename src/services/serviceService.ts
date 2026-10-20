@@ -8,12 +8,11 @@ export type ServiceGalleryImage = {
   position: number;
 };
 
-type ServiceVariant = {
+/** An option a client may add to the service when booking: its price goes on top of the service's */
+export type ServiceVariant = {
   id: number;
-  service_id: number;
   name: string;
   price: number;
-  display_order: number;
 };
 
 export type NailService = {
@@ -42,7 +41,7 @@ export type ServicePayload = {
   price: number;
   duration: string;
   image: string;
-  variants: { name: string; price: number }[];
+  variants: { id?: number; name: string; price: number }[];
 };
 
 const getHeaders = (token?: string | null, clerkId?: string | null) => {

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Clock, ReceiptText, Wallet } from "lucide-react";
 import { startingPrice } from "../../services/pricing";
+import ServiceOptions from "./ServiceOptions";
 
 // One text size for all the explanatory text below, so the description, prices and deposit read alike
 // (a size set on a wrapper would not reach the <p>s: the site gives every <p> its own size)
@@ -18,7 +19,7 @@ interface ServiceOverviewProps {
     master_price: number;
     junior_price: number;
     price?: number;
-    variants?: { id?: number; price: number }[];
+    variants?: { id: number; name: string; price: number }[];
   };
   priceLines: PriceLine[];
 }
@@ -73,6 +74,8 @@ export default function ServiceOverview({ service, priceLines }: ServiceOverview
           Final fees vary depending on the complexity of your design. The rest of the payment is settled after your session.
         </p>
       </div>
+
+      <ServiceOptions options={service.variants} />
 
       <div className="flex flex-col gap-1 text-gray-red">
         <h2 className="label-caps">Deposit</h2>

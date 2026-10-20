@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from "vitest";
 
-const postgres = vi.fn(() => ({}));
+const postgres = vi.fn(() => ({ begin: vi.fn(), end: vi.fn() }));
 vi.mock("postgres", () => ({ default: (...args: unknown[]) => postgres(...(args as [])) }));
 vi.mock("server-only", () => ({}));
 
@@ -12,5 +12,7 @@ describe("the database client", () => {
     const { getSql } = await import("@/server/db");
     getSql();
     expect(postgres).toHaveBeenCalledWith("postgres://u:p@localhost:6543/postgres", expect.objectContaining({ prepare: false, max_pipeline: 0 }));
+    // Transactions run on their own pool: postgres.js refuses sql.begin with max_pipeline 0 (UNSAFE_TRANSACTION)
+    expect(postgres).toHaveBeenCalledWith("postgres://u:p@localhost:6543/postgres", expect.objectContaining({ prepare: false, max_pipeline: 100 }));
   });
 });

@@ -22,6 +22,12 @@ export interface Completion {
   voucher_discount?: number;
 }
 
+/** An option the client added when booking, at its price then */
+export interface BookedOption {
+  name: string;
+  price: number;
+}
+
 /** What completing a visit needs to know about it */
 export interface VisitToComplete {
   id: number;
@@ -32,6 +38,8 @@ export interface VisitToComplete {
   nailist_id: number | null;
   /** The booked service's menu price with the booked artist */
   price: number | null;
+  /** The options added when booking; their prices go on top of the service's */
+  options?: BookedOption[];
   /** The downpayments paid on it */
   paid_downpayment: number;
   completion: Completion | null;

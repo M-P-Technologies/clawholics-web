@@ -11,6 +11,7 @@ import Section from "@/components/layout/Section";
 import { infoLabelClass } from "@/components/tokens";
 import PhotoCarousel from "@/components/booking/PhotoCarousel";
 import ServiceGallery from "@/components/booking/ServiceGallery";
+import ServiceOptions from "@/components/booking/ServiceOptions";
 import ServiceOverview from "@/components/booking/ServiceOverview";
 import { useAppointment } from "@/hooks/useAppointment";
 
@@ -95,6 +96,9 @@ function Appointment() {
                 </ul>
               </dd>
             </dl>
+
+            {/* The add-on options in a section of their own (the phone overview above has its own) */}
+            <ServiceOptions options={service.variants} className="hidden border-t border-crimson-light/80 pt-3 lg:flex" />
           </div>
 
           {/* TERMS */}

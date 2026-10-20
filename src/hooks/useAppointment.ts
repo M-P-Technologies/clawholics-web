@@ -74,13 +74,12 @@ export function useAppointment() {
 
   const closeModal = () => setModalOpen(false);
 
-  // The price lines of the details table: each option, or the flat price, or each technician tier
+  // The price lines of the details table: the flat price, or each technician tier. The options are
+  // extras on top, shown in their own section (ServiceOptions).
   const money = (amount: number) => amount.toFixed(2);
   const priceLines: { id: string; label: string; amount: string }[] = !service
     ? []
-    : service.variants?.length
-      ? service.variants.map((v) => ({ id: `v${v.id}`, label: `${v.name}: `, amount: money(v.price) }))
-      : service.pricing_type === "flat"
+    : service.pricing_type === "flat"
         ? [{ id: "flat", label: "Starts at ", amount: money(startingPrice(service) ?? 0) }]
         : [
             ...(service.master_price > 0

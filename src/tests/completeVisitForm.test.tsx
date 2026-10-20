@@ -54,6 +54,17 @@ describe("the Complete visit form", () => {
     expect(balance).toHaveValue("1100");
   });
 
+  it("adds the options the client added to the final price; the downpayment comes off as before", () => {
+    renderForm(visit({ options: [{ name: "Chrome finish", price: 150 }, { name: "Gems", price: 100 }] }));
+    expect(screen.getByLabelText("Balance paid at the salon (₱)")).toHaveValue("1350");
+    const breakdown = screen.getByLabelText("Balance breakdown");
+    expect(breakdown).toHaveTextContent("Option: Chrome finish+₱150");
+    expect(breakdown).toHaveTextContent("Option: Gems+₱100");
+    expect(breakdown).toHaveTextContent("Final price₱1,750");
+    expect(breakdown).toHaveTextContent("Downpayment (less the ₱100 reservation fee)−₱400");
+    expect(breakdown).toHaveTextContent("Balance to pay₱1,350");
+  });
+
   it("prefills the full menu price when no downpayment was paid", () => {
     renderForm(visit({ paid_downpayment: 0 }));
     expect(screen.getByLabelText("Balance paid at the salon (₱)")).toHaveValue("1500");
