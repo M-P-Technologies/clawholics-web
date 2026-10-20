@@ -12,8 +12,15 @@ import { PHOTOS_TO_ADD_SQL, TO_COMPLETE_SQL, manilaNow } from "./visitsToComplet
 export const SERVICE_PRICE_SQL =
   "case when s.pricing_mode = 'single' or nc.name = 'Master Technician' then s.master_price else s.junior_price end";
 
+/** The options the client added when booking, as json ([{ name, price }]): extras on top of the
+ *  service's price, paid at the salon with the balance */
+export const BOOKED_OPTIONS = `(
+  select coalesce(json_agg(json_build_object('name', ao.name, 'price', ao.price) order by ao.id), '[]'::json)
+  from appointment_options ao where ao.appointment_id = a.id
+)`;
+
 // The Worker's appointmentSelect: the appointment plus client, artist, price and its latest
-// (paid first) payment.
+// (paid first) payment, and the options added.
 const APPOINTMENT_SELECT = `
   select
     a.id, a.user_id, a.service_id, a.service_name, a.nailist_id,
@@ -29,7 +36,7 @@ const APPOINTMENT_SELECT = `
     cp.dob, cp.gender, cp.stamps,
     trim(coalesce(a.walkin_first_name, ap.first_name, cp.first_name, '') || ' ' || coalesce(a.walkin_last_name, ap.last_name, cp.last_name, '')) as client_name,
     p.id as payment_id, p.status as payment_status, p.amount as payment_amount, p.payment_method, p.external_id as payment_reference, p.invoice_url,
-    s.duration
+    s.duration, ${BOOKED_OPTIONS} as options
   from appointments a
   left join nailists n on a.nailist_id = n.id
   left join nailist_categories nc on n.category_id = nc.id

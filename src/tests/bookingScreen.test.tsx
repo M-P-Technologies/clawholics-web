@@ -22,7 +22,7 @@ const state = () => ({
   timeSlots: ["09:00-11:00", "13:00-15:00"], month: thisMonth, setMonth: vi.fn(),
   modalOpen: false, modalTitle: "", modalMessage: "", modalAction: undefined, modalButtonText: "OK",
   service_category: "Gel", service_description: "Long-lasting gel", service_name: "Hard Gel", service_image: "",
-  variants: [] as { id: number; name: string; price: number }[], selectedVariantId: null, setSelectedVariantId: vi.fn(),
+  variants: [] as { id: number; name: string; price: number }[], selectedVariantIds: [], setSelectedVariantIds: vi.fn(), optionsLabel: "",
   selectedAddonIds: [] as number[], setSelectedAddonIds: vi.fn(), addons: [] as { id: number; name: string; price: number }[],
   locationUrl: "https://maps.example/salon", locationText: "Cagayan de Oro",
   isDisabledDate: (d: Date) => d.getDate() === 28,
@@ -96,14 +96,16 @@ describe("booking step", () => {
     expect(screen.getByRole("button", { name: "Reserving your slot..." })).toBeDisabled();
   });
 
-  it("shows the option and add-on choices with their prices", () => {
+  it("shows the optional options and add-on choices with their prices, and the options added in the summary", () => {
     s.variants = [{ id: 5, name: "Short", price: 500 }];
     s.addons = [{ id: 9, name: "Chrome", price: 150 }];
+    s.optionsLabel = "Short (+₱500)";
     render(<Booking />);
-    expect(screen.getByText(/choose an option/i)).toBeInTheDocument();
-    expect(screen.getByText(/add-ons/i)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("radio", { name: /Short/ }));
-    expect(s.setSelectedVariantId).toHaveBeenCalledWith(5);
+    expect(screen.getByText(/add-on options \(optional\)/i)).toBeInTheDocument();
+    expect(screen.getByText("Add-ons")).toBeInTheDocument();
+    expect(screen.getByText("Short (+₱500)")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("checkbox", { name: /Short/ }));
+    expect(s.setSelectedVariantIds).toHaveBeenCalledWith([5]);
     fireEvent.click(screen.getByRole("checkbox", { name: /Chrome/ }));
     expect(s.setSelectedAddonIds).toHaveBeenCalledWith([9]);
   });

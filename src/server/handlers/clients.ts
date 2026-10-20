@@ -1,6 +1,6 @@
 import "server-only";
 import { requireAdmin } from "../auth";
-import { SERVICE_PRICE_SQL } from "../appointments";
+import { BOOKED_OPTIONS, SERVICE_PRICE_SQL } from "../appointments";
 import { expectedBalance } from "../../lib/visitCompletion";
 import { voucherForClientPage } from "../birthdayVouchers";
 import { getSql } from "../db";
@@ -58,11 +58,11 @@ export const getClient = ported<IdContext>(async (_req, { params }) => {
       where u.id = ${id}`,
     sql.unsafe<{
       id: number; appointment_date: string; status: string; price: number | null; paid_downpayment: number;
-      completion: { voucher_discount?: number } | null;
+      completion: { voucher_discount?: number } | null; options: { name: string; price: number }[];
     }[]>(
       `select a.id, a.appointment_date, a.appointment_time, a.service_name, a.nailist_id,
          coalesce(n.name, a.nailist_name) as nailist_name, upper(trim(a.status)) as status,
-         ${SERVICE_PRICE_SQL} as price,
+         ${SERVICE_PRICE_SQL} as price, ${BOOKED_OPTIONS} as options,
          -- For the booking tracker: when it was booked, the latest payment proof and payment
          a.created_at as booked_at,
          lp.created_at as proof_sent_at, lp.status as proof_status,
@@ -116,10 +116,11 @@ export const getClient = ported<IdContext>(async (_req, { params }) => {
       nextVisit: upcoming[upcoming.length - 1]?.appointment_date ?? null,
       stamps,
     },
-    // Less the birthday voucher's discount, when one was used on the visit
+    // The service less the birthday voucher's discount (when one was used on the visit), plus the options added
     appointments: appointments.map((a) => {
       const discount = a.completion?.voucher_discount ?? 0;
-      return { ...a, expected_balance: expectedBalance(a.price === null ? null : Math.max(0, a.price - discount), a.paid_downpayment) };
+      const options = a.options.reduce((sum, o) => sum + o.price, 0);
+      return { ...a, expected_balance: expectedBalance(a.price === null ? null : Math.max(0, a.price - discount) + options, a.paid_downpayment) };
     }),
     birthday_voucher: birthdayVoucher,
   });

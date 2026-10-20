@@ -1,4 +1,4 @@
-import type { Completion } from "./completionService";
+import type { BookedOption, Completion } from "./completionService";
 import { ADMIN } from "@/lib/adminQueries";
 import { API_BASE_URL } from "../apiConfig";
 import type { ProofSummary } from "./proofService";
@@ -40,6 +40,8 @@ export interface Appointment {
   latest_proof?: ProofSummary | null;
   /** The booked service's menu price with the booked artist */
   service_price?: number | null;
+  /** The options the client added when booking: extras on top of the service's price */
+  options?: BookedOption[];
   /** The downpayments paid, and the completed visit's record (paged admin list) */
   paid_downpayment?: number;
   completion?: Completion | null;

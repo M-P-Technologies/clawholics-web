@@ -2,13 +2,10 @@ import { peso } from "../dashboardFormat";
 import { startingPrice, type Priceable } from "../../services/pricing";
 
 // How the client app writes a service's price. Display only: the server computes totals.
+// Options are extras on top of the service's price, so they don't change these labels.
 
-/** "₱800", "₱600 – ₱900" (junior to master), "from ₱500" (variants), or "" when no price is set */
+/** "₱800", "₱600 – ₱900" (junior to master), or "" when no price is set */
 export function priceLabel(s: Priceable): string {
-  if (s.variants?.length) {
-    const from = startingPrice(s);
-    return from === null ? "" : `from ${peso(from)}`;
-  }
   if (s.pricing_type === "flat") return (s.price ?? 0) > 0 ? peso(s.price ?? 0) : "";
   const offered = [s.junior_price, s.master_price].filter((p) => p > 0);
   if (!offered.length) return "";
@@ -27,4 +24,4 @@ export function shortPriceLabel(s: Priceable): string {
 
 /** The service page's "Artists" fact */
 export const artistsFact = (s: Priceable): string =>
-  s.pricing_type !== "flat" && !s.variants?.length && s.master_price > 0 && s.junior_price > 0 ? "Master & Junior" : "Our team";
+  s.pricing_type !== "flat" && s.master_price > 0 && s.junior_price > 0 ? "Master & Junior" : "Our team";

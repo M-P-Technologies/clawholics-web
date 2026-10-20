@@ -140,6 +140,7 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
                   appointment_time: appointment.appointment_time ?? "",
                   nailist_id: appointment.nailist_id ?? null,
                   price: appointment.service_price ?? null,
+                  options: appointment.options ?? [],
                   paid_downpayment: appointment.paid_downpayment ?? 0,
                   completion: appointment.completion ?? null,
                 }}

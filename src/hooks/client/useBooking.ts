@@ -70,7 +70,8 @@ export function useBooking() {
 
   // The category's add-ons; without the categories, there are none to offer
   const categories = useQuery(publicQueries.categories()).data ?? [];
-  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null);
+  // The service's options the client added: optional extras, priced on top of the service
+  const [selectedVariantIds, setSelectedVariantIds] = useState<number[]>([]);
   const [selectedAddonIds, setSelectedAddonIds] = useState<number[]>([]);
 
   const addons = categories.find((c) => c.id === service_category_id)?.addons ?? [];
@@ -78,17 +79,23 @@ export function useBooking() {
   const selectedPrice = estimateTotal({
     service: { pricing_type, master_price, junior_price, price: flat_price, variants },
     isMaster: selectedNailist?.category_id === 1,
-    variantId: selectedVariantId,
+    variantIds: selectedVariantIds,
     addons,
     addonIds: selectedAddonIds,
   });
 
+  /** The summary's Options line: "Chrome finish (+₱150), Gems (+₱100)", or empty when none were added */
+  const optionsLabel = variants
+    .filter((v) => selectedVariantIds.includes(v.id))
+    .map((v) => `${v.name} (+₱${v.price})`)
+    .join(", ");
+
   // The price line of the summary, with the artist's rate when the price depends on the tier
   const priceLabel =
     selectedPrice === null
-      ? "Choose an option to see the price"
+      ? "Choose an artist to see the price"
       : `Starts at ₱${selectedPrice}${
-          variants.length === 0 && pricing_type === "tiered"
+          pricing_type === "tiered"
             ? selectedNailist?.category_id === 1
               ? " (Master Rate) ★"
               : " (Junior Rate)"
@@ -259,14 +266,6 @@ export function useBooking() {
       return;
     }
 
-    if (variants.length > 0 && selectedVariantId === null) {
-      showModal(
-        "Choose an option",
-        "This service comes in several options, each with its own price. Please choose one so we can show you the right total.",
-      );
-      return;
-    }
-
     let result;
 
     try {
@@ -278,7 +277,7 @@ export function useBooking() {
         nailist_id: selectedNailist.id,
         appointment_date: selectedDate,
         appointment_time: selectedTime,
-        variant_id: selectedVariantId,
+        option_ids: selectedVariantIds,
         addon_ids: selectedAddonIds,
       }, await getToken());
       // The new booking shows on the client's profile
@@ -377,5 +376,5 @@ export function useBooking() {
   const closeModal = () => setModalOpen(false);
   const reloadPage = () => window.location.reload();
 
-  return { priceLabel, pageData, isPageLoading, pageError, nailists, selectedNailist, setSelectedNailist, selectedDate, setSelectedDate, selectedTime, setSelectedTime, timeSlots, fullyBookedDates, month, setMonth, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, pricing_type, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, selectedPrice, locationUrl, locationText, isDayFullyBooked, isDisabledDate, toLocalDate, toLocalDateString, isTimeBlocked, isPastTimeToday, formatSlot, showModal, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage };
+  return { priceLabel, pageData, isPageLoading, pageError, nailists, selectedNailist, setSelectedNailist, selectedDate, setSelectedDate, selectedTime, setSelectedTime, timeSlots, fullyBookedDates, month, setMonth, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, pricing_type, variants, selectedVariantIds, setSelectedVariantIds, optionsLabel, selectedAddonIds, setSelectedAddonIds, addons, selectedPrice, locationUrl, locationText, isDayFullyBooked, isDisabledDate, toLocalDate, toLocalDateString, isTimeBlocked, isPastTimeToday, formatSlot, showModal, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage };
 }

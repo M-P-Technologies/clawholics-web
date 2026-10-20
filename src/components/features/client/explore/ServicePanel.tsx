@@ -4,6 +4,7 @@ import { Clock, Sparkles, UsersRound } from "lucide-react";
 import clsx from "clsx";
 import { Badge, Button } from "@/components/atoms";
 import PhotoCarousel from "@/components/booking/PhotoCarousel";
+import ServiceOptions from "@/components/booking/ServiceOptions";
 import { useServicePhotoList } from "@/hooks/client/useServicePhotoList";
 import { artistsFact, priceLabel } from "@/lib/client/servicePrice";
 import type { NailService } from "@/services/serviceService";
@@ -61,6 +62,8 @@ export default function ServicePanel({ service, onBook, inSheet = false }: Servi
         </dl>
 
         {service.description && <p className="whitespace-pre-line text-sm leading-relaxed text-gray-red">{service.description}</p>}
+
+        <ServiceOptions options={service.variants} headingClassName="text-sm font-bold" />
 
         {/* In the phone's sheet, Book is the sheet's footer instead (kept below the part that scrolls) */}
         {!inSheet && (

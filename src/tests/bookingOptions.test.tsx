@@ -15,25 +15,30 @@ const addons = [
 describe("BookingOptions", () => {
   it("renders nothing when there are no variants and no add-ons", () => {
     const { container } = render(
-      <BookingOptions variants={[]} addons={[]} variantId={null} addonIds={[]} onVariantChange={vi.fn()} onAddonsChange={vi.fn()} />,
+      <BookingOptions variants={[]} addons={[]} variantIds={[]} addonIds={[]} onVariantsChange={vi.fn()} onAddonsChange={vi.fn()} />,
     );
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("lets the client pick one option and shows its price", async () => {
-    const onVariantChange = vi.fn();
+  it("lets the client add any of the options, or none, each priced on top", async () => {
+    const onVariantsChange = vi.fn();
     render(
-      <BookingOptions variants={variants} addons={[]} variantId={null} addonIds={[]} onVariantChange={onVariantChange} onAddonsChange={vi.fn()} />,
+      <BookingOptions variants={variants} addons={[]} variantIds={[1]} addonIds={[]} onVariantsChange={onVariantsChange} onAddonsChange={vi.fn()} />,
     );
-    expect(screen.getByText(/₱550/)).toBeInTheDocument();
-    await userEvent.setup().click(screen.getByRole("radio", { name: /mega volume/i }));
-    expect(onVariantChange).toHaveBeenCalledWith(2);
+    expect(screen.getByText("+₱550")).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: /cat eye - volume/i })).toBeChecked();
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("checkbox", { name: /mega volume/i }));
+    expect(onVariantsChange).toHaveBeenCalledWith([1, 2]);
+    await user.click(screen.getByRole("checkbox", { name: /cat eye - volume/i }));
+    expect(onVariantsChange).toHaveBeenCalledWith([]);
   });
 
   it("toggles add-ons and reports the new list", async () => {
     const onAddonsChange = vi.fn();
     render(
-      <BookingOptions variants={[]} addons={addons} variantId={null} addonIds={[10]} onVariantChange={vi.fn()} onAddonsChange={onAddonsChange} />,
+      <BookingOptions variants={[]} addons={addons} variantIds={[]} addonIds={[10]} onVariantsChange={vi.fn()} onAddonsChange={onAddonsChange} />,
     );
     expect(screen.getByRole("checkbox", { name: /removal/i })).toBeChecked();
 

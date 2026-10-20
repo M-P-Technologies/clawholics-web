@@ -123,6 +123,31 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       expect(taken.body.message).toBe("Time slot already booked");
     });
 
+    it("TC-BK-03b: keeps the options the client added, at their catalog name and price; refuses another service's", async () => {
+      const [chrome] = await db<{ id: number }[]>`insert into service_variants (service_id, name, price, position) values (${serviceId}, 'Chrome finish', 150, 1) returning id`;
+      const [gems] = await db<{ id: number }[]>`insert into service_variants (service_id, name, price, position) values (${serviceId}, 'Gems', 100, 2) returning id`;
+      const [other] = await db<{ id: number }[]>`
+        insert into service_variants (service_id, name, price, position)
+        values ((select id from services where id <> ${serviceId} limit 1), 'Other', 50, 1) returning id`;
+
+      const refused = await book("user_a", nextDate(), "10:00-11:00", { option_ids: [chrome.id, other.id] });
+      expect(refused.status).toBe(400);
+      expect(refused.body.code).toBe("OPTION_UNAVAILABLE");
+
+      const res = await book("user_a", nextDate(), "10:00-11:00", { option_ids: [gems.id, chrome.id] });
+      expect(res.status).toBe(200);
+      expect(await db`select variant_id, name, price from appointment_options where appointment_id = ${res.body.appointment_id} order by id`).toEqual([
+        { variant_id: chrome.id, name: "Chrome finish", price: 150 },
+        { variant_id: gems.id, name: "Gems", price: 100 },
+      ]);
+
+      // None picked: options are optional
+      await db`update appointments set status = 'CANCELLED' where id = ${res.body.appointment_id}`;
+      const plain = await book("user_a", nextDate());
+      expect(plain.status).toBe(200);
+      expect(await db`select 1 from appointment_options where appointment_id = ${plain.body.appointment_id}`).toHaveLength(0);
+    });
+
     it("TC-BK-04: two clients racing for one slot: exactly one wins (unique index)", async () => {
       const date = nextDate();
       authMock.mockResolvedValueOnce({ userId: "user_a" }).mockResolvedValueOnce({ userId: "user_b" });

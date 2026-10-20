@@ -303,25 +303,23 @@ const PRICING_MODES = ["tiered", "single"];
 // 'tiered' services need both prices; 'single' ones take master_price for every artist and
 // store junior_price equal to it. pricing_mode is kept as-is on update when it isn't sent. The
 // admin form sends pricing_type ('flat' = 'single') and a flat service's price as price.
-// A service with options may leave its prices empty: they're then its cheapest option's.
+// Options are extras on top of these prices, so they don't stand in for them.
 // Prices are whole pesos (integer columns).
-function resolvePricing(body: Body, variants: Variant[], currentMode = "tiered") {
+function resolvePricing(body: Body, currentMode = "tiered") {
   const sent = body.pricing_mode ?? (body.pricing_type === undefined ? undefined : body.pricing_type === "flat" ? "single" : body.pricing_type);
   const mode = sent === undefined || sent === null || sent === "" ? currentMode : String(sent).trim().toLowerCase();
   if (!PRICING_MODES.includes(mode)) return { error: `pricing_mode must be one of: ${PRICING_MODES.join(", ")}` };
-  const cheapest = variants.length ? Math.min(...variants.map((v) => v.price)) : 0;
   const given = (value: unknown) => (value === undefined || value === null || value === "" || Number(value) === 0 ? null : Number(value));
-  const masterSent = given(mode === "single" ? (body.price ?? body.master_price) : body.master_price);
-  const juniorSent = given(body.junior_price);
-  // With options, a tier left empty takes the other tier's price, or else the cheapest option's
-  const master = masterSent ?? juniorSent ?? (cheapest || null);
-  const junior = mode === "single" ? master : juniorSent ?? (variants.length ? masterSent ?? cheapest : null);
+  const master = given(mode === "single" ? (body.price ?? body.master_price) : body.master_price);
+  const junior = mode === "single" ? master : given(body.junior_price);
   if (master === null || junior === null) return { error: "Fields cannot be empty." };
   if (!Number.isInteger(master) || master <= 0 || !Number.isInteger(junior) || junior <= 0) return { error: "Invalid price." };
   return { mode, master, junior };
 }
 
-type Variant = { name: string; price: number };
+/** An option: an extra the client can add to the service when booking, at this price on top.
+ *  id is the saved option's, when the admin edits one rather than adding it. */
+type Variant = { id: number | null; name: string; price: number };
 
 // The service's options as sent (undefined when the request doesn't send them, so they're kept)
 function parseVariants(value: unknown): Variant[] | undefined | { error: string } {
@@ -332,17 +330,30 @@ function parseVariants(value: unknown): Variant[] | undefined | { error: string 
     const name = typeof item?.name === "string" ? item.name.trim() : "";
     const price = Number(item?.price);
     if (!name || !Number.isInteger(price) || price <= 0) return { error: "Every option needs a name and a whole peso price above 0." };
-    variants.push({ name, price });
+    variants.push({ id: toId(item?.id), name, price });
   }
   return variants;
 }
 
-/** Replaces the service's options with these, in this order */
+/**
+ * Makes the service's options these, in this order: a saved one keeps its id (so a client who has
+ * the service open can still book it), new ones are added, and the ones left out are removed.
+ * Bookings keep the name and price they were made with (appointment_options).
+ */
 async function saveVariants(tx: TransactionSql, serviceId: number, variants: Variant[]) {
-  await tx`delete from service_variants where service_id = ${serviceId}`;
+  const kept: number[] = [];
   for (const [i, v] of variants.entries()) {
-    await tx`insert into service_variants (service_id, name, price, position) values (${serviceId}, ${v.name}, ${v.price}, ${i + 1})`;
+    const [updated] = v.id === null ? [] : await tx<{ id: number }[]>`
+      update service_variants set name = ${v.name}, price = ${v.price}, position = ${i + 1}
+      where id = ${v.id} and service_id = ${serviceId} returning id
+    `;
+    const [row] = updated ? [updated] : await tx<{ id: number }[]>`
+      insert into service_variants (service_id, name, price, position) values (${serviceId}, ${v.name}, ${v.price}, ${i + 1}) returning id
+    `;
+    kept.push(row.id);
   }
+  const keptIds = kept.length ? kept.map((id) => tx`id <> ${id}`).reduce((a, b) => tx`${a} and ${b}`) : tx`true`;
+  await tx`delete from service_variants where service_id = ${serviceId} and ${keptIds}`;
 }
 
 // category_id must exist; a legacy category name is matched case-insensitively and created
@@ -396,7 +407,7 @@ export const createService = changesCatalog(ported(async (req) => {
   if (category === "unknown") return message("Unknown service category.", 400);
   const variants = parseVariants(body.variants);
   if (variants && "error" in variants) return message(variants.error, 400);
-  const pricing = resolvePricing(body, variants ?? []);
+  const pricing = resolvePricing(body);
   if ("error" in pricing) return message(pricing.error!, 400);
 
   const id = await getSql().begin(async (tx) => {
@@ -422,11 +433,10 @@ export const updateService = changesCatalog(ported<IdContext>(async (req, { para
   if (!existing) return serviceNotFound();
 
   const body = await readJson<Body>(req);
+  // Options not sent are kept
   const sent = parseVariants(body.variants);
   if (sent && "error" in sent) return message(sent.error, 400);
-  // Options not sent are kept, and still count for the prices
-  const variants = sent ?? (await sql<Variant[]>`select name, price from service_variants where service_id = ${id}`);
-  const pricing = resolvePricing(body, variants, existing.pricing_mode);
+  const pricing = resolvePricing(body, existing.pricing_mode);
   if ("error" in pricing) return message(pricing.error!, 400);
   const category = await resolveServiceCategory(body);
   if (category === "unknown") return message("Unknown service category.", 400);

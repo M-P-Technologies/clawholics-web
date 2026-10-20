@@ -138,6 +138,10 @@ export const createBooking = ported(async (req) => {
       : Response.json({ error: true, code: slot.code, message: slot.message }, { status: slot.status });
   }
   const names = await bookingNames(serviceId, nailistId);
+  const options = await bookingOptions(serviceId, b.option_ids);
+  if (!options) {
+    return Response.json({ error: true, code: "OPTION_UNAVAILABLE", message: "One of the options you picked is no longer offered. Please check them again." }, { status: 400 });
+  }
   const expiresAt = await holdUntil();
 
   try {
@@ -153,6 +157,9 @@ export const createBooking = ported(async (req) => {
           ${String(b.appointment_date)}, ${slot.time}, 'PENDING', ${expiresAt})
         returning id
       `;
+      for (const option of options) {
+        await tx`insert into appointment_options (appointment_id, variant_id, name, price) values (${row.id}, ${option.id}, ${option.name}, ${option.price})`;
+      }
       return row;
     });
     if (!created) {
@@ -176,6 +183,23 @@ async function holdUntil() {
 
 /** First key of the advisory lock that serializes a client's new bookings (the second is their users.id) */
 const PENDING_LOCK = 7_301;
+
+/**
+ * The options the client added (option_ids), as the catalog has them: optional extras on top of
+ * the service's price, paid at the salon (the deposit stays as set). null when one isn't the
+ * service's.
+ */
+async function bookingOptions(serviceId: number, sent: unknown): Promise<{ id: number; name: string; price: number }[] | null> {
+  const ids = Array.isArray(sent) ? [...new Set(sent.map(toId))] : [];
+  if (ids.includes(null)) return null;
+  if (!ids.length) return [];
+  const sql = getSql();
+  const anyOf = ids.map((id) => sql`id = ${id}`).reduce((a, b) => sql`${a} or ${b}`);
+  const rows = await sql<{ id: number; name: string; price: number }[]>`
+    select id, name, price from service_variants where service_id = ${serviceId} and (${anyOf}) order by position, id
+  `;
+  return rows.length === ids.length ? rows : null;
+}
 
 /** The service's and artist's names as the catalog has them, not as the request says */
 async function bookingNames(serviceId: number, nailistId: number) {

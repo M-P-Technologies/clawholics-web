@@ -159,8 +159,8 @@ export default function CompleteVisitForm({ visit, artists, onSaved, onCancelLat
       </div>
       {/* How the suggested balance is worked out, the late fee from the time they came in */}
       <dl aria-label="Balance breakdown" className="flex flex-col gap-1 rounded-lg bg-milk/70 p-3 text-xs text-gray-red">
-        {form.breakdown.map((row) => (
-          <div key={row.label} className="flex justify-between gap-3">
+        {form.breakdown.map((row, i) => (
+          <div key={`${i}-${row.label}`} className="flex justify-between gap-3">
             <dt>{row.label}</dt>
             <dd className="font-bold">{row.value}</dd>
           </div>
