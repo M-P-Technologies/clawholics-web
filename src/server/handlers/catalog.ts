@@ -1,4 +1,5 @@
 import "server-only";
+import type { TransactionSql } from "postgres";
 import { requireAdmin } from "../auth";
 import { getService, isContentSection } from "../catalog";
 import { getSql } from "../db";
@@ -300,18 +301,48 @@ export const deleteCategory = changesCatalog(ported<IdContext>(async (req, { par
 const PRICING_MODES = ["tiered", "single"];
 
 // 'tiered' services need both prices; 'single' ones take master_price for every artist and
-// store junior_price equal to it. pricing_mode is kept as-is on update when it isn't sent.
+// store junior_price equal to it. pricing_mode is kept as-is on update when it isn't sent. The
+// admin form sends pricing_type ('flat' = 'single') and a flat service's price as price.
+// A service with options may leave its prices empty: they're then its cheapest option's.
 // Prices are whole pesos (integer columns).
-function resolvePricing(body: Body, currentMode = "tiered") {
-  const mode = body.pricing_mode === undefined || body.pricing_mode === null || body.pricing_mode === ""
-    ? currentMode
-    : String(body.pricing_mode).trim().toLowerCase();
+function resolvePricing(body: Body, variants: Variant[], currentMode = "tiered") {
+  const sent = body.pricing_mode ?? (body.pricing_type === undefined ? undefined : body.pricing_type === "flat" ? "single" : body.pricing_type);
+  const mode = sent === undefined || sent === null || sent === "" ? currentMode : String(sent).trim().toLowerCase();
   if (!PRICING_MODES.includes(mode)) return { error: `pricing_mode must be one of: ${PRICING_MODES.join(", ")}` };
-  if (!body.master_price || (mode === "tiered" && !body.junior_price)) return { error: "Fields cannot be empty." };
-  const master = Number(body.master_price);
-  const junior = mode === "single" ? master : Number(body.junior_price);
+  const cheapest = variants.length ? Math.min(...variants.map((v) => v.price)) : 0;
+  const given = (value: unknown) => (value === undefined || value === null || value === "" || Number(value) === 0 ? null : Number(value));
+  const masterSent = given(mode === "single" ? (body.price ?? body.master_price) : body.master_price);
+  const juniorSent = given(body.junior_price);
+  // With options, a tier left empty takes the other tier's price, or else the cheapest option's
+  const master = masterSent ?? juniorSent ?? (cheapest || null);
+  const junior = mode === "single" ? master : juniorSent ?? (variants.length ? masterSent ?? cheapest : null);
+  if (master === null || junior === null) return { error: "Fields cannot be empty." };
   if (!Number.isInteger(master) || master <= 0 || !Number.isInteger(junior) || junior <= 0) return { error: "Invalid price." };
   return { mode, master, junior };
+}
+
+type Variant = { name: string; price: number };
+
+// The service's options as sent (undefined when the request doesn't send them, so they're kept)
+function parseVariants(value: unknown): Variant[] | undefined | { error: string } {
+  if (value === undefined || value === null) return undefined;
+  if (!Array.isArray(value)) return { error: "variants must be a list." };
+  const variants: Variant[] = [];
+  for (const item of value) {
+    const name = typeof item?.name === "string" ? item.name.trim() : "";
+    const price = Number(item?.price);
+    if (!name || !Number.isInteger(price) || price <= 0) return { error: "Every option needs a name and a whole peso price above 0." };
+    variants.push({ name, price });
+  }
+  return variants;
+}
+
+/** Replaces the service's options with these, in this order */
+async function saveVariants(tx: TransactionSql, serviceId: number, variants: Variant[]) {
+  await tx`delete from service_variants where service_id = ${serviceId}`;
+  for (const [i, v] of variants.entries()) {
+    await tx`insert into service_variants (service_id, name, price, position) values (${serviceId}, ${v.name}, ${v.price}, ${i + 1})`;
+  }
 }
 
 // category_id must exist; a legacy category name is matched case-insensitively and created
@@ -363,16 +394,22 @@ export const createService = changesCatalog(ported(async (req) => {
   const body = await readJson<Body>(req);
   const category = await resolveServiceCategory(body);
   if (category === "unknown") return message("Unknown service category.", 400);
-  const pricing = resolvePricing(body);
+  const variants = parseVariants(body.variants);
+  if (variants && "error" in variants) return message(variants.error, 400);
+  const pricing = resolvePricing(body, variants ?? []);
   if ("error" in pricing) return message(pricing.error!, 400);
 
-  const [{ id }] = await getSql()<{ id: number }[]>`
-    insert into services (name, category, category_id, description, master_price, junior_price, pricing_mode, duration, image, is_active, position)
-    values (${text(body.name)}, ${category?.name ?? null}, ${category?.id ?? null}, ${text(body.description)},
-      ${pricing.master}, ${pricing.junior}, ${pricing.mode}, ${text(body.duration)}, ${text(body.image)},
-      ${toActiveFlag(body.is_active, 1)}, (select coalesce(max(position), 0) + 1 from services))
-    returning id
-  `;
+  const id = await getSql().begin(async (tx) => {
+    const [{ id }] = await tx<{ id: number }[]>`
+      insert into services (name, category, category_id, description, master_price, junior_price, pricing_mode, duration, image, is_active, position)
+      values (${text(body.name)}, ${category?.name ?? null}, ${category?.id ?? null}, ${text(body.description)},
+        ${pricing.master}, ${pricing.junior}, ${pricing.mode}, ${text(body.duration)}, ${text(body.image)},
+        ${toActiveFlag(body.is_active, 1)}, (select coalesce(max(position), 0) + 1 from services))
+      returning id
+    `;
+    if (variants) await saveVariants(tx, id, variants);
+    return id;
+  });
   return Response.json(await getService(id, true), { status: 201 });
 }));
 
@@ -385,20 +422,27 @@ export const updateService = changesCatalog(ported<IdContext>(async (req, { para
   if (!existing) return serviceNotFound();
 
   const body = await readJson<Body>(req);
-  const pricing = resolvePricing(body, existing.pricing_mode);
+  const sent = parseVariants(body.variants);
+  if (sent && "error" in sent) return message(sent.error, 400);
+  // Options not sent are kept, and still count for the prices
+  const variants = sent ?? (await sql<Variant[]>`select name, price from service_variants where service_id = ${id}`);
+  const pricing = resolvePricing(body, variants, existing.pricing_mode);
   if ("error" in pricing) return message(pricing.error!, 400);
   const category = await resolveServiceCategory(body);
   if (category === "unknown") return message("Unknown service category.", 400);
 
   // Category and visibility are kept as-is when the request doesn't send them
-  await sql`
-    update services set name = ${text(body.name)},
-      category = coalesce(${category?.name ?? null}, category), category_id = coalesce(${category?.id ?? null}, category_id),
-      description = ${text(body.description)}, master_price = ${pricing.master}, junior_price = ${pricing.junior},
-      pricing_mode = ${pricing.mode}, duration = ${text(body.duration)}, image = ${text(body.image)},
-      is_active = coalesce(${body.is_active === undefined ? null : toActiveFlag(body.is_active, 1)}, is_active)
-    where id = ${id}
-  `;
+  await sql.begin(async (tx) => {
+    await tx`
+      update services set name = ${text(body.name)},
+        category = coalesce(${category?.name ?? null}, category), category_id = coalesce(${category?.id ?? null}, category_id),
+        description = ${text(body.description)}, master_price = ${pricing.master}, junior_price = ${pricing.junior},
+        pricing_mode = ${pricing.mode}, duration = ${text(body.duration)}, image = ${text(body.image)},
+        is_active = coalesce(${body.is_active === undefined ? null : toActiveFlag(body.is_active, 1)}, is_active)
+      where id = ${id}
+    `;
+    if (sent) await saveVariants(tx, id!, sent);
+  });
   const updated = await getService(id!, true);
   return updated ? Response.json(updated) : serviceNotFound();
 }));

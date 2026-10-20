@@ -149,6 +149,36 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
     expect((await call(catalog.deleteService, `/api/services/${id}`, { method: "DELETE", params: { id } })).body.deleted).toBe(true);
   });
 
+  it("TC-ADM-04b: a service's options are saved, returned in order, and replaced on update", async () => {
+    as("user_admin");
+    const created = await call(catalog.createService, "/api/services", {
+      method: "POST",
+      body: {
+        name: "Nail Art", category: "Art", pricing_type: "flat", price: 0, master_price: 0, junior_price: 0, duration: "1 hr",
+        variants: [{ name: "Simple", price: 300 }, { name: "Full set", price: 900 }],
+      },
+    });
+    expect(created.status).toBe(201);
+    expect(created.body).toMatchObject({ pricing_type: "flat", price: 300, master_price: 300, junior_price: 300 });
+    expect(created.body.variants.map((v: { name: string; price: number }) => [v.name, v.price])).toEqual([["Simple", 300], ["Full set", 900]]);
+    const id = String(created.body.id);
+
+    const updated = await call(catalog.updateService, `/api/services/${id}`, {
+      method: "PUT",
+      params: { id },
+      body: { name: "Nail Art", pricing_type: "flat", price: 250, duration: "1 hr", variants: [{ name: "Chrome", price: 450 }] },
+    });
+    expect(updated.body).toMatchObject({ pricing_type: "flat", price: 250 });
+    expect(updated.body.variants.map((v: { name: string }) => v.name)).toEqual(["Chrome"]);
+
+    const bad = await call(catalog.updateService, `/api/services/${id}`, {
+      method: "PUT",
+      params: { id },
+      body: { name: "Nail Art", pricing_type: "flat", price: 250, variants: [{ name: "", price: 100 }] },
+    });
+    expect(bad.status).toBe(400);
+  });
+
   it("TC-ADM-05: the gallery holds up to 10 photos", async () => {
     as("user_admin");
     const [{ count }] = await db<{ count: number }[]>`select count(*)::int as count from service_gallery where service_id = 3`;
