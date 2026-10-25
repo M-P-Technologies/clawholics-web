@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { updateProfile, isEmailTaken, type UserProfile } from "../services/userService";
 import { accountKeys, accountQueries, isAdminProfile } from "@/lib/accountQueries";
 import type { ChangeEvent } from "react";
-import { ONBOARDING_CONTACT_FIELDS, ONBOARDING_NAME_FIELDS } from "../data/onboarding";
+import { ONBOARDING_CONTACT_FIELDS, ONBOARDING_NAME_FIELDS, ONBOARDING_SOCIAL_FIELDS } from "../data/onboarding";
 import { useToast } from "@/components/molecules";
 
 export function useOnboarding() {
@@ -30,6 +30,8 @@ export function useOnboarding() {
     phone: "",
     dob: "",
     gender: "",
+    instagram: "",
+    facebook: "",
   });
 
   // HARD ADMIN CHECK: Clerk metadata says admin, so the directory isn't asked
@@ -168,6 +170,9 @@ export function useOnboarding() {
         dbFormattedDate = `${dateParts[2]}-${dateParts[0]}-${dateParts[1]}`;
       }
 
+      // The optional handles go only when given: an empty one would clear a handle already saved
+      const instagram = formData.instagram.trim().replace(/^@+/, "");
+      const facebook = formData.facebook.trim();
       const completeUserData = {
         clerk_id: user.id,
         first_name: formData.firstName,
@@ -176,6 +181,8 @@ export function useOnboarding() {
         dob: dbFormattedDate,
         gender: formData.gender,
         email: user.primaryEmailAddress?.emailAddress || "",
+        ...(instagram && { instagram_handle: instagram }),
+        ...(facebook && { facebook_handle: facebook }),
       };
 
       const token = await getToken();
@@ -243,6 +250,12 @@ export function useOnboarding() {
       : { ...field, value: formData.phone, onChange: handlePhoneInput, error: phoneError },
   );
 
+  const socialFields = ONBOARDING_SOCIAL_FIELDS.map((field) => ({
+    ...field,
+    value: formData[field.name as "instagram" | "facebook"],
+    onChange: handleChange,
+  }));
+
   const dangerRing = "border-danger focus:border-danger focus:ring-danger/30";
 
   
@@ -256,5 +269,5 @@ export function useOnboarding() {
 
   const toggleGender = () => setIsGenderOpen(!isGenderOpen);
 
-  return { toggleGender, genderLabel, nameFields, contactFields, user, isLoaded, isSubmitting, phoneError, setPhoneError, submitError, isChecking, isGenderOpen, setIsGenderOpen, formData, setFormData, genderOptions, handleChange, handlePhoneChange, handleGenderSelect, handleDobChange, handleSubmit, maxDateString, isFutureDate, isSubmitDisabled, dangerRing, handlePhoneInput, handleDatePick };
+  return { toggleGender, genderLabel, nameFields, contactFields, socialFields, user, isLoaded, isSubmitting, phoneError, setPhoneError, submitError, isChecking, isGenderOpen, setIsGenderOpen, formData, setFormData, genderOptions, handleChange, handlePhoneChange, handleGenderSelect, handleDobChange, handleSubmit, maxDateString, isFutureDate, isSubmitDisabled, dangerRing, handlePhoneInput, handleDatePick };
 }

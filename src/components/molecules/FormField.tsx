@@ -13,8 +13,10 @@ interface FormFieldProps {
   readOnly?: boolean;
   maxLength?: number;
   max?: string;
+  placeholder?: string;
   value: string;
   onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
+  onBlur?: () => void;
   /**
    * When false the field is shown as plain text (`displayValue`) instead of an input, so the same
    * field can be read first and edited after pressing Edit. Defaults to true.

@@ -11,7 +11,7 @@ import { errorTextClass, inputClass, labelClass } from "@/components/tokens";
 import { useOnboarding } from "@/hooks/useOnboarding";
 
 export default function Onboarding() {
-  const { toggleGender, genderLabel, nameFields, contactFields, isLoaded, isSubmitting, submitError, isChecking, isGenderOpen, formData, genderOptions, handleGenderSelect, handleDobChange, handleSubmit, maxDateString, isFutureDate, isSubmitDisabled, dangerRing, handleDatePick } = useOnboarding();
+  const { toggleGender, genderLabel, nameFields, contactFields, socialFields, isLoaded, isSubmitting, submitError, isChecking, isGenderOpen, formData, genderOptions, handleGenderSelect, handleDobChange, handleSubmit, maxDateString, isFutureDate, isSubmitDisabled, dangerRing, handleDatePick } = useOnboarding();
 
   if (!isLoaded || isChecking) {
     return <LoadingBar label="Loading your details" />;
@@ -118,6 +118,10 @@ export default function Onboarding() {
                 )}
               </div>
             </div>
+
+            {socialFields.map((field) => (
+              <FormField key={field.id} {...field} />
+            ))}
 
             <Button
               type="submit"
