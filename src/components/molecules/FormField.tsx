@@ -33,7 +33,7 @@ interface FormFieldProps {
 
 const COMPACT_LABEL = "mb-1 block text-xs text-gray-red";
 const COMPACT_INPUT =
-  "w-full rounded-md border border-crimson-light bg-milk px-3 py-2 text-sm text-gray-red outline-none transition-colors placeholder:text-gray-red/50 focus:ring-2 focus:ring-crimson disabled:cursor-not-allowed disabled:bg-crimson-light/15 disabled:text-gray-red/60";
+  "w-full rounded-md border border-crimson-light bg-milk px-3 py-2 text-sm text-gray-red outline-none transition-colors placeholder:text-gray-red placeholder:italic focus:ring-2 focus:ring-crimson disabled:cursor-not-allowed disabled:bg-crimson-light/15 disabled:text-gray-red/60";
 
 // A label, its input and its error message, so every form field is built the same way.
 const DEFAULT_ERROR_CLASS = "border-danger focus:border-danger focus:ring-danger/30";

@@ -62,7 +62,7 @@ export default function ContactHandlesFields({ fields }: { fields: Field[] }) {
                   {...input}
                   aria-invalid={status === "error" ? true : undefined}
                   aria-describedby={status === "error" ? errorId : undefined}
-                  className="min-w-0 flex-1 bg-transparent py-1 text-base text-gray-red outline-none placeholder:text-gray-red/50 sm:text-sm"
+                  className="min-w-0 flex-1 bg-transparent py-1 text-base text-gray-red outline-none placeholder:text-gray-red placeholder:italic sm:text-sm"
                 />
                 {/* The save, at a glance; read out once it's done */}
                 <span aria-live="polite" className="flex size-6 shrink-0 items-center justify-center">

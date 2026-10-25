@@ -7,6 +7,7 @@ import { updateProfile, isEmailTaken, type UserProfile } from "../services/userS
 import { accountKeys, accountQueries, isAdminProfile } from "@/lib/accountQueries";
 import type { ChangeEvent } from "react";
 import { ONBOARDING_CONTACT_FIELDS, ONBOARDING_NAME_FIELDS, ONBOARDING_SOCIAL_FIELDS } from "../data/onboarding";
+import { cleanHandle } from "../data/profile";
 import { useToast } from "@/components/molecules";
 
 export function useOnboarding() {
@@ -30,8 +31,8 @@ export function useOnboarding() {
     phone: "",
     dob: "",
     gender: "",
-    instagram: "",
-    facebook: "",
+    instagram_handle: "",
+    facebook_handle: "",
   });
 
   // HARD ADMIN CHECK: Clerk metadata says admin, so the directory isn't asked
@@ -171,8 +172,8 @@ export function useOnboarding() {
       }
 
       // The optional handles go only when given: an empty one would clear a handle already saved
-      const instagram = formData.instagram.trim().replace(/^@+/, "");
-      const facebook = formData.facebook.trim();
+      const instagram = cleanHandle("instagram_handle", formData.instagram_handle);
+      const facebook = cleanHandle("facebook_handle", formData.facebook_handle);
       const completeUserData = {
         clerk_id: user.id,
         first_name: formData.firstName,
@@ -252,7 +253,7 @@ export function useOnboarding() {
 
   const socialFields = ONBOARDING_SOCIAL_FIELDS.map((field) => ({
     ...field,
-    value: formData[field.name as "instagram" | "facebook"],
+    value: formData[field.name],
     onChange: handleChange,
   }));
 

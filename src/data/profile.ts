@@ -1,4 +1,22 @@
 
+export type SocialHandle = "instagram_handle" | "facebook_handle";
+
+// The client's Instagram and Facebook, asked for in Edit details, at onboarding and on the
+// booking step (when the profile has none); every one of those builds its fields from these.
+export const SOCIAL_HANDLE_FIELDS: { key: SocialHandle; label: string; shortLabel: string; placeholder: string }[] = [
+  { key: "instagram_handle", label: "Instagram username", shortLabel: "Instagram", placeholder: "yourname" },
+  { key: "facebook_handle", label: "Facebook name or profile link", shortLabel: "Facebook", placeholder: "Your name or profile link" },
+];
+
+/** The longest handle the server keeps (parseContactFields) */
+export const SOCIAL_HANDLE_MAX_LENGTH = 100;
+
+/** A handle as it's saved: trimmed, and an Instagram name without its leading "@" */
+export const cleanHandle = (key: SocialHandle, value: string) => {
+  const trimmed = value.trim();
+  return key === "instagram_handle" ? trimmed.replace(/^@+/, "") : trimmed;
+};
+
 // The profile details shown (and edited) in the "My Details" tab, in the order they appear.
 // Gender is a dropdown, so it is written out on the page.
 export interface ProfileFieldConfig {
@@ -21,8 +39,7 @@ export const PROFILE_FIELDS: ProfileFieldConfig[] = [
   { id: "dob", key: "dob", label: "Date of Birth:", type: "date", autoComplete: "bday" },
   // Optional: more ways for the salon to reach the client before an appointment
   { id: "alt_phone", key: "alt_phone", label: "Other Phone Number (optional):", type: "tel", autoComplete: "off" },
-  { id: "instagram_handle", key: "instagram_handle", label: "Instagram Username (optional):", type: "text", autoComplete: "off" },
-  { id: "facebook_handle", key: "facebook_handle", label: "Facebook Name (optional):", type: "text", autoComplete: "off" },
+  ...SOCIAL_HANDLE_FIELDS.map(({ key, label }) => ({ id: key, key, label: `${label} (optional):`, type: "text" as const, autoComplete: "off" })),
 ];
 
 /** How a client prefers to be reached (the values the API accepts); "" is no preference */

@@ -106,7 +106,7 @@ export default function BookingsTable({ load }: { load: BookingsLoader }) {
               setPage(1);
             }}
             placeholder="Search client, service, artist…"
-            className="h-9 w-full rounded-full border border-crimson-light bg-milk pl-3 pr-9 text-[13px] text-gray-red outline-none placeholder:text-gray-red/60 focus:ring-2 focus:ring-crimson"
+            className="h-9 w-full rounded-full border border-crimson-light bg-milk pl-3 pr-9 text-[13px] text-gray-red outline-none placeholder:text-gray-red placeholder:italic focus:ring-2 focus:ring-crimson"
           />
           <Search size={16} aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-red" />
         </label>

@@ -39,7 +39,7 @@ export function useBooking() {
   const isPageLoading = !pageData && !pageError;
   const [isSubmitting, setIsSubmitting] = useState(false);
   // Instagram/Facebook, asked only when the profile has none, saved as typed
-  const { contactFields } = useContactHandles();
+  const { contactFields } = useContactHandles(user?.id, getToken);
 
   const [selectedNailist, setSelectedNailist] = useState<Nailist | null>(null);
 

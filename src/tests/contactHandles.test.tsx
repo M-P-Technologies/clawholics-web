@@ -8,11 +8,7 @@ import { accountKeys } from "@/lib/accountQueries";
 const fetchProfile = vi.fn();
 const updateContactDetails = vi.fn();
 
-vi.mock("@clerk/nextjs", () => {
-  const user = { id: "user_1" };
-  const getToken = async () => "tok";
-  return { useUser: () => ({ user }), useAuth: () => ({ getToken }) };
-});
+const getToken = async () => "tok";
 vi.mock("@/services/userService", async () => ({
   ...(await vi.importActual<typeof import("@/services/userService")>("@/services/userService")),
   fetchProfileIfExists: (...args: unknown[]) => fetchProfile(...args),
@@ -33,14 +29,14 @@ beforeEach(() => {
 describe("Instagram/Facebook while booking", () => {
   it("asks only for the handles the profile doesn't have", async () => {
     fetchProfile.mockResolvedValue({ id: 1, instagram_handle: "ana.nails", facebook_handle: null });
-    const { result } = renderHook(() => useContactHandles(), { wrapper });
+    const { result } = renderHook(() => useContactHandles("user_1", getToken), { wrapper });
     await waitFor(() => expect(result.current.contactFields).toHaveLength(1));
     expect(result.current.contactFields[0].name).toBe("facebook_handle");
   });
 
   it("asks nothing when both are on the profile", async () => {
     fetchProfile.mockResolvedValue({ id: 1, instagram_handle: "ana.nails", facebook_handle: "Ana Cruz" });
-    const { result } = renderHook(() => useContactHandles(), { wrapper });
+    const { result } = renderHook(() => useContactHandles("user_1", getToken), { wrapper });
     await waitFor(() => expect(fetchProfile).toHaveBeenCalled());
     await act(async () => {});
     expect(result.current.contactFields).toHaveLength(0);
@@ -48,7 +44,7 @@ describe("Instagram/Facebook while booking", () => {
 
   it("saves a handle to the profile when the client leaves the field, and keeps showing it", async () => {
     fetchProfile.mockResolvedValue({ id: 1, instagram_handle: null, facebook_handle: null });
-    const { result } = renderHook(() => useContactHandles(), { wrapper });
+    const { result } = renderHook(() => useContactHandles("user_1", getToken), { wrapper });
     await waitFor(() => expect(result.current.contactFields).toHaveLength(2));
 
     type(result.current.contactFields[0], " @ana.nails ");
@@ -67,7 +63,7 @@ describe("Instagram/Facebook while booking", () => {
 
   it("saves on its own a moment after the client stops typing", async () => {
     fetchProfile.mockResolvedValue({ id: 1, instagram_handle: null, facebook_handle: null });
-    const { result } = renderHook(() => useContactHandles(), { wrapper });
+    const { result } = renderHook(() => useContactHandles("user_1", getToken), { wrapper });
     await waitFor(() => expect(result.current.contactFields).toHaveLength(2));
 
     vi.useFakeTimers();
@@ -85,7 +81,7 @@ describe("Instagram/Facebook while booking", () => {
     fetchProfile.mockResolvedValue({ id: 1, instagram_handle: null, facebook_handle: null });
     let finishFirst!: () => void;
     updateContactDetails.mockImplementationOnce(() => new Promise<void>((resolve) => (finishFirst = resolve)));
-    const { result } = renderHook(() => useContactHandles(), { wrapper });
+    const { result } = renderHook(() => useContactHandles("user_1", getToken), { wrapper });
     await waitFor(() => expect(result.current.contactFields).toHaveLength(2));
 
     type(result.current.contactFields[0], "maxnails");
@@ -109,7 +105,7 @@ describe("Instagram/Facebook while booking", () => {
     fetchProfile.mockResolvedValue({ id: 1, instagram_handle: null, facebook_handle: null });
     updateContactDetails.mockRejectedValue(new Error("offline"));
     vi.spyOn(console, "error").mockImplementation(() => {});
-    const { result } = renderHook(() => useContactHandles(), { wrapper });
+    const { result } = renderHook(() => useContactHandles("user_1", getToken), { wrapper });
     await waitFor(() => expect(result.current.contactFields).toHaveLength(2));
 
     type(result.current.contactFields[0], "ana.nails");
