@@ -1,12 +1,13 @@
 "use client";
 
-import { Bell, BellRing, CalendarCheck, Receipt, Volume2, VolumeX } from "lucide-react";
+import { Bell, BellRing, CalendarCheck, CalendarDays, Receipt, Volume2, VolumeX } from "lucide-react";
 import clsx from "clsx";
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { useAdminNotifications } from "@/hooks/admin/useAdminNotifications";
-import { notificationAge, notificationLine, notificationLink, notificationTitle } from "@/lib/admin/notifications";
+import { notificationAge, notificationLink, notificationParts, notificationTitle } from "@/lib/admin/notifications";
 import { Link } from "@/lib/router";
+import { Avatar } from "@/components/atoms";
 
 /** Where the list sits: under the bell, its right edge in line with the bell's (on screen) */
 interface Place {
@@ -33,17 +34,21 @@ export default function NotificationBell() {
       const rect = button.current?.getBoundingClientRect();
       if (!rect) return;
       // At least 16px from the screen's edges, as the admin's gutter: in line with the bell's right
-      // edge where it fits, moved right where the list (22rem) would run off the left
-      const width = Math.min(352, window.innerWidth - 32);
+      // edge where it fits, moved right where the list (28rem) would run off the left
+      const width = Math.min(448, window.innerWidth - 32);
       const right = Math.min(Math.max(16, window.innerWidth - rect.right), window.innerWidth - width - 16);
       setPlace({ top: rect.bottom + 8, right });
     };
+    // Scrolling the list itself doesn't move the bell
+    const onScroll = (event: Event) => {
+      if (!panel.current?.contains(event.target as Node)) measure();
+    };
     measure();
     window.addEventListener("resize", measure);
-    window.addEventListener("scroll", measure, true);
+    window.addEventListener("scroll", onScroll, true);
     return () => {
       window.removeEventListener("resize", measure);
-      window.removeEventListener("scroll", measure, true);
+      window.removeEventListener("scroll", onScroll, true);
     };
   }, [open]);
 
@@ -93,7 +98,7 @@ export default function NotificationBell() {
           aria-label="New bookings"
           // Phones: centred on the screen; from sm, under the bell (`--bell-right`)
           style={{ top: place.top, "--bell-right": `${place.right}px` } as CSSProperties}
-          className="fixed z-60 flex max-sm:left-1/2 max-sm:-translate-x-1/2 sm:right-(--bell-right) w-[min(22rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-crimson-light/40 bg-milk shadow-xl shadow-crimson/20"
+          className="fixed z-60 flex max-sm:left-1/2 max-sm:-translate-x-1/2 sm:right-(--bell-right) w-[min(28rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-crimson-light/40 bg-milk shadow-xl shadow-crimson/20"
         >
           <p className="border-b border-crimson-light/40 px-3 py-3 font-display text-lg text-gray-red">New bookings</p>
           {bell.failed ? (
@@ -103,17 +108,26 @@ export default function NotificationBell() {
               {bell.loading ? "Loading…" : "Nothing yet. Paid bookings and payment proofs to review show here."}
             </p>
           ) : (
-            <ul className="max-h-[60vh] overflow-y-auto">
+            // The five rows, with the Show older line just below them, so the list can still scroll;
+            // near the end the next five load
+            <ul className="max-h-[min(65vh,21rem)] overflow-y-auto" onScroll={bell.onListScroll}>
               {bell.notifications.map((n) => {
                 const Icon = n.kind === "proof_uploaded" ? Receipt : CalendarCheck;
+                const parts = notificationParts(n);
                 return (
                   <li key={n.id} className="border-b border-dotted border-crimson-light last:border-b-0">
                     <Link
                       to={notificationLink(n)}
                       onClick={close}
-                      className={clsx("flex gap-3 px-3 py-3 text-left transition-colors hover:bg-crimson-light/15", bell.isNew(n.id) && "bg-crimson-light/20")}
+                      className={clsx("flex items-start gap-3 px-3 py-3 text-left transition-colors hover:bg-crimson-light/15", bell.isNew(n.id) && "bg-crimson-light/20")}
                     >
-                      <Icon size={18} aria-hidden="true" className="mt-0.5 shrink-0 text-berry" />
+                      {/* The client, with what happened as a small badge on their photo */}
+                      <span className="relative shrink-0">
+                        <Avatar name={n.client_name || "A client"} imageUrl={bell.avatarOf(n)} size="md" decorative />
+                        <span aria-hidden="true" className="absolute -bottom-1 -right-1 flex size-5 items-center justify-center rounded-full bg-milk text-berry ring-2 ring-milk">
+                          <Icon size={13} />
+                        </span>
+                      </span>
                       <span className="min-w-0 flex-1">
                         <span className="flex items-baseline justify-between gap-3">
                           <span className="text-[13px] font-bold text-gray-red">
@@ -122,12 +136,31 @@ export default function NotificationBell() {
                           </span>
                           <span className="shrink-0 text-xs text-gray-red">{notificationAge(n.created_at)}</span>
                         </span>
-                        <span className="block text-xs text-gray-red">{notificationLine(n)}</span>
+                        <span className="block text-xs text-gray-red">{parts.booking}</span>
+                        {/* The visit's date and time on a line of its own */}
+                        {parts.when && (
+                          <span className="mt-0.5 flex items-center gap-1 text-xs text-gray-red">
+                            <CalendarDays size={12} aria-hidden="true" className="shrink-0 text-berry" />
+                            {parts.when}
+                          </span>
+                        )}
                       </span>
                     </Link>
                   </li>
                 );
               })}
+              {(bell.hasMore || bell.loadingMore) && (
+                <li className="px-3 py-3 text-center">
+                  {bell.loadingMore ? (
+                    <span role="status" className="text-xs text-gray-red">Loading more…</span>
+                  ) : (
+                    // For a list too short to scroll, and for keyboards
+                    <button type="button" onClick={bell.loadMore} className="text-xs font-bold text-crimson-ink underline underline-offset-4 hover:text-gray-red">
+                      Show older
+                    </button>
+                  )}
+                </li>
+              )}
             </ul>
           )}
           <div className="flex flex-wrap items-center gap-3 border-t border-crimson-light/40 px-3 py-3">

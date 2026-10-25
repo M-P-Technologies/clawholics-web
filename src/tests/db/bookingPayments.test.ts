@@ -887,6 +887,23 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
 
         as("user_admin2");
         expect((await callRoute(notifications.getAdminNotifications, "/api/notifications")).body.unread).toBe(2);
+
+        // A page at a time: the newest 5, then the ones older than the last shown
+        for (let i = 1; i <= 6; i++) {
+          await db`insert into admin_notifications (kind, ref_id, appointment_id) values ('booking_paid', ${9000 + i}, ${paidBooking.body.appointment_id})`;
+        }
+        const first = await callRoute(notifications.getAdminNotifications, "/api/notifications");
+        expect(first.body.notifications).toHaveLength(5);
+        expect(first.body.hasMore).toBe(true);
+        expect(first.body.unread).toBe(8);
+        expect(first.body.notifications[0]).toMatchObject({ client_clerk_id: "user_a" });
+        const lastShown = first.body.notifications[4].id;
+        const next = await callRoute(notifications.getAdminNotifications, `/api/notifications?before=${lastShown}`);
+        expect(next.body.notifications).toHaveLength(3);
+        expect(next.body.hasMore).toBe(false);
+        expect(next.body.notifications.every((n: Row) => n.id < lastShown)).toBe(true);
+        expect((await callRoute(notifications.getAdminNotifications, "/api/notifications?before=x")).status).toBe(400);
+        expect((await callRoute(notifications.getAdminNotifications, "/api/notifications?limit=50")).body.notifications).toHaveLength(8);
       } finally {
         await db`update site_settings set value = '["GCASH"]' where key = 'payment_methods'`;
       }
