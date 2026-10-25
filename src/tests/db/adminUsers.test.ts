@@ -212,6 +212,24 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
     expect((await call(users.getUserByClerkId, "/api/users/clerk/user_admin", { params: { clerkId: "user_admin" } })).status).toBe(403);
   });
 
+  it("TC-USR-01b: the PATCH saves only the contact details (booking's Instagram/Facebook)", async () => {
+    as(null);
+    expect((await call(users.updateContactDetails, "/api/users/profile", { method: "PATCH", body: { facebook_handle: "x" } })).status).toBe(401);
+
+    as("user_cust");
+    const [before] = await db`select first_name, last_name, phone, dob, gender from customer_profiles where user_id = ${customerId}`;
+    const saved = await call(users.updateContactDetails, "/api/users/profile", { method: "PATCH", body: { facebook_handle: "Carla C", first_name: "Hacked" } });
+    expect(saved.body).toEqual({ message: "Contact details updated" });
+    const [after] = await db`select first_name, last_name, phone, dob, gender, facebook_handle, instagram_handle from customer_profiles where user_id = ${customerId}`;
+    // The name, phone, birthday and gender are left as they were, and so is the handle not sent
+    expect(after).toEqual({ ...before, facebook_handle: "Carla C", instagram_handle: "carla" });
+
+    expect((await call(users.updateContactDetails, "/api/users/profile", { method: "PATCH", body: { instagram_handle: "x".repeat(101) } })).status).toBe(400);
+    // An account with no client profile yet (e.g. an admin) has nothing to update
+    as("user_admin");
+    expect((await call(users.updateContactDetails, "/api/users/profile", { method: "PATCH", body: { facebook_handle: "x" } })).status).toBe(404);
+  });
+
   it("TC-USR-02: stamps are added and redeemed by an admin scan, or redeemed by the client at 10", async () => {
     as("user_cust");
     expect((await call(users.redeemOwnReward, "/api/users/redeem", { method: "POST" })).status).toBe(400);

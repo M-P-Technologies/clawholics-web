@@ -102,6 +102,23 @@ export const updateProfile = async (
   }
 };
 
+/** Saves only the given optional contact details (PATCH leaves the rest of the profile alone) */
+export const updateContactDetails = async (
+  fields: Pick<Partial<UserProfile>, "instagram_handle" | "facebook_handle">,
+  token?: string | null
+): Promise<void> => {
+  const res = await fetch(`${API_BASE_URL}/users/profile`, {
+    method: "PATCH",
+    headers: getHeaders(token),
+    body: JSON.stringify(fields),
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new ProfileSaveError(res.status, body?.message || body?.error || undefined);
+  }
+};
+
 export const fetchUserAppointments = async (clerkId: string, token?: string | null) => {
   const res = await fetch(`${API_BASE_URL}/users/appointments?clerk_id=${clerkId}&t=${Date.now()}`, {
     headers: getHeaders(token, clerkId)
