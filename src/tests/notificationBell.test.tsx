@@ -38,12 +38,21 @@ const note = (id: number, change: Partial<AdminNotification> = {}): AdminNotific
   ...change,
 });
 
-let answer: { unread: number; notifications: AdminNotification[] };
-const fetchMock = vi.fn(async (url: string, init?: RequestInit) => ({
-  ok: true,
-  json: async () => (String(url).endsWith("/notifications/read") ? { success: true } : answer),
-  init,
-}));
+let answer: { unread: number; notifications: AdminNotification[]; hasMore?: boolean };
+// The page older than a notification id, by that id
+let olderPages: Record<number, { unread: number; notifications: AdminNotification[]; hasMore: boolean }>;
+let profiles: Record<string, { imageUrl: string | null; joinedAt: null; lastSignInAt: null }>;
+const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+  const before = /[?&]before=(\d+)/.exec(String(url))?.[1];
+  const body = String(url).endsWith("/notifications/read")
+    ? { success: true }
+    : String(url).includes("/directory/profiles")
+      ? { profiles }
+      : before
+        ? olderPages[Number(before)]
+        : answer;
+  return { ok: true, json: async () => body, init };
+});
 
 let client: QueryClient;
 const view = () =>
@@ -61,6 +70,8 @@ beforeEach(() => {
     unread: 2,
     notifications: [note(2, { kind: "proof_uploaded", client_name: "Bea Lim" }), note(1)],
   };
+  olderPages = {};
+  profiles = {};
   fetchMock.mockClear();
   vi.mocked(playChime).mockClear();
   vi.mocked(showDesktopAlert).mockClear();
@@ -80,7 +91,9 @@ describe("NotificationBell", () => {
     expect(list.getByText("Payment proof to review")).toBeInTheDocument();
     expect(list.getByText("New booking paid")).toBeInTheDocument();
     expect(list.getAllByText("New")).toHaveLength(2);
-    expect(list.getByText("Bea Lim · Gel manicure with Maxine · Oct 20, 2:00 PM")).toBeInTheDocument();
+    // Who and what, with the visit's date and time on the line below
+    expect(list.getByText("Bea Lim · Gel manicure with Maxine")).toBeInTheDocument();
+    expect(list.getAllByText("Oct 20, 2:00 PM")).toHaveLength(2);
 
     // A proof opens the proofs to review, a paid booking its client's page
     const links = list.getAllByRole("link");
@@ -127,6 +140,84 @@ describe("NotificationBell", () => {
     await act(() => client.invalidateQueries({ queryKey: adminKeys.notifications() }));
     expect(await screen.findByText("New booking paid")).toBeInTheDocument();
     expect(screen.getByText("Cara Diaz · Gel manicure with Maxine · Oct 20, 2:00 PM")).toBeInTheDocument();
+  });
+});
+
+describe("NotificationBell pages", () => {
+  const page = (from: number, to: number) => Array.from({ length: from - to + 1 }, (_, i) => note(from - i, { client_name: `Client ${from - i}` }));
+  const asked = () => fetchMock.mock.calls.map(([url]) => String(url)).filter((url) => /\/notifications(\?|$)/.test(url));
+
+  beforeEach(() => {
+    answer = { unread: 7, notifications: page(12, 8), hasMore: true };
+    olderPages = { 8: { unread: 7, notifications: page(7, 3), hasMore: true }, 3: { unread: 7, notifications: page(2, 1), hasMore: false } };
+  });
+
+  it("shows the newest 5, and the next 5 only once the list is scrolled to its end", async () => {
+    view();
+    fireEvent.click(await screen.findByRole("button", { name: "Notifications, 7 new" }));
+    const region = within(screen.getByRole("region", { name: "New bookings" }));
+    expect(region.getAllByRole("link")).toHaveLength(5);
+    expect(asked().some((url) => url.includes("before="))).toBe(false);
+
+    // Scrolled, but not near the end yet: nothing more
+    const list = region.getByRole("list");
+    Object.defineProperties(list, { scrollHeight: { value: 600, configurable: true }, clientHeight: { value: 288, configurable: true } });
+    list.scrollTop = 100;
+    fireEvent.scroll(list);
+    expect(asked().some((url) => url.includes("before="))).toBe(false);
+
+    list.scrollTop = 300;
+    fireEvent.scroll(list);
+    await waitFor(() => expect(region.getAllByRole("link")).toHaveLength(10));
+    expect(asked().some((url) => url.endsWith("before=8"))).toBe(true);
+    expect(region.getByText("Client 3", { exact: false })).toBeInTheDocument();
+  });
+
+  it("keeps the older unread ones marked new, and loads the rest with Show older, until there are none", async () => {
+    view();
+    fireEvent.click(await screen.findByRole("button", { name: "Notifications, 7 new" }));
+    const region = within(screen.getByRole("region", { name: "New bookings" }));
+    fireEvent.click(region.getByRole("button", { name: "Show older" }));
+    await waitFor(() => expect(region.getAllByRole("link")).toHaveLength(10));
+    // 7 were unread when opened: 12 to 6
+    expect(region.getAllByText("New")).toHaveLength(7);
+
+    fireEvent.click(region.getByRole("button", { name: "Show older" }));
+    await waitFor(() => expect(region.getAllByRole("link")).toHaveLength(12));
+    expect(region.queryByRole("button", { name: "Show older" })).toBeNull();
+  });
+
+  it("goes back to the newest 5 when closed", async () => {
+    view();
+    const bell = await screen.findByRole("button", { name: "Notifications, 7 new" });
+    fireEvent.click(bell);
+    fireEvent.click(screen.getByRole("button", { name: "Show older" }));
+    await waitFor(() => expect(screen.getAllByRole("link")).toHaveLength(10));
+    fireEvent.keyDown(document, { key: "Escape" });
+    // The trim waits for any page still on its way to be stopped
+    await waitFor(() => expect(client.getQueryData<{ pages: unknown[] }>(adminKeys.notifications())?.pages).toHaveLength(1));
+    fireEvent.click(screen.getByRole("button", { name: /Notifications/ }));
+    expect(within(screen.getByRole("region", { name: "New bookings" })).getAllByRole("link")).toHaveLength(5);
+  });
+
+  it("counts a burst bigger than the page from the unread count", async () => {
+    answer = { unread: 0, notifications: page(12, 8), hasMore: true };
+    view();
+    // The first answer is in (the bell reads "Notifications" while loading too)
+    await waitFor(() => expect(client.getQueryData(adminKeys.notifications())).toBeDefined());
+    answer = { unread: 8, notifications: page(20, 16), hasMore: true };
+    await act(() => client.invalidateQueries({ queryKey: adminKeys.notifications() }));
+    expect(await screen.findByText("8 new bookings")).toBeInTheDocument();
+  });
+
+  it("shows each client's photo, or their initials without one", async () => {
+    answer = { unread: 0, notifications: [note(2, { client_clerk_id: "user_bea", client_name: "Bea Lim" }), note(1, { client_clerk_id: null, client_name: "Ana Cruz" })] };
+    profiles = { user_bea: { imageUrl: "https://img.clerk.test/bea.png", joinedAt: null, lastSignInAt: null } };
+    view();
+    fireEvent.click(await screen.findByRole("button", { name: "Notifications" }));
+    const region = screen.getByRole("region", { name: "New bookings" });
+    await waitFor(() => expect(region.querySelector('img[src="https://img.clerk.test/bea.png"]')).not.toBeNull());
+    expect(within(region).getByText("AC")).toBeInTheDocument();
   });
 });
 

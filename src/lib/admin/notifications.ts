@@ -18,10 +18,16 @@ export const notificationTitle = (n: AdminNotification) => TITLES[n.kind] ?? TIT
 
 /** "Ana Cruz · Gel manicure with Maxine · Oct 20, 2:00 PM" (whatever of it is known) */
 export function notificationLine(n: AdminNotification) {
+  const { booking, when } = notificationParts(n);
+  return [booking, when].filter(Boolean).join(" · ");
+}
+
+/** The same, in two parts for the bell's two lines: "Ana Cruz · Gel with Maxine", and the visit's "Oct 20, 2:00 PM" */
+export function notificationParts(n: AdminNotification) {
   const who = n.client_name || "A client";
   const what = [n.service_name, n.nailist_name && `with ${n.nailist_name}`].filter(Boolean).join(" ");
   const when = [formatDay(n.appointment_date), timeRangeLabel(n.appointment_time)].filter(Boolean).join(", ");
-  return [who, what, when].filter(Boolean).join(" · ");
+  return { booking: [who, what].filter(Boolean).join(" · "), when };
 }
 
 /** A proof opens the proofs to review; a paid booking, a visit to complete or a payment to check the client's page (a walk-in, who has none, the list of them) */

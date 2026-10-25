@@ -7,6 +7,8 @@ export interface AdminNotification {
   appointment_id: number | null;
   /** The booking's client (users.id), for the link to their page */
   client_user_id: number | null;
+  /** The client's Clerk id, for their photo (null for the walk-in guest) */
+  client_clerk_id?: string | null;
   client_name: string;
   service_name: string;
   nailist_name: string;
@@ -17,9 +19,15 @@ export interface AdminNotification {
   unread: boolean;
 }
 
+/** How many the bell lists at a time (the list's height is made for five rows) */
+export const NOTIFICATIONS_PAGE_SIZE = 5;
+
+/** One page of the bell's list, newest first */
 export interface AdminNotifications {
   unread: number;
   notifications: AdminNotification[];
+  /** There are older ones to load as the admin scrolls */
+  hasMore: boolean;
 }
 
 const headers = (token?: string | null, clerkId?: string | null) => ({
@@ -29,16 +37,18 @@ const headers = (token?: string | null, clerkId?: string | null) => ({
   ...(clerkId ? { clerk_id: clerkId } : {}),
 });
 
-// The newest notifications, marked unread or not for the signed-in admin (admin only)
-export const fetchAdminNotifications = async (token?: string | null, clerkId?: string | null): Promise<AdminNotifications> => {
-  const res = await fetch(`${API_BASE_URL}/notifications`, { headers: headers(token, clerkId) });
+// A page of the notifications, marked unread or not for the signed-in admin (admin only): the
+// newest, or with `before` the ones older than that id
+export const fetchAdminNotifications = async (token?: string | null, clerkId?: string | null, before?: number): Promise<AdminNotifications> => {
+  const query = `limit=${NOTIFICATIONS_PAGE_SIZE}${before ? `&before=${before}` : ""}`;
+  const res = await fetch(`${API_BASE_URL}/notifications?${query}`, { headers: headers(token, clerkId) });
   if (!res.ok) throw new Error(`Failed to load the notifications (${res.status})`);
   // Anything but the expected shape is a failed load, so it can't break the top bar it's in
   const body: Partial<AdminNotifications> | null = await res.json().catch(() => null);
   if (!body || !Array.isArray(body.notifications) || typeof body.unread !== "number") {
     throw new Error("Unexpected notifications answer");
   }
-  return body as AdminNotifications;
+  return { ...body, hasMore: body.hasMore === true } as AdminNotifications;
 };
 
 // The signed-in admin has seen every notification up to `upTo` (admin only)
