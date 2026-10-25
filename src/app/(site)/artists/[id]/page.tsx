@@ -10,6 +10,7 @@ import PageShell from "@/components/layout/PageShell";
 import Section from "@/components/layout/Section";
 import ServiceGallery from "@/components/booking/ServiceGallery";
 import ServicePickerModal from "@/components/booking/ServicePickerModal";
+import SpecialtyList from "@/components/booking/SpecialtyList";
 import { infoLabelClass } from "@/components/tokens";
 import { useArtistDetail } from "@/hooks/useArtistDetail";
 
@@ -69,15 +70,20 @@ export default function ArtistDetail() {
             <dl className="hidden grid-cols-1 gap-x-3 gap-y-1 border-t border-crimson-light/80 pt-3 text-gray-red lg:grid sm:grid-cols-[140px_1fr] sm:gap-y-3 md:pt-9 [&>dd:not(:last-child)]:mb-3 sm:[&>dd:not(:last-child)]:mb-0">
               {nailist.specialty && (
                 <>
-                  <dt className={infoLabelClass}>Specialties</dt>
-                  <dd className="whitespace-pre-line">{nailist.specialty}</dd>
+                  {/* The list keeps to the right column but starts a row below its label, so the
+                      first item isn't level with "Specialties" */}
+                  <dt className={`${infoLabelClass} sm:col-span-2`}>Specialties</dt>
+                  <dd className="sm:col-start-2">
+                    <SpecialtyList specialty={nailist.specialty} />
+                  </dd>
                 </>
               )}
 
               {nailist.offered_services && nailist.offered_services.length > 0 && (
                 <>
-                  <dt className={infoLabelClass}>Services</dt>
-                  <dd className="flex flex-wrap gap-3">
+                  {/* Like Specialties: right column, a row below the label */}
+                  <dt className={`${infoLabelClass} sm:col-span-2`}>Services</dt>
+                  <dd className="flex flex-wrap gap-3 sm:col-start-2">
                     {nailist.offered_services.map((name) => (
                       <span key={name} className="rounded-full bg-crimson-light/40 px-3 py-1 text-sm text-berry">
                         {name}

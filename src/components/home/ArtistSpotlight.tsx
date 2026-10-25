@@ -5,6 +5,7 @@ import { canOptimizeImage } from "@/lib/imageHosts";
 import Bow from "../../assets/bow.svg";
 import type { Nailist } from "../../types";
 import { Button } from "@/components/atoms";
+import SpecialtyList from "@/components/booking/SpecialtyList";
 
 const ROUND_BUTTON =
   "flex h-10 w-10 items-center justify-center rounded-full border border-crimson-light/40 bg-light-orange text-crimson-ink shadow-md shadow-crimson/20 transition-colors hover:bg-crimson hover:text-on-crimson focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson";
@@ -88,10 +89,10 @@ export default function ArtistSpotlight({ artists }: { artists: Nailist[] }) {
             {artist.bio}
           </p>
           {artist.specialty && (
-            <p className="whitespace-pre-line copy-body">
-              <span className="font-bold text-gray-red">Specialties: </span>
-              {artist.specialty}
-            </p>
+            <div className="copy-body">
+              <p className="font-bold text-gray-red">Specialties:</p>
+              <SpecialtyList specialty={artist.specialty} />
+            </div>
           )}
         </div>
 

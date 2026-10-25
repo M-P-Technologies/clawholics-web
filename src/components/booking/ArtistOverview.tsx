@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Award, Images, Sparkles } from "lucide-react";
+import SpecialtyList from "./SpecialtyList";
 
 interface ArtistOverviewProps {
   nailist: {
@@ -48,7 +49,7 @@ export default function ArtistOverview({ nailist, workCount }: ArtistOverviewPro
       {nailist.specialty && (
         <div className="flex flex-col gap-1">
           <h2 className="label-caps">Specialties</h2>
-          <p className="whitespace-pre-line copy-body">{nailist.specialty}</p>
+          <SpecialtyList specialty={nailist.specialty} className="copy-body" />
         </div>
       )}
 
