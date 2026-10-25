@@ -11,9 +11,9 @@ const review = (over: object = {}) => ({
 let reviews: ReturnType<typeof review>[] = [];
 vi.mock("@/hooks/useHome", () => ({
   useHome: () => ({
-    retryProfile: () => {}, contentError: false, reloadContent: () => {}, isBusy: false,
+    contentError: false, reloadContent: () => {},
     content: { home_title: "Clawholics.", home_reviews_title: "What our clients say" },
-    faqs: [], nailists: [], about: null, profileCheckFailed: false, stripItems: [],
+    faqs: [], nailists: [], about: null, stripItems: [],
   }),
 }));
 vi.mock("@/hooks/useTestimonials", () => ({ useTestimonials: () => reviews }));

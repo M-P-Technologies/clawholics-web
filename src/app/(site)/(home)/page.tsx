@@ -19,9 +19,7 @@ import { sectionTitleClass } from "@/components/tokens";
 import { useHomePage } from "@/hooks/useHomePage";
 
 export default function Home() {
-  const { retryProfile, contentError, reloadContent, isBusy, content, faqs, nailists, about, profileCheckFailed, stripItems, testimonials, heroFailed, onHeroError, exploreMore, view } = useHomePage();
-
-  if (isBusy) return <LoadingBar label="Loading" />;
+  const { contentError, reloadContent, content, faqs, nailists, about, stripItems, testimonials, heroFailed, onHeroError, exploreMore, view } = useHomePage();
 
   if (contentError && !content) return <LoadError what="home page" onRetry={reloadContent} />;
   if (!content || !view) return <LoadingBar label="Loading" />;
@@ -30,22 +28,6 @@ export default function Home() {
 
   return (
     <>
-      {profileCheckFailed && (
-        <div
-          role="alert"
-          className="fixed inset-x-0 top-16 z-40 bg-crimson px-3 py-2 text-center text-sm text-on-crimson"
-        >
-          We couldn't load your profile right now.{" "}
-          <Button
-            variant="bare"
-            type="button"
-            onClick={retryProfile}
-            className="font-bold underline"
-          >
-            Try again
-          </Button>
-        </div>
-      )}
       <header className="relative overflow-x-clip lg:pt-15">
         <Blush className="-left-32 top-40 h-96 w-96" />
         <Blush tone="crimson" className="left-1/3 top-2/3 h-72 w-72" />
