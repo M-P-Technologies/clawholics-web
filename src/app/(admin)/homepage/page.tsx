@@ -7,6 +7,7 @@ import { FontPicker, PalettePicker } from "@/components/features/admin/cms/Theme
 import { CmsEditorSkeleton } from "@/components/features/admin/skeletons/skeletons";
 import emblem from "@/assets/logo/emblem-pink.png";
 import footerLogo from "@/assets/logo/logo-pink-transparent.png";
+import { useArtistWorkPhotos } from "@/hooks/admin/useArtistWorkPhotos";
 import { useHomeEditor } from "@/hooks/admin/useHomeEditor";
 import { HOME_PREVIEW_PAGES } from "@/lib/admin/cmsPages";
 import { FEATURE_ICONS, FEATURE_TEXT_MAX, FEATURE_TITLE_MAX, MAX_STRIP_SLIDES, SITE_LINK_OPTIONS } from "@/lib/homeSections";
@@ -18,7 +19,8 @@ import { BODY_FONTS, DISPLAY_FONTS, SCRIPT_FONTS } from "@/lib/siteTheme";
 // Its state, uploads and saving are in hooks/admin/useHomeEditor.
 export default function Homepage() {
   const editor = useHomeEditor();
-  const { content, sections, services, set, setText, setFeature, setStrip, upload, uploadTo, uploading } = editor;
+  const workPhotos = useArtistWorkPhotos();
+  const { content, sections, services, set, setText, setFeature, setStrip, uploadTo, uploading } = editor;
   const t = sections.text;
 
   if (editor.isLoading) return <CmsEditorSkeleton title="Homepage" />;
@@ -76,7 +78,7 @@ export default function Homepage() {
       </PanelSection>
 
       <PanelSection title="Service photo strip" description="The sliding photos of services, each with its price, hours and a Book button." page="/#service-strip" aside={sections.strip ? `${sections.strip.length}/${MAX_STRIP_SLIDES}` : undefined}>
-        <StripEditor services={services} strip={sections.strip} onChange={setStrip} upload={upload} uploading={uploading} />
+        <StripEditor services={services} strip={sections.strip} onChange={setStrip} choices={workPhotos.photos} choicesLoading={workPhotos.isLoading} />
       </PanelSection>
 
       <PanelSection title="About us" description="The short story with a link to the About page." page="/#about-teaser">

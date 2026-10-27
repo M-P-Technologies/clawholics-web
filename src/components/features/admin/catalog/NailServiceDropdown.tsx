@@ -1,5 +1,5 @@
 import { ChevronDown as DropdownIcon, Plus as PlusIcon, Star as StarIcon, X } from "lucide-react";
-import React, { useEffect, useId, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ADMIN } from "@/lib/adminQueries";
 import { useFillForm } from "@/hooks/admin/useFillForm";
@@ -24,12 +24,12 @@ import ServicePricingFields, {
   type PricingDraft,
 } from "@/components/features/admin/catalog/ServicePricingFields";
 
-import { PHOTO_UPLOAD_OPTIONS, uploadImage } from "@/services/uploadService";
 import { DragHandle, useToast, EditActions, SectionHeader } from "@/components/molecules";
 import { itemName, upperFirst } from "@/lib/itemName";
 import type { SortableHandleProps } from "@/components/molecules";
 import { Button, IconButton } from "@/components/atoms";
-import { DropArea } from "@/components/features/admin/cms/fields";
+import WorkPhotoPicker from "@/components/features/admin/cms/WorkPhotoPicker";
+import { useArtistWorkPhotos } from "@/hooks/admin/useArtistWorkPhotos";
 import { ConfirmDialog, ImagePreviewDialog } from "@/components/organisms";
 
 type NailServiceDropdownProps = {
@@ -110,14 +110,13 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
   isDragging = false,
 }) => {
   const toast = useToast();
-  const uploadId = useId();
+  const workPhotos = useArtistWorkPhotos();
   const isCreateMode = mode === "create";
 
   const [isOpen, setIsOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(isCreateMode);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
@@ -209,43 +208,15 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
     setIsEditing(false);
   };
 
-  const handleUploadImages = async (files: FileList | null) => {
-    if (!files) return;
-
-    const selectedFiles = Array.from(files);
-    const remainingSlots = MAX_IMAGES - gallery.length;
-
-    if (selectedFiles.length > remainingSlots) {
-      toast.show("error", "Too many photos", `${upperFirst(who)} can have up to ${MAX_IMAGES} photos. Remove some before uploading more.`);
+  // Photos are chosen from the artists' work already in the database, not uploaded
+  const handleAddPhoto = (url: string) => {
+    if (gallery.length >= MAX_IMAGES) {
+      toast.show("error", "Too many photos", `${upperFirst(who)} can have up to ${MAX_IMAGES} photos. Remove some before adding more.`);
       return;
     }
-
-    try {
-      setIsUploading(true);
-
-      const currentName = name;
-      const token = tokenFetcher ? await tokenFetcher() : null;
-
-      const uploadedImages = await Promise.all(
-        selectedFiles.map(async (file, index) => {
-          const data = await uploadImage(file, "service-gallery", token, clerkId, PHOTO_UPLOAD_OPTIONS);
-          return {
-            id: Date.now() + index,
-            service_id: service?.id ?? 0,
-            image_url: data.imageUrl,
-            position: gallery.length + index + 1,
-          };
-        })
-      );
-
-      setGallery((prev) => [...prev, ...uploadedImages]);
-      setName((prevName) => prevName || currentName || service?.name || originalName);
-    } catch (error) {
-      console.error("Failed to upload service images:", error);
-      toast.show("error", "Photos not uploaded", `We couldn't upload the photos for ${who}. Please check that they are image files and try again.`);
-    } finally {
-      setIsUploading(false);
-    }
+    const currentName = name;
+    setGallery((prev) => [...prev, { id: Date.now(), service_id: service?.id ?? 0, image_url: url, position: prev.length + 1 }]);
+    setName((prevName) => prevName || currentName || service?.name || originalName);
   };
 
   const handleRemoveImage = async (image: ServiceGalleryImage) => {
@@ -510,7 +481,7 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
                       aria-label={isMain(image) ? "Main photo of this service" : "Make this the main photo"}
                       aria-pressed={isMain(image)}
                       title={isMain(image) ? "Main photo: shown for this service on the website" : "Make this the main photo"}
-                      disabled={!isEditing || isUploading}
+                      disabled={!isEditing}
                       onClick={() => setStarredUrl(image.image_url)}
                       className="flex items-center justify-center w-7 h-7 shrink-0 disabled:cursor-default disabled:opacity-100"
                     >
@@ -518,7 +489,7 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
                     </Button>
 
                     {isEditing && (
-                      <IconButton size="sm" icon={X} label="Remove photo" onClick={() => handleRemoveImage(image)} disabled={isUploading} />
+                      <IconButton size="sm" icon={X} label="Remove photo" onClick={() => handleRemoveImage(image)} />
                     )}
                   </div>
                 ))}
@@ -526,27 +497,7 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
 
               {isEditing && gallery.length < MAX_IMAGES && (
                 <div className="mt-3">
-                  <DropArea
-                    id={uploadId}
-                    uploading={isUploading}
-                    label="Add photos"
-                    hint="PNG, JPG or WebP. Click, or drop them here."
-                    onFiles={(files) => void handleUploadImages(files)}
-                    input={
-                      <input
-                        id={uploadId}
-                        type="file"
-                        accept="image/png, image/jpeg, image/webp"
-                        multiple
-                        disabled={isUploading}
-                        className="sr-only"
-                        onChange={async (e) => {
-                          await handleUploadImages(e.target.files);
-                          e.target.value = "";
-                        }}
-                      />
-                    }
-                  />
+                  <WorkPhotoPicker choices={workPhotos.photos} taken={gallery.map((image) => image.image_url)} loading={workPhotos.isLoading} onPick={handleAddPhoto} />
                 </div>
               )}
             </div>
@@ -555,7 +506,6 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
               isEditing={isEditing}
               isCreateMode={isCreateMode}
               isSaving={isSaving}
-              busy={isUploading}
               onEdit={() => setIsEditing(true)}
               onCancel={handleCancel}
               onSave={handleSave}

@@ -1,21 +1,27 @@
+import { useState } from "react";
 import { ListChecks, Plus, RotateCcw, X } from "lucide-react";
 import { MAX_STRIP_SLIDES, type StripSlide } from "@/lib/homeSections";
 import type { NailService } from "@/services/serviceService";
 import { Button, IconButton } from "@/components/atoms";
 import { DragHandle, SortableList } from "@/components/molecules";
+import { Dialog } from "@/components/organisms";
+import type { WorkPhoto } from "@/hooks/admin/useArtistWorkPhotos";
 import { fieldClass, fieldLabelClass } from "@/components/features/admin/cms/fields";
 
 interface StripEditorProps {
   services: NailService[];
   strip: StripSlide[] | null;
   onChange: (strip: StripSlide[] | null) => void;
-  upload: (slot: string, file: File) => Promise<string | null>;
-  uploading: Record<string, boolean>;
+  /** The photos already in the database (the artists' work) a slide can use besides its service's own */
+  choices: WorkPhoto[];
+  choicesLoading?: boolean;
 }
 
 // The service strip's slides. Until slides are chosen it shows every service with a photo; choosing
 // starts from exactly that, so nothing on the page moves until something is changed.
-export default function StripEditor({ services, strip, onChange, upload, uploading }: StripEditorProps) {
+export default function StripEditor({ services, strip, onChange, choices, choicesLoading = false }: StripEditorProps) {
+  // The slide (its service) whose photo is being chosen
+  const [picking, setPicking] = useState<number | null>(null);
   const withPhotos = services.filter((s) => s.image);
   const serviceOf = (id: number) => services.find((s) => s.id === id);
 
@@ -41,6 +47,10 @@ export default function StripEditor({ services, strip, onChange, upload, uploadi
 
   const unused = services.filter((s) => !strip.some((slide) => slide.serviceId === s.id));
   const update = (index: number, change: Partial<StripSlide>) => onChange(strip.map((slide, i) => (i === index ? { ...slide, ...change } : slide)));
+  // The artists' work first, then each service's own photo
+  const pickable = [...choices, ...services.filter((sv) => sv.image).map((sv) => ({ id: -sv.id, url: sv.image as string, artist: sv.name }))].filter(
+    (c, i, all) => all.findIndex((o) => o.url === c.url) === i,
+  );
   const keyed = strip.map((slide) => ({ ...slide, id: slide.serviceId }));
 
   return (
@@ -56,8 +66,6 @@ export default function StripEditor({ services, strip, onChange, upload, uploadi
             const index = strip.findIndex((s) => s.serviceId === slide.serviceId);
             const service = serviceOf(slide.serviceId);
             const photo = slide.image || service?.image || "";
-            const slot = `strip-${slide.serviceId}`;
-            const inputId = `strip-photo-${slide.serviceId}`;
             return (
               <div className={`flex flex-col gap-3 rounded-xl border border-crimson-light/50 bg-milk p-3 ${isDragging ? "opacity-0" : ""}`}>
                 <div className="flex items-center gap-3">
@@ -88,25 +96,9 @@ export default function StripEditor({ services, strip, onChange, upload, uploadi
                   <input value={slide.title} placeholder={service?.name ?? ""} onChange={(e) => update(index, { title: e.target.value })} className={fieldClass} />
                 </label>
                 <div className="flex flex-wrap items-center gap-3 text-xs">
-                  <label
-                    htmlFor={inputId}
-                    className={`inline-flex cursor-pointer items-center gap-1 rounded-md border border-crimson-light px-3 py-1 font-bold text-gray-red hover:bg-crimson-light/30 ${uploading[slot] ? "pointer-events-none opacity-50" : ""}`}
-                  >
-                    {uploading[slot] ? "Uploading…" : slide.image ? "Replace photo" : "Use another photo"}
-                    <input
-                      id={inputId}
-                      type="file"
-                      accept="image/png, image/jpeg, image/webp"
-                      className="sr-only"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        e.target.value = "";
-                        if (!file) return;
-                        const url = await upload(slot, file);
-                        if (url) update(index, { image: url });
-                      }}
-                    />
-                  </label>
+                  <Button type="button" variant="bare" onClick={() => setPicking(slide.serviceId)} className="rounded-md border border-crimson-light px-3 py-1 font-bold text-gray-red hover:bg-crimson-light/30">
+                    {slide.image ? "Change photo" : "Use another photo"}
+                  </Button>
                   {slide.image && (
                     <Button type="button" variant="bare" onClick={() => update(index, { image: "" })} className="rounded-md px-3 py-1 font-bold text-gray-red hover:bg-crimson-light/30">
                       Use the service photo
@@ -138,6 +130,34 @@ export default function StripEditor({ services, strip, onChange, upload, uploadi
           Show every service again
         </Button>
       </div>
+
+      <Dialog open={picking !== null} title="Choose a photo" onClose={() => setPicking(null)}>
+        {choicesLoading ? (
+          <p role="status" className="text-[13px] text-gray-red">Loading photos…</p>
+        ) : pickable.length === 0 ? (
+          <p className="text-[13px] text-gray-red">There are no photos to choose from yet.</p>
+        ) : (
+          <ul className="grid grid-cols-3 gap-2">
+            {pickable.map((choice) => (
+              <li key={choice.url}>
+                <button
+                  type="button"
+                  aria-label={`Use the photo from ${choice.artist}`}
+                  onClick={() => {
+                    const index = strip.findIndex((slide) => slide.serviceId === picking);
+                    if (index >= 0) update(index, { image: choice.url });
+                    setPicking(null);
+                  }}
+                  className="block aspect-square w-full overflow-hidden rounded-md border border-crimson-light focus-visible:outline-2 focus-visible:outline-crimson"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element -- R2 images, sized by CSS like the rest of the admin */}
+                  <img src={choice.url} alt="" className="h-full w-full object-cover" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Dialog>
     </div>
   );
 }

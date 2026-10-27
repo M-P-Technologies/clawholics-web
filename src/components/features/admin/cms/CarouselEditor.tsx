@@ -1,8 +1,9 @@
 import { X } from "lucide-react";
-import { useId, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { DragHandle, SortableList } from "@/components/molecules";
 import { IconButton } from "@/components/atoms";
-import { DropArea } from "@/components/features/admin/cms/fields";
+import WorkPhotoPicker from "@/components/features/admin/cms/WorkPhotoPicker";
+import type { WorkPhoto } from "@/hooks/admin/useArtistWorkPhotos";
 import type { CarouselItem } from "@/services/carouselService";
 
 export const MAX_CAROUSEL_IMAGES = 10;
@@ -16,21 +17,16 @@ const fileName = (url: string) => url.split("/").pop() || url;
 interface CarouselEditorProps {
   photos: CarouselItem[];
   onChange: (photos: CarouselItem[]) => void;
-  uploading: boolean;
-  /** Uploads a photo and returns its URL, or null when it failed (and said so) */
-  upload: (file: File) => Promise<string | null>;
+  /** The photos already in the database (the artists' work) the gallery can use */
+  choices: WorkPhoto[];
+  choicesLoading?: boolean;
 }
 
-// The studio gallery's photos: drag to reorder, remove, or add up to MAX_CAROUSEL_IMAGES
-export default function CarouselEditor({ photos, onChange, uploading, upload }: CarouselEditorProps) {
-  const inputId = useId();
-
-  const add = async (file?: File) => {
-    if (!file) return;
-    const url = await upload(file);
-    if (url && photos.length < MAX_CAROUSEL_IMAGES) {
-      onChange(normalizeCarousel([...photos, { id: -Date.now(), image_url: url, position: photos.length + 1 }]));
-    }
+// The studio gallery's photos: drag to reorder, remove, or pick more from the artists' work (up to
+// MAX_CAROUSEL_IMAGES). Nothing is uploaded here, so the same photo isn't stored twice.
+export default function CarouselEditor({ photos, onChange, choices, choicesLoading = false }: CarouselEditorProps) {
+  const add = (url: string) => {
+    if (photos.length < MAX_CAROUSEL_IMAGES) onChange(normalizeCarousel([...photos, { id: -Date.now(), image_url: url, position: photos.length + 1 }]));
   };
 
   return (
@@ -47,28 +43,10 @@ export default function CarouselEditor({ photos, onChange, uploading, upload }: 
           renderOverlay={(item) => <CarouselRow item={item} />}
         />
       )}
-      {photos.length < MAX_CAROUSEL_IMAGES ? (
-        <DropArea
-          id={inputId}
-          uploading={uploading}
-          onFile={add}
-          label="Add a photo"
-          input={
-            <input
-              id={inputId}
-              type="file"
-              accept="image/png, image/jpeg, image/webp"
-              disabled={uploading}
-              className="sr-only"
-              onChange={(e) => {
-                add(e.target.files?.[0]);
-                e.target.value = "";
-              }}
-            />
-          }
-        />
-      ) : (
+      {photos.length >= MAX_CAROUSEL_IMAGES ? (
         <p className="text-[13px] text-gray-red">The gallery is full. Remove a photo to add another.</p>
+      ) : (
+        <WorkPhotoPicker choices={choices} taken={photos.map((p) => p.image_url)} loading={choicesLoading} onPick={add} />
       )}
     </>
   );
@@ -81,9 +59,7 @@ function CarouselRow({ item, dragHandle, faded = false, onRemove }: { item: Caro
       {/* eslint-disable-next-line @next/next/no-img-element -- R2 images, sized by CSS like the rest of the admin */}
       <img src={item.image_url} alt="" className="h-12 w-16 shrink-0 rounded-md object-cover" />
       <span className="min-w-0 flex-1 truncate text-[13px] text-gray-red">{fileName(item.image_url)}</span>
-      {onRemove && (
-        <IconButton size="sm" icon={X} label={`Remove ${fileName(item.image_url)}`} onClick={onRemove} />
-      )}
+      {onRemove && <IconButton size="sm" icon={X} label={`Remove ${fileName(item.image_url)}`} onClick={onRemove} />}
     </div>
   );
 }
