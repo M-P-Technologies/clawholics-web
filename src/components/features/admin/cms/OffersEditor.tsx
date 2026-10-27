@@ -76,7 +76,7 @@ export default function OffersEditor({ offers, services, onChange, upload, uploa
         );
       })}
       <Button size="sm" type="button" variant="secondary" disabled={offers.length >= MAX_OFFERS} onClick={() => onChange([...offers, NEW_OFFER])} className="w-fit">
-        <Plus size={14} aria-hidden="true" />
+        <Plus size={16} aria-hidden="true" />
         Add an offer
       </Button>
     </div>

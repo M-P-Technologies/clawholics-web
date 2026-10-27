@@ -64,7 +64,7 @@ export default function DirectoryTable({ label, users, profiles, selectedId, onS
 
   if (!asTable) {
     return (
-      <section aria-label={`${label} list`} className="flex min-w-0 flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-3 shadow-petal">
+      <section aria-label={`${label} list`} className="flex min-w-0 flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-6 shadow-petal">
         {header}
         <RowCards label={label}>
           {view.rows.map((user) => {

@@ -16,7 +16,7 @@ export function ReviewText({ appointment, busy = false, onApprove }: ReviewTextP
   const approved = appointment.review_approved === 1;
   return (
     <span className="flex min-w-0 flex-col items-start gap-1">
-      <Stars rating={appointment.review_rating} size={14} />
+      <Stars rating={appointment.review_rating} size={16} />
       {appointment.review_comment && <span className="line-clamp-3 whitespace-pre-wrap text-[13px] text-gray-red">{appointment.review_comment}</span>}
       {onApprove && reviewId != null && (
         <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">

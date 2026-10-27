@@ -236,13 +236,13 @@ export function ImageField({ label, value, uploading, onUpload, onRemove, hint, 
                 uploading && "pointer-events-none opacity-50",
               )}
             >
-              <RefreshCw size={14} aria-hidden="true" />
+              <RefreshCw size={16} aria-hidden="true" />
               Replace
               {input}
             </label>
             {value && (
               <Button type="button" variant="bare" onClick={onRemove} disabled={uploading} className="gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-bold text-danger-ink hover:bg-danger/10">
-                <Trash2 size={14} aria-hidden="true" />
+                <Trash2 size={16} aria-hidden="true" />
                 {fallback ? "Use the default" : "Remove"}
               </Button>
             )}
@@ -356,7 +356,7 @@ export function ElsewhereNote({ to, screen, children }: { to: string; screen: st
       <p className="text-[13px] leading-snug">{children}</p>
       <Link to={to} className="inline-flex items-center gap-1 font-bold text-berry underline underline-offset-4">
         Edit in {screen}
-        <ArrowUpRight size={14} aria-hidden="true" />
+        <ArrowUpRight size={16} aria-hidden="true" />
       </Link>
     </div>
   );

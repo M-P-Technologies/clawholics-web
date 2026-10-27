@@ -51,7 +51,7 @@ const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({
         imageUrl ? (
           <div className="flex justify-end">
             <Button variant="secondary" size="sm" href={imageUrl}>
-              <ExternalLink size={14} aria-hidden="true" />
+              <ExternalLink size={16} aria-hidden="true" />
               Open full size
               <span className="sr-only"> (opens in a new tab)</span>
             </Button>

@@ -353,13 +353,14 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
   };
 
   return (
-    <section id="appointments" aria-label="Appointments" className="flex min-w-0 scroll-mt-3 flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-3 shadow-petal sm:p-6">
+    <section id="appointments" aria-label="Appointments" className="flex min-w-0 scroll-mt-3 flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk shadow-petal p-6">
       {/* One row at every width; on a phone the button drops its icon to fit */}
       <div className="flex items-center justify-between gap-3">
         <h2 className="min-w-0 truncate font-display text-2xl font-normal text-gray-red">Appointments</h2>
         <Button size="sm" type="button" onClick={() => setCreating(true)} className="shrink-0 whitespace-nowrap">
-          <Plus size={14} aria-hidden="true" className="hidden sm:block" />
-          New appointment
+          <Plus size={16} aria-hidden="true" />
+          <span className="hidden sm:inline">New appointment</span>
+          <span className="inline sm:hidden">New</span>
         </Button>
       </div>
 
@@ -402,7 +403,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
                 className="flex h-9 min-w-0 items-center justify-between gap-1 rounded-md border border-crimson-light bg-milk px-3 text-sm text-gray-red focus-visible:outline-2 focus-visible:outline-crimson"
               >
                 <span className="min-w-0 truncate">{filter.options.find((o) => o.value === filter.value)?.label}</span>
-                <ChevronDown size={14} aria-hidden="true" className="shrink-0 text-crimson" />
+                <ChevronDown size={16} aria-hidden="true" className="shrink-0 text-crimson" />
               </button>
             ))}
           </div>

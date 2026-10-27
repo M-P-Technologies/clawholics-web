@@ -33,7 +33,7 @@ export default function StripEditor({ services, strip, onChange, upload, uploadi
           className="gap-1 text-[13px] font-bold text-berry underline underline-offset-4 disabled:opacity-50"
         >
           Choose the slides
-          <ListChecks size={14} aria-hidden="true" />
+          <ListChecks size={16} aria-hidden="true" />
         </Button>
       </div>
     );
@@ -132,11 +132,11 @@ export default function StripEditor({ services, strip, onChange, upload, uploadi
           disabled={strip.length >= MAX_STRIP_SLIDES || unused.length === 0}
           onClick={() => onChange([...strip, { serviceId: (unused.find((s) => s.image) ?? unused[0]).id, title: "", image: "" }])}
         >
-          <Plus size={14} aria-hidden="true" />
+          <Plus size={16} aria-hidden="true" />
           Add a slide
         </Button>
         <Button type="button" variant="bare" onClick={() => onChange(null)} className="gap-1 rounded-md px-3 py-1.5 text-sm font-bold text-gray-red hover:bg-crimson-light/30">
-          <RotateCcw size={14} aria-hidden="true" />
+          <RotateCcw size={16} aria-hidden="true" />
           Show every service again
         </Button>
       </div>

@@ -65,7 +65,7 @@ export default function TopBar({ title, hideTitle = false, greeting, titleAside,
           className="hidden shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-crimson-light px-3 py-1.5 text-sm font-bold text-berry transition-colors hover:bg-crimson-light/30 lg:flex"
         >
           View site
-          <ExternalLink size={14} aria-hidden="true" />
+          <ExternalLink size={16} aria-hidden="true" />
         </a>
 
         {/* The bell is drawn once, in the place for the screen's width */}

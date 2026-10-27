@@ -42,7 +42,7 @@ const CreateAppointmentDialog = ({ onClose, onCreated }: CreateAppointmentDialog
             Cancel
           </Button>
           <Button type="button" onClick={a.handleSubmit} loading={a.submitting} loadingText="Creating…">
-            <PlusIcon size={14} aria-hidden="true" />
+            <PlusIcon size={16} aria-hidden="true" />
             Create appointment
           </Button>
         </div>

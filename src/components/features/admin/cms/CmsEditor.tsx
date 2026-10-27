@@ -112,7 +112,7 @@ export default function CmsEditor({ title, pages, drafts, refreshKey = 0, header
                       device === value ? "bg-milk text-berry shadow-sm" : "text-gray-red hover:text-berry",
                     )}
                   >
-                    <Icon size={14} aria-hidden="true" />
+                    <Icon size={16} aria-hidden="true" />
                     {label}
                   </button>
                 ))}
