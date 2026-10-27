@@ -60,7 +60,6 @@ export default function Home() {
             />
             <h1 className="font-display font-normal text-6xl md:text-8xl text-crimson">
               {content.home_title}
-              <span className="-mt-2 block pl-2 font-script text-5xl text-crimson-ink md:-mt-4 md:text-7xl">by Max</span>
             </h1>
             <p className="max-w-lg copy-lead">
               {t.home_hero_text}
