@@ -33,11 +33,12 @@ export default function ProfilePanel({ label, name, imageUrl, badges, highlight,
   const HighlightIcon = highlight?.icon;
   return (
     <aside aria-label={label} className={clsx("flex min-w-0 flex-col gap-6 p-6", surface.card, className)}>
-      {/* The photo and the name wrap onto two lines in a narrow panel; a badge longer than the
-          panel is cut off at its edge rather than running past it */}
-      <div className="flex min-w-0 flex-wrap items-center gap-3">
+      {/* The photo and the name are one row on a phone (the badges wrap under the name); in the narrow
+          panel beside the table from `lg` they wrap onto two lines. A badge longer than the panel is cut
+          off at its edge rather than running past it */}
+      <div className="flex min-w-0 items-center gap-3 lg:flex-wrap">
         <Avatar name={name} imageUrl={imageUrl} size="xl" decorative />
-        <div className="min-w-0 max-w-full overflow-hidden">
+        <div className="min-w-0 max-w-full flex-1 overflow-hidden lg:flex-none">
           <h2 className="wrap-break-word font-display text-2xl font-normal leading-tight text-gray-red">{name}</h2>
           {badges && <div className="mt-1 flex min-w-0 flex-wrap gap-1.5 overflow-hidden [&>*]:max-w-full [&>*]:overflow-hidden">{badges}</div>}
         </div>
