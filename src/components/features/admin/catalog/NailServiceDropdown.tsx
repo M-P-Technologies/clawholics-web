@@ -25,7 +25,8 @@ import ServicePricingFields, {
 } from "@/components/features/admin/catalog/ServicePricingFields";
 
 import { PHOTO_UPLOAD_OPTIONS, uploadImage } from "@/services/uploadService";
-import { useToast, EditActions, SectionHeader } from "@/components/molecules";
+import { DragHandle, useToast, EditActions, SectionHeader } from "@/components/molecules";
+import type { SortableHandleProps } from "@/components/molecules";
 import { Button } from "@/components/atoms";
 import { ConfirmDialog, ImagePreviewDialog } from "@/components/organisms";
 
@@ -38,6 +39,9 @@ type NailServiceDropdownProps = {
   tokenFetcher?: () => Promise<string | null>;
   clerkId?: string | null;
   categories: ServiceCategory[];
+  /** From a SortableList: the handle that drags this row, and whether it is being dragged */
+  dragHandleProps?: SortableHandleProps;
+  isDragging?: boolean;
 };
 
 type InputFieldProps = {
@@ -100,6 +104,8 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
   tokenFetcher,
   clerkId,
   categories,
+  dragHandleProps,
+  isDragging = false,
 }) => {
   const toast = useToast();
   const isCreateMode = mode === "create";
@@ -404,32 +410,37 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
 
   return (
     <>
-      <div className="flex flex-col w-full rounded-xl border border-crimson-light/50 bg-milk px-3 py-3">
-        <Button
-          variant="bare"
-          type="button"
-          onClick={() => setIsOpen((prevState) => !prevState)}
-          aria-expanded={isOpen}
-          className="flex items-center justify-between w-full gap-3 sm:gap-3 text-left min-h-8.75"
-        >
-          <span className="block min-w-0 font-bold text-base truncate text-gray-red">
-            {title || "Untitled Service"}
-          </span>
+      <div className={`flex flex-col w-full rounded-xl border border-crimson-light/50 bg-milk px-3 py-3 transition-opacity duration-200 ${isDragging ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
+        {/* The drag handle sits beside the toggle, not inside it: a button can't hold a button */}
+        <div className="flex min-h-8.75 items-center gap-3">
+          {!isCreateMode && <DragHandle {...(dragHandleProps ?? {})} />}
 
-          {isCreateMode ? (
-            <PlusIcon
-              size={20} className={`shrink-0 mr-0.75 transition-transform duration-300 ${
-                isOpen ? "rotate-45" : ""
-              }`}
-            />
-          ) : (
-            <DropdownIcon
-              size={22} className={`text-gray-red shrink-0 transition-transform duration-300 ${
-                isOpen ? "rotate-180" : ""
-              }`}
-            />
-          )}
-        </Button>
+          <Button
+            variant="bare"
+            type="button"
+            onClick={() => setIsOpen((prevState) => !prevState)}
+            aria-expanded={isOpen}
+            className="flex min-w-0 flex-1 items-center justify-between gap-3 text-left"
+          >
+            <span className="block min-w-0 font-bold text-base truncate text-gray-red">
+              {title || "Untitled Service"}
+            </span>
+
+            {isCreateMode ? (
+              <PlusIcon
+                size={20} className={`shrink-0 mr-0.75 transition-transform duration-300 ${
+                  isOpen ? "rotate-45" : ""
+                }`}
+              />
+            ) : (
+              <DropdownIcon
+                size={22} className={`text-gray-red shrink-0 transition-transform duration-300 ${
+                  isOpen ? "rotate-180" : ""
+                }`}
+              />
+            )}
+          </Button>
+        </div>
 
         <div
           className={`transition-all duration-300 ease-in-out overflow-hidden ${
@@ -516,11 +527,11 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
 
               {isEditing && gallery.length < MAX_IMAGES && (
                 <label
-                  className={`flex flex-col items-center justify-center w-full mt-3 ${
+                  className={`flex flex-col items-center justify-center w-full mt-3 rounded-xl bg-crimson/15 p-3 ${
                     !isUploading ? "cursor-pointer" : "cursor-not-allowed"
                   }`}
                 >
-                  <div className="flex items-center justify-center w-10.5 h-10.5 rounded-sm bg-crimson/15 text-gray-red">
+                  <div className="flex items-center justify-center w-10.5 h-10.5 rounded-sm text-gray-red">
                     <UploadIcon size={28} className="text-crimson" />
                   </div>
 

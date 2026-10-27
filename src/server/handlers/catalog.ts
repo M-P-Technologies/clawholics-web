@@ -175,7 +175,7 @@ const toActiveFlag = (value: unknown, fallback: number) =>
   value === undefined || value === null ? fallback : value === true || value === 1 || value === "1" || value === "true" ? 1 : 0;
 
 // Reorder payloads: a non-empty list of unique positive integer IDs
-function parseIdList(value: unknown): number[] | null {
+export function parseIdList(value: unknown): number[] | null {
   if (!Array.isArray(value) || value.length === 0) return null;
   const ids = value.map(toId);
   return ids.every((id) => id !== null) && new Set(ids).size === ids.length ? (ids as number[]) : null;

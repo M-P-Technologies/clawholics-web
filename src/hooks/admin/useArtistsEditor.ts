@@ -8,6 +8,7 @@ import { useAuth, useUser } from "@clerk/nextjs";
 import { useToast } from "@/components/molecules";
 import { readTeamPage, type TeamPageKey } from "../../lib/homeSections";
 import { fetchTeamContent, updateTeamContent } from "../../services/contentService";
+import { reorderNailists } from "../../services/catalogService";
 import { type Nailist } from "../../services/nailistService";
 
 type TeamWords = Record<TeamPageKey, string>;
@@ -90,9 +91,23 @@ export function useArtistsEditor() {
     }
   };
 
+  // An artist was dragged: show the new order at once, then save it (the list is asked for again if that fails)
+  const reorder = async (reordered: Nailist[]) => {
+    queryClient.setQueryData<Nailist[]>(NAILISTS_KEY, reordered);
+    try {
+      await reorderNailists(reordered.map((nailist) => nailist.id), { token: await getToken(), clerkId: currentUser?.id });
+      changed();
+    } catch (error) {
+      console.error("Failed to reorder artists:", error);
+      toast.show("error", "Order not saved", "We couldn't save the new order, so the artists are back as they were. Please try again.");
+      void loadNailists().catch(() => undefined);
+    }
+  };
+
   return {
     isLoading,
     nailists,
+    reorder,
     refreshKey,
     changed,
     getToken,

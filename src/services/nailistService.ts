@@ -36,11 +36,14 @@ const getHeaders = (token?: string | null, clerkId?: string | null) => {
   return headers;
 };
 
-const loadNailists = async () => {
+const loadNailists = async (): Promise<Nailist[]> => {
   const res = await fetch(`${API_BASE_URL}/nailists?t=${Date.now()}`, {
     headers: { "x-clawholics-origin": "frontend" }
   });
-  return await res.json();
+  // A failed answer is an error object, not a list: refuse it, so the screens show their load error
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !Array.isArray(data)) throw new Error("Failed to fetch artists");
+  return data;
 };
 export const fetchNailistServices = async (
   nailistId: number,

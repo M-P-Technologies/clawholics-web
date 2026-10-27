@@ -3,6 +3,8 @@
 import CmsEditor from "@/components/features/admin/cms/CmsEditor";
 import { ItemsNote, PanelSection, SaveBar, TextField } from "@/components/features/admin/cms/fields";
 import ArtistEditor from "@/components/features/admin/catalog/ArtistEditor";
+import DragRowPreview from "@/components/features/admin/catalog/DragRowPreview";
+import { SortableList } from "@/components/molecules";
 import { CmsEditorSkeleton } from "@/components/features/admin/skeletons/skeletons";
 import { useArtistsEditor } from "@/hooks/admin/useArtistsEditor";
 import { ARTISTS_PREVIEW_PAGES } from "@/lib/admin/cmsPages";
@@ -45,17 +47,26 @@ export default function NailArtists() {
         aside={nailists.length}
       >
         <div className="flex flex-col gap-3">
-          {nailists.map((nailist) => (
-            <ArtistEditor
-              key={nailist.id}
-              nailist={nailist}
-              tokenFetcher={editor.getToken}
-              clerkId={editor.clerkId}
-              onNailistUpdated={editor.onNailistUpdated}
-              onGalleryChanged={editor.changed}
-              onNailistDeleted={editor.onNailistDeleted}
-            />
-          ))}
+          {/* Drag an artist by their handle to put them where they should show on the Artists page */}
+          <SortableList
+            items={nailists}
+            getItemId={(nailist) => nailist.id}
+            onReorder={editor.reorder}
+            className="flex flex-col gap-3"
+            renderItem={(nailist, { dragHandleProps, isDragging }) => (
+              <ArtistEditor
+                nailist={nailist}
+                tokenFetcher={editor.getToken}
+                clerkId={editor.clerkId}
+                onNailistUpdated={editor.onNailistUpdated}
+                onGalleryChanged={editor.changed}
+                onNailistDeleted={editor.onNailistDeleted}
+                dragHandleProps={dragHandleProps}
+                isDragging={isDragging}
+              />
+            )}
+            renderOverlay={(nailist) => <DragRowPreview title={nailist.name} />}
+          />
 
           <ArtistEditor mode="create" tokenFetcher={editor.getToken} clerkId={editor.clerkId} onNailistCreated={editor.onNailistCreated} />
         </div>

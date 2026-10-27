@@ -5,6 +5,7 @@ import { getSql } from "../db";
 import { orNull, pgErrorCode, readJson, routeNotFound, toId } from "../http";
 import { changesCatalog, publicReads } from "../publicCache";
 import { ported } from "../worker";
+import { parseIdList } from "./catalog";
 
 // Nailist (artist) routes, ported from worker-api/src/index.ts (~lines 1286-1384). The GETs
 // are public, as on the Worker; writes need an admin session.
@@ -29,11 +30,24 @@ export const createNailist = changesCatalog(ported(async (req) => {
   const body = await readJson<Body>(req);
   if (typeof body.name !== "string" || !body.name.trim()) return badRequest("Name is required.");
   const [{ id }] = await getSql()<{ id: number }[]>`
-    insert into nailists (name, category_id, specialty, bio, image)
-    values (${body.name}, ${await categoryIdFor(body.position)}, ${orNull(body.specialty)}, ${orNull(body.bio)}, ${orNull(body.image)})
+    insert into nailists (name, category_id, specialty, bio, image, display_order)
+    values (${body.name}, ${await categoryIdFor(body.position)}, ${orNull(body.specialty)}, ${orNull(body.bio)}, ${orNull(body.image)},
+      (select coalesce(max(display_order), 0) + 1 from nailists))
     returning id
   `;
   return Response.json(await getNailistRow(id), { status: 201 });
+}));
+
+// PUT /nailists/reorder (admin): { ids } is every artist in the order to show them
+export const reorderNailists = changesCatalog(ported(async (req) => {
+  const admin = await requireAdmin();
+  if (admin instanceof Response) return admin;
+  const ids = parseIdList((await readJson<{ ids?: unknown }>(req)).ids);
+  if (!ids) return badRequest("ids must be a non-empty list of unique artist IDs.");
+  await getSql().begin(async (tx) => {
+    for (const [i, id] of ids.entries()) await tx`update nailists set display_order = ${i + 1} where id = ${id}`;
+  });
+  return Response.json({ message: "Artists reordered" });
 }));
 
 export const getNailistById = ported<IdContext>(async (_req, { params }) => {
