@@ -1,8 +1,8 @@
-import { X as XIcon } from "lucide-react";
+import { X } from "lucide-react";
 import React from "react";
 import type { NailistTimeSlots } from "@/services/nailistService";
 import { SectionHeader } from "@/components/molecules";
-import { Button } from "@/components/atoms";
+import { Button, IconButton } from "@/components/atoms";
 import { formatTimeDisplay, openTimePicker, splitTimeSlot } from "@/lib/admin/artistEditor";
 import { useTimeSlots } from "@/hooks/admin/useTimeSlots";
 import { SectionSkeleton } from "../skeletons/skeletons";
@@ -109,14 +109,7 @@ const TimeSlotCard = ({
                     />
 
                     {!disabled && (
-                      <Button
-                        variant="bare"
-                        type="button"
-                        onClick={() => deleteTimeSlot(index)}
-                        className="flex items-center justify-center w-6 h-6"
-                      >
-                        <XIcon size={24} className="text-crimson" />
-                      </Button>
+                      <IconButton size="sm" icon={X} label={`Remove time block ${index + 1}`} onClick={() => deleteTimeSlot(index)} />
                     )}
                   </React.Fragment>
                 );
@@ -151,7 +144,7 @@ const TimeSlotCard = ({
               </div>
 
               <div className="flex justify-center">
-                <Button type="button" onClick={handleAddTimeSlot}>
+                <Button variant="secondary" fullWidth type="button" onClick={handleAddTimeSlot}>
                   Add time slot
                 </Button>
               </div>

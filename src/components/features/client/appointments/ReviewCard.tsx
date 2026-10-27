@@ -92,7 +92,7 @@ export default function ReviewCard({ appointmentId, review, onSubmit }: ReviewCa
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={previewUrl} alt="Your photo" className="h-24 w-24 rounded-lg object-cover" />
           <Button type="button" variant="bare" onClick={removePhoto} aria-label="Remove photo" className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-berry text-pearl">
-            <X size={14} aria-hidden="true" />
+            <X size={16} aria-hidden="true" />
           </Button>
         </div>
       ) : (

@@ -1,5 +1,5 @@
-import { ChevronDown as DropdownIcon, Plus as PlusIcon, Star as StarIcon, X as XIcon } from "lucide-react";
-import React, { useEffect, useId, useRef, useState } from "react";
+import { ChevronDown as DropdownIcon, Plus as PlusIcon, Star as StarIcon, X } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ADMIN } from "@/lib/adminQueries";
 import { useFillForm } from "@/hooks/admin/useFillForm";
@@ -24,12 +24,12 @@ import ServicePricingFields, {
   type PricingDraft,
 } from "@/components/features/admin/catalog/ServicePricingFields";
 
-import { PHOTO_UPLOAD_OPTIONS, uploadImage } from "@/services/uploadService";
 import { DragHandle, useToast, EditActions, SectionHeader } from "@/components/molecules";
 import { itemName, upperFirst } from "@/lib/itemName";
 import type { SortableHandleProps } from "@/components/molecules";
-import { Button } from "@/components/atoms";
-import { DropArea } from "@/components/features/admin/cms/fields";
+import { Button, IconButton } from "@/components/atoms";
+import PhotoPickerDialog from "@/components/features/admin/cms/PhotoPickerDialog";
+import { useServiceVisitPhotos } from "@/hooks/admin/useServiceVisitPhotos";
 import { ConfirmDialog, ImagePreviewDialog } from "@/components/organisms";
 
 type NailServiceDropdownProps = {
@@ -110,14 +110,15 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
   isDragging = false,
 }) => {
   const toast = useToast();
-  const uploadId = useId();
   const isCreateMode = mode === "create";
 
   const [isOpen, setIsOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(isCreateMode);
+  const [pickingPhoto, setPickingPhoto] = useState(false);
+  // Only the photos added to completed visits of this service (none until it is saved)
+  const workPhotos = useServiceVisitPhotos(pickingPhoto && !isCreateMode ? (service?.id ?? null) : null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
@@ -209,43 +210,15 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
     setIsEditing(false);
   };
 
-  const handleUploadImages = async (files: FileList | null) => {
-    if (!files) return;
-
-    const selectedFiles = Array.from(files);
-    const remainingSlots = MAX_IMAGES - gallery.length;
-
-    if (selectedFiles.length > remainingSlots) {
-      toast.show("error", "Too many photos", `${upperFirst(who)} can have up to ${MAX_IMAGES} photos. Remove some before uploading more.`);
+  // Photos are chosen from the artists' work already in the database, not uploaded
+  const handleAddPhoto = (url: string) => {
+    if (gallery.length >= MAX_IMAGES) {
+      toast.show("error", "Too many photos", `${upperFirst(who)} can have up to ${MAX_IMAGES} photos. Remove some before adding more.`);
       return;
     }
-
-    try {
-      setIsUploading(true);
-
-      const currentName = name;
-      const token = tokenFetcher ? await tokenFetcher() : null;
-
-      const uploadedImages = await Promise.all(
-        selectedFiles.map(async (file, index) => {
-          const data = await uploadImage(file, "service-gallery", token, clerkId, PHOTO_UPLOAD_OPTIONS);
-          return {
-            id: Date.now() + index,
-            service_id: service?.id ?? 0,
-            image_url: data.imageUrl,
-            position: gallery.length + index + 1,
-          };
-        })
-      );
-
-      setGallery((prev) => [...prev, ...uploadedImages]);
-      setName((prevName) => prevName || currentName || service?.name || originalName);
-    } catch (error) {
-      console.error("Failed to upload service images:", error);
-      toast.show("error", "Photos not uploaded", `We couldn't upload the photos for ${who}. Please check that they are image files and try again.`);
-    } finally {
-      setIsUploading(false);
-    }
+    const currentName = name;
+    setGallery((prev) => [...prev, { id: Date.now(), service_id: service?.id ?? 0, image_url: url, position: prev.length + 1 }]);
+    setName((prevName) => prevName || currentName || service?.name || originalName);
   };
 
   const handleRemoveImage = async (image: ServiceGalleryImage) => {
@@ -491,79 +464,55 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
 
               <div className="flex flex-col gap-3">
                 {gallery.map((image) => (
-                  <div
-                    key={image.id}
-                    className="flex items-center justify-between w-full min-h-9 bg-milk rounded-md px-3 py-1 overflow-visible border border-crimson-light"
-                  >
-                    <Button
-                      variant="bare"
-                      type="button"
-                      onClick={() => setPreviewImageUrl(image.image_url)}
-                      className="min-w-0 flex-1 cursor-pointer text-left text-[13px] leading-none truncate text-gray-red hover:underline"
-                    >
-                      {image.image_url.split("/").pop()}
+                  <div key={image.id} className="flex items-center gap-3 rounded-lg border border-crimson-light/60 bg-milk p-2">
+                    <Button variant="bare" type="button" aria-label={`Preview ${image.image_url.split("/").pop()}`} onClick={() => setPreviewImageUrl(image.image_url)} className="shrink-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element -- R2 images, sized by CSS like the rest of the admin */}
+                      <img src={image.image_url} alt="" className="h-12 w-16 rounded-md object-cover" />
                     </Button>
+                    <span className="min-w-0 flex-1 truncate text-[13px] text-gray-red">{image.image_url.split("/").pop()}</span>
 
-                    <Button
-                      variant="bare"
-                      type="button"
-                      aria-label={isMain(image) ? "Main photo of this service" : "Make this the main photo"}
-                      aria-pressed={isMain(image)}
-                      title={isMain(image) ? "Main photo: shown for this service on the website" : "Make this the main photo"}
-                      disabled={!isEditing || isUploading}
-                      onClick={() => setStarredUrl(image.image_url)}
-                      className="flex items-center justify-center w-7 h-7 shrink-0 disabled:cursor-default disabled:opacity-100"
-                    >
-                      <StarIcon size={22} className={isMain(image) ? "fill-crimson text-crimson" : "text-crimson/40"} />
-                    </Button>
-
-                    {isEditing && (
+                    <div className="flex shrink-0 items-center gap-0">
                       <Button
                         variant="bare"
                         type="button"
-                        onClick={() => handleRemoveImage(image)}
-                        disabled={isUploading}
-                        className="flex items-center justify-center w-7 h-7 shrink-0"
+                        aria-label={isMain(image) ? "Main photo of this service" : "Make this the main photo"}
+                        aria-pressed={isMain(image)}
+                        title={isMain(image) ? "Main photo: shown for this service on the website" : "Make this the main photo"}
+                        disabled={!isEditing}
+                        onClick={() => setStarredUrl(image.image_url)}
+                        className="flex items-center justify-center w-7 h-7 shrink-0 disabled:cursor-default disabled:opacity-100"
                       >
-                        <XIcon size={28} className="text-crimson" />
+                        <StarIcon size={22} className={isMain(image) ? "fill-crimson text-crimson" : "text-crimson/40"} />
                       </Button>
-                    )}
+
+                      {isEditing && (
+                        <IconButton size="sm" icon={X} label="Remove photo" onClick={() => handleRemoveImage(image)} />
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
 
               {isEditing && gallery.length < MAX_IMAGES && (
-                <div className="mt-3">
-                  <DropArea
-                    id={uploadId}
-                    uploading={isUploading}
-                    label="Add photos"
-                    hint="PNG, JPG or WebP. Click, or drop them here."
-                    onFiles={(files) => void handleUploadImages(files)}
-                    input={
-                      <input
-                        id={uploadId}
-                        type="file"
-                        accept="image/png, image/jpeg, image/webp"
-                        multiple
-                        disabled={isUploading}
-                        className="sr-only"
-                        onChange={async (e) => {
-                          await handleUploadImages(e.target.files);
-                          e.target.value = "";
-                        }}
-                      />
-                    }
-                  />
-                </div>
+                <Button type="button" variant="secondary" fullWidth className="mt-3" onClick={() => setPickingPhoto(true)}>
+                  Add photo
+                </Button>
               )}
+              <PhotoPickerDialog
+                open={pickingPhoto}
+                onClose={() => setPickingPhoto(false)}
+                choices={workPhotos.photos}
+                taken={gallery.map((image) => image.image_url)}
+                loading={workPhotos.isLoading}
+                emptyText={isCreateMode ? "Photos come from completed visits of this service, so save it first." : "No completed visit of this service has a photo yet. Add one when completing a visit."}
+                onPick={handleAddPhoto}
+              />
             </div>
 
             <EditActions
               isEditing={isEditing}
               isCreateMode={isCreateMode}
               isSaving={isSaving}
-              busy={isUploading}
               onEdit={() => setIsEditing(true)}
               onCancel={handleCancel}
               onSave={handleSave}

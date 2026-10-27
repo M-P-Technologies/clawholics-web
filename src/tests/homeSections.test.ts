@@ -3,6 +3,9 @@ import {
   DEFAULT_FEATURES,
   HOME_TEXT_DEFAULTS,
   buildStripItems,
+  clientAppProblem,
+  clientAppToContent,
+  readClientApp,
   homeSectionsProblem,
   homeSectionsToContent,
   readGoodToKnow,
@@ -128,11 +131,24 @@ describe("client app offers", () => {
     expect(t.home_explore_subtitle).toBe("Find the perfect service for you");
   });
   it("refuses an offer whose button opens an unknown page", () => {
-    const s = readHomeSections({ home_offers: JSON.stringify([{ ...offer, link: "/nowhere" }]) });
-    expect(homeSectionsProblem(s)).toMatch(/Offer 1/);
+    const c = readClientApp({ home_offers: JSON.stringify([{ ...offer, link: "/nowhere" }]) });
+    expect(clientAppProblem(c)).toMatch(/Offer 1/);
   });
   it("accepts an offer that opens a service in the app", () => {
-    const s = readHomeSections({ home_offers: JSON.stringify([{ ...offer, link: "/my/explore/12" }]) });
+    const c = readClientApp({ home_offers: JSON.stringify([{ ...offer, link: "/my/explore/12" }]) });
+    expect(clientAppProblem(c)).toBeNull();
+  });
+  it("refuses a blank birthday field", () => {
+    const base = readClientApp({});
+    const c = { ...base, text: { ...base.text, home_birthday_title: "  " } };
+    expect(clientAppProblem(c)).toMatch(/birthday/i);
+  });
+  it("saves only the client app's own five keys", () => {
+    const keys = Object.keys(clientAppToContent(readClientApp({})));
+    expect(keys.sort()).toEqual(["home_birthday_enabled", "home_birthday_line", "home_birthday_note", "home_birthday_title", "home_offers"]);
+  });
+  it("is not checked by the homepage's own check", () => {
+    const s = readHomeSections({ home_offers: JSON.stringify([{ ...offer, link: "/nowhere" }]), home_birthday_title: "" });
     expect(homeSectionsProblem(s)).toBeNull();
   });
 });

@@ -4,6 +4,7 @@ import CarouselEditor, { MAX_CAROUSEL_IMAGES } from "@/components/features/admin
 import CmsEditor, { CmsLoadError } from "@/components/features/admin/cms/CmsEditor";
 import { ImageField, PanelSection, SaveBar, TextField } from "@/components/features/admin/cms/fields";
 import { CmsEditorSkeleton } from "@/components/features/admin/skeletons/skeletons";
+import { useArtistWorkPhotos } from "@/hooks/admin/useArtistWorkPhotos";
 import { useAboutEditor } from "@/hooks/admin/useAboutEditor";
 import { ABOUT_DAYS, ABOUT_PREVIEW_PAGES } from "@/lib/admin/aboutEditor";
 
@@ -11,6 +12,7 @@ import { ABOUT_DAYS, ABOUT_PREVIEW_PAGES } from "@/lib/admin/aboutEditor";
 // preview. Its state and saving are in hooks/admin/useAboutEditor.
 export default function AboutUs() {
   const editor = useAboutEditor();
+  const workPhotos = useArtistWorkPhotos();
   const { content, set, gallery } = editor;
 
   if (editor.isLoading) return <CmsEditorSkeleton title="About Us" />;
@@ -23,15 +25,15 @@ export default function AboutUs() {
       pages={ABOUT_PREVIEW_PAGES}
       drafts={{ about: { ...content }, carousel: gallery }}
       refreshKey={editor.refreshKey}
-      header={<SaveBar dirty={editor.dirty} saving={editor.isSaving} busy={editor.isUploading || editor.galleryUploading} onSave={editor.save} onDiscard={editor.discard} />}
+      header={<SaveBar dirty={editor.dirty} saving={editor.isSaving} busy={editor.isUploading} onSave={editor.save} onDiscard={editor.discard} />}
     >
       <PanelSection title="Story" description="The salon's story, at the top of the About page." page="/about">
         <TextField label="Description" value={content.about_description} onChange={set("about_description")} rows={8} />
         <ImageField label="Photo" value={content.about_image} uploading={editor.isUploading} onUpload={editor.uploadPhoto} onRemove={() => set("about_image")("")} />
       </PanelSection>
 
-      <PanelSection title="Studio gallery" description="The photos of the studio's work on the About page. Drag to change the order." page="/about" aside={`${gallery.length}/${MAX_CAROUSEL_IMAGES}`}>
-        <CarouselEditor photos={gallery} onChange={editor.setGallery} uploading={editor.galleryUploading} upload={editor.uploadGalleryPhoto} />
+      <PanelSection title="Studio gallery" description="The photos of the studio's work on the About page, chosen from the artists' work (the photos from completed visits). Drag to change the order." page="/about" aside={`${gallery.length}/${MAX_CAROUSEL_IMAGES}`}>
+        <CarouselEditor photos={gallery} onChange={editor.setGallery} choices={workPhotos.photos} choicesLoading={workPhotos.isLoading} />
       </PanelSection>
 
       <div className="mx-3 mt-6 rounded-xl bg-crimson-light/20 p-3 text-[13px] leading-snug text-gray-red sm:mx-6">

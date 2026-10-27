@@ -70,7 +70,7 @@ export default function InfoTip({ label, children }: InfoTipProps) {
         onClick={() => (wide ? setPinned((p) => !p) : setSheet(true))}
         className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-gray-red transition-colors hover:bg-crimson-light/40 hover:text-berry focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-crimson"
       >
-        <Info size={14} aria-hidden="true" />
+        <Info size={16} aria-hidden="true" />
       </button>
       {tipOpen && (
         <span

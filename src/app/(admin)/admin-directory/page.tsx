@@ -43,7 +43,7 @@ export default function AdminDirectory() {
                 serverPage={d.serverPage}
                 action={
                   <Button size="sm" type="button" onClick={d.openAdd} className="shrink-0 whitespace-nowrap">
-                    <Plus size={14} aria-hidden="true" className="hidden sm:block" />
+                    <Plus size={16} aria-hidden="true" />
                     Add admin
                   </Button>
                 }

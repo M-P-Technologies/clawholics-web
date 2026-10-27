@@ -20,11 +20,11 @@ export default function ScheduleMonthGrid({ month, onMonthChange, onPrevious, on
     <>
       <div className="mb-2 flex items-center justify-between">
         <Button variant="bare" type="button" onClick={onPrevious} aria-label="Previous month" className="flex h-8 w-8 items-center justify-center">
-          <BackButton size={32} className="text-gray-red" />
+          <BackButton size={16} className="text-gray-red" />
         </Button>
         <h3 className="text-base lg:text-lg uppercase">{monthLabel(month)}</h3>
         <Button variant="bare" type="button" onClick={onNext} aria-label="Next month" className="flex h-8 w-8 items-center justify-center">
-          <BackButton size={32} className="text-gray-red rotate-180" />
+          <BackButton size={16} className="text-gray-red rotate-180" />
         </Button>
       </div>
 

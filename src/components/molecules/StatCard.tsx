@@ -47,7 +47,7 @@ export default function StatCard({
     return (
       <div role="group" aria-label={label} className={clsx("flex min-w-0 flex-col gap-1 rounded-xl bg-crimson-light/15 p-3", className)}>
         <span className="flex items-center gap-1.5 text-xs font-medium text-gray-red">
-          {CardIcon && <CardIcon size={14} aria-hidden="true" className="text-berry" />}
+          {CardIcon && <CardIcon size={16} aria-hidden="true" className="text-berry" />}
           {label}
         </span>
         <span className="truncate font-display text-2xl leading-tight text-berry">{value}</span>
@@ -62,7 +62,7 @@ export default function StatCard({
       aria-label={label}
       className={clsx(
         "relative flex min-w-0 flex-col gap-3",
-        variant === "card" && "rounded-2xl border border-crimson-light/40 bg-milk p-3 shadow-petal sm:p-6",
+        variant === "card" && "rounded-2xl border border-crimson-light/40 bg-milk shadow-petal p-3 sm:p-6",
         variant === "card" && size === "hero" && "bg-linear-to-br from-milk via-milk to-crimson-light/30",
         className,
       )}
@@ -107,7 +107,7 @@ export default function StatCard({
             good === null && "bg-sand",
           )}
         >
-          <Icon size={14} aria-hidden="true" className="shrink-0" />
+          <Icon size={16} aria-hidden="true" className="shrink-0" />
           <span>{change.label}</span>
           <span className="sr-only">{WORDS[change.kind]}</span>
         </p>

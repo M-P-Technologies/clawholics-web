@@ -2,7 +2,6 @@
 
 import CmsEditor, { CmsLoadError } from "@/components/features/admin/cms/CmsEditor";
 import { ElsewhereNote, IconPicker, ImageField, LinkField, PanelSection, SaveBar, SelectField, SubCard, TextField } from "@/components/features/admin/cms/fields";
-import OffersEditor from "@/components/features/admin/cms/OffersEditor";
 import StripEditor from "@/components/features/admin/cms/StripEditor";
 import { FontPicker, PalettePicker } from "@/components/features/admin/cms/ThemePickers";
 import { CmsEditorSkeleton } from "@/components/features/admin/skeletons/skeletons";
@@ -10,7 +9,6 @@ import emblem from "@/assets/logo/emblem-pink.png";
 import footerLogo from "@/assets/logo/logo-pink-transparent.png";
 import { useHomeEditor } from "@/hooks/admin/useHomeEditor";
 import { HOME_PREVIEW_PAGES } from "@/lib/admin/cmsPages";
-import { BIRTHDAY_BANNER_OPTIONS } from "@/lib/admin/homeEditor";
 import { FEATURE_ICONS, FEATURE_TEXT_MAX, FEATURE_TITLE_MAX, MAX_STRIP_SLIDES, SITE_LINK_OPTIONS } from "@/lib/homeSections";
 import { BODY_FONTS, DISPLAY_FONTS, SCRIPT_FONTS } from "@/lib/siteTheme";
 
@@ -20,7 +18,7 @@ import { BODY_FONTS, DISPLAY_FONTS, SCRIPT_FONTS } from "@/lib/siteTheme";
 // Its state, uploads and saving are in hooks/admin/useHomeEditor.
 export default function Homepage() {
   const editor = useHomeEditor();
-  const { content, sections, services, set, setText, setFeature, setStrip, setOffers, upload, uploadTo, uploading } = editor;
+  const { content, sections, services, set, setText, setFeature, setStrip, uploadTo, uploading } = editor;
   const t = sections.text;
 
   if (editor.isLoading) return <CmsEditorSkeleton title="Homepage" />;
@@ -78,20 +76,7 @@ export default function Homepage() {
       </PanelSection>
 
       <PanelSection title="Service photo strip" description="The sliding photos of services, each with its price, hours and a Book button." page="/#service-strip" aside={sections.strip ? `${sections.strip.length}/${MAX_STRIP_SLIDES}` : undefined}>
-        <StripEditor services={services} strip={sections.strip} onChange={setStrip} upload={upload} uploading={uploading} />
-      </PanelSection>
-
-      <PanelSection title="Client app" description="What signed-in clients see in their app (/my). These don't show on the public site, so the preview doesn't change.">
-        <SubCard title="Birthday banner">
-          <SelectField label="Show it" value={t.home_birthday_enabled} options={BIRTHDAY_BANNER_OPTIONS} onChange={setText("home_birthday_enabled")} />
-          <TextField label="Birthday headline" value={t.home_birthday_title} onChange={setText("home_birthday_title")} />
-          <TextField label="Line under it" value={t.home_birthday_line} onChange={setText("home_birthday_line")} />
-          <TextField label="Small print" value={t.home_birthday_note} onChange={setText("home_birthday_note")} />
-          <p className="text-xs text-gray-red">{"{name}"} becomes the client&apos;s first name. Staff apply the treat at the salon.</p>
-        </SubCard>
-        <SubCard title="Special offers">
-          <OffersEditor offers={sections.offers} services={services} onChange={setOffers} upload={upload} uploading={uploading} />
-        </SubCard>
+        <StripEditor services={services} strip={sections.strip} onChange={setStrip} />
       </PanelSection>
 
       <PanelSection title="About us" description="The short story with a link to the About page." page="/#about-teaser">

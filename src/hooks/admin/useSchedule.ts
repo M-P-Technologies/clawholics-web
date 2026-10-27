@@ -4,6 +4,7 @@ import { useAuth, useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { keepPreviousData, useQueries, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { useToast } from "@/components/molecules";
+import { scheduleClientName } from "../../services/scheduleAgenda";
 import { buildDayData, formatLocalMonth, getArtistName, parseLocalDate, serviceNamesOf, weekLabel } from "../../lib/admin/schedule";
 import { isDesktopWidth } from "../../lib/viewport";
 import { adminDataChanged, adminQueries } from "../../lib/adminQueries";
@@ -38,7 +39,6 @@ export function useSchedule() {
   // Phone: the day shown in the agenda, which view is open, and the filter sheet
   const [agendaDate, setAgendaDate] = useState(() => new Date());
   const [phoneView, setPhoneView] = useState<PhoneView>("agenda");
-  const [filterOpen, setFilterOpen] = useState(false);
 
   // Which layout is drawn: the week grid from lg up, the agenda below. Decided in the browser (the
   // server and the first render assume a phone) and again when the window is resized.
@@ -120,13 +120,23 @@ export function useSchedule() {
     await adminDataChanged(queryClient);
   };
 
+  // The phone's agenda and month show only the bookings matching the search and the service
+  const q = query.trim().toLowerCase();
+  const narrow = (artists: ReturnType<typeof buildDayData>) =>
+    artists.map((artist) => ({
+      ...artist,
+      appointments: artist.appointments.filter(
+        (a) => (service === "All" || a.service_name === service) && (!q || scheduleClientName(a).toLowerCase().includes(q) || (a.service_name ?? "").toLowerCase().includes(q)),
+      ),
+    }));
+
   const gridDays = weekDays(weekDate);
   const selectedDay = selectedDate ? parseLocalDate(selectedDate) : null;
   return {
     isLoading,
     desktop,
     scheduleData,
-    dayData: (date: Date) => buildDayData(scheduleData, date, filterBy),
+    dayData: (date: Date) => narrow(buildDayData(scheduleData, date, filterBy)),
     /** The artists' names, for the artist filter */
     artistNames: (scheduleData?.nailists ?? []).map((artist) => ({ id: artist.id, name: getArtistName(artist) })),
     serviceNames: serviceNamesOf(scheduleData),
@@ -155,12 +165,10 @@ export function useSchedule() {
     setMonth,
     previousMonth: () => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1)),
     nextMonth: () => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1)),
-    filterOpen,
-    setFilterOpen,
     // The open day and appointment
     selectedDate,
     /** The open day's artists and their bookings */
-    selectedDayArtists: selectedDay ? buildDayData(scheduleData, selectedDay, filterBy) : null,
+    selectedDayArtists: selectedDay ? narrow(buildDayData(scheduleData, selectedDay, filterBy)) : null,
     openDate,
     openDay: setSelectedDate,
     closeDay: () => {

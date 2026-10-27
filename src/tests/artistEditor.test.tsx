@@ -333,7 +333,7 @@ describe("artist editor", () => {
       expect(screen.getAllByText("Add Artist").length).toBeGreaterThan(0);
       expect(screen.queryByText("Day Off")).not.toBeInTheDocument();
       expect(screen.queryByText("Time Slots")).not.toBeInTheDocument();
-      expect(screen.getByText(/Save the artist first/)).toBeInTheDocument();
+      expect(screen.getByText(/once visits by this artist are completed/)).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Add" })).toBeInTheDocument();
       expect(await screen.findByLabelText("Nail Art")).toBeEnabled();
     });

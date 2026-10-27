@@ -51,7 +51,7 @@ const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({
         imageUrl ? (
           <div className="flex justify-end">
             <Button variant="secondary" size="sm" href={imageUrl}>
-              <ExternalLink size={14} aria-hidden="true" />
+              <ExternalLink size={16} aria-hidden="true" />
               Open full size
               <span className="sr-only"> (opens in a new tab)</span>
             </Button>
@@ -59,8 +59,9 @@ const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({
         ) : undefined
       }
     >
-      <div className="flex max-h-[70vh] items-center justify-center overflow-hidden rounded-2xl border border-crimson-light/40 bg-pearl p-2 shadow-petal">
-        <img src={imageUrl ?? undefined} alt={alt} className="max-h-[calc(70vh-1rem)] w-full rounded-xl object-contain" />
+      {/* The frame hugs the photo, so there is no empty band at its sides */}
+      <div className="mx-auto flex max-h-[70vh] w-fit max-w-full items-center justify-center overflow-hidden rounded-2xl border border-crimson-light/40 bg-pearl p-2 shadow-petal">
+        <img src={imageUrl ?? undefined} alt={alt} className="max-h-[calc(70vh-1rem)] w-auto max-w-full rounded-xl" />
       </div>
     </Dialog>
   );

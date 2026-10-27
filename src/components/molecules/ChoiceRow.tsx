@@ -41,7 +41,7 @@ export default function ChoiceRow({ selected, onClick, children, className, kind
         )}
       >
         {selected && kind === "radio" && <span className="h-2.5 w-2.5 rounded-full bg-crimson" />}
-        {selected && kind === "checkbox" && <Check size={14} strokeWidth={3} className="text-milk" />}
+        {selected && kind === "checkbox" && <Check size={16} strokeWidth={3} className="text-milk" />}
       </span>
       <span className="min-w-0 flex-1 text-gray-red">{children}</span>
       {trailing && <span className="shrink-0 text-gray-red">{trailing}</span>}

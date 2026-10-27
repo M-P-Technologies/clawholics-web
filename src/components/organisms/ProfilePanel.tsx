@@ -48,7 +48,7 @@ export default function ProfilePanel({ label, name, imageUrl, badges, highlight,
         <div className="flex flex-col gap-1 rounded-xl border border-crimson-light/60 bg-light-orange/40 p-3">
           <p className="flex items-center justify-between text-xs text-gray-red">
             {highlight.title}
-            {HighlightIcon && <HighlightIcon size={14} aria-hidden="true" className="text-berry" />}
+            {HighlightIcon && <HighlightIcon size={16} aria-hidden="true" className="text-berry" />}
           </p>
           {highlight.value ? (
             <>

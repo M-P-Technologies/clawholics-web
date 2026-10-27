@@ -68,15 +68,15 @@ export default function ContactUs() {
                     <ArrowDown size={16} aria-hidden="true" />
                   </Button>
                   <Button type="button" variant="bare" onClick={() => editor.removeLink(index)} className="gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-bold text-danger-ink hover:bg-danger/10">
-                    <Trash2 size={14} aria-hidden="true" />
+                    <Trash2 size={16} aria-hidden="true" />
                     Remove
                   </Button>
                 </div>
               </SubCard>
             ))}
             {links.length === 0 && <p className="text-[13px] text-gray-red">No social media links yet.</p>}
-            <Button size="sm" type="button" variant="secondary" disabled={links.length >= MAX_SOCIAL_LINKS} onClick={editor.addLink} className="self-start">
-              <Plus size={14} aria-hidden="true" />
+            <Button fullWidth type="button" variant="secondary" disabled={links.length >= MAX_SOCIAL_LINKS} onClick={editor.addLink}>
+              <Plus size={16} aria-hidden="true" />
               Add a social link
             </Button>
           </PanelSection>

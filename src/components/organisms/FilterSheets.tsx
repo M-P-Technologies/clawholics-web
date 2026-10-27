@@ -32,7 +32,7 @@ export default function FilterSheets({ filters, className }: { filters: SheetFil
               className="flex h-9 min-w-0 items-center justify-between gap-1 rounded-md border border-crimson-light bg-milk px-3 text-sm text-gray-red focus-visible:outline-2 focus-visible:outline-crimson"
             >
               <span className="min-w-0 truncate">{chosen}</span>
-              <ChevronDown size={14} aria-hidden="true" className="shrink-0 text-crimson" />
+              <ChevronDown size={16} aria-hidden="true" className="shrink-0 text-crimson" />
             </button>
           );
         })}

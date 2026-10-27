@@ -9,8 +9,8 @@ import ScheduleMonthGrid from "@/components/features/admin/schedule/ScheduleMont
 import ScheduleAgenda from "@/components/features/admin/schedule/ScheduleAgenda";
 import ScheduleWeekGrid from "@/components/features/admin/schedule/ScheduleWeekGrid";
 import { Button, Select } from "@/components/atoms";
-import { Dialog } from "@/components/organisms";
-import { SegmentedControl } from "@/components/molecules";
+import { FilterSheets } from "@/components/organisms";
+import { SearchBar, SegmentedControl } from "@/components/molecules";
 import { ScheduleSkeleton } from "@/components/features/admin/skeletons/skeletons";
 import { useSchedule } from "@/hooks/admin/useSchedule";
 import { PHONE_VIEWS } from "@/lib/admin/schedule";
@@ -28,17 +28,20 @@ export default function Schedule() {
     </option>
   ));
 
+  const phoneFilters = [
+    { key: "service", title: "Service", value: s.service, options: [{ value: "All", label: "All Services" }, ...s.serviceNames.map((name) => ({ value: name, label: name }))], pick: s.setService },
+    { key: "artist", title: "Artist", value: s.filterBy, options: [{ value: "All", label: "All Artists" }, ...s.artistNames.map((a) => ({ value: a.name, label: a.name }))], pick: s.setFilterBy },
+  ];
+
   return (
     <AdminShell title="Schedule">
       <div className="flex flex-1 flex-col overflow-y-auto pb-2">
-        {/* PHONE: Day | Month switch and the filter */}
+        {/* PHONE: Day | Month switch, the search and the filters (each opens in a bottom drawer) */}
         {!s.desktop && (
-          <div className="mb-3 flex items-center justify-between gap-3 lg:hidden">
+          <div className="mb-3 flex flex-col gap-3 lg:hidden">
             <SegmentedControl label="View" options={PHONE_VIEWS} value={s.phoneView} onChange={s.showPhoneView} className="w-fit" />
-            <Button size="sm" variant="secondary" type="button" onClick={() => s.setFilterOpen(true)} className="relative">
-              Filter
-              {s.filterBy !== "All" && <span aria-hidden="true" className="absolute right-1 top-1 h-2 w-2 rounded-full bg-crimson" />}
-            </Button>
+            <SearchBar look="outline" label="Search clients or services" placeholder="Search clients or services…" value={s.query} onChange={s.setQuery} />
+            <FilterSheets filters={phoneFilters} />
           </div>
         )}
 
@@ -122,18 +125,6 @@ export default function Schedule() {
         <AppointmentDetailsModal appointment={s.selectedAppointment} onClose={s.closeAppointment} onStatusChange={s.changeAppointmentStatus} />
       )}
 
-      <Dialog open={s.filterOpen} title="Filter schedule" onClose={() => s.setFilterOpen(false)}>
-        <div className="flex flex-col gap-3">
-          <p className="text-sm text-gray-red">Artist</p>
-          <Select aria-label="Artist" value={s.filterBy} onChange={(e) => s.setFilterBy(e.target.value)}>
-            <option value="All">All Artists</option>
-            {artistOptions}
-          </Select>
-        </div>
-        <Button type="button" fullWidth onClick={() => s.setFilterOpen(false)}>
-          Done
-        </Button>
-      </Dialog>
     </AdminShell>
   );
 }

@@ -191,7 +191,7 @@ function AlertToggle({ on, onClick, icon: Icon, label }: { on: boolean; onClick:
         on ? "border-crimson bg-crimson text-on-crimson" : "border-crimson-light text-gray-red hover:bg-crimson-light/30",
       )}
     >
-      <Icon size={14} aria-hidden="true" />
+      <Icon size={16} aria-hidden="true" />
       {label}: {on ? "on" : "off"}
     </button>
   );

@@ -62,7 +62,7 @@ export default function CompleteVisitForm({ visit, artists, onSaved, onCancelLat
     >
       {form.locked && (
         <p className="flex items-center gap-3 text-xs font-bold text-gray-red">
-          <Clock size={14} aria-hidden="true" className="text-crimson-ink" />
+          <Clock size={16} aria-hidden="true" className="text-crimson-ink" />
           {form.lockedNote}
         </p>
       )}

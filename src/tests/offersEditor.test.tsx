@@ -18,8 +18,9 @@ describe("OffersEditor", () => {
     render(<OffersEditor offers={[offer]} services={services} onChange={onChange} upload={vi.fn()} uploading={{}} />);
     fireEvent.change(screen.getByLabelText("Headline"), { target: { value: "30% off" } });
     expect(onChange).toHaveBeenLastCalledWith([{ ...offer, title: "30% off" }]);
-    fireEvent.change(screen.getByLabelText("Button opens"), { target: { value: "/my/explore?service=4" } });
-    expect(onChange).toHaveBeenLastCalledWith([{ ...offer, link: "/my/explore?service=4" }]);
+    fireEvent.click(screen.getByRole("button", { name: "Button opens" }));
+    fireEvent.click(screen.getAllByRole("option")[1]);
+    expect(onChange).toHaveBeenLastCalledWith([{ ...offer, link: expect.stringContaining("service=") }]);
     fireEvent.click(screen.getByRole("button", { name: "Remove offer 1" }));
     expect(onChange).toHaveBeenLastCalledWith([]);
   });

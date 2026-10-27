@@ -25,7 +25,7 @@ function Group({ title, icon: Icon, tone, items }: GroupProps) {
     <section aria-label={title} className="flex flex-col gap-3">
       <div className="flex items-center gap-3">
         <span aria-hidden="true" className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${style.icon}`}>
-          <Icon size={14} />
+          <Icon size={16} />
         </span>
         <h3 className="font-display text-base font-normal leading-none text-gray-red">{title}</h3>
       </div>

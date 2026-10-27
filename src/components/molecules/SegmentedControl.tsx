@@ -49,7 +49,7 @@ export default function SegmentedControl<T extends string>({ label, options, val
               selected ? "bg-milk text-berry shadow-sm" : "text-gray-red hover:text-berry",
             )}
           >
-            {Icon && <Icon size={14} aria-hidden="true" />}
+            {Icon && <Icon size={16} aria-hidden="true" />}
             {option.label}
             {option.count !== undefined && <span className="rounded-full bg-crimson-light/50 px-1.5 text-xs text-berry">{option.count}</span>}
           </button>

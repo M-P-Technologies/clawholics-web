@@ -279,3 +279,18 @@ export const deleteNailistGalleryImage = async (id: number, token?: string | nul
 export const fetchNailists = () => previewed("nailists", () => loadNailists());
 export const fetchNailistById = (id: number) => previewed(`nailist:${id}`, () => loadNailistById(id));
 export const fetchNailistGallery = (id: number) => previewed(`nailistGallery:${id}`, () => loadNailistGallery(id));
+
+export type NailistVisitPhoto = { url: string; appointment_id: number; /** The service of that visit */ artist: string | null };
+
+// The nail photos added to visits this artist completed (admin only)
+export const fetchNailistVisitPhotos = async (id: number, token?: string | null, clerkId?: string | null): Promise<NailistVisitPhoto[]> => {
+  const res = await fetch(`${API_BASE_URL}/nailists/${id}/visit-photos`, {
+    headers: {
+      "x-clawholics-origin": "frontend",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(clerkId ? { clerk_id: clerkId } : {}),
+    },
+  });
+  if (!res.ok) throw new Error(`Failed to load the visit photos (${res.status})`);
+  return res.json();
+};

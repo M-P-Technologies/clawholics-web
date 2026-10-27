@@ -39,7 +39,8 @@ export default function TopBar({ title, hideTitle = false, greeting, titleAside,
     <header className={clsx("flex w-full flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk/80 px-3 py-3 shadow-petal backdrop-blur-sm sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:gap-6", className)}>
       <div className="flex min-w-0 items-center justify-between gap-3 lg:shrink-0">
         <div className="flex min-w-0 flex-col gap-0.5">
-          {greeting && <p className="hidden font-display text-base leading-none text-berry lg:block">{greeting}</p>}
+          {/* A screen with a back button has no greeting: it would sit above the button and look out of place */}
+          {greeting && !leading && <p className="hidden font-display text-base leading-none text-berry lg:block">{greeting}</p>}
           <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
             {leading}
             <h1 className={clsx("font-display text-2xl font-normal normal-case leading-tight tracking-normal text-gray-red sm:text-3xl", hideTitle && "sr-only")}>{title}</h1>
@@ -64,7 +65,7 @@ export default function TopBar({ title, hideTitle = false, greeting, titleAside,
           className="hidden shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-crimson-light px-3 py-1.5 text-sm font-bold text-berry transition-colors hover:bg-crimson-light/30 lg:flex"
         >
           View site
-          <ExternalLink size={14} aria-hidden="true" />
+          <ExternalLink size={16} aria-hidden="true" />
         </a>
 
         {/* The bell is drawn once, in the place for the screen's width */}
