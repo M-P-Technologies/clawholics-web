@@ -1,16 +1,19 @@
 "use client";
 
 import AdminShell from "@/components/features/admin/shell/AdminShell";
-import { PanelSection, SaveBar, TextField } from "@/components/features/admin/cms/fields";
+import OffersEditor from "@/components/features/admin/cms/OffersEditor";
+import { PanelSection, SaveBar, SelectField, SubCard, TextField } from "@/components/features/admin/cms/fields";
 import { SectionSkeleton } from "@/components/features/admin/skeletons/skeletons";
 import { Button } from "@/components/atoms";
 import { useSettings } from "@/hooks/admin/useSettings";
+import { BIRTHDAY_BANNER_OPTIONS } from "@/lib/admin/homeEditor";
 import { MAX_HOLD_MINUTES, MAX_LOYALTY_STAMPS, MIN_HOLD_MINUTES, PAYMENT_METHOD_CHOICES } from "@/lib/admin/settings";
 
 // Admin > Settings: the online downpayment, the ways to pay it, how long a booking holds its slot,
 // the birthday voucher's discount and the loyalty card's stamps, saved together. Its data and actions are in hooks/admin/useSettings.
 export default function Settings() {
   const s = useSettings();
+  const c = s.clientApp;
 
   return (
     <AdminShell title="Settings">
@@ -27,7 +30,7 @@ export default function Settings() {
             </div>
           ) : (
             <>
-              <SaveBar dirty={s.dirty} saving={s.isSaving} onSave={s.save} onDiscard={s.discard} />
+              <SaveBar dirty={s.dirty} saving={s.isSaving} busy={s.busy} onSave={s.save} onDiscard={s.discard} />
 
               <PanelSection title="Payments" description="What clients pay when they book, to hold their slot. The rest of the service price is paid at the salon.">
                 <TextField
@@ -81,6 +84,32 @@ export default function Settings() {
                   onChange={s.setStampsRequired}
                   hint={`From 1 to ${MAX_LOYALTY_STAMPS}. Changes every card at once: clients who already have this many stamps can redeem straight away.`}
                 />
+              </PanelSection>
+
+              <PanelSection title="Client app" description="What signed-in clients see in their app (/my). These don't show on the public site.">
+                {c.isLoading ? (
+                  <SectionSkeleton label="Loading the client app" lines={4} />
+                ) : c.loadFailed ? (
+                  <div className="flex flex-col items-start gap-3">
+                    <p className="font-bold text-gray-red">We couldn&apos;t load the client app content.</p>
+                    <Button type="button" variant="secondary" onClick={c.retry}>
+                      Try again
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <SubCard title="Birthday banner">
+                      <SelectField label="Show it" value={c.text.home_birthday_enabled} options={BIRTHDAY_BANNER_OPTIONS} onChange={c.setText("home_birthday_enabled")} />
+                      <TextField label="Birthday headline" value={c.text.home_birthday_title} onChange={c.setText("home_birthday_title")} />
+                      <TextField label="Line under it" value={c.text.home_birthday_line} onChange={c.setText("home_birthday_line")} />
+                      <TextField label="Small print" value={c.text.home_birthday_note} onChange={c.setText("home_birthday_note")} />
+                      <p className="text-xs text-gray-red">{"{name}"} becomes the client&apos;s first name. Staff apply the treat at the salon.</p>
+                    </SubCard>
+                    <SubCard title="Special offers">
+                      <OffersEditor offers={c.offers} services={c.services} onChange={c.setOffers} upload={c.upload} uploading={c.uploading} />
+                    </SubCard>
+                  </>
+                )}
               </PanelSection>
             </>
           )}

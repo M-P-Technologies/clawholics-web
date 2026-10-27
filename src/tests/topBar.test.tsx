@@ -19,4 +19,10 @@ describe("TopBar", () => {
     expect(screen.queryByText(/Welcome/)).toBeNull();
     expect(screen.queryByText(/Oct/)).toBeNull();
   });
+
+  it("drops the greeting on a screen that has a back button before its title", () => {
+    render(<TopBar title="Client" greeting="Welcome, Ana!" leading={<button aria-label="Back">←</button>} account={account} />);
+    expect(screen.getByRole("button", { name: "Back" })).toBeInTheDocument();
+    expect(screen.queryByText(/Welcome/)).toBeNull();
+  });
 });

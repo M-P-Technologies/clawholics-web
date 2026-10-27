@@ -1,6 +1,7 @@
 import type { ServiceCategory } from "@/services/catalogService";
 import type { NailService } from "@/services/serviceService";
-import { Button, Select } from "@/components/atoms";
+import { X } from "lucide-react";
+import { Button, IconButton, Select } from "@/components/atoms";
 
 type VariantDraft = { name: string; price: string };
 
@@ -165,7 +166,7 @@ export default function ServicePricingFields({ draft, onChange, isEditing, categ
 
         <div className="flex flex-col gap-3">
           {draft.variants.map((variant, index) => (
-            <div key={index} className="flex items-center gap-3">
+            <div key={index} className="flex items-center gap-2">
               <input
                 aria-label={`Option ${index + 1} name`}
                 className={variantInputClass}
@@ -175,22 +176,19 @@ export default function ServicePricingFields({ draft, onChange, isEditing, categ
               />
               <input
                 aria-label={`Option ${index + 1} price`}
-                className={`${variantInputClass} max-w-27.5 flex-none`}
+                className={`${variantInputClass} w-20 flex-none`}
                 disabled={!isEditing}
                 inputMode="numeric"
                 value={variant.price}
                 onChange={(e) => set({ variants: draft.variants.map((v, i) => (i === index ? { ...v, price: digits(e.target.value) } : v)) })}
               />
               {isEditing && (
-                <Button
-                  variant="secondary"
-                  type="button"
-                  aria-label={`Remove option ${index + 1}`}
-                  
+                <IconButton
+                  size="sm"
+                  icon={X}
+                  label={`Remove option ${index + 1}`}
                   onClick={() => set({ variants: draft.variants.filter((_, i) => i !== index) })}
-                >
-                  Remove
-                </Button>
+                />
               )}
             </div>
           ))}

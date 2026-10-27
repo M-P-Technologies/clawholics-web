@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { useToast } from "@/components/molecules";
 import { EMPTY_HOME_CONTENT, normalizeHomeContent, trimHomeSections } from "../../lib/admin/homeEditor";
-import { homeSectionsProblem, homeSectionsToContent, readHomeSections, type HomeFeature, type HomeOffer, type HomeSections, type HomeTextKey, type StripSlide } from "../../lib/homeSections";
+import { CLIENT_APP_KEYS, homeSectionsProblem, homeSectionsToContent, readHomeSections, type HomeFeature, type HomeOffer, type HomeSections, type HomeTextKey, type StripSlide } from "../../lib/homeSections";
 import { fetchHomeContent, updateHomeContent, type HomeCMSContent } from "../../services/contentService";
 import { fetchServices, type NailService } from "../../services/serviceService";
 import { PHOTO_UPLOAD_OPTIONS, uploadImage } from "../../services/uploadService";
@@ -90,7 +90,11 @@ export function useHomeEditor() {
     try {
       setIsSaving(true);
       const token = await getToken();
-      await updateHomeContent({ ...trimmedContent, ...homeSectionsToContent(trimmedSections) }, token, currentUser?.id);
+      // The client app block (birthday banner, special offers) is edited and saved in Settings, so it
+      // isn't sent from here, where it could put back an older copy
+      const payload = { ...trimmedContent, ...homeSectionsToContent(trimmedSections) };
+      for (const key of CLIENT_APP_KEYS) delete payload[key];
+      await updateHomeContent(payload, token, currentUser?.id);
       const contentData = await fetchHomeContent();
       apply(contentData);
       source.saved({ contentData, serviceData: services });

@@ -327,19 +327,58 @@ export function homeSectionsToContent(sections: HomeSections): Record<string, st
 
 /** The first thing that stops the sections being saved, or null. Photos may be empty. */
 export function homeSectionsProblem(sections: HomeSections): string | null {
-  if (Object.values(sections.text).some((value) => !value.trim())) return "Every text field on the home page needs something in it.";
+  // The client app's words are edited in Settings, so a gap there doesn't stop the homepage being saved
+  if (Object.entries(sections.text).some(([key, value]) => !CLIENT_APP_KEYS.includes(key) && !value.trim())) return "Every text field on the home page needs something in it.";
   if (!isExternalLink(sections.text.home_footer_chat_url)) return "The footer's chat link must be a full web address, starting with https://.";
   const cta = linkProblem(sections.text.home_cta_primary_link, "The closing banner's main button") ?? linkProblem(sections.text.home_cta_secondary_link, "The closing banner's second button");
   if (cta) return cta;
   for (const [i, feature] of sections.features.entries()) {
     if (!feature.title.trim() || !feature.text.trim()) return `Why choose us card ${i + 1} needs a title and a description.`;
   }
-  for (const [i, offer] of sections.offers.entries()) {
+  return null;
+}
+
+/** The first thing wrong with the Special offers, or null */
+export function offersProblem(offers: HomeOffer[]): string | null {
+  for (const [i, offer] of offers.entries()) {
     if (!offer.title.trim() || !offer.buttonLabel.trim()) return `Offer ${i + 1} needs a headline and a button text.`;
     const problem = offerLinkProblem(offer.link, `Offer ${i + 1}'s button`);
     if (problem) return problem;
   }
   return null;
+}
+
+// The client app block (Settings > Client app): the birthday banner's words and the Special offers.
+// They are home content keys like the rest, but edited and saved on their own, so the Homepage
+// editor never sends them (it could put back an older copy).
+export const CLIENT_APP_TEXT_KEYS = ["home_birthday_enabled", "home_birthday_title", "home_birthday_line", "home_birthday_note"] as const;
+export type ClientAppTextKey = (typeof CLIENT_APP_TEXT_KEYS)[number];
+/** Every content key of the client app block */
+export const CLIENT_APP_KEYS: string[] = [...CLIENT_APP_TEXT_KEYS, "home_offers"];
+
+export interface ClientAppContent {
+  text: Record<ClientAppTextKey, string>;
+  offers: HomeOffer[];
+}
+
+/** The client app block as saved, or the defaults for what wasn't */
+export function readClientApp(content: object | null | undefined): ClientAppContent {
+  const sections = readHomeSections(content);
+  return {
+    text: Object.fromEntries(CLIENT_APP_TEXT_KEYS.map((key) => [key, sections.text[key]])) as Record<ClientAppTextKey, string>,
+    offers: sections.offers,
+  };
+}
+
+/** The content keys to save the client app block under: only its own */
+export function clientAppToContent(client: ClientAppContent): Record<string, string> {
+  return { ...client.text, home_offers: client.offers.length ? JSON.stringify(client.offers) : "" };
+}
+
+/** The first thing that stops the client app block being saved, or null */
+export function clientAppProblem(client: ClientAppContent): string | null {
+  if (Object.values(client.text).some((value) => !value.trim())) return "Every birthday banner field needs something in it.";
+  return offersProblem(client.offers);
 }
 
 /**
