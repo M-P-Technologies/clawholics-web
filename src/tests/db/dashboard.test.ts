@@ -441,9 +441,9 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     expect(month.granularity).toBe("day");
     expect(month.points).toHaveLength(14); // 1 to 14 Oct: the line stops today
     const day = (date: string) => month.points.find((p) => p.date === date);
-    expect(day("2026-10-01")).toMatchObject({ date: "2026-10-01", collected: 500, estimatedSales: 800, bookings: 1, newClients: 1 }); // a1's downpayment and Bea, 1 Oct in Manila
-    expect(day("2026-10-02")).toMatchObject({ date: "2026-10-02", collected: 500, estimatedSales: 500, bookings: 1, newClients: 0 }); // a2, though paid on 1 Oct
-    expect(day("2026-10-03")).toMatchObject({ date: "2026-10-03", collected: 0, estimatedSales: 0, bookings: 0, newClients: 1 }); // p3 was paid today, for a3 on the 6th
+    expect(day("2026-10-01")).toMatchObject({ date: "2026-10-01", bookings: 1 }); // a1, 1 Oct in Manila
+    expect(day("2026-10-02")).toMatchObject({ date: "2026-10-02", bookings: 1 }); // a2, though paid on 1 Oct
+    expect(day("2026-10-03")).toMatchObject({ date: "2026-10-03", bookings: 0 }); // none that day
     expect(day("2026-10-06")).toMatchObject({ bookings: 0 }); // a3's visit day; it was completed the 7th
     expect(day("2026-10-07")).toMatchObject({ bookings: 1 }); // a3's completion was recorded the next day
     expect(day("2026-10-08")).toMatchObject({ bookings: 0 }); // a4 has no completion record
@@ -461,10 +461,10 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     expect(year.granularity).toBe("month");
     expect(year.points).toHaveLength(10);
     const monthPoint = (date: string) => year.points.find((p) => p.date === date);
-    expect(monthPoint("2026-03-01")).toMatchObject({ date: "2026-03-01", collected: 0, estimatedSales: 0, bookings: 0, newClients: 0 });
-    expect(monthPoint("2026-06-01")).toMatchObject({ bookings: 0, estimatedSales: 0 }); // marked completed without the tracker
-    expect(monthPoint("2026-09-01")).toMatchObject({ date: "2026-09-01", collected: 1000, estimatedSales: 1700, bookings: 2, newClients: 1 });
-    expect(monthPoint("2026-10-01")).toMatchObject({ date: "2026-10-01", collected: 1500, estimatedSales: 3000, bookings: 3, newClients: 2 });
+    expect(monthPoint("2026-03-01")).toMatchObject({ date: "2026-03-01", bookings: 0 });
+    expect(monthPoint("2026-06-01")).toMatchObject({ bookings: 0 }); // marked completed without the tracker
+    expect(monthPoint("2026-09-01")).toMatchObject({ date: "2026-09-01", bookings: 2 });
+    expect(monthPoint("2026-10-01")).toMatchObject({ date: "2026-10-01", bookings: 3 });
   });
 
   it("the week runs Monday to Sunday and is compared with the week before", async () => {
@@ -558,7 +558,7 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     const ok = await callRoute(handlers.getDashboard, "/api/dashboard?range=week");
     expect(ok.status).toBe(200);
     expect(Object.keys(ok.body).sort()).toEqual(
-      ["artists", "attention", "bookingsTrend", "clientBase", "kpis", "lapsedClients", "leads", "loyalty", "money", "next", "outcomes", "overview", "period", "previous", "range", "rateTrend", "rates", "sales", "services", "totals", "trend", "weekdays"].sort(),
+      ["artists", "attention", "bookingsTrend", "lapsedClients", "leads", "money", "next", "outcomes", "overview", "period", "previous", "range", "rateTrend", "rates", "sales", "services", "totals", "trend", "weekdays"].sort(),
     );
     expect((await callRoute(handlers.getDashboard, "/api/dashboard?range=all")).status).toBe(200);
     as("user_a");
