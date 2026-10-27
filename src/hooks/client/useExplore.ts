@@ -64,6 +64,8 @@ export function useExplore() {
     /** The phone's sheet; it closes by itself when the window widens to show the panel */
     sheetOpen: sheetOpen && !wide,
     closeSheet: () => setSheetOpen(false),
+    /** The services haven't arrived yet: show a loading state, not "No services match" */
+    loading: servicesQuery.isPending,
     loadFailed,
     retry: () => void servicesQuery.refetch(),
     book: (service: NailService) => startBooking(service),
