@@ -10,15 +10,21 @@ interface VisitPhotoDialogProps {
   onClose: () => void;
   /** After the photo is uploaded */
   onDone?: () => void;
+  /** What messages call the visit, e.g. "Audit Tester's Gel Manicure visit" */
+  label?: string;
 }
 
 // The visit's one nail photo, added after it was completed: picked, previewed, then uploaded to the
 // artist's gallery (a new one replaces the visit's earlier photo)
-export default function VisitPhotoDialog({ appointmentId, open, onClose, onDone }: VisitPhotoDialogProps) {
-  const photo = useVisitPhoto(appointmentId, () => {
-    onDone?.();
-    onClose();
-  });
+export default function VisitPhotoDialog({ appointmentId, open, onClose, onDone, label }: VisitPhotoDialogProps) {
+  const photo = useVisitPhoto(
+    appointmentId,
+    () => {
+      onDone?.();
+      onClose();
+    },
+    label,
+  );
   const id = useId();
 
   return (

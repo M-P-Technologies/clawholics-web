@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { itemName } from "../../lib/itemName";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { publicQueries } from "@/lib/publicQueries";
@@ -14,7 +15,7 @@ import { accountKeys, accountQueries } from "@/lib/accountQueries";
 import { estimateTotal } from "@/services/pricing";
 import { type Nailist, type BookingState, parseTimeRange } from "@/utils/booking";
 import { CLIENT_PATHS } from "@/lib/client/clientNav";
-import { timeRangeLabel } from "@/lib/timeFormat";
+import { longDateLabel, timeRangeLabel } from "@/lib/timeFormat";
 
 export function useBooking() {
   const navigate = useNavigate();
@@ -244,7 +245,7 @@ export function useBooking() {
     if (conflict) {
       showModal(
         "Slot Unavailable",
-        "Someone else just reserved that time. Your other choices are kept, so please pick a different time to continue.",
+        `Someone else just reserved ${itemName(selectedNailist.name, "this artist")} at ${timeRangeLabel(selectedTime)} on ${longDateLabel(selectedDate)}. Your other choices are kept, so please pick a different time to continue.`,
       );
       setSelectedTime("");
       return;
@@ -267,7 +268,7 @@ export function useBooking() {
     if (variants.length > 0 && selectedVariantId === null) {
       showModal(
         "Choose an option",
-        "This service comes in several options, each with its own price. Please choose one so we can show you the right total.",
+        `${itemName(service_name, "This service")} comes in several options, each with its own price. Please choose one so we can show you the right total.`,
       );
       return;
     }
@@ -292,7 +293,7 @@ export function useBooking() {
       if (err?.status !== 409) {
         showModal(
           "We couldn't reserve your slot",
-          err?.message || "Something went wrong while holding your time, so nothing was booked and you have not been charged. Please try again in a moment.",
+          err?.message || `Something went wrong while holding ${itemName(selectedNailist.name, "your artist")} for your ${itemName(service_name, "service")}, so nothing was booked and you have not been charged. Please try again in a moment.`,
         );
         return;
       }
@@ -311,7 +312,7 @@ export function useBooking() {
     if (!result)
       return showModal(
         "We couldn't reserve your slot",
-        "Something went wrong while holding your time, so nothing was booked and you have not been charged. Please try again in a moment.",
+        `Something went wrong while holding ${itemName(selectedNailist.name, "your artist")} for your ${itemName(service_name, "service")}, so nothing was booked and you have not been charged. Please try again in a moment.`,
       );
 
     navigate(CLIENT_PATHS.payment, {
@@ -341,7 +342,7 @@ export function useBooking() {
       console.error("Booking failed", err);
       showModal(
         "We couldn't reserve your slot",
-        "We lost the connection while holding your time, so nothing was booked and you have not been charged. Please check your connection and try again.",
+        `We lost the connection while holding ${itemName(selectedNailist?.name, "your time")} for your ${itemName(service_name, "service")}, so nothing was booked and you have not been charged. Please check your connection and try again.`,
       );
     } finally {
       setIsSubmitting(false);
@@ -367,7 +368,7 @@ export function useBooking() {
     const fullyBooked = isDayFullyBooked(times);
 
     if (fullyBooked) {
-      showModal("Fully booked", "There are no times left on this day for this artist. Please choose another date.");
+      showModal("Fully booked", `${itemName(selectedNailist?.name, "This artist")} has no times left on ${longDateLabel(formatted)}. Please choose another date.`);
       return;
     }
 

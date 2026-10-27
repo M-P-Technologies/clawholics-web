@@ -10,8 +10,10 @@ import {
   type ServiceCategory,
 } from "@/services/catalogService";
 import { Button, IconButton } from "@/components/atoms";
+import { itemName } from "@/lib/itemName";
 
-type Run = (fn: (auth: Auth) => Promise<unknown>) => Promise<boolean>;
+// `what` says what is being done to which category ("delete Manicure"), for the error if it fails
+type Run = (fn: (auth: Auth) => Promise<unknown>, what?: string) => Promise<boolean>;
 
 type Props = {
   categories: ServiceCategory[];
@@ -33,7 +35,7 @@ export default function CategoryPanel({ categories, tokenFetcher, clerkId, onCha
   const [busy, setBusy] = useState(false);
   const inFlight = useRef(false);
 
-  const run: Run = async (action) => {
+  const run: Run = async (action, what = "save that change") => {
     if (inFlight.current) return false;
     inFlight.current = true;
     setBusy(true);
@@ -44,7 +46,7 @@ export default function CategoryPanel({ categories, tokenFetcher, clerkId, onCha
       await onChanged();
       return true;
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Something went wrong. Please try again.");
+      setError(e instanceof ApiError ? `Couldn't ${what}. ${e.message}` : `Couldn't ${what}. Please try again.`);
       return false;
     } finally {
       inFlight.current = false;
@@ -58,7 +60,7 @@ export default function CategoryPanel({ categories, tokenFetcher, clerkId, onCha
     const target = index + delta;
     if (target < 0 || target >= ids.length) return;
     [ids[index], ids[target]] = [ids[target], ids[index]];
-    return run((auth) => reorderCategories(ids, auth));
+    return run((auth) => reorderCategories(ids, auth), `move ${itemName(categories[index].name, "that category")}`);
   };
 
   return (
@@ -89,7 +91,7 @@ export default function CategoryPanel({ categories, tokenFetcher, clerkId, onCha
                       type="button"
                       disabled={busy || !editingName.trim()}
                       onClick={async () => {
-                        const ok = await run((auth) => renameCategory(category.id, editingName.trim(), auth));
+                        const ok = await run((auth) => renameCategory(category.id, editingName.trim(), auth), `rename ${itemName(category.name, "that category")} to ${itemName(editingName, "that name")}`);
                         if (ok) setEditingId(null);
                       }}
                     >
@@ -123,7 +125,7 @@ export default function CategoryPanel({ categories, tokenFetcher, clerkId, onCha
                         label={`Confirm delete ${category.name}`}
                         disabled={busy}
                         className="text-danger-ink"
-                        onClick={() => run((auth) => deleteCategory(category.id, auth))}
+                        onClick={() => run((auth) => deleteCategory(category.id, auth), `delete ${itemName(category.name, "that category")}`)}
                       />
                     ) : (
                       <IconButton size="sm" icon={Trash2} label={`Delete ${category.name}`} disabled={busy} onClick={() => setConfirmId(category.id)} />
@@ -150,7 +152,7 @@ export default function CategoryPanel({ categories, tokenFetcher, clerkId, onCha
           type="button"
           disabled={busy || !newName.trim()}
           onClick={async () => {
-            const ok = await run((auth) => createCategory(newName.trim(), auth));
+            const ok = await run((auth) => createCategory(newName.trim(), auth), `add ${itemName(newName, "that category")}`);
             if (ok) setNewName("");
           }}
         >

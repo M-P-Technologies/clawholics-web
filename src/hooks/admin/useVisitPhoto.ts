@@ -8,7 +8,7 @@ import { MAX_VISIT_PHOTO_MB, uploadVisitPhoto } from "../../services/completionS
 const TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 /** The visit photo window: one photo, checked here, previewed, then uploaded */
-export function useVisitPhoto(appointmentId: number, onDone?: () => void) {
+export function useVisitPhoto(appointmentId: number, onDone?: () => void, label?: string) {
   const { getToken, userId } = useAuth();
   const queryClient = useQueryClient();
   const toast = useToast();
@@ -38,7 +38,7 @@ export function useVisitPhoto(appointmentId: number, onDone?: () => void) {
     setBusy(true);
     try {
       await uploadVisitPhoto(appointmentId, file, { token: await getToken(), clerkId: userId });
-      toast.show("success", "Photo added", "It's in the artist's gallery now.");
+      toast.show("success", "Photo added", `${label ? `For ${label}. ` : ""}It's in the artist's gallery now.`);
       void adminDataChanged(queryClient);
       setFile(null);
       setPreview(null);

@@ -2,6 +2,7 @@ import { ChevronDown as DropdownIcon, List as ListIcon, Plus as PlusIcon } from 
 import React, { useEffect, useRef, useState } from "react";
 import { DragHandle, useToast, EditActions } from "@/components/molecules";
 import type { SortableHandleProps } from "@/components/molecules";
+import { quotedName, upperFirst } from "@/lib/itemName";
 import { IconButton, Button } from "@/components/atoms";
 import type { Faq } from "@/services/faqService";
 import { createFaq, deleteFaq, updateFaq } from "@/services/faqService";
@@ -252,6 +253,7 @@ const FAQDropdown: React.FC<DropdownProps> = ({
   const handleSave = async () => {
     const trimmedQuestion = question.trim();
     const trimmedAnswer = answer.trim();
+    const target = quotedName(trimmedQuestion, "this FAQ", 50);
 
     if (!trimmedQuestion || !trimmedAnswer) {
       toast.show("error", "Question or answer is empty", "Please write both the question and its answer before saving. Nothing was saved.");
@@ -272,7 +274,7 @@ const FAQDropdown: React.FC<DropdownProps> = ({
         );
         onFaqCreated?.(createdFaq);
         resetCreateForm();
-        toast.show("success", "FAQ added", "The new question is now live in the FAQ section of the website.");
+        toast.show("success", "FAQ added", `${upperFirst(target)} is now live in the FAQ section of the website.`);
         return;
       }
 
@@ -295,7 +297,7 @@ const FAQDropdown: React.FC<DropdownProps> = ({
       setOriginalDisplayOrder(updatedFaq.display_order ?? "");
       setIsEditing(false);
       onFaqUpdated?.(updatedFaq);
-      toast.show("success", "FAQ saved", "Your changes are now live on the website.");
+      toast.show("success", "FAQ saved", `Your changes to ${target} are now live on the website.`);
     } catch (error) {
       console.error(
         `Failed to ${isCreateMode ? "create" : "save"} FAQ:`,
@@ -304,7 +306,7 @@ const FAQDropdown: React.FC<DropdownProps> = ({
       toast.show(
         "error",
         isCreateMode ? "FAQ not created" : "FAQ not saved",
-        "We couldn't save this FAQ, so the website is unchanged. Your edits are still on screen. Please try again.",
+        `We couldn't save ${target}, so the website is unchanged. Your edits are still on screen. Please try again.`,
       );
     } finally {
       setIsSaving(false);
@@ -313,6 +315,7 @@ const FAQDropdown: React.FC<DropdownProps> = ({
 
   const handleDelete = async () => {
     if (!faq) return;
+    const target = quotedName(faq.question, "this FAQ", 50);
 
     try {
       setIsDeleting(true);
@@ -320,10 +323,10 @@ const FAQDropdown: React.FC<DropdownProps> = ({
       await deleteFaq(faq.id, token, clerkId);
       setIsDeleteModalOpen(false);
       onFaqDeleted?.(faq.id);
-      toast.show("success", "FAQ deleted", "The question was removed from the website.");
+      toast.show("success", "FAQ deleted", `${upperFirst(target)} was removed from the website.`);
     } catch (error) {
       console.error("Failed to delete FAQ:", error);
-      toast.show("error", "FAQ not deleted", "We couldn't delete this FAQ, so it is still on the website. Please try again.");
+      toast.show("error", "FAQ not deleted", `We couldn't delete ${target}, so it is still on the website. Please try again.`);
     } finally {
       setIsDeleting(false);
     }
@@ -419,7 +422,7 @@ const FAQDropdown: React.FC<DropdownProps> = ({
           onClose={() => setIsDeleteModalOpen(false)}
           onConfirm={handleDelete}
         >
-          Are you sure you want to delete this FAQ? This action cannot be undone.
+          Are you sure you want to delete <strong>{quotedName(faq?.question, "this FAQ", 80)}</strong>? This action cannot be undone.
         </ConfirmDialog>
       )}
     </>

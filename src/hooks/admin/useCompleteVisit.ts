@@ -106,7 +106,7 @@ export function useCompleteVisit(visit: VisitToComplete, onSaved?: () => void) {
         { token: await getToken(), clerkId: userId },
       );
       setEditing(false);
-      toast.show("success", "Visit completed", saved?.photo_url ? "Saved." : "Saved. Add the nail photo when you have it.");
+      toast.show("success", "Visit completed", `${visit.label ?? "The visit"} is saved.${saved?.photo_url ? "" : " Add the nail photo when you have it."}`);
       void adminDataChanged(queryClient);
       onSaved?.();
     } catch (e) {

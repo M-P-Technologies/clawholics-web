@@ -141,6 +141,7 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
                   nailist_id: appointment.nailist_id ?? null,
                   price: appointment.service_price ?? null,
                   paid_downpayment: appointment.paid_downpayment ?? 0,
+                  label: `${customerName}'s ${appointment.service_name || "booked"} visit`,
                   completion: appointment.completion ?? null,
                 }}
                 artists={artists}
@@ -153,6 +154,7 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
           {tokenFetcher && showProofPanel && (
             <ProofReviewPanel
               appointmentId={appointment.id}
+              label={`appointment #${appointment.id} (${customerName}, ${appointment.service_name || "no service"})`}
               status={appointment.status}
               proofDueAt={appointment.proof_due_at}
               latestProof={appointment.latest_proof}

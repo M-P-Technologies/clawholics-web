@@ -11,6 +11,7 @@ import { type AppointmentState, explainPaymentFailure, explainStatusChange } fro
 import { CLIENT_PATHS } from "@/lib/client/clientNav";
 import { paymentArtistLabel, paymentPriceLabel } from "@/lib/client/payment";
 import { longDateLabel, timeRangeLabel } from "@/lib/timeFormat";
+import { itemName } from "@/lib/itemName";
 
 export function usePayment() {
   const navigate = useNavigate();
@@ -34,6 +35,8 @@ export function usePayment() {
   const [modalDismissible, setModalDismissible] = useState(true);
 
   const appointment = location.state as AppointmentState | null;
+  // What the payment dialogs call this booking: "Your Gel Manicure appointment with Miss Emily"
+  const label = appointment ? `Your ${itemName(appointment.service_name, "booked")} appointment with ${itemName(appointment.nailist_name, "your artist")}` : undefined;
 
   // The appointment as the server has it now: never answered from the cache, since paying for a
   // slot that's no longer held must not happen
@@ -56,8 +59,8 @@ export function usePayment() {
       if (status !== "PENDING") {
         setIsInvalid(true); // keeps the LoadingBar visible
         showModal(
-          "This appointment can't be paid",
-          explainStatusChange(status),
+          `Your ${itemName(appointment?.service_name, "booked")} appointment can't be paid`,
+          explainStatusChange(status, label),
           () => navigate(CLIENT_PATHS.appointments),
           "View my schedule",
           false // Not dismissible
@@ -68,7 +71,7 @@ export function usePayment() {
       setIsInvalid(true);
       showModal(
         "We couldn't check your reservation",
-        "We couldn't confirm that your slot is still held, so we've paused the payment to keep you from paying for the wrong thing. You haven't been charged. Please go back to booking and try again.",
+        `We couldn't confirm that your ${itemName(appointment?.service_name, "booked")} slot is still held, so we've paused the payment to keep you from paying for the wrong thing. You haven't been charged. Please go back to booking and try again.`,
         () => navigate(CLIENT_PATHS.explore),
         "Back to booking",
         false,
@@ -110,7 +113,7 @@ export function usePayment() {
 
         showModal(
           "Reservation expired",
-          "The hold on your time slot has ended and the slot was released. You have not been charged. Please book again to pick a new time.",
+          `The hold on your ${itemName(appointment?.service_name, "booking")} slot${appointment?.nailist_name ? ` with ${appointment.nailist_name}` : ""} has ended and the slot was released. You have not been charged. Please book again to pick a new time.`,
           () => navigate(CLIENT_PATHS.explore),
           "Back to Booking",
           false // Not dismissible
@@ -163,7 +166,7 @@ export function usePayment() {
     if (timeLeft === "00:00") {
       showModal(
         "Reservation expired",
-        "The hold on your time slot has ended and the slot was released. You have not been charged. Please book again to pick a new time.",
+        `The hold on your ${itemName(appointment?.service_name, "booking")} slot${appointment?.nailist_name ? ` with ${appointment.nailist_name}` : ""} has ended and the slot was released. You have not been charged. Please book again to pick a new time.`,
         () => navigate(CLIENT_PATHS.explore),
         "Back to booking",
       );
@@ -207,7 +210,7 @@ export function usePayment() {
     } catch (err) {
       console.error("Payment failed:", err);
 
-      const failure = explainPaymentFailure(err);
+      const failure = explainPaymentFailure(err, label);
 
       showModal(
         failure.title,

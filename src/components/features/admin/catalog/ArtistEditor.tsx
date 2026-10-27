@@ -9,6 +9,7 @@ import DayOffCard from "./DayOffCard";
 import TimeSlotCard from "./TimeSlotCard";
 import { useArtistEditor, type ArtistEditorProps } from "@/hooks/admin/useArtistEditor";
 import { DragHandle, EditActions } from "@/components/molecules";
+import { itemName } from "@/lib/itemName";
 import { Button } from "@/components/atoms";
 import { ConfirmDialog, ImagePreviewDialog } from "@/components/organisms";
 
@@ -104,6 +105,7 @@ const ArtistEditor: React.FC<ArtistEditorProps> = (props) => {
             {!isCreateMode && (
               <TimeSlotCard
                 nailistId={nailist?.id}
+                artistName={editor.title}
                 disabled={locked}
                 timeSlots={editor.timeSlots}
                 setTimeSlots={editor.setTimeSlots}
@@ -112,6 +114,7 @@ const ArtistEditor: React.FC<ArtistEditorProps> = (props) => {
             )}
 
             <NailArtistGallery
+              artistName={editor.title}
               nailistId={isCreateMode ? null : (nailist?.id ?? null)}
               isEditing={isEditing}
               tokenFetcher={tokenFetcher}
@@ -144,7 +147,7 @@ const ArtistEditor: React.FC<ArtistEditorProps> = (props) => {
           onClose={() => editor.setIsDeleteModalOpen(false)}
           onConfirm={editor.handleDelete}
         >
-          Are you sure you want to delete this artist? This action cannot be undone.
+          Are you sure you want to delete <strong>{itemName(nailist?.name, "this artist")}</strong>? This action cannot be undone.
         </ConfirmDialog>
       )}
 

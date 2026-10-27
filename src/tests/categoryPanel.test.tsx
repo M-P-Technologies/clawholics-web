@@ -70,7 +70,8 @@ describe("CategoryPanel", () => {
 
     await user.click(screen.getByRole("button", { name: /confirm delete manicure/i }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Move or delete the 3 services in this category first.");
+    // The error says which category, and what was being done to it
+    expect(await screen.findByRole("alert")).toHaveTextContent("Couldn't delete Manicure. Move or delete the 3 services in this category first.");
   });
 
   it("keeps the typed category name and shows the error when add fails", async () => {

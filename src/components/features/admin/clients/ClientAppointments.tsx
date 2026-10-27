@@ -83,7 +83,17 @@ export default function ClientAppointments({ appointments, notesFor, draft, busy
   const windows = (
     <>
       <ImagePreviewDialog imageUrl={photo} title="Photo" onClose={() => setPhoto(null)} />
-      {addingPhoto !== null && <VisitPhotoDialog appointmentId={addingPhoto} open onClose={() => setAddingPhoto(null)} />}
+      {addingPhoto !== null && (
+        <VisitPhotoDialog
+          appointmentId={addingPhoto}
+          open
+          onClose={() => setAddingPhoto(null)}
+          label={(() => {
+            const visit = appointments.find((a) => a.id === addingPhoto);
+            return visit ? `the ${visit.service_name} visit on ${dateLabel(visit.appointment_date)}` : undefined;
+          })()}
+        />
+      )}
       {notesOf && (
         <Dialog
           open

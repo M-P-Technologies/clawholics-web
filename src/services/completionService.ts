@@ -35,6 +35,8 @@ export interface VisitToComplete {
   /** The downpayments paid on it */
   paid_downpayment: number;
   completion: Completion | null;
+  /** What messages call this visit, e.g. "Audit Tester's Gel Manicure visit" */
+  label?: string;
 }
 
 interface CompletionForm {

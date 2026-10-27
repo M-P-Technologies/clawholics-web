@@ -9,6 +9,8 @@ import {
   type Service,
 } from "@/lib/admin/createAppointment";
 import { adminDataChanged } from "@/lib/adminQueries";
+import { itemName } from "@/lib/itemName";
+import { longDateLabel, timeRangeLabel } from "@/lib/timeFormat";
 import { bookingQueries } from "@/lib/bookingQueries";
 import { publicQueries } from "@/lib/publicQueries";
 import { createAdminAppointment, type AdminAppointmentPayload } from "@/services/bookingService";
@@ -149,7 +151,7 @@ export function useCreateAppointment({ onCreated }: { onCreated: () => void }) {
       const conflict = latest.some((taken) => isOverlapping(appointmentTime, taken));
 
       if (conflict) {
-        setMessage("This time slot was just booked. Please select another.");
+        setMessage(`${itemName(selectedNailist?.name, "That artist")} was just booked at ${timeRangeLabel(appointmentTime)} on ${longDateLabel(appointmentDate)}. Please select another time.`);
         setAppointmentTime("");
         return;
       }
@@ -182,12 +184,12 @@ export function useCreateAppointment({ onCreated }: { onCreated: () => void }) {
         errorMessage.includes("slot")
       ) {
         setMessage(
-          "This appointment slot has already been taken by another active appointment.",
+          `${itemName(selectedNailist?.name, "The artist")} already has another active appointment at ${timeRangeLabel(appointmentTime)} on ${longDateLabel(appointmentDate)}.`,
         );
         return;
       }
 
-      setMessage("Failed to create appointment.");
+      setMessage(`Failed to create the appointment${selectedNailist ? ` with ${selectedNailist.name}` : ""}${selectedService ? ` for ${selectedService.name}` : ""}.`);
     } finally {
       setSubmitting(false);
     }

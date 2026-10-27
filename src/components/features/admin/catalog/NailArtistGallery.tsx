@@ -12,6 +12,7 @@ import { PHOTO_UPLOAD_OPTIONS, uploadImage } from "@/services/uploadService";
 import { Button } from "@/components/atoms";
 import { DropArea } from "@/components/features/admin/cms/fields";
 import { useToast } from "@/components/molecules";
+import { itemName, upperFirst } from "@/lib/itemName";
 
 const MAX_IMAGES = 10;
 
@@ -24,12 +25,15 @@ interface NailArtistGalleryProps {
   onPreview: (url: string) => void;
   /** After a photo is added or removed (they save at once), e.g. to refresh a preview */
   onChanged?: () => void;
+  /** The artist's name, for the messages about their photos */
+  artistName?: string;
 }
 
 // The photos of an artist's work, shown on their page. Unlike the other fields of the form,
 // photos are saved the moment they are uploaded or removed (Save and Cancel don't apply to them).
-export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, clerkId, onPreview, onChanged }: NailArtistGalleryProps) {
+export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, clerkId, onPreview, onChanged, artistName }: NailArtistGalleryProps) {
   const toast = useToast();
+  const who = itemName(artistName, "this artist");
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState(false);
 
@@ -52,7 +56,7 @@ export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, 
     const chosen = Array.from(files);
 
     if (chosen.length > MAX_IMAGES - images.length) {
-      toast.show("error", "Too many photos", `An artist can have up to ${MAX_IMAGES} photos. Remove some before uploading more.`);
+      toast.show("error", "Too many photos", `${upperFirst(who)} can have up to ${MAX_IMAGES} photos. Remove some before uploading more.`);
       return;
     }
 
@@ -68,7 +72,7 @@ export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, 
       }
     } catch (error) {
       console.error("Failed to add artist photos:", error);
-      toast.show("error", "Photos not added", "We couldn't add all the photos. The ones shown above were saved. Please check that they are image files and try again.");
+      toast.show("error", "Photos not added", `We couldn't add all the photos for ${who}. The ones shown above were saved. Please check that they are image files and try again.`);
     } finally {
       setBusy(false);
     }
@@ -83,7 +87,7 @@ export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, 
       onChanged?.();
     } catch (error) {
       console.error("Failed to remove artist photo:", error);
-      toast.show("error", "Photo not removed", "We couldn't remove that photo, so it is still in the gallery. Please try again.");
+      toast.show("error", "Photo not removed", `We couldn't remove that photo from ${who}'s gallery, so it is still there. Please try again.`);
     } finally {
       setBusy(false);
     }
@@ -101,7 +105,7 @@ export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, 
         <p className="text-[13px] text-gray-red">Save the artist first, then you can add photos of their work.</p>
       ) : loadFailed ? (
         <p role="alert" className="text-[13px] text-danger-ink">
-          We couldn&apos;t load this artist&apos;s photos. Please close and reopen the artist to try again.
+          We couldn&apos;t load the photos of {who}. Please close and reopen the artist to try again.
         </p>
       ) : (
         <>

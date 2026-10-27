@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { IconButton, Button } from "@/components/atoms";
 import { DragHandle, useToast, EditActions } from "@/components/molecules";
 import type { SortableHandleProps } from "@/components/molecules";
+import { quotedName, upperFirst } from "@/lib/itemName";
 import type { Tac } from "@/services/tacService";
 import { createTac, deleteTac, updateTac } from "@/services/tacService";
 import {
@@ -258,9 +259,10 @@ const TACDropdown: React.FC<DropdownProps> = ({
   const handleSave = async () => {
     const trimmedSection = section.trim();
     const trimmedContent = content.trim();
+    const target = quotedName(trimmedSection, "this section", 50);
 
     if (!trimmedSection || !trimmedContent) {
-      toast.show("error", "Some fields are empty", "Please fill in every field before saving. Nothing was saved.");
+      toast.show("error", "Some fields are empty", `Please fill in every field${trimmedSection ? ` of ${target}` : ""} before saving. Nothing was saved.`);
       return;
     }
 
@@ -278,7 +280,7 @@ const TACDropdown: React.FC<DropdownProps> = ({
         );
         onTacCreated?.(createdTac);
         resetCreateForm();
-        toast.show("success", "Section added", "The new terms and conditions section is now live on the website.");
+        toast.show("success", "Section added", `${upperFirst(target)} is now live in the terms and conditions on the website.`);
         return;
       }
 
@@ -301,10 +303,10 @@ const TACDropdown: React.FC<DropdownProps> = ({
       setOriginalDisplayOrder(updatedTac.display_order ?? "");
       setIsEditing(false);
       onTacUpdated?.(updatedTac);
-      toast.show("success", "Section saved", "Your changes are now live on the website.");
+      toast.show("success", "Section saved", `Your changes to ${target} are now live on the website.`);
     } catch (error) {
       console.error("Failed to save TAC:", error);
-      toast.show("error", "Changes not saved", "We couldn't save this terms and conditions section, so the website still shows the previous version. Your edits are still on screen. Please try again.");
+      toast.show("error", "Section not saved", `We couldn't save ${target}, so the website still shows the previous version. Your edits are still on screen. Please try again.`);
     } finally {
       setIsSaving(false);
     }
@@ -312,6 +314,7 @@ const TACDropdown: React.FC<DropdownProps> = ({
 
   const handleDelete = async () => {
     if (!tac) return;
+    const target = quotedName(tac.section, "this section", 50);
 
     try {
       setIsDeleting(true);
@@ -319,10 +322,10 @@ const TACDropdown: React.FC<DropdownProps> = ({
       await deleteTac(tac.id, token, clerkId);
       setIsDeleteModalOpen(false);
       onTacDeleted?.(tac.id);
-      toast.show("success", "Section deleted", "The section was removed from the terms and conditions.");
+      toast.show("success", "Section deleted", `${upperFirst(target)} was removed from the terms and conditions.`);
     } catch (error) {
       console.error("Failed to delete TAC:", error);
-      toast.show("error", "Section not deleted", "We couldn't delete this terms and conditions section, so it is still on the website. Please try again.");
+      toast.show("error", "Section not deleted", `We couldn't delete ${target}, so it is still on the website. Please try again.`);
     } finally {
       setIsDeleting(false);
     }
@@ -420,7 +423,7 @@ const TACDropdown: React.FC<DropdownProps> = ({
           onClose={() => setIsDeleteModalOpen(false)}
           onConfirm={handleDelete}
         >
-          Are you sure you want to delete this section? This action cannot be undone.
+          Are you sure you want to delete <strong>{quotedName(tac?.section, "this section", 80)}</strong>? This action cannot be undone.
         </ConfirmDialog>
       )}
     </>

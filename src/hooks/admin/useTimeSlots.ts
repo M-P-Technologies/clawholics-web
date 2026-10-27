@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/components/molecules";
+import { itemName } from "@/lib/itemName";
 import { bookingQueries } from "@/lib/bookingQueries";
 import type { NailistTimeSlots } from "@/services/nailistService";
 import { splitTimeSlot } from "@/lib/admin/artistEditor";
@@ -14,11 +15,13 @@ type Options = {
   timeSlots: NailistTimeSlots;
   setTimeSlots: React.Dispatch<React.SetStateAction<NailistTimeSlots>>;
   onTimeSlotsLoaded: (timeSlots: NailistTimeSlots) => void;
+  /** The artist's name, for the messages about their slots */
+  artistName?: string;
 };
 
 // The artist editor's Time Slots card: loads the artist's slots and edits them. The slots
 // themselves are the editor's (saved and put back with the rest); the card owns the new slot.
-export function useTimeSlots({ nailistId, disabled, timeSlots, setTimeSlots, onTimeSlotsLoaded }: Options) {
+export function useTimeSlots({ nailistId, disabled, timeSlots, setTimeSlots, onTimeSlotsLoaded, artistName }: Options) {
   const toast = useToast();
   const [newStartTime, setNewStartTime] = useState("");
   const [newEndTime, setNewEndTime] = useState("");
@@ -75,7 +78,7 @@ export function useTimeSlots({ nailistId, disabled, timeSlots, setTimeSlots, onT
     const newTimeSlot = `${newStartTime}-${newEndTime}`;
 
     if (timeSlots.includes(newTimeSlot)) {
-      toast.show("error", "Duplicate time slot", "This artist already has that time slot. Please choose different times.");
+      toast.show("error", "Duplicate time slot", `${itemName(artistName, "This artist")} already has that time slot. Please choose different times.`);
       return;
     }
 

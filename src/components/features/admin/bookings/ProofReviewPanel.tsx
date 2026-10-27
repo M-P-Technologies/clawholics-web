@@ -25,6 +25,8 @@ interface Props {
   tokenFetcher: () => Promise<string | null>;
   clerkId?: string | null;
   onReviewed: (proof: PaymentProof) => void;
+  /** What the approval hint calls the appointment, e.g. "appointment #992 (Audit Tester, Gel Manicure)" */
+  label?: string;
 }
 
 const formatWhen = manilaDateTime;
@@ -38,6 +40,7 @@ export default function ProofReviewPanel({
   tokenFetcher,
   clerkId,
   onReviewed,
+  label = "this appointment",
 }: Props) {
   const queryClient = useQueryClient();
   const [actionError, setError] = useState<string | null>(null);
@@ -149,7 +152,7 @@ export default function ProofReviewPanel({
           {canReview && mode === "approve" && (
             <div className="flex flex-col gap-3">
               <p className="text-[13px] font-bold">
-                Approving confirms this appointment and emails the client.
+                Approving confirms {label} and emails the client.
               </p>
               <div className="flex gap-3">
                 <Button type="button" onClick={() => submit({ status: "APPROVED" })} disabled={busy} >

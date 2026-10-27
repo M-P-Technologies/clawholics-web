@@ -136,8 +136,8 @@ export function useServicesEditor() {
       await loadCategories();
       changed();
     },
-    onServiceUpdated: refreshAfter("Saved", "Your changes were saved. We couldn't refresh the list, so please reload the page to see them."),
-    onServiceCreated: refreshAfter("Created", "The service was created. We couldn't refresh the list, so please reload the page to see it."),
+    onServiceUpdated: (service: NailService) => refreshAfter("Saved", `Your changes to ${service.name} were saved. We couldn't refresh the list, so please reload the page to see them.`)(),
+    onServiceCreated: (service: NailService) => refreshAfter("Created", `${service.name} was created. We couldn't refresh the list, so please reload the page to see it.`)(),
     onServiceDeleted: (serviceId: number) => {
       queryClient.setQueryData<NailService[]>(SERVICES_KEY, (prev) => prev?.filter((item) => item.id !== serviceId));
       changed();

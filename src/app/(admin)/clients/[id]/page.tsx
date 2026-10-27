@@ -100,7 +100,7 @@ export default function ClientPage() {
                     </div>
                   </TabSection>
                   <TabSection title="Booking tracker" description="Where a booking is, from booking to the finished visit. It follows their current booking; pick another to see it.">
-                    <BookingTracker appointments={appointments} today={page.today} artists={page.artists} onNoShow={page.markNoShow} onCancelLate={page.cancelLate} />
+                    <BookingTracker appointments={appointments} today={page.today} artists={page.artists} onNoShow={page.markNoShow} onCancelLate={page.cancelLate} clientName={page.name} />
                   </TabSection>
                 </>
               )}

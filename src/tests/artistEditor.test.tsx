@@ -138,7 +138,7 @@ describe("artist editor", () => {
     expect(textbox("Name")).toHaveValue("Mara Lee");
     expect(screen.getByRole("button", { name: /Mara Lee/ })).toBeInTheDocument();
     expect(onUpdated).toHaveBeenCalledWith(expect.objectContaining({ name: "Mara Lee" }));
-    expect(show).toHaveBeenCalledWith("success", "Artist saved", expect.any(String));
+    expect(show).toHaveBeenCalledWith("success", "Mara Lee saved", expect.any(String));
   });
 
   it("puts the old value back on Cancel and calls nothing", async () => {
@@ -223,7 +223,7 @@ describe("artist editor", () => {
     fireEvent.click(screen.getByRole("button", { name: "Edit" }));
     fireEvent.change(textbox("Name"), { target: { value: "Mara Lee" } });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
-    await waitFor(() => expect(show).toHaveBeenCalledWith("error", "Artist not saved", "Server said no"));
+    await waitFor(() => expect(show).toHaveBeenCalledWith("error", "Mara Lee not saved", "Server said no"));
     expect(textbox("Name")).toHaveValue("Mara Lee");
     expect(textbox("Name")).toBeEnabled();
     expect(screen.getByRole("button", { name: "Save" })).toBeInTheDocument();
@@ -351,7 +351,7 @@ describe("artist editor", () => {
       expect(nailist.createNailist).toHaveBeenCalledWith("Ines", "Junior Technician", "French tips", "Loves detail", "https://img/nailists/ines.webp", "tok", "clerk_1");
       expect(nailist.updateNailistServices).toHaveBeenCalledWith(9, [2], "tok", "clerk_1");
       expect(onCreated).toHaveBeenCalledWith(expect.objectContaining({ id: 9, service_ids: [2] }));
-      expect(show).toHaveBeenCalledWith("success", "Artist added", expect.any(String));
+      expect(show).toHaveBeenCalledWith("success", "Ines added", expect.stringContaining("Ines"));
       expect(textbox("Name")).toHaveValue("");
       expect(screen.getByLabelText("Nail Art")).not.toBeChecked();
       expect(screen.getByText("Select position")).toBeInTheDocument();
@@ -364,7 +364,7 @@ describe("artist editor", () => {
       fill();
       await withPhoto();
       fireEvent.click(screen.getByRole("button", { name: "Add" }));
-      await waitFor(() => expect(show).toHaveBeenCalledWith("error", "Artist not created", "Nope"));
+      await waitFor(() => expect(show).toHaveBeenCalledWith("error", "Ines not created", "Nope"));
       expect(textbox("Name")).toHaveValue("Ines");
       expect(nailist.updateNailistServices).not.toHaveBeenCalled();
     });
@@ -379,11 +379,13 @@ describe("artist editor", () => {
       fireEvent.click(screen.getByRole("button", { name: "Delete" }));
       const dialog = await screen.findByRole("alertdialog");
       expect(within(dialog).getByText("Delete artist?")).toBeInTheDocument();
+      // The question names who would be deleted
+      expect(within(dialog).getByText("Mara")).toBeInTheDocument();
       expect(nailist.deleteNailist).not.toHaveBeenCalled();
       fireEvent.click(within(dialog).getByRole("button", { name: "Delete artist" }));
       await waitFor(() => expect(nailist.deleteNailist).toHaveBeenCalledWith(7, "tok", "clerk_1"));
       await waitFor(() => expect(onDeleted).toHaveBeenCalledWith(7));
-      expect(show).toHaveBeenCalledWith("success", "Artist deleted", expect.any(String));
+      expect(show).toHaveBeenCalledWith("success", "Mara deleted", expect.stringContaining("Mara"));
     });
 
     it("keeps the dialog open and says so when deleting fails", async () => {
@@ -394,7 +396,7 @@ describe("artist editor", () => {
       fireEvent.click(screen.getByRole("button", { name: "Delete" }));
       const dialog = await screen.findByRole("alertdialog");
       fireEvent.click(within(dialog).getByRole("button", { name: "Delete artist" }));
-      await waitFor(() => expect(show).toHaveBeenCalledWith("error", "Artist not deleted", expect.any(String)));
+      await waitFor(() => expect(show).toHaveBeenCalledWith("error", "Mara not deleted", expect.stringContaining("Mara")));
       expect(screen.getByRole("alertdialog")).toBeInTheDocument();
       expect(onDeleted).not.toHaveBeenCalled();
     });

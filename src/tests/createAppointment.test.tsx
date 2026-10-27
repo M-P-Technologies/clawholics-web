@@ -646,7 +646,7 @@ describe("CreateAppointmentDialog: submitting", () => {
     const { onCreated } = await renderModalWithAll();
     bookedBy[1]["2026-10-15"] = ["09:00-10:00", "10:30-11:30"];
     fireEvent.click(screen.getByRole("button", { name: "Create appointment" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("This time slot was just booked. Please select another.");
+    expect(await screen.findByRole("alert")).toHaveTextContent(/Mara was just booked at .* on October 15, 2026\. Please select another time\./);
     expect(booking.createAdminAppointment).not.toHaveBeenCalled();
     expect(onCreated).not.toHaveBeenCalled();
     expect(summaryValue("Time")).toBe("–");
@@ -660,7 +660,7 @@ describe("CreateAppointmentDialog: submitting", () => {
     booking.createAdminAppointment.mockRejectedValue(new Error("Server exploded"));
     const { onCreated, onClose } = await renderModalWithAll();
     fireEvent.click(screen.getByRole("button", { name: "Create appointment" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("Failed to create appointment.");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Failed to create the appointment with Mara for Nail Art.");
     expect(onCreated).not.toHaveBeenCalled();
     expect(onClose).not.toHaveBeenCalled();
     expect(screen.getByRole("heading", { name: "Create appointment" })).toBeInTheDocument();
@@ -680,7 +680,7 @@ describe("CreateAppointmentDialog: submitting", () => {
     await renderModalWithAll();
     fireEvent.click(screen.getByRole("button", { name: "Create appointment" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "This appointment slot has already been taken by another active appointment.",
+      /Mara already has another active appointment at .* on October 15, 2026\./,
     );
   });
 

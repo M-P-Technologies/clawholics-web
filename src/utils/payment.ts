@@ -26,7 +26,9 @@ const SCHEDULE = { label: "View my schedule", path: CLIENT_PATHS.appointments };
 
 // Turns what the server (or the network) said into something a client can act on.
 // Every message says what happened, whether they were charged, and what to do next.
-export function explainPaymentFailure(error: unknown): PaymentFailure {
+export function explainPaymentFailure(error: unknown, label = "This appointment"): PaymentFailure {
+  // "This appointment" / "Your Gel Manicure appointment with Miss Emily", and the same inside a sentence
+  const lower = label.charAt(0).toLowerCase() + label.slice(1);
   // fetch only throws a TypeError when the request never reached the server
   if (error instanceof TypeError) {
     return {
@@ -50,21 +52,21 @@ export function explainPaymentFailure(error: unknown): PaymentFailure {
   if (text.includes("already been paid")) {
     return {
       title: "Already paid",
-      message: "This appointment has already been paid, so there is nothing more to pay. You can see it in My Schedule.",
+      message: `${label} has already been paid, so there is nothing more to pay. You can see it in My Schedule.`,
       next: SCHEDULE,
     };
   }
   if (text.includes("cancelled")) {
     return {
       title: "Appointment cancelled",
-      message: "This appointment was cancelled, so it can't be paid. Nothing was charged. You can book a new time whenever you're ready.",
+      message: `${label} was cancelled, so it can't be paid. Nothing was charged. You can book a new time whenever you're ready.`,
       next: { label: "Book again", path: CLIENT_PATHS.explore },
     };
   }
   if (text.includes("expired") || text.includes("expiration")) {
     return {
       title: "Reservation expired",
-      message: "The hold on your time slot has ended and the slot was released. You haven't been charged. Please book again to pick a new time.",
+      message: `The hold on the time slot for ${lower} has ended and the slot was released. You haven't been charged. Please book again to pick a new time.`,
       next: { label: "Back to booking", path: CLIENT_PATHS.explore },
     };
   }
@@ -77,7 +79,7 @@ export function explainPaymentFailure(error: unknown): PaymentFailure {
   if (text.includes("active payment session") || text.includes("pending appointment") || text.includes("existing appointment")) {
     return {
       title: "Payment already started",
-      message: "You already have a payment open for this appointment. Finish it from My Schedule, or let it expire before starting another. You haven't been charged twice.",
+      message: `You already have a payment open for ${lower}. Finish it from My Schedule, or let it expire before starting another. You haven't been charged twice.`,
       next: SCHEDULE,
     };
   }
@@ -104,7 +106,7 @@ export function explainPaymentFailure(error: unknown): PaymentFailure {
   if (text.includes("not found")) {
     return {
       title: "Appointment not found",
-      message: "We couldn't find this appointment, so no payment was started and you haven't been charged. Please check My Schedule.",
+      message: `We couldn't find ${lower}, so no payment was started and you haven't been charged. Please check My Schedule.`,
       next: SCHEDULE,
     };
   }
@@ -117,15 +119,15 @@ export function explainPaymentFailure(error: unknown): PaymentFailure {
 }
 
 // What to tell someone who opens the payment page for an appointment that can no longer be paid
-export function explainStatusChange(status: string): string {
+export function explainStatusChange(status: string, label = "This appointment"): string {
   switch (status.toLowerCase()) {
     case "confirmed":
-      return "This appointment is already confirmed, so there is nothing left to pay. You can see it in My Schedule.";
+      return `${label} is already confirmed, so there is nothing left to pay. You can see it in My Schedule.`;
     case "cancelled":
-      return "This appointment was cancelled, so it can't be paid. You can book a new time whenever you're ready.";
+      return `${label} was cancelled, so it can't be paid. You can book a new time whenever you're ready.`;
     case "completed":
-      return "This appointment has already taken place, so there is nothing to pay. You can see it in My Schedule.";
+      return `${label} has already taken place, so there is nothing to pay. You can see it in My Schedule.`;
     default:
-      return `This appointment is now ${status.toLowerCase().replace(/_/g, " ")}, so it can't be paid from here. You can check it in My Schedule.`;
+      return `${label} is now ${status.toLowerCase().replace(/_/g, " ")}, so it can't be paid from here. You can check it in My Schedule.`;
   }
 }
