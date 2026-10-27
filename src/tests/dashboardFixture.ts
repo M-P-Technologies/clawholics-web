@@ -10,7 +10,7 @@ export const dashboardData: DashboardResponse = {
     returning: { value: 0.4, previous: 0.4 }, leadConversion: { value: 0.5, previous: 0.5 },
   },
   lapsedClients: 2, leads: { accounts: 4, booked: 2 }, totals: { clients: { value: 17, previous: 15 }, services: { value: 8, previous: 10 }, artists: { value: 5, previous: 5 }, appointments: { value: 6, previous: 4 }, trend: [] }, sales: [],
-  attention: { today: 0, proofsToReview: 1, toConfirm: 0, toComplete: 0, photosToAdd: 0, unpaid: 0, warmLeads: 0 },
+  attention: { today: 0, proofsToReview: 1, toComplete: 0, photosToAdd: 0, unpaid: 0, warmLeads: 0 },
   money: { grossReceipts: { value: 0, previous: 0 }, unearned: { value: 0, previous: 0 }, revenue: { value: 0, previous: 0 }, otherIncome: { value: 0, previous: 0 }, refunds: { value: 0, previous: 0 }, points: [] },
   trend: {
     granularity: "day",

@@ -2,6 +2,7 @@ import "server-only";
 import { readSocialLinks } from "@/lib/socialLinkData";
 import { OG_IMAGE, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/seo";
 import { servicePath, artistPath } from "@/utils/slug";
+import { splitSpecialties } from "@/lib/specialties";
 import { publicReads } from "./publicCache";
 import { readOrNull } from "./timeLimit";
 
@@ -119,10 +120,7 @@ export function serviceSchema(service: Row): Json {
 
 /** An artist's specialties: the admin writes them as a "• one • two" list */
 export function specialtiesOf(artist: Row): string[] {
-  return text(artist.specialty)
-    .split(/[•\n]+/)
-    .map((item) => item.trim())
-    .filter(Boolean);
+  return splitSpecialties(text(artist.specialty));
 }
 
 /** One artist, as someone who works at the salon */

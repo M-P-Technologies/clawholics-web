@@ -60,7 +60,7 @@ export interface DashboardResponse {
    * the visit's day; fee: what it sold for (downpayment + recorded balance); user_id: null for a walk-in */
   sales: { id: number; date: string; time: string; client_name: string; user_id: number | null; service_name: string; nailist_name: string; fee: number | null }[];
   /** warmLeads: clients active in the last 60 days who haven't booked a visit (see /leads) */
-  attention: { today: number; proofsToReview: number; /** Paid online, waiting for an admin to confirm */ toConfirm: number; /** Confirmed visits that are over, waiting to be completed */ toComplete: number; /** Completed visits without nail photos yet */ photosToAdd: number; unpaid: number; warmLeads: number };
+  attention: { today: number; proofsToReview: number; /** Confirmed visits that are over, waiting to be completed */ toComplete: number; /** Completed visits without nail photos yet */ photosToAdd: number; unpaid: number; warmLeads: number };
   money: Money;
   /** One point per day, week or month of the period (up to today), for the lines on the stat cards */
   trend: Trend;
@@ -131,7 +131,7 @@ export interface Utilization {
 export type AttentionTab = "all" | "confirm" | "complete" | "leads";
 export interface AttentionResponse {
   items: {
-    kind: "confirm" | "review" | "complete" | "photos" | "lead";
+    kind: "review" | "complete" | "photos" | "lead";
     appointment_id: number | null;
     /** The client's users.id; null for the walk-in guest, who has no page */
     user_id: number | null;
@@ -143,7 +143,11 @@ export interface AttentionResponse {
     appointment_time: string | null;
     /** Waiting since (UTC "YYYY-MM-DD HH:MM:SS") */
     since: string;
-    has_screenshot?: boolean;
   }[];
-  counts: { confirm: number; review: number; complete: number; photos: number; leads: number };
+  /** Every kind's count, whichever tab is open */
+  counts: { review: number; complete: number; photos: number; leads: number };
+  /** How many the tab holds in all */
+  total: number;
+  page: number;
+  pageSize: number;
 }

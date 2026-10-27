@@ -1,8 +1,8 @@
 import { useState, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { accountKeys } from "@/lib/accountQueries";
-import { fetchProofs, type PaymentProof } from "@/services/proofService";
+import { useQuery } from "@tanstack/react-query";
+import { publicQueries } from "@/lib/publicQueries";
+import { instagramUrl } from "@/lib/socialLinkData";
 import { useNavigate, useSearchParams } from "@/lib/router";
 import { API_BASE_URL } from "@/apiConfig";
 import { usePolling } from "@/hooks/usePolling";
@@ -11,8 +11,7 @@ import { type Appointment, type PaymentDetails } from "@/utils/paymentConfirmati
 
 export function usePaymentConfirmation() {
   const navigate = useNavigate();
-  const { getToken, userId } = useAuth();
-  const queryClient = useQueryClient();
+  const { getToken } = useAuth();
   const [params] = useSearchParams();
 
   const appointment_id = params.get("appointment_id");
@@ -29,9 +28,8 @@ export function usePaymentConfirmation() {
   // Use a ref to track if we've already sent the confirmation email
   const emailSentRef = useRef(false);
 
-  // Statuses after which the payment is settled, so there is no reason to keep asking. A paid
-  // booking waits for the salon to confirm it (AWAITING_CONFIRMATION): that can take hours.
-  const FINAL_STATUSES = ["AWAITING_CONFIRMATION", "CONFIRMED", "CANCELLED", "REJECTED", "REFUNDED"];
+  // Statuses after which the payment is settled, so there is no reason to keep asking
+  const FINAL_STATUSES = ["CONFIRMED", "CANCELLED", "REJECTED", "REFUNDED"];
 
   const poll = async (): Promise<boolean> => {
     try {
@@ -108,29 +106,14 @@ export function usePaymentConfirmation() {
   };
 
   const isFailed = paymentStatus === "FAILED" || data?.status === "CANCELLED";
-  /** The downpayment is in: the booking is confirmed, or waiting for the salon to confirm it */
-  const isConfirmed = data?.status === "CONFIRMED" || data?.status === "AWAITING_CONFIRMATION";
-  const awaitingSalon = data?.status === "AWAITING_CONFIRMATION";
+  /** The downpayment is in, so the booking is confirmed */
+  const isConfirmed = data?.status === "CONFIRMED";
 
   const dateLabel = longDateLabel(data?.appointment_date);
   const timeLabel = timeRangeLabel(data?.appointment_time);
 
-  // The client's screenshot of the payment: the salon confirms a paid booking once it has one
-  const appointmentNumber = Number(appointment_id);
-  const proofsKey = accountKeys.proofs(userId ?? "", appointmentNumber);
-  const proofs = useQuery({
-    queryKey: proofsKey,
-    queryFn: async () => fetchProofs(appointmentNumber, { token: await getToken(), clerkId: userId }),
-    enabled: awaitingSalon && Boolean(userId) && Number.isInteger(appointmentNumber),
-  });
-  const proofCard = awaitingSalon && proofs.isSuccess
-    ? {
-        appointment: { id: appointmentNumber, status: "AWAITING_CONFIRMATION", latest_proof: proofs.data[0] ?? null },
-        tokenFetcher: () => getToken(),
-        clerkId: userId,
-        onUploaded: (proof: PaymentProof) => queryClient.setQueryData<PaymentProof[]>(proofsKey, (old) => [proof, ...(old ?? [])]),
-      }
-    : null;
+  // Where the client sends the screenshot of their payment (the saved link, or the salon's own)
+  const instagram = instagramUrl(useQuery(publicQueries.home()).data);
 
-  return { isFailed, isConfirmed, awaitingSalon, navigate, appointment_id, data, dateLabel, timeLabel, payment, loading, paymentStatus, timedOut, checkAgain, proofCard };
+  return { isFailed, isConfirmed, navigate, appointment_id, data, dateLabel, timeLabel, payment, loading, paymentStatus, timedOut, checkAgain, instagram };
 }

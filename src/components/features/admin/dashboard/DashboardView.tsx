@@ -5,7 +5,8 @@ import { shortDay } from "@/lib/dashboardFormat";
 import { Link } from "@/lib/router";
 import type { BookingsLoader } from "@/hooks/admin/useReports";
 import { useQueueRows } from "@/hooks/admin/useQueueRows";
-import type { DashboardResponse, AttentionResponse, AttentionTab } from "@/services/dashboardTypes";
+import type { DashboardResponse } from "@/services/dashboardTypes";
+import type { AttentionLoader } from "@/hooks/admin/useAttentionQueue";
 import ActiveBookings from "@/components/features/admin/dashboard/ActiveBookings";
 import BarChart from "@/components/features/admin/dashboard/BarChart";
 import BookingsTable from "@/components/features/admin/dashboard/BookingsTable";
@@ -26,7 +27,7 @@ interface DashboardViewProps {
    * the short next-appointments list from `data` is shown */
   loadBookings?: BookingsLoader;
   /** Loads the queue of what to act on, which takes the bookings table's place */
-  loadAttention?: (tab: AttentionTab) => Promise<AttentionResponse>;
+  loadAttention?: AttentionLoader;
 }
 
 const MORE = [

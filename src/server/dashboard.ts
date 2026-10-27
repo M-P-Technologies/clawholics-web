@@ -277,11 +277,10 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
       one<{ n: number }>(
         `select count(*)::int as n from scan_history where action = 'redeem' and ${LOCAL_DATE("created_at")} between $1 and $2`, p),
       // One pass over the appointments (#25), with the screenshot and visit-to-complete rules
-      one<{ today: number; unpaid: number; proofs_to_review: number; to_confirm: number; to_complete: number; photos_to_add: number }>(
+      one<{ today: number; unpaid: number; proofs_to_review: number; to_complete: number; photos_to_add: number }>(
         `select
            count(*) filter (where a.appointment_date = $1 and upper(trim(a.status)) = 'CONFIRMED')::int as today,
            count(*) filter (where upper(trim(a.status)) = 'PENDING')::int as unpaid,
-           count(*) filter (where upper(trim(a.status)) = 'AWAITING_CONFIRMATION')::int as to_confirm,
            count(*) filter (where ${PROOF_TO_REVIEW_SQL("a")})::int as proofs_to_review,
            count(*) filter (where ${TO_COMPLETE_SQL("a", today, manilaClock(now))})::int as to_complete,
            count(*) filter (where ${PHOTOS_TO_ADD_SQL("a")})::int as photos_to_add
@@ -451,7 +450,7 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
     },
     trend,
     rateTrend: rateTrend(buckets, rateDays),
-    attention: { today: attention.today, proofsToReview: attention.proofs_to_review, toConfirm: attention.to_confirm, toComplete: attention.to_complete, photosToAdd: attention.photos_to_add, unpaid: attention.unpaid, warmLeads: warm.n },
+    attention: { today: attention.today, proofsToReview: attention.proofs_to_review, toComplete: attention.to_complete, photosToAdd: attention.photos_to_add, unpaid: attention.unpaid, warmLeads: warm.n },
     money: {
       grossReceipts: { value: moneyNow.grossReceipts, previous: moneyBefore.grossReceipts },
       unearned: { value: moneyNow.unearned, previous: moneyBefore.unearned },
@@ -483,7 +482,7 @@ export async function buildDashboard(range: DashboardRange, now: Date = new Date
     outcomes: {
       confirmed: outcome("CONFIRMED"),
       completed: outcome("COMPLETED"),
-      pending: outcome("PENDING", "AWAITING_PROOF", "AWAITING_CONFIRMATION"),
+      pending: outcome("PENDING", "AWAITING_PROOF"),
       cancelled: outcome("CANCELLED", "CANCELED"),
       refunded: outcome("REFUNDED"),
     },

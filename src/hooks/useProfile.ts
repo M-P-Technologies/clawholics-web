@@ -7,7 +7,7 @@ import { accountKeys, accountQueries } from "@/lib/accountQueries";
 import { type Appointment } from "../utils/profile";
 import type { ChangeEvent } from "react";
 import { isActiveAppointmentStatus } from "../services/proofState";
-import { PROFILE_FIELDS } from "../data/profile";
+import { PROFILE_FIELDS, cleanHandle } from "../data/profile";
 import { useToast } from "@/components/molecules";
 import { pickNext, sortSoonest } from "../utils/profileView";
 import { useStampTarget } from "./useStampTarget";
@@ -236,8 +236,8 @@ export function useProfile() {
       const contact = {
         alt_phone: (formData.alt_phone ?? "").trim(),
         preferred_contact_method: formData.preferred_contact_method ?? "",
-        facebook_handle: (formData.facebook_handle ?? "").trim(),
-        instagram_handle: (formData.instagram_handle ?? "").trim().replace(/^@+/, ""),
+        facebook_handle: cleanHandle("facebook_handle", formData.facebook_handle ?? ""),
+        instagram_handle: cleanHandle("instagram_handle", formData.instagram_handle ?? ""),
       };
       if (contact.alt_phone && !/^[+\d\s()-]+$/.test(contact.alt_phone)) {
         setError("Please enter a valid other phone number, or leave it empty.");
@@ -334,9 +334,9 @@ export function useProfile() {
         `Your ${selectedAppt.service_name} appointment was cancelled and the time slot was released. You can find it under Past & Cancelled Appointments.`,
       );
       setSelectedAppt(null);
-    } catch (err: any) {
+    } catch (err) {
       setActionError(
-        err.message ||
+        (err as { message?: string } | null)?.message ||
           "We couldn't cancel this appointment, so it is still active. Please try again, or contact us if this keeps happening.",
       );
     } finally {
@@ -385,7 +385,7 @@ export function useProfile() {
 
       const isEligible = isEligibleForChanges(appt.appointment_date, appt.appointment_time);
       const canReschedule = displayStatus.toLowerCase() === "confirmed" && isEligible;
-      const canCancel = ["pending", "awaiting_proof", "awaiting_confirmation", "confirmed"].includes(displayStatus.toLowerCase());
+      const canCancel = ["pending", "awaiting_proof", "confirmed"].includes(displayStatus.toLowerCase());
 
       return {
         appt,

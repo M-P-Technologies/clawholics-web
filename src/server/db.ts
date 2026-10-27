@@ -9,7 +9,11 @@ import { workingTimeWait } from "./loopTimer";
 
 type Sql = ReturnType<typeof postgres>;
 
-const globalForDb = globalThis as unknown as { clawholicsSql?: Sql };
+const globalForDb = globalThis as unknown as { clawholicsSql?: Sql; clawholicsSqlSetup?: string };
+
+// Bumped when createClient's setup changes, so a dev server that hot-reloads this file replaces
+// the client it kept on globalThis instead of reusing one built the old way
+const CLIENT_SETUP = "transactions-pool-1";
 
 function createClient(): Sql {
   const url = process.env.DATABASE_URL;
@@ -38,7 +42,18 @@ function createClient(): Sql {
     // lists as json instead.
     fetch_types: false,
   };
-  return postgres(url, options);
+  const client = postgres(url, options);
+  // postgres.js only marks a transaction's connection as reserved when max_pipeline is above 0,
+  // so with 0 every sql.begin fails with UNSAFE_TRANSACTION. Transactions run on their own small
+  // pool with the default pipelining, which is harmless there: a transaction holds its connection.
+  const transactionOptions = { ...options, max: 3, max_pipeline: 100 };
+  const transactions = postgres(url, transactionOptions);
+  client.begin = transactions.begin.bind(transactions) as Sql["begin"];
+  const end = client.end.bind(client);
+  client.end = async (endOptions?: Parameters<Sql["end"]>[0]) => {
+    await Promise.all([end(endOptions), transactions.end(endOptions)]);
+  };
+  return client;
 }
 
 /**
@@ -61,7 +76,14 @@ function createBuildClient(): Sql {
 /** Lazily created, so importing this module never needs DATABASE_URL (e.g. at build time). */
 export function getSql(): Sql {
   if (isBuild()) return createBuildClient();
-  globalForDb.clawholicsSql ??= createClient();
+  if (globalForDb.clawholicsSql && globalForDb.clawholicsSqlSetup !== CLIENT_SETUP) {
+    globalForDb.clawholicsSql.end({ timeout: 5 }).catch(() => {});
+    globalForDb.clawholicsSql = undefined;
+  }
+  if (!globalForDb.clawholicsSql) {
+    globalForDb.clawholicsSql = createClient();
+    globalForDb.clawholicsSqlSetup = CLIENT_SETUP;
+  }
   return globalForDb.clawholicsSql;
 }
 

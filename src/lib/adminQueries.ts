@@ -1,4 +1,4 @@
-import { queryOptions, type QueryClient } from "@tanstack/react-query";
+import { infiniteQueryOptions, queryOptions, type QueryClient } from "@tanstack/react-query";
 import type { GetToken } from "./accountQueries";
 import { fetchAdminPage, fetchDirectoryProfiles, fetchDirectoryUsers } from "../services/directoryService";
 import { fetchWarmLeads } from "../services/dashboardService";
@@ -43,6 +43,8 @@ export const adminKeys = {
   clientNextSteps: (clientId: number) => [ADMIN, "clients", clientId, "nextSteps"] as const,
   scanHistory: () => [ADMIN, "scanHistory"] as const,
   nailists: () => [ADMIN, "nailists"] as const,
+  /** A page of the dashboard's To act on queue: under "appointments", so a change to a booking refreshes it */
+  attention: (tab: string, page: number, pageSize: number) => [ADMIN, "appointments", "attention", tab, page, pageSize] as const,
   /** The bell's notifications of new bookings */
   notifications: () => [ADMIN, "notifications"] as const,
   /** An appointment's payment proofs */
@@ -78,8 +80,18 @@ export const adminQueries = {
       queryKey: adminKeys.clientNextSteps(clientId),
       queryFn: async () => fetchNextSteps(clientId, { token: await getToken(), clerkId }),
     }),
+  /**
+   * The bell's list, a page of 5 at a time: the newest first, then older ones as the admin
+   * scrolls. A refetch (the 30s poll) asks for the pages again in order, each from the one before
+   * it, so a new notification pushing one onto the next page leaves no gap.
+   */
   notifications: ({ getToken, clerkId }: AdminSession) =>
-    queryOptions({ queryKey: adminKeys.notifications(), queryFn: async () => fetchAdminNotifications(await getToken(), clerkId) }),
+    infiniteQueryOptions({
+      queryKey: adminKeys.notifications(),
+      queryFn: async ({ pageParam }) => fetchAdminNotifications(await getToken(), clerkId, pageParam),
+      initialPageParam: undefined as number | undefined,
+      getNextPageParam: (last) => (last.hasMore ? last.notifications.at(-1)?.id : undefined),
+    }),
   /** Every artist (the Artists editor, the appointment list's artist filter) */
   nailists: () => queryOptions({ queryKey: adminKeys.nailists(), queryFn: (): Promise<Nailist[]> => fetchNailists() }),
   scanHistory: ({ getToken, clerkId }: AdminSession) =>

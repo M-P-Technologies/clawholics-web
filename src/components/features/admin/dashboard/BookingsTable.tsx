@@ -25,7 +25,6 @@ const STATUS: Record<string, { label: string; className: string }> = {
   COMPLETED: { label: "Completed", className: "bg-success/20 text-gray-red" },
   PENDING: { label: "Pending", className: "bg-sand text-gray-red" },
   AWAITING_PROOF: { label: "Awaiting proof", className: "bg-sand text-gray-red" },
-  AWAITING_CONFIRMATION: { label: "To confirm", className: "bg-warning/15 text-warning-ink" },
   CANCELLED: { label: "Cancelled", className: "bg-danger/15 text-gray-red" },
   CANCELED: { label: "Cancelled", className: "bg-danger/15 text-gray-red" },
   REFUNDED: { label: "Refunded", className: "bg-danger/15 text-gray-red" },
@@ -33,7 +32,7 @@ const STATUS: Record<string, { label: string; className: string }> = {
 };
 const CANCELLED = ["CANCELLED", "CANCELED", "REFUNDED", "NO_SHOW"];
 // Still to come: not cancelled, refunded or completed
-const UPCOMING = ["PENDING", "AWAITING_PROOF", "AWAITING_CONFIRMATION", "CONFIRMED"];
+const UPCOMING = ["PENDING", "AWAITING_PROOF", "CONFIRMED"];
 const statusOf = (a: Appointment) => (a.status ?? "").trim().toUpperCase();
 /** Five to a page keeps the dashboard short */
 const PAGE = 5;
@@ -107,7 +106,7 @@ export default function BookingsTable({ load }: { load: BookingsLoader }) {
               setPage(1);
             }}
             placeholder="Search client, service, artist…"
-            className="h-9 w-full rounded-full border border-crimson-light bg-milk pl-3 pr-9 text-[13px] text-gray-red outline-none placeholder:text-gray-red/60 focus:ring-2 focus:ring-crimson"
+            className="h-9 w-full rounded-full border border-crimson-light bg-milk pl-3 pr-9 text-[13px] text-gray-red outline-none placeholder:text-gray-red placeholder:italic focus:ring-2 focus:ring-crimson"
           />
           <Search size={16} aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-red" />
         </label>

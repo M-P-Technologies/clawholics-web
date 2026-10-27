@@ -10,7 +10,7 @@ export const surface = {
 
 export const field = {
   input:
-    "w-full rounded-md border border-crimson-light bg-milk px-3 py-2 text-sm text-gray-red outline-none placeholder:text-gray-red/50 focus:ring-2 focus:ring-crimson disabled:cursor-not-allowed disabled:opacity-60",
+    "w-full rounded-md border border-crimson-light bg-milk px-3 py-2 text-sm text-gray-red outline-none placeholder:text-gray-red placeholder:italic focus:ring-2 focus:ring-crimson disabled:cursor-not-allowed disabled:opacity-60",
   label: "text-[13px] font-medium text-gray-red",
 } as const;
 
@@ -37,7 +37,7 @@ export const labelClass =
   "mb-1.5 block label-caps";
 
 export const inputClass =
-  "w-full rounded-md border border-crimson-light bg-light-orange/70 px-3 py-2 text-base text-gray-red placeholder:text-gray-red/50 transition-colors focus:border-crimson focus:outline-none focus:ring-2 focus:ring-crimson/30 disabled:cursor-not-allowed disabled:opacity-60";
+  "w-full rounded-md border border-crimson-light bg-light-orange/70 px-3 py-2 text-base text-gray-red placeholder:text-gray-red placeholder:italic transition-colors focus:border-crimson focus:outline-none focus:ring-2 focus:ring-crimson/30 disabled:cursor-not-allowed disabled:opacity-60";
 
 export const errorTextClass = "mt-1.5 text-sm text-danger-ink";
 

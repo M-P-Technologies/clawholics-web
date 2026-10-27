@@ -16,7 +16,7 @@ const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 const day = (n: number) => screen.getByRole("button", { name: new RegExp(`\\b${n}(st|nd|rd|th)?,`) });
 
 const state = () => ({
-  priceLabel: "₱650", pageData: {} as object | null, isPageLoading: false, pageError: "",
+  priceLabel: "₱650", pageData: {} as object | null, isPageLoading: false, loadingArtists: false, pageError: "",
   nailists: [{ id: 1, name: "Max", category_id: 1, image: "" }, { id: 2, name: "Rae", category_id: 2, image: "" }],
   selectedNailist: { id: 1, name: "Max" }, selectedDate: "2026-10-20", selectedTime: "09:00-11:00", setSelectedTime: vi.fn(),
   timeSlots: ["09:00-11:00", "13:00-15:00"], month: thisMonth, setMonth: vi.fn(),
@@ -30,7 +30,7 @@ const state = () => ({
   handleContinue: vi.fn(), isSubmitting: false, sectionLabel: "label-caps",
   handleArtistChange: vi.fn(), handleDateSelect: vi.fn(), selectedDay: new Date(now.getFullYear(), now.getMonth(), 20),
   isDateFullyBooked: () => false, isSlotBlocked: (s: string) => s === "13:00-15:00",
-  closeModal: vi.fn(), reloadPage: vi.fn(),
+  closeModal: vi.fn(), reloadPage: vi.fn(), contactFields: [],
 });
 
 let s: ReturnType<typeof state>;
@@ -81,6 +81,14 @@ describe("booking step", () => {
     expect(s.handleArtistChange).toHaveBeenCalledWith(2);
   });
 
+  it("says the artists are loading, not that there are none, until they arrive", () => {
+    s.nailists = [];
+    s.loadingArtists = true;
+    render(<Booking />);
+    expect(screen.getByText("Loading artists…")).toBeInTheDocument();
+    expect(screen.queryByText("No available artists for this service.")).toBeNull();
+  });
+
   it("says when no artist does this service", () => {
     s.nailists = [];
     render(<Booking />);
@@ -120,5 +128,24 @@ describe("booking step", () => {
     expect(screen.getByText("We couldn't load the booking page")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     expect(s.reloadPage).toHaveBeenCalled();
+  });
+
+  it("asks for the Instagram/Facebook the profile is missing, and says when one is saved", () => {
+    const onBlur = vi.fn();
+    s.contactFields = [
+      { id: "booking-facebook", name: "facebook_handle", label: "Facebook", type: "text", autoComplete: "off", maxLength: 100, value: "Ana Cruz", status: "saved", onChange: vi.fn(), onBlur },
+    ] as never;
+    render(<Booking />);
+    expect(screen.getByRole("heading", { name: "How can we reach you?" })).toBeInTheDocument();
+    expect(screen.queryByLabelText(/Instagram/)).not.toBeInTheDocument();
+    const input = screen.getByRole("textbox", { name: /Facebook/ });
+    fireEvent.blur(input);
+    expect(onBlur).toHaveBeenCalled();
+    expect(screen.getByText("Saved to your profile")).toBeInTheDocument();
+  });
+
+  it("leaves the section out when the profile has both", () => {
+    render(<Booking />);
+    expect(screen.queryByRole("heading", { name: "How can we reach you?" })).not.toBeInTheDocument();
   });
 });

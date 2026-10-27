@@ -23,7 +23,6 @@ const STATUS: Record<string, { label: string; className: string; tone: BadgeTone
   CONFIRMED: { label: "Confirmed", className: "bg-crimson-light/50 text-berry", tone: "brand" },
   PENDING: { label: "Pending", className: "bg-sand text-gray-red", tone: "warning" },
   AWAITING_PROOF: { label: "Awaiting proof", className: "bg-sand text-gray-red", tone: "warning" },
-  AWAITING_CONFIRMATION: { label: "Awaiting confirmation", className: "bg-warning/15 text-warning-ink", tone: "warning" },
   CANCELLED: { label: "Cancelled", className: "bg-danger/15 text-gray-red", tone: "danger" },
   CANCELED: { label: "Cancelled", className: "bg-danger/15 text-gray-red", tone: "danger" },
   REFUNDED: { label: "Refunded", className: "bg-danger/15 text-gray-red", tone: "danger" },

@@ -103,10 +103,10 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
 
   it("TC-ADM-03: categories reject duplicates and need reassign_to while they have services", async () => {
     as("user_admin");
-    const created = await call(catalog.createCategory, "/api/categories", { method: "POST", body: { name: "Lashes" } });
+    const created = await call(catalog.createCategory, "/api/categories", { method: "POST", body: { name: "Waxing" } });
     expect(created.status).toBe(201);
-    expect(created.body).toMatchObject({ name: "Lashes", slug: "lashes", is_active: 1, position: 3 });
-    expect((await call(catalog.createCategory, "/api/categories", { method: "POST", body: { name: "lashes" } })).status).toBe(409);
+    expect(created.body).toMatchObject({ name: "Waxing", slug: "waxing", is_active: 1, position: 5 });
+    expect((await call(catalog.createCategory, "/api/categories", { method: "POST", body: { name: "waxing" } })).status).toBe(409);
 
     const renamed = await call(catalog.updateCategory, "/api/categories/2", { method: "PUT", params: { id: "2" }, body: { name: "Pedi" } });
     expect(renamed.body.name).toBe("Pedi");
@@ -147,6 +147,36 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
       values (${customerId}, 1, 'Softgel Extensions', 1, 'Miss Max', '2099-02-01', '10:00 AM', 'COMPLETED')`;
     expect((await call(catalog.deleteService, "/api/services/1", { method: "DELETE", params: { id: "1" } })).body.archived).toBe(true);
     expect((await call(catalog.deleteService, `/api/services/${id}`, { method: "DELETE", params: { id } })).body.deleted).toBe(true);
+  });
+
+  it("TC-ADM-04b: a service's options are saved, returned in order, and replaced on update", async () => {
+    as("user_admin");
+    const created = await call(catalog.createService, "/api/services", {
+      method: "POST",
+      body: {
+        name: "Nail Art", category: "Art", pricing_type: "flat", price: 0, master_price: 0, junior_price: 0, duration: "1 hr",
+        variants: [{ name: "Simple", price: 300 }, { name: "Full set", price: 900 }],
+      },
+    });
+    expect(created.status).toBe(201);
+    expect(created.body).toMatchObject({ pricing_type: "flat", price: 300, master_price: 300, junior_price: 300 });
+    expect(created.body.variants.map((v: { name: string; price: number }) => [v.name, v.price])).toEqual([["Simple", 300], ["Full set", 900]]);
+    const id = String(created.body.id);
+
+    const updated = await call(catalog.updateService, `/api/services/${id}`, {
+      method: "PUT",
+      params: { id },
+      body: { name: "Nail Art", pricing_type: "flat", price: 250, duration: "1 hr", variants: [{ name: "Chrome", price: 450 }] },
+    });
+    expect(updated.body).toMatchObject({ pricing_type: "flat", price: 250 });
+    expect(updated.body.variants.map((v: { name: string }) => v.name)).toEqual(["Chrome"]);
+
+    const bad = await call(catalog.updateService, `/api/services/${id}`, {
+      method: "PUT",
+      params: { id },
+      body: { name: "Nail Art", pricing_type: "flat", price: 250, variants: [{ name: "", price: 100 }] },
+    });
+    expect(bad.status).toBe(400);
   });
 
   it("TC-ADM-05: the gallery holds up to 10 photos", async () => {
@@ -212,6 +242,24 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
     expect((await call(users.getUserByClerkId, "/api/users/clerk/user_admin", { params: { clerkId: "user_admin" } })).status).toBe(403);
   });
 
+  it("TC-USR-01b: the PATCH saves only the contact details (booking's Instagram/Facebook)", async () => {
+    as(null);
+    expect((await call(users.updateContactDetails, "/api/users/profile", { method: "PATCH", body: { facebook_handle: "x" } })).status).toBe(401);
+
+    as("user_cust");
+    const [before] = await db`select first_name, last_name, phone, dob, gender from customer_profiles where user_id = ${customerId}`;
+    const saved = await call(users.updateContactDetails, "/api/users/profile", { method: "PATCH", body: { facebook_handle: "Carla C", first_name: "Hacked" } });
+    expect(saved.body).toEqual({ message: "Contact details updated" });
+    const [after] = await db`select first_name, last_name, phone, dob, gender, facebook_handle, instagram_handle from customer_profiles where user_id = ${customerId}`;
+    // The name, phone, birthday and gender are left as they were, and so is the handle not sent
+    expect(after).toEqual({ ...before, facebook_handle: "Carla C", instagram_handle: "carla" });
+
+    expect((await call(users.updateContactDetails, "/api/users/profile", { method: "PATCH", body: { instagram_handle: "x".repeat(101) } })).status).toBe(400);
+    // An account with no client profile yet (e.g. an admin) has nothing to update
+    as("user_admin");
+    expect((await call(users.updateContactDetails, "/api/users/profile", { method: "PATCH", body: { facebook_handle: "x" } })).status).toBe(404);
+  });
+
   it("TC-USR-02: stamps are added and redeemed by an admin scan, or redeemed by the client at 10", async () => {
     as("user_cust");
     expect((await call(users.redeemOwnReward, "/api/users/redeem", { method: "POST" })).status).toBe(400);
@@ -236,7 +284,7 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
     ).toEqual({ success: true, newStamps: 0 });
     const history = await call(users.getScanHistory, "/api/users/scan-history");
     expect(history.body.map((h: { action: string }) => h.action).sort()).toEqual(["redeem", "stamp"]);
-    expect(history.body[0]).toEqual({ id: expect.any(String), userId: "user_cust", clientName: "Carla C", action: expect.any(String), time: expect.stringMatching(/^\d{1,2}:\d{2}:\d{2} [AP]M$/) });
+    expect(history.body[0]).toEqual({ id: expect.any(String), userId: "user_cust", clientName: "Carla C", action: expect.any(String), time: expect.stringMatching(/^\d{1,2}:\d{2} [AP]M$/) });
   });
 
   it("the settings set the stamps a reward needs, and the client redeems at that number", async () => {

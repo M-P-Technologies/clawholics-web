@@ -17,7 +17,7 @@ type ProofUiState =
 
 const norm = (value?: string | null) => (value ?? "").trim().toLowerCase();
 
-const ACTIVE_STATUSES = ["pending", "awaiting_proof", "awaiting_confirmation", "confirmed"];
+const ACTIVE_STATUSES = ["pending", "awaiting_proof", "confirmed"];
 
 export const isActiveAppointmentStatus = (status?: string | null): boolean =>
   ACTIVE_STATUSES.includes(norm(status));
@@ -31,9 +31,8 @@ export function getProofState(appt: ProofAppointment, now: number): ProofUiState
   if (status === "confirmed") {
     return proof?.status === "APPROVED" ? { kind: "approved", proof } : { kind: "none" };
   }
-  // Waiting for a proof: paid by proof, or paid online and waiting for the salon, which checks a
-  // screenshot of the payment before confirming (no deadline then)
-  if (status !== "awaiting_proof" && status !== "awaiting_confirmation") return { kind: "none" };
+  // Waiting for a proof: paid by proof
+  if (status !== "awaiting_proof") return { kind: "none" };
 
   if (proof) {
     if (proof.status === "PENDING") return { kind: "in_review", proof };

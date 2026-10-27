@@ -172,7 +172,7 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     // unpaid: bookings still PENDING (a11), the same list the Appointments filter shows
     // to complete: the 09:00-10:00 visit today is over, but it's before the 16 Oct cut-off (visits
     // from before visit completion existed aren't to-dos); photos: a3 was completed without any
-    expect(d.attention).toEqual({ today: 2, proofsToReview: 2, unpaid: 1, toConfirm: 0, toComplete: 0, photosToAdd: 1, warmLeads: 0 });
+    expect(d.attention).toEqual({ today: 2, proofsToReview: 2, unpaid: 1, toComplete: 0, photosToAdd: 1, warmLeads: 0 });
     // leads: accounts made in the period; Ana and Bea both booked (September: Cara did)
     expect(d.rates.leadConversion).toEqual({ value: 1, previous: 1 });
     expect(d.leads).toEqual({ accounts: 2, booked: 2 });
@@ -577,7 +577,7 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     expect(d.bookingsTrend.points.every((b) => b.completed === 0 && b.cancelled === 0)).toBe(true);
     expect(d.weekdays).toHaveLength(7);
     expect([d.services, d.artists, d.next]).toEqual([[], [], []]);
-    expect(d.attention).toEqual({ today: 0, proofsToReview: 0, unpaid: 0, toConfirm: 0, toComplete: 0, photosToAdd: 0, warmLeads: 0 });
+    expect(d.attention).toEqual({ today: 0, proofsToReview: 0, unpaid: 0, toComplete: 0, photosToAdd: 0, warmLeads: 0 });
     expect(d.money).toEqual({
       grossReceipts: { value: 0, previous: 0 }, unearned: { value: 0, previous: 0 }, revenue: { value: 0, previous: 0 },
       otherIncome: { value: 0, previous: 0 }, refunds: { value: 0, previous: 0 }, points: expect.any(Array),

@@ -32,7 +32,9 @@ export default function Explore() {
           />
         </div>
 
-        {e.loadFailed ? (
+        {e.loading ? (
+          <p role="status" className="py-12 text-center text-gray-red">Loading services…</p>
+        ) : e.loadFailed ? (
           <EmptyState kind="error" title="We couldn't load the services." message="Please check your connection and try again.">
             <Button type="button" onClick={e.retry}>Try again</Button>
           </EmptyState>

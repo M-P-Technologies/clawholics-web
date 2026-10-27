@@ -4,9 +4,9 @@ import Home from "@/app/(site)/(home)/page";
 
 vi.mock("@/hooks/useHome", () => ({
   useHome: () => ({
-    retryProfile: () => {}, contentError: false, reloadContent: () => {}, isBusy: false,
+    contentError: false, reloadContent: () => {},
     content: { home_title: "Clawholics.", home_services_subtitle: "", home_about_subtitle: "", home_about_image: "", home_hero_image: "" },
-    faqs: [], nailists: [], about: null, profileCheckFailed: false, stripItems: [],
+    faqs: [], nailists: [], about: null, stripItems: [],
   }),
 }));
 vi.mock("@/lib/router", () => ({

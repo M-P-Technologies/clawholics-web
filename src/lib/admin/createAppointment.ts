@@ -10,6 +10,8 @@ export interface Service {
   master_price: number;
   junior_price: number;
   duration: string;
+  /** The artists who offer it, as the API sends them: ids joined by commas, or null for none */
+  nailist_ids?: string | null;
 }
 
 export interface NailArtist {

@@ -8,8 +8,6 @@ const BASE_URL = `${API_BASE_URL}/booking/appointments`;
 export type AppointmentStatus =
   | "PENDING"
   | "AWAITING_PROOF"
-  /** Paid online; waiting for an admin to confirm it */
-  | "AWAITING_CONFIRMATION"
   | "CONFIRMED"
   | "COMPLETED"
   | "CANCELLED"
@@ -140,13 +138,11 @@ export const updateAppointmentStatus = async (
   status: AppointmentStatus,
   token?: string | null,
   clerkId?: string | null,
-  /** withoutScreenshot: "Allow anyway", confirming a paid booking whose client sent no screenshot */
-  options: { withoutScreenshot?: boolean } = {},
 ): Promise<Appointment> => {
   const res = await fetch(`${BASE_URL}/${id}/status`, {
     method: "PATCH",
     headers: getHeaders(token, clerkId),
-    body: JSON.stringify(options.withoutScreenshot ? { status, without_screenshot: true } : { status }),
+    body: JSON.stringify({ status }),
   });
 
   if (!res.ok) {

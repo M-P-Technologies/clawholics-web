@@ -3,7 +3,7 @@ import { cancelExpiredPendingAppointments, getAppointment, isSlotConflict } from
 import { slotTaken } from "../slotRules";
 import { canAccess, requireAdmin, requireUserRow, type RequesterUser } from "../auth";
 import { getSql } from "../db";
-import { sendAppointmentConfirmation, sendPaymentProofAdminEmail, sendPaymentReceived } from "../email";
+import { sendAppointmentConfirmation, sendPaymentProofAdminEmail } from "../email";
 import { notifyAdmins } from "../notifications";
 import { inBackground, readJson, routeNotFound, toId } from "../http";
 import {
@@ -51,7 +51,7 @@ export const createPayment = ported(async (req) => {
   if (!appt) return errorBody("Appointment not found.", 404);
   if (!canAccess(requester, appt.user_id)) return errorBody("You can only pay for your own appointment.", 403);
   const apptStatus = String(appt.status || "").trim().toUpperCase();
-  if (["AWAITING_CONFIRMATION", "CONFIRMED", "COMPLETED", "PAID"].includes(apptStatus)) {
+  if (["CONFIRMED", "COMPLETED", "PAID"].includes(apptStatus)) {
     return errorBody("This appointment has already been paid for.", 400);
   }
   // Only a booking still holding its slot is paid for: an expired or cancelled one has let it go
@@ -128,8 +128,7 @@ export const xenditWebhook = ported(
         `;
         if (!paid) return null;
         const appointmentId = paid.appointment_id;
-        // The payment is recorded either way. A paid booking isn't confirmed yet: it waits for an
-        // admin to confirm it (AWAITING_CONFIRMATION holds the slot meanwhile). Only a booking
+        // The payment is recorded either way, and a paid booking is confirmed. Only a booking
         // waiting for this payment moves: unpaid, or released when its hold ran out just before the
         // payment arrived (and its time is still free). Anything else (already paid another way, confirmed, completed, refunded),
         // or a slot someone else took meanwhile, keeps its status for an admin to check.
@@ -144,7 +143,7 @@ export const xenditWebhook = ported(
           return { appointmentId, applied: false };
         }
         try {
-          await tx.savepoint((sp) => sp`update appointments set status = 'AWAITING_CONFIRMATION' where id = ${appointmentId}`);
+          await tx.savepoint((sp) => sp`update appointments set status = 'CONFIRMED' where id = ${appointmentId}`);
           return { appointmentId, applied: true };
         } catch (error) {
           if (!isSlotConflict(error)) throw error;
@@ -153,8 +152,7 @@ export const xenditWebhook = ported(
       });
       if (outcome?.applied) {
         const paidId = outcome.appointmentId;
-        // "Payment received, the salon will confirm"; the confirmation email goes out when an admin confirms
-        inBackground("payment received email", () => sendPaymentReceived(paidId));
+        inBackground("appointment confirmation email", () => sendAppointmentConfirmation(paidId));
         // The admins' bell. After the payment's transaction, so a failure here can't undo it
         inBackground("admin notification", () => notifyAdmins("booking_paid", paidId, paidId));
       } else if (outcome) {
@@ -240,15 +238,11 @@ export const uploadPaymentProof = ported(async (req) => {
     return Response.json({ error: "You can only upload a proof for your own appointment." }, { status: 403 });
   }
 
-  // Paid by proof (PENDING, while MANUAL is on), or paid online and waiting for the salon, which
-  // checks the client's screenshot of the payment before confirming
+  // Paid by proof: a PENDING booking, while MANUAL is on
   const apptStatus = String(appt.status || "").toUpperCase();
-  if (apptStatus === "PENDING") {
-    const { payment_methods } = await getPaymentSettings();
-    if (!payment_methods.includes("MANUAL")) return Response.json({ error: "Manual payment is not available." }, { status: 400 });
-  } else if (apptStatus !== "AWAITING_CONFIRMATION") {
-    return Response.json({ error: "This appointment is not awaiting payment." }, { status: 400 });
-  }
+  if (apptStatus !== "PENDING") return Response.json({ error: "This appointment is not awaiting payment." }, { status: 400 });
+  const { payment_methods } = await getPaymentSettings();
+  if (!payment_methods.includes("MANUAL")) return Response.json({ error: "Manual payment is not available." }, { status: 400 });
 
   const sql = getSql();
   const [pendingProof] = await sql`select id from payment_proofs where appointment_id = ${appointmentId} and status = 'PENDING' limit 1`;
@@ -326,14 +320,9 @@ export const reviewPaymentProof = ported<IdContext>(async (req, { params }) => {
   if (!proof) return Response.json({ error: "Payment proof not found." }, { status: 404 });
   if (proof.status !== "PENDING") return Response.json({ error: "This payment proof has already been reviewed." }, { status: 409 });
 
-  // A screenshot of a payment made online: approving it is the admin's confirmation, and the
-  // payment is already recorded
-  let paidOnline = false;
   if (status === "APPROVED") {
     const [appt] = await sql<{ status: string | null }[]>`select status from appointments where id = ${proof.appointment_id}`;
-    const apptStatus = String(appt?.status || "").toUpperCase();
-    paidOnline = apptStatus === "AWAITING_CONFIRMATION";
-    if (apptStatus !== "PENDING" && !paidOnline) {
+    if (String(appt?.status || "").toUpperCase() !== "PENDING") {
       return Response.json({ error: "The appointment is no longer awaiting payment." }, { status: 409 });
     }
   }
@@ -353,11 +342,10 @@ export const reviewPaymentProof = ported<IdContext>(async (req, { params }) => {
 
     const [confirmed] = await tx`
       update appointments set status = 'CONFIRMED'
-      where id = ${proof.appointment_id} and upper(status) = ${paidOnline ? "AWAITING_CONFIRMATION" : "PENDING"} returning id
+      where id = ${proof.appointment_id} and upper(status) = 'PENDING' returning id
     `;
     // Rolls the review back too
     if (!confirmed) throw new AppointmentNotAwaitingPayment();
-    if (paidOnline) return [] as string[];
 
     const openPayments = await tx<{ external_id: string }[]>`
       select external_id from payments where appointment_id = ${proof.appointment_id} and upper(status) = 'PENDING'

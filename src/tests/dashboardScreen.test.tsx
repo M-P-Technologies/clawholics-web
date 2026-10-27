@@ -10,9 +10,10 @@ import type { Appointment, AppointmentPageParams } from "@/services/appointmentS
 
 const fetchDashboard = vi.fn();
 const QUEUE = {
-  items: [{ kind: "confirm", appointment_id: 1, user_id: 4, client_name: "Dana D", email: "dana@x.test", service_name: "Gel Manicure", nailist_name: "Maxine",
+  items: [{ kind: "review", appointment_id: 1, user_id: 4, client_name: "Dana D", email: "dana@x.test", service_name: "Gel Manicure", nailist_name: "Maxine",
     appointment_date: "2026-10-20", appointment_time: "15:00-16:00", since: "2026-10-13 04:00:00" }],
-  counts: { confirm: 1, review: 0, complete: 0, photos: 0, leads: 0 },
+  counts: { review: 1, complete: 0, photos: 0, leads: 0 },
+  total: 1, page: 1, pageSize: 5,
 };
 const fetchAttention = vi.fn(async () => QUEUE);
 vi.mock("@/services/dashboardService", () => ({
@@ -56,7 +57,7 @@ const base = (over: Partial<DashboardResponse> = {}): DashboardResponse => ({
     leadConversion: { value: 0.5, previous: 0.5 },
   },
   lapsedClients: 1, leads: { accounts: 4, booked: 2 }, totals: { clients: { value: 17, previous: 15 }, services: { value: 8, previous: 10 }, artists: { value: 5, previous: 5 }, appointments: { value: 6, previous: 4 }, trend: [] }, sales: [],
-  attention: { today: 2, proofsToReview: 2, toConfirm: 0, toComplete: 0, photosToAdd: 0, unpaid: 2, warmLeads: 0 },
+  attention: { today: 2, proofsToReview: 2, toComplete: 0, photosToAdd: 0, unpaid: 2, warmLeads: 0 },
   money: { grossReceipts: { value: 0, previous: 0 }, unearned: { value: 0, previous: 0 }, revenue: { value: 0, previous: 0 }, otherIncome: { value: 0, previous: 0 }, refunds: { value: 0, previous: 0 }, points: [] },
   trend: { granularity: "day", points: [] },
   rateTrend: [],
@@ -207,7 +208,7 @@ describe("Dashboard", () => {
       }),
     );
     fetchAppointments.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
-    fetchAttention.mockResolvedValueOnce({ items: [], counts: { confirm: 0, review: 0, complete: 0, photos: 0, leads: 0 } });
+    fetchAttention.mockResolvedValueOnce({ items: [], counts: { review: 0, complete: 0, photos: 0, leads: 0 }, total: 0, page: 1, pageSize: 5 });
     render(<Dashboard />);
     expect(await screen.findByText("Nothing needs attention right now.")).toBeInTheDocument();
     expect(screen.getAllByText(/Nothing to show yet|No bookings/).length).toBeGreaterThan(0);

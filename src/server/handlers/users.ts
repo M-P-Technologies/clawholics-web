@@ -434,6 +434,28 @@ export const updateProfile = ported(async (req) => {
   return Response.json({ message: "Profile updated" });
 });
 
+// PATCH /users/profile: only the signed-in client's optional contact details (other phone,
+// Instagram, Facebook, preferred method), saved as they type them while booking. Unlike the PUT,
+// it leaves the name, phone, birthday and gender alone.
+export const updateContactDetails = ported(async (req) => {
+  const requester = await requireUser();
+  if (requester instanceof Response) return requester;
+  const contact = parseContactFields(await readJson<Body>(req));
+  if (contact.error) return Response.json({ message: contact.error }, { status: 400 });
+
+  if (Object.keys(contact.fields).length === 0) return Response.json({ message: "Nothing to update" }, { status: 400 });
+
+  // The columns come from the fixed alias list in parseContactFields
+  const sql = getSql();
+  const updated = await sql`
+    update customer_profiles cp set ${sql(contact.fields as Record<string, string | null>)}
+    from users u where u.id = cp.user_id and u.clerk_id = ${requester.clerkId}
+    returning cp.user_id
+  `;
+  if (updated.length === 0) return Response.json({ message: "Profile not found" }, { status: 404 });
+  return Response.json({ message: "Contact details updated" });
+});
+
 // GET /users/appointments?clerk_id=: that user's appointments, newest date first.
 export const getUserAppointments = ported(async (req) => {
   const requester = await requireUser();
