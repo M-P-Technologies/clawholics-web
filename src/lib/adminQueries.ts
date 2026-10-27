@@ -2,6 +2,8 @@ import { infiniteQueryOptions, queryOptions, type QueryClient } from "@tanstack/
 import type { GetToken } from "./accountQueries";
 import { fetchAdminPage, fetchDirectoryProfiles, fetchDirectoryUsers } from "../services/directoryService";
 import { fetchWarmLeads } from "../services/dashboardService";
+import { fetchNailistVisitPhotos } from "../services/nailistService";
+import { fetchServiceVisitPhotos, fetchVisitPhotos } from "../services/serviceService";
 import { fetchMonthlySchedule } from "../services/scheduleService";
 import { fetchClient, fetchNextSteps, fetchNotes } from "../services/clientNotesService";
 import { fetchScanHistory } from "../services/scanService";
@@ -36,6 +38,10 @@ export const adminKeys = {
   /** A page of the Admin Directory */
   adminPage: (page: number, pageSize: number) => [ADMIN, "directory", "admins", page, pageSize] as const,
   leads: () => [ADMIN, "leads"] as const,
+  /** The nail photos of a service's completed visits */
+  visitPhotos: () => [ADMIN, "visitPhotos"] as const,
+  nailistVisitPhotos: (id: number) => [ADMIN, "nailistVisitPhotos", id] as const,
+  serviceVisitPhotos: (serviceId: number) => [ADMIN, "serviceVisitPhotos", serviceId] as const,
   /** A month of the schedule, YYYY-MM */
   scheduleMonth: (month: string) => [ADMIN, "schedule", month] as const,
   client: (clientId: number) => [ADMIN, "clients", clientId] as const,
@@ -69,6 +75,15 @@ export const adminQueries = {
       queryKey: adminKeys.adminPage(page, pageSize),
       queryFn: async () => fetchAdminPage(page, pageSize, await getToken(), clerkId),
     }),
+  /** The nail photos added to any completed visit */
+  visitPhotos: ({ getToken, clerkId }: AdminSession) =>
+    queryOptions({ queryKey: adminKeys.visitPhotos(), queryFn: async () => fetchVisitPhotos(await getToken(), clerkId) }),
+  /** The nail photos added to visits an artist completed */
+  nailistVisitPhotos: (id: number, { getToken, clerkId }: AdminSession) =>
+    queryOptions({ queryKey: adminKeys.nailistVisitPhotos(id), queryFn: async () => fetchNailistVisitPhotos(id, await getToken(), clerkId) }),
+  /** The nail photos added to a service's completed visits */
+  serviceVisitPhotos: (serviceId: number, { getToken, clerkId }: AdminSession) =>
+    queryOptions({ queryKey: adminKeys.serviceVisitPhotos(serviceId), queryFn: async () => fetchServiceVisitPhotos(serviceId, await getToken(), clerkId) }),
   /** The warm leads' Clerk ids */
   leads: ({ getToken, clerkId }: AdminSession) =>
     queryOptions({ queryKey: adminKeys.leads(), queryFn: async () => (await fetchWarmLeads(await getToken(), clerkId)).clerkIds }),

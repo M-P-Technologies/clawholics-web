@@ -1,8 +1,8 @@
 import { X } from "lucide-react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { DragHandle, SortableList } from "@/components/molecules";
-import { IconButton } from "@/components/atoms";
-import WorkPhotoPicker from "@/components/features/admin/cms/WorkPhotoPicker";
+import { Button, IconButton } from "@/components/atoms";
+import PhotoPickerDialog from "@/components/features/admin/cms/PhotoPickerDialog";
 import type { WorkPhoto } from "@/hooks/admin/useArtistWorkPhotos";
 import type { CarouselItem } from "@/services/carouselService";
 
@@ -25,6 +25,8 @@ interface CarouselEditorProps {
 // The studio gallery's photos: drag to reorder, remove, or pick more from the artists' work (up to
 // MAX_CAROUSEL_IMAGES). Nothing is uploaded here, so the same photo isn't stored twice.
 export default function CarouselEditor({ photos, onChange, choices, choicesLoading = false }: CarouselEditorProps) {
+  const [picking, setPicking] = useState(false);
+
   const add = (url: string) => {
     if (photos.length < MAX_CAROUSEL_IMAGES) onChange(normalizeCarousel([...photos, { id: -Date.now(), image_url: url, position: photos.length + 1 }]));
   };
@@ -46,8 +48,19 @@ export default function CarouselEditor({ photos, onChange, choices, choicesLoadi
       {photos.length >= MAX_CAROUSEL_IMAGES ? (
         <p className="text-[13px] text-gray-red">The gallery is full. Remove a photo to add another.</p>
       ) : (
-        <WorkPhotoPicker choices={choices} taken={photos.map((p) => p.image_url)} loading={choicesLoading} onPick={add} />
+        <Button type="button" variant="secondary" fullWidth onClick={() => setPicking(true)}>
+          Add a photo
+        </Button>
       )}
+      <PhotoPickerDialog
+        open={picking}
+        onClose={() => setPicking(false)}
+        choices={choices}
+        taken={photos.map((p) => p.image_url)}
+        loading={choicesLoading}
+        emptyText="No more photos to choose from. They come from the visits the artists complete with a photo."
+        onPick={add}
+      />
     </>
   );
 }

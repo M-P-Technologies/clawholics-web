@@ -228,7 +228,7 @@ export function ImageField({ label, value, uploading, onUpload, onRemove, hint, 
               </span>
             )}
           </div>
-          <div className="flex gap-3">
+          <div className="flex justify-end gap-3">
             <label
               htmlFor={id}
               className={clsx(

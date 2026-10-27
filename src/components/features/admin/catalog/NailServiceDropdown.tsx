@@ -28,8 +28,8 @@ import { DragHandle, useToast, EditActions, SectionHeader } from "@/components/m
 import { itemName, upperFirst } from "@/lib/itemName";
 import type { SortableHandleProps } from "@/components/molecules";
 import { Button, IconButton } from "@/components/atoms";
-import WorkPhotoPicker from "@/components/features/admin/cms/WorkPhotoPicker";
-import { useArtistWorkPhotos } from "@/hooks/admin/useArtistWorkPhotos";
+import PhotoPickerDialog from "@/components/features/admin/cms/PhotoPickerDialog";
+import { useServiceVisitPhotos } from "@/hooks/admin/useServiceVisitPhotos";
 import { ConfirmDialog, ImagePreviewDialog } from "@/components/organisms";
 
 type NailServiceDropdownProps = {
@@ -110,11 +110,13 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
   isDragging = false,
 }) => {
   const toast = useToast();
-  const workPhotos = useArtistWorkPhotos();
   const isCreateMode = mode === "create";
 
   const [isOpen, setIsOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(isCreateMode);
+  const [pickingPhoto, setPickingPhoto] = useState(false);
+  // Only the photos added to completed visits of this service (none until it is saved)
+  const workPhotos = useServiceVisitPhotos(pickingPhoto && !isCreateMode ? (service?.id ?? null) : null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -462,44 +464,49 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
 
               <div className="flex flex-col gap-3">
                 {gallery.map((image) => (
-                  <div
-                    key={image.id}
-                    className="flex items-center justify-between w-full min-h-9 bg-milk rounded-md px-3 py-1 overflow-visible border border-crimson-light"
-                  >
-                    <Button
-                      variant="bare"
-                      type="button"
-                      onClick={() => setPreviewImageUrl(image.image_url)}
-                      className="min-w-0 flex-1 cursor-pointer text-left text-[13px] leading-none truncate text-gray-red hover:underline"
-                    >
-                      {image.image_url.split("/").pop()}
+                  <div key={image.id} className="flex items-center gap-3 rounded-lg border border-crimson-light/60 bg-milk p-2">
+                    <Button variant="bare" type="button" aria-label={`Preview ${image.image_url.split("/").pop()}`} onClick={() => setPreviewImageUrl(image.image_url)} className="shrink-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element -- R2 images, sized by CSS like the rest of the admin */}
+                      <img src={image.image_url} alt="" className="h-12 w-16 rounded-md object-cover" />
                     </Button>
+                    <span className="min-w-0 flex-1 truncate text-[13px] text-gray-red">{image.image_url.split("/").pop()}</span>
 
-                    <Button
-                      variant="bare"
-                      type="button"
-                      aria-label={isMain(image) ? "Main photo of this service" : "Make this the main photo"}
-                      aria-pressed={isMain(image)}
-                      title={isMain(image) ? "Main photo: shown for this service on the website" : "Make this the main photo"}
-                      disabled={!isEditing}
-                      onClick={() => setStarredUrl(image.image_url)}
-                      className="flex items-center justify-center w-7 h-7 shrink-0 disabled:cursor-default disabled:opacity-100"
-                    >
-                      <StarIcon size={22} className={isMain(image) ? "fill-crimson text-crimson" : "text-crimson/40"} />
-                    </Button>
+                    <div className="flex shrink-0 items-center gap-0">
+                      <Button
+                        variant="bare"
+                        type="button"
+                        aria-label={isMain(image) ? "Main photo of this service" : "Make this the main photo"}
+                        aria-pressed={isMain(image)}
+                        title={isMain(image) ? "Main photo: shown for this service on the website" : "Make this the main photo"}
+                        disabled={!isEditing}
+                        onClick={() => setStarredUrl(image.image_url)}
+                        className="flex items-center justify-center w-7 h-7 shrink-0 disabled:cursor-default disabled:opacity-100"
+                      >
+                        <StarIcon size={22} className={isMain(image) ? "fill-crimson text-crimson" : "text-crimson/40"} />
+                      </Button>
 
-                    {isEditing && (
-                      <IconButton size="sm" icon={X} label="Remove photo" onClick={() => handleRemoveImage(image)} />
-                    )}
+                      {isEditing && (
+                        <IconButton size="sm" icon={X} label="Remove photo" onClick={() => handleRemoveImage(image)} />
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
 
               {isEditing && gallery.length < MAX_IMAGES && (
-                <div className="mt-3">
-                  <WorkPhotoPicker choices={workPhotos.photos} taken={gallery.map((image) => image.image_url)} loading={workPhotos.isLoading} onPick={handleAddPhoto} />
-                </div>
+                <Button type="button" variant="secondary" fullWidth className="mt-3" onClick={() => setPickingPhoto(true)}>
+                  Add photo
+                </Button>
               )}
+              <PhotoPickerDialog
+                open={pickingPhoto}
+                onClose={() => setPickingPhoto(false)}
+                choices={workPhotos.photos}
+                taken={gallery.map((image) => image.image_url)}
+                loading={workPhotos.isLoading}
+                emptyText={isCreateMode ? "Photos come from completed visits of this service, so save it first." : "No completed visit of this service has a photo yet. Add one when completing a visit."}
+                onPick={handleAddPhoto}
+              />
             </div>
 
             <EditActions

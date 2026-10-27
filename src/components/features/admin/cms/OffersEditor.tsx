@@ -3,7 +3,7 @@ import { MAX_OFFERS, type HomeOffer } from "@/lib/homeSections";
 import { serviceDetailPath } from "@/lib/client/clientNav";
 import type { NailService } from "@/services/serviceService";
 import { Button, IconButton } from "@/components/atoms";
-import { fieldClass, fieldLabelClass } from "@/components/features/admin/cms/fields";
+import { SelectField, fieldClass, fieldLabelClass } from "@/components/features/admin/cms/fields";
 
 interface OffersEditorProps {
   offers: HomeOffer[];
@@ -42,14 +42,7 @@ export default function OffersEditor({ offers, services, onChange, upload, uploa
             {field("Line under it", "line")}
             {field("Small print", "note")}
             {field("Button text", "buttonLabel")}
-            <label className="flex flex-col gap-1">
-              <span className={fieldLabelClass}>Button opens</span>
-              <select value={offer.link} onChange={(e) => update(i, { link: e.target.value })} className={fieldClass}>
-                {linkOptions.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
-            </label>
+            <SelectField label="Button opens" value={offer.link} options={linkOptions} onChange={(value) => update(i, { link: value })} />
             <label className={`inline-flex w-fit cursor-pointer items-center rounded-md border border-crimson-light px-3 py-1 text-xs font-bold text-gray-red hover:bg-crimson-light/30 ${uploading[slot] ? "pointer-events-none opacity-50" : ""}`}>
               {uploading[slot] ? "Uploading…" : offer.image ? "Replace photo" : "Add a photo"}
               <input

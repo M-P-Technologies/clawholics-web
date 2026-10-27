@@ -3,13 +3,16 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ADMIN } from "@/lib/adminQueries";
 import {
+  addNailistGalleryImage,
   deleteNailistGalleryImage,
   fetchNailistGallery,
   type NailistGalleryImage,
 } from "@/services/nailistService";
 import { Button, IconButton } from "@/components/atoms";
+import PhotoPickerDialog from "@/components/features/admin/cms/PhotoPickerDialog";
+import { useNailistVisitPhotos } from "@/hooks/admin/useNailistVisitPhotos";
 import { useToast } from "@/components/molecules";
-import { itemName } from "@/lib/itemName";
+import { itemName, upperFirst } from "@/lib/itemName";
 
 const MAX_IMAGES = 10; // what the page and the visit photos keep (server/handlers/completions.ts)
 
@@ -34,6 +37,9 @@ export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, 
   const who = itemName(artistName, "this artist");
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState(false);
+  const [picking, setPicking] = useState(false);
+  // Only the photos added to visits this artist completed
+  const visitPhotos = useNailistVisitPhotos(nailistId, picking);
 
   // The photos in order, cached per artist
   const galleryKey = [ADMIN, "nailists", nailistId, "gallery"];
@@ -47,6 +53,27 @@ export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, 
   // Photos save at once, so the cached list changes with them
   const setImages = (update: (prev: NailistGalleryImage[]) => NailistGalleryImage[]) =>
     queryClient.setQueryData<NailistGalleryImage[]>(galleryKey, (prev) => update(prev ?? []));
+
+  // Adds a visit photo to the gallery (saved at once, like removing one)
+  const add = async (url: string) => {
+    if (nailistId === null) return;
+    if (images.length >= MAX_IMAGES) {
+      toast.show("error", "Too many photos", `${upperFirst(who)} can have up to ${MAX_IMAGES} photos. Remove some before adding more.`);
+      return;
+    }
+    setBusy(true);
+    try {
+      const token = tokenFetcher ? await tokenFetcher() : null;
+      const created = await addNailistGalleryImage(nailistId, url, token, clerkId);
+      setImages((prev) => [...prev, { id: created.id, nailist_id: nailistId, image_url: url, position: prev.length + 1 }]);
+      onChanged?.();
+    } catch (error) {
+      console.error("Failed to add an artist photo:", error);
+      toast.show("error", "Photo not added", `We couldn't add that photo to ${who}'s gallery. Please try again.`);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const remove = async (image: NailistGalleryImage) => {
     setBusy(true);
@@ -81,22 +108,14 @@ export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, 
         <>
           <div className="flex flex-col gap-3">
             {images.map((image) => (
-              <div
-                key={image.id}
-                className="flex items-center justify-between w-full min-h-9 bg-milk rounded-md px-3 py-1 overflow-visible border border-crimson-light"
-              >
-                <Button
-                  variant="bare"
-                  type="button"
-                  onClick={() => onPreview(image.image_url)}
-                  className="min-w-0 flex-1 cursor-pointer text-left text-[13px] leading-none truncate text-gray-red hover:underline"
-                >
-                  {image.image_url.split("/").pop()}
+              <div key={image.id} className="flex items-center gap-3 rounded-lg border border-crimson-light/60 bg-milk p-2">
+                <Button variant="bare" type="button" aria-label={`Preview ${image.image_url.split("/").pop()}`} onClick={() => onPreview(image.image_url)} className="shrink-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- R2 images, sized by CSS like the rest of the admin */}
+                  <img src={image.image_url} alt="" className="h-12 w-16 rounded-md object-cover" />
                 </Button>
+                <span className="min-w-0 flex-1 truncate text-[13px] text-gray-red">{image.image_url.split("/").pop()}</span>
 
-                {isEditing && (
-                  <IconButton size="sm" icon={X} label="Remove photo" onClick={() => remove(image)} disabled={busy} />
-                )}
+                {isEditing && <IconButton size="sm" icon={X} label="Remove photo" onClick={() => remove(image)} disabled={busy} />}
               </div>
             ))}
             {images.length === 0 && !isEditing && (
@@ -104,9 +123,23 @@ export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, 
             )}
           </div>
 
+          {isEditing && images.length < MAX_IMAGES && (
+            <Button type="button" variant="secondary" fullWidth disabled={busy} onClick={() => setPicking(true)}>
+              Add photo
+            </Button>
+          )}
+          <PhotoPickerDialog
+            open={picking}
+            onClose={() => setPicking(false)}
+            choices={visitPhotos.photos}
+            taken={images.map((image) => image.image_url)}
+            loading={visitPhotos.isLoading}
+            emptyText="No visit this artist completed has a photo that isn't already here."
+            onPick={(url) => void add(url)}
+          />
           <p className="text-[13px] text-gray-red">
             {isEditing
-              ? "These come from the visits this artist completes with a photo. Remove any you don't want shown on their page."
+              ? "These come from the visits this artist completes with a photo. Add one back or remove any you don't want shown on their page."
               : "Photos come from the visits this artist completes. Press Edit to remove any you don't want shown."}
           </p>
         </>

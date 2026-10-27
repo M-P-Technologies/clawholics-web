@@ -75,7 +75,7 @@ export default function ContactUs() {
               </SubCard>
             ))}
             {links.length === 0 && <p className="text-[13px] text-gray-red">No social media links yet.</p>}
-            <Button size="sm" type="button" variant="secondary" disabled={links.length >= MAX_SOCIAL_LINKS} onClick={editor.addLink} className="self-start">
+            <Button fullWidth type="button" variant="secondary" disabled={links.length >= MAX_SOCIAL_LINKS} onClick={editor.addLink}>
               <Plus size={16} aria-hidden="true" />
               Add a social link
             </Button>

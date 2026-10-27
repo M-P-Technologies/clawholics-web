@@ -59,8 +59,9 @@ const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({
         ) : undefined
       }
     >
-      <div className="flex max-h-[70vh] items-center justify-center overflow-hidden rounded-2xl border border-crimson-light/40 bg-pearl p-2 shadow-petal">
-        <img src={imageUrl ?? undefined} alt={alt} className="max-h-[calc(70vh-1rem)] w-full rounded-xl object-contain" />
+      {/* The frame hugs the photo, so there is no empty band at its sides */}
+      <div className="mx-auto flex max-h-[70vh] w-fit max-w-full items-center justify-center overflow-hidden rounded-2xl border border-crimson-light/40 bg-pearl p-2 shadow-petal">
+        <img src={imageUrl ?? undefined} alt={alt} className="max-h-[calc(70vh-1rem)] w-auto max-w-full rounded-xl" />
       </div>
     </Dialog>
   );

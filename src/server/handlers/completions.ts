@@ -170,3 +170,54 @@ export const saveVisitPhoto = changesCatalog(ported<IdContext>(async (req, { par
   });
   return Response.json({ photo_url: url });
 }));
+
+// GET /services/:id/visit-photos (admin only): the nail photos added to completed visits of this
+// service, newest first, for choosing a photo for the service (its strip slide, its photos) without
+// uploading another copy. Not on the Worker.
+export const listServiceVisitPhotos = ported<IdContext>(async (_req, { params }) => {
+  const admin = await requireAdmin();
+  if (admin instanceof Response) return admin;
+  const serviceId = toId((await params).id);
+  if (serviceId === null) return Response.json([]);
+  const rows = await getSql()`
+    select vc.photo_url as url, vc.appointment_id::int as appointment_id, nl.name as artist
+    from visit_completions vc
+    join appointments a on a.id = vc.appointment_id
+    left join nailists nl on nl.id = vc.nailist_id
+    where a.service_id = ${serviceId} and coalesce(vc.photo_url, '') <> ''
+    order by vc.updated_at desc, vc.id desc
+    limit 60`;
+  return Response.json(rows);
+});
+
+// GET /nailists/:id/visit-photos (admin only): the nail photos added to visits this artist completed,
+// newest first, to choose from when adding to their gallery. Not on the Worker.
+export const listNailistVisitPhotos = ported<IdContext>(async (_req, { params }) => {
+  const admin = await requireAdmin();
+  if (admin instanceof Response) return admin;
+  const nailistId = toId((await params).id);
+  if (nailistId === null) return Response.json([]);
+  const rows = await getSql()`
+    select vc.photo_url as url, vc.appointment_id::int as appointment_id, a.service_name as artist
+    from visit_completions vc
+    join appointments a on a.id = vc.appointment_id
+    where vc.nailist_id = ${nailistId} and coalesce(vc.photo_url, '') <> ''
+    order by vc.updated_at desc, vc.id desc
+    limit 60`;
+  return Response.json(rows);
+});
+
+// GET /visit-photos (admin only): the nail photos added to any completed visit, newest first, for
+// the Studio gallery to choose from. Not on the Worker.
+export const listVisitPhotos = ported(async () => {
+  const admin = await requireAdmin();
+  if (admin instanceof Response) return admin;
+  const rows = await getSql()`
+    select vc.photo_url as url, vc.appointment_id::int as appointment_id, nl.name as artist
+    from visit_completions vc
+    left join nailists nl on nl.id = vc.nailist_id
+    where coalesce(vc.photo_url, '') <> ''
+    order by vc.updated_at desc, vc.id desc
+    limit 60`;
+  return Response.json(rows);
+});

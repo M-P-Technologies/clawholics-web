@@ -199,3 +199,31 @@ export const deleteServiceGalleryImage = async (id: number, token?: string | nul
 export const fetchServices = () => previewed("services", () => loadServices());
 export const fetchServiceById = (id: number) => previewed(`service:${id}`, () => loadServiceById(id));
 export const fetchServiceGallery = (serviceId: number) => previewed(`serviceGallery:${serviceId}`, () => loadServiceGallery(serviceId));
+
+export type VisitPhoto = { url: string; appointment_id: number; artist: string | null };
+
+// The nail photos added to completed visits of a service (admin only)
+export const fetchServiceVisitPhotos = async (serviceId: number, token?: string | null, clerkId?: string | null): Promise<VisitPhoto[]> => {
+  const res = await fetch(`${API_BASE_URL}/services/${serviceId}/visit-photos`, {
+    headers: {
+      "x-clawholics-origin": "frontend",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(clerkId ? { clerk_id: clerkId } : {}),
+    },
+  });
+  if (!res.ok) throw new Error(`Failed to load the visit photos (${res.status})`);
+  return res.json();
+};
+
+// The nail photos added to any completed visit (admin only)
+export const fetchVisitPhotos = async (token?: string | null, clerkId?: string | null): Promise<VisitPhoto[]> => {
+  const res = await fetch(`${API_BASE_URL}/visit-photos`, {
+    headers: {
+      "x-clawholics-origin": "frontend",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(clerkId ? { clerk_id: clerkId } : {}),
+    },
+  });
+  if (!res.ok) throw new Error(`Failed to load the visit photos (${res.status})`);
+  return res.json();
+};
