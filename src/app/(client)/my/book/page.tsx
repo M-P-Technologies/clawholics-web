@@ -13,7 +13,7 @@ import ClientScreen from "@/components/features/client/shell/ClientScreen";
 import { useBooking } from "@/hooks/client/useBooking";
 
 export default function Booking() {
-  const { priceLabel, pageData, isPageLoading, pageError, nailists, selectedNailist, selectedDate, selectedTime, setSelectedTime, timeSlots, month, setMonth, modalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, locationUrl, locationText, isDisabledDate, formatSlot, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage, contactFields } = useBooking();
+  const { priceLabel, pageData, isPageLoading, pageError, nailists, loadingArtists, selectedNailist, selectedDate, selectedTime, setSelectedTime, timeSlots, month, setMonth, modalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, locationUrl, locationText, isDisabledDate, formatSlot, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage, contactFields } = useBooking();
 
   if (isPageLoading) {
     return <LoadingBar label="Loading booking details" />;
@@ -71,7 +71,11 @@ export default function Booking() {
                   Meet our artists<span className="sr-only"> (opens in a new tab)</span>
                 </Button>
               </div>
-              {nailists.length === 0 ? (
+              {loadingArtists ? (
+                <p role="status" className={clsx(surface.tint, "px-3 py-3 text-sm text-gray-red")}>
+                  Loading artists…
+                </p>
+              ) : nailists.length === 0 ? (
                 <p className={clsx(surface.tint, "px-3 py-3 text-sm text-gray-red")}>
                   No available artists for this service.
                 </p>
