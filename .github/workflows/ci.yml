@@ -1,7 +1,7 @@
-# Checks every pull request and every push to main: the type-check, lint, the unit tests and the
-# Postgres integration tests (src/tests/db). It never touches Supabase: the database tests run
-# against a throwaway Postgres service container, which they drop and rebuild (see
-# src/tests/db/testDatabase.ts). Vercel builds the app itself, so there's no `next build` here.
+# Checks every pull request and every push to main: lint, the unit tests and the Postgres
+# integration tests (src/tests/db). It never touches Supabase: the database tests run against a
+# throwaway Postgres service container, which they drop and rebuild (see src/tests/db/testDatabase.ts).
+# Vercel builds the app itself (`next build` includes the type-check), so there's neither here.
 name: CI
 
 on:
@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   test:
-    name: Type-check and unit tests
+    name: Unit tests
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -32,14 +32,6 @@ jobs:
           cache: npm
 
       - run: npm ci
-
-      # next-env.d.ts is gitignored: it holds the types for importing images (.png etc.), so a fresh
-      # checkout fails the type-check on every image import without it
-      - name: Generate Next's types
-        run: npx next typegen
-
-      - name: Type-check
-        run: npx tsc --noEmit
 
       # jsdom screens are slow on a shared runner, so each test gets 30s instead of the default 5s
       - name: Unit tests
