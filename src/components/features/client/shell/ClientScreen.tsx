@@ -45,9 +45,10 @@ export default function ClientScreen({ title, actions, back, children }: ClientS
     ) : null;
 
   return (
-    // From `sm` the scroller around this already has the sidebar's top and bottom inset, so only
-    // the sides are padded there
-    <div className="flex min-w-0 flex-col gap-3 p-3 sm:py-0 md:gap-6 md:px-6">
+    // From `sm` the frame is fitted to the screen (see AppShell): the top bar stays put and only the
+    // content below it scrolls, as in the admin, inside the same top and bottom inset as the sidebar,
+    // so only the sides are padded here. Below `sm` it's the page that scrolls (the bar is sticky).
+    <div className="flex min-w-0 flex-col gap-3 p-3 sm:h-full sm:py-0 md:gap-6 md:px-6">
       <TopBar
         title={title}
         leading={backCircle}
@@ -58,7 +59,12 @@ export default function ClientScreen({ title, actions, back, children }: ClientS
         // On phones it stays at the top as the tab bar stays at the bottom
         className={PHONE_STICKY_TOP_BAR}
       />
-      {children}
+      {/* The scroller from `sm`: ScrollToTop finds it by [data-scroll-root]. It's `relative` so
+          absolutely placed pieces inside it (sr-only text) are placed in it: against `main` they
+          would sit far down it and give the page a second scrollbar */}
+      <div data-scroll-root className="relative flex min-w-0 flex-col gap-3 sm:min-h-0 sm:flex-1 sm:overflow-y-auto sm:pb-2 md:gap-6">
+        {children}
+      </div>
     </div>
   );
 }

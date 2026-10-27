@@ -15,7 +15,8 @@ interface AppShellProps {
 // the client app's is the page itself on phones, with room at the bottom for the tab bar. From `sm`
 // (ClientShell shows the sidebar and hides the tab bar there) it's fitted to the screen like the
 // admin's: only the content scrolls, inside the same top and bottom inset as the sidebar, so cards
-// never run into the window's edges. That scroller is the page's [data-scroll-root] (ScrollToTop).
+// never run into the window's edges. A ClientScreen keeps its top bar fixed and scrolls only what
+// is under it (its [data-scroll-root], which ScrollToTop resets); `main` scrolls anything else.
 // It's `relative` so absolutely placed pieces inside it (screen-reader-only text, `sr-only`) are
 // placed in it and scroll with it: otherwise they sit against the page, stretch it past the
 // screen and give the window a second scrollbar.
