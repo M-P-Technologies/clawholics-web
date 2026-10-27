@@ -7,7 +7,7 @@ export interface ProofAppointment {
   latest_proof?: ProofSummary | null;
 }
 
-export type ProofUiState =
+type ProofUiState =
   | { kind: "none" }
   | { kind: "needs_proof"; msLeft: number | null }
   | { kind: "overdue"; msOver: number }

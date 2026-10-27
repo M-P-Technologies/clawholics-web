@@ -15,7 +15,7 @@ export interface AppointmentState {
   customer_name: string;
 }
 
-export interface PaymentFailure {
+interface PaymentFailure {
   title: string;
   message: string;
   /** Where the button of the modal goes. Without it the modal just closes. */

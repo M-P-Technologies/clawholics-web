@@ -3,6 +3,7 @@ import Bow from "@/assets/bow.svg";
 import { Link } from "@/lib/router";
 import { buildInsights, type Insight, type Tip } from "@/lib/dashboardInsights";
 import type { DashboardResponse } from "@/services/dashboardTypes";
+import { PERIOD_LABELS } from "@/components/features/admin/dashboard/PeriodSwitch";
 
 // Each group has an icon and a heading as well as a color, so the meaning never rests on color alone
 const TONES = {
@@ -93,7 +94,7 @@ export default function SalonNotes({ data }: { data: DashboardResponse }) {
 
         <header className="pr-12">
           <h2 className="font-display text-2xl font-normal leading-tight text-berry lg:text-xl xl:text-2xl">Salon notes</h2>
-          <p className="text-sm text-crimson-ink">All time</p>
+          <p className="text-sm text-crimson-ink">{PERIOD_LABELS[data.range]}</p>
         </header>
 
         <section aria-label="Needs attention" className="flex flex-col gap-3">

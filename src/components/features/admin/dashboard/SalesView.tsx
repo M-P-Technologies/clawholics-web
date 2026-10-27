@@ -19,7 +19,7 @@ interface SalesViewProps {
 export default function SalesView({ data, loading, failed }: SalesViewProps) {
   return (
     <ViewBody loading={loading} failed={failed}>
-      <MoneyCards money={data.money} granularity={data.trend.granularity} />
+      <MoneyCards money={data.money} granularity={data.trend.granularity} compare={data.range !== "all"} />
 
       <div className="grid grid-cols-1 gap-3 md:gap-6 xl:grid-cols-2">
         <Card as="section" aria-label="Top services" className="flex min-w-0 flex-col gap-3"><SectionHeader size="card" title="Top services" />

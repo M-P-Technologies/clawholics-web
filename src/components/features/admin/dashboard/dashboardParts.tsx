@@ -2,14 +2,6 @@ import type { ReactNode } from "react";
 
 // Pieces the dashboard, Sales and Performance views share
 
-export const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
-export const monthName = (key: string) => {
-  const [year, month] = key.split("-").map(Number);
-  return new Date(Date.UTC(year, month - 1, 1)).toLocaleString("en-US", { month: "short", timeZone: "UTC" });
-};
-
-
 // The page body: a column of cards, faded while a new period loads, with a note when the last
 // refresh failed (the numbers shown may then be out of date). ReportPage's frame scrolls it.
 export function ViewBody({ loading = false, failed = false, children }: { loading?: boolean; failed?: boolean; children: ReactNode }) {

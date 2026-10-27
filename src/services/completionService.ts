@@ -37,7 +37,7 @@ export interface VisitToComplete {
   completion: Completion | null;
 }
 
-export interface CompletionForm {
+interface CompletionForm {
   balance_amount: number;
   payment_method: BalanceMethod;
   nailist_id: number;

@@ -32,7 +32,7 @@ export type NailService = {
   gallery?: ServiceGalleryImage[];
 };
 
-export type ServicePayload = {
+type ServicePayload = {
   name: string;
   category_id: number;
   description: string;

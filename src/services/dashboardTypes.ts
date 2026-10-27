@@ -1,5 +1,5 @@
 import type { DashboardRange } from "../lib/dashboardPeriods";
-import type { Trend } from "../lib/dashboardTrend";
+import type { Granularity, Trend } from "../lib/dashboardTrend";
 
 type Change = { value: number; previous: number };
 // A fraction (0..1) or an amount; null means there was nothing to divide by
@@ -38,52 +38,49 @@ export interface DashboardResponse {
   range: DashboardRange;
   period: { from: string; to: string };
   previous: { from: string; to: string };
-  /** recurringClients: clients with two or more confirmed and completed visits, as of the period's end (today at the latest) */
-  kpis: { collected: Change; estimatedSales: Change; bookings: Change; newClients: Change; recurringClients: Change };
   /** leadConversion: client accounts made in the period that went on to book (confirmed or completed) */
-  rates: { cancellation: Rate; conversion: Rate; returning: Rate; averageSale: Rate; leadConversion: Rate };
+  rates: { cancellation: Rate; conversion: Rate; returning: Rate; leadConversion: Rate };
   /** Clients whose last visit completed with the booking tracker was completed over 60 days ago */
   lapsedClients: number;
   /** The period's new client accounts, and how many of them went on to book (lead conversion's parts) */
   leads: { accounts: number; booked: number };
-  /** Every client with a visit completed with the booking tracker, as of today (not the period): what
-   * an average one has spent so far (downpayments + balances), and the share who have lapsed */
-  clientBase: { clients: number; lifetimeValue: number | null; churn: number | null };
-  /** The Dashboard's glance cards, as of today: clients with a completed appointment, the services on
-   * the Services page, the artists on the Artists page, and the confirmed appointments */
+  /** The Dashboard's glance cards, for the period against the one before: client accounts with a
+   * visit completed with the booking tracker in it, the different services and artists booked in it
+   * (confirmed or completed; from TRACKER_FROM only once completed with the tracker), and the visits
+   * completed with the tracker in it, one each */
   totals: {
-    clients: number;
-    services: number;
-    artists: number;
-    /** Visits completed with the booking tracker (confirmed, then Complete visit), one each, as of today */
-    appointments: number;
-    /** For the cards' lines, on the same days (or weeks, or months) as `trend`: clients with a
-     * completed visit by the end of each, how many different services and artists were booked in
-     * each, and the visits completed with the tracker by the end of each */
+    clients: Change;
+    services: Change;
+    artists: Change;
+    appointments: Change;
+    /** For the cards' lines, on the same days (or weeks, or months) as `trend`: the same counts within each */
     trend: { date: string; clients: number; services: number; artists: number; appointments: number }[];
-    /** For the growth badges: clients and completed visits as of the previous period's end (to
-     * compare with today's), and the different services and artists booked in the period vs the one before */
-    growth: { clients: number; appointments: number; servicesBooked: Change; artistsBooked: Change };
   };
   /** Every visit completed with the booking tracker in the period, latest completed first. date:
    * the visit's day; fee: what it sold for (downpayment + recorded balance); user_id: null for a walk-in */
   sales: { id: number; date: string; time: string; client_name: string; user_id: number | null; service_name: string; nailist_name: string; fee: number | null }[];
-  loyalty: { stamps: number; redeemed: number };
   /** warmLeads: clients active in the last 60 days who haven't booked a visit (see /leads) */
   attention: { today: number; proofsToReview: number; /** Confirmed visits that are over, waiting to be completed */ toComplete: number; /** Completed visits without nail photos yet */ photosToAdd: number; unpaid: number; warmLeads: number };
   money: Money;
   /** One point per day, week or month of the period (up to today), for the lines on the stat cards */
   trend: Trend;
-  monthly: { month: string; completed: number; cancelled: number }[];
+  /** The rate cards' lines, on the same days (or weeks, or months) as `trend`: each rate so far in
+   * the period, from its first day to the point's last day (null with nothing to divide by) */
+  rateTrend: { date: string; cancellation: number | null; conversion: number | null; leadConversion: number | null; returning: number | null }[];
+  /** The Dashboard's bookings chart, a bar pair per day (a week), week (up to three months) or month
+   * (a year, all time) of the period up to today: visits completed (from TRACKER_FROM only with the
+   * tracker) and cancelled, refunded or no-show */
+  bookingsTrend: { granularity: Granularity; points: { date: string; completed: number; cancelled: number }[] };
   /** The period's services by bookings, five rows at most: with more, the top four and "Other" */
   services: { name: string; bookings: number; estimatedSales: number }[];
   weekdays: { weekday: number; bookings: number }[];
   artists: { name: string; bookings: number }[];
-  /** All time, whatever the period: the Dashboard's Service mix and Salon notes. Services, weekdays
-   *  and artists by bookings (confirmed or completed); the share of decided visits cancelled,
-   *  refunded or no-shows (of `decided`); the share of clients' bookings that were paid; clients
-   *  with two or more visits done with the tracker; loyalty rewards redeemed */
-  allTime: {
+  /** The Dashboard's Service mix and Salon notes, for the period: services, weekdays and artists by
+   *  bookings (confirmed or completed; from TRACKER_FROM only once completed with the tracker); the
+   *  share of decided visits cancelled, refunded or no-shows (of `decided`); the share of clients'
+   *  bookings that were paid; clients with two or more visits done with the tracker by the period's
+   *  end; loyalty rewards redeemed in it */
+  overview: {
     services: { name: string; bookings: number; estimatedSales: number }[];
     weekdays: { weekday: number; bookings: number }[];
     artists: { name: string; bookings: number }[];

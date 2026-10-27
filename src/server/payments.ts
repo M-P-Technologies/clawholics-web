@@ -14,7 +14,7 @@ const MAX_DOWNPAYMENT_AMOUNT = 100000;
 export const PROOF_EXTENSIONS: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
 export const MAX_PROOF_SIZE = 1024 * 1024;
 
-export interface PaymentSettings {
+interface PaymentSettings {
   downpayment_amount: number;
   payment_methods: string[];
 }
@@ -66,7 +66,7 @@ const xenditAuth = () => {
 
 const frontendUrl = () => process.env.FRONTEND_URL || "https://clawholicsbymax.com";
 
-export interface XenditInvoice {
+interface XenditInvoice {
   id?: string;
   invoice_id?: string;
   status?: string;

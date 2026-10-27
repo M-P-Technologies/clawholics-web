@@ -110,7 +110,7 @@ export default function ScheduleAgenda({ selected, onSelect, dayData, onOpenAppo
           {appointments.map((appointment) => {
             const times = agendaTimes(appointment.appointment_time);
             return (
-              <li key={appointment.id} className="relative grid grid-cols-[4.5rem_1fr] items-start gap-5">
+              <li key={appointment.id} className="relative grid grid-cols-[4.5rem_1fr] items-start gap-6">
                 <span className="pt-3 text-right leading-tight">
                   <span className="block text-sm font-bold text-berry">{times?.start ?? "No time"}</span>
                   {times?.end && <span className="block text-xs text-gray-red">{times.end}</span>}

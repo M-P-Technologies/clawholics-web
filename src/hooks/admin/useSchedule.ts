@@ -11,7 +11,7 @@ import { updateAppointmentStatus, type Appointment, type AppointmentStatus } fro
 import { addDays, mergeSchedules, toDateKey, weekDays, weekMonthKeys } from "../../services/scheduleAgenda";
 import type { MonthlySchedule, ScheduleAppointment } from "../../services/scheduleService";
 
-export type PhoneView = "agenda" | "month";
+type PhoneView = "agenda" | "month";
 
 // The months loaded so far as one schedule: moving to a month not loaded yet keeps the screen up
 // with the others while it comes in

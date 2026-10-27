@@ -5,15 +5,11 @@ import { addDays, monthEnd, type DashboardRange, type Span } from "./dashboardPe
 export type Granularity = "day" | "week" | "month";
 
 export interface DayValues {
-  collected: number;
-  estimatedSales: number;
+  /** Visits completed with the booking tracker (the Appointments card's line) */
   bookings: number;
-  newClients: number;
-  /** Clients with two or more confirmed and completed visits by the point's last day (not a sum) */
-  recurringClients: number;
 }
-// The values added up day by day (recurringClients is a running count, set by the server)
-const KEYS: (keyof DayValues)[] = ["collected", "estimatedSales", "bookings", "newClients"];
+// The values added up day by day
+const KEYS: (keyof DayValues)[] = ["bookings"];
 export interface TrendPoint extends DayValues {
   /** The first day the point covers, "YYYY-MM-DD" */
   date: string;
@@ -24,13 +20,18 @@ export interface Trend {
 }
 
 export const trendGranularity = (range: DashboardRange): Granularity =>
-  range === "last90" ? "week" : range === "year" ? "month" : "day";
+  range === "last90" ? "week" : range === "year" || range === "all" ? "month" : "day";
 
 export const granularityWord = (granularity: Granularity) => `per ${granularity}`;
 
-// The dates each point covers (inclusive), from the period's first day to today
-export function trendBuckets(range: DashboardRange, period: Span, today: string): { granularity: Granularity; buckets: Span[] } {
-  const granularity = trendGranularity(range);
+// The Dashboard's bookings chart groups more coarsely than the lines, so its bars stay readable
+// (about a dozen pairs at most): days for a week, weeks up to three months, months beyond
+export const barGranularity = (range: DashboardRange): Granularity =>
+  range === "week" ? "day" : range === "year" || range === "all" ? "month" : "week";
+
+// The dates each point covers (inclusive), from the period's first day to today; `granularity`
+// overrides the range's own (the bookings chart's bars)
+export function trendBuckets(range: DashboardRange, period: Span, today: string, granularity: Granularity = trendGranularity(range)): { granularity: Granularity; buckets: Span[] } {
   const end = period.to < today ? period.to : today;
   const buckets: Span[] = [];
   let start = period.from;
@@ -62,9 +63,18 @@ export function bucketTrend(granularity: Granularity, buckets: Span[], byDay: Re
       if (!values) continue;
       for (const key of KEYS) sum[key] += values[key] ?? 0;
     }
-    return { date: bucket.from, ...sum, recurringClients: 0 };
+    return { date: bucket.from, ...sum };
   });
   return { granularity, points };
+}
+
+// A point's short name under a chart's bars: its first day, or its month (with the year only when
+// the chart runs over more than one)
+export function formatAxisLabel(granularity: Granularity, date: string, years = false): string {
+  const [year, month, day] = date.split("-").map(Number);
+  const when = new Date(Date.UTC(year, month - 1, day));
+  if (granularity === "month") return when.toLocaleDateString("en-US", { timeZone: "UTC", month: "short", ...(years ? { year: "2-digit" } : {}) });
+  return when.toLocaleDateString("en-US", { timeZone: "UTC", month: "short", day: "numeric" });
 }
 
 export function formatBucketLabel(granularity: Granularity, date: string): string {

@@ -7,7 +7,7 @@ import { fullName, memberSince, nextVisitHighlight, profileRows, rewardsLine } f
 import { clientTrackerSteps } from "../../lib/client/tracker";
 import { useMyAccount } from "./useMyAccount";
 
-export type ProfileTab = "overview" | "loyalty";
+type ProfileTab = "overview" | "loyalty";
 
 // The Profile screen: the account's details for the profile panel, the counts, the booking to
 // track, the loyalty card's tab, and the Clerk account actions

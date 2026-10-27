@@ -51,7 +51,7 @@ function CompactStatSkeleton({ className }: { className?: string }) {
 }
 
 /** A row of stat cards; `grid` is the real row's columns */
-export function StatsSkeleton({ count = 4, spark = false, grid = "grid-cols-2 lg:grid-cols-4" }: { count?: number; spark?: boolean; grid?: string }) {
+function StatsSkeleton({ count = 4, spark = false, grid = "grid-cols-2 lg:grid-cols-4" }: { count?: number; spark?: boolean; grid?: string }) {
   return (
     <div className={clsx("grid gap-3 md:gap-6", grid)}>
       {Array.from({ length: count }, (_, i) => (
@@ -62,7 +62,7 @@ export function StatsSkeleton({ count = 4, spark = false, grid = "grid-cols-2 lg
 }
 
 /** Lines of text of varying width */
-export function LinesSkeleton({ lines = 3, className }: { lines?: number; className?: string }) {
+function LinesSkeleton({ lines = 3, className }: { lines?: number; className?: string }) {
   const widths = ["w-full", "w-11/12", "w-4/5", "w-2/3", "w-3/4"];
   return (
     <div className={clsx("flex flex-col gap-3", className)}>
@@ -174,7 +174,7 @@ function TableCardSkeleton({ title = "w-36", aside, columns = 6 }: { title?: str
   );
 }
 
-/** The period switch (a SegmentedControl): in its own row below `2xl`, in the top bar from it */
+/** The period switch (a SegmentedControl): in its own row below 112rem, in the top bar from it */
 function PeriodSwitchSkeleton({ className }: { className?: string }) {
   return <Skeleton className={clsx("h-9 w-full max-w-md rounded-full", className)} />;
 }
@@ -311,12 +311,12 @@ function PerformanceBody() {
 }
 
 /** Dashboard, Sales and Performance: each page's own cards, with the period switch where
- *  ReportPage puts it (the top bar from `2xl`, its own row below) */
+ *  ReportPage puts it (the top bar from 112rem, its own row below) */
 export function ReportSkeleton({ title }: { title: string }) {
   return (
-    <AdminShell title={title} actions={<PeriodSwitchSkeleton className="w-md max-2xl:hidden" />}>
+    <AdminShell title={title} actions={<PeriodSwitchSkeleton className="w-md max-[112rem]:hidden" />}>
       <Loading label={`Loading ${title === "Dashboard" ? "the dashboard" : title.toLowerCase()}`}>
-        <PeriodSwitchSkeleton className="shrink-0 2xl:hidden" />
+        <PeriodSwitchSkeleton className="shrink-0 min-[112rem]:hidden" />
         {title === "Sales" ? <SalesBody /> : title === "Performance" ? <PerformanceBody /> : <DashboardBody />}
       </Loading>
     </AdminShell>
@@ -409,7 +409,7 @@ export function ScheduleSkeleton() {
             <Skeleton className="h-6 w-20 rounded-full" />
           </div>
           {Array.from({ length: 3 }, (_, i) => (
-            <div key={i} className="grid grid-cols-[4.5rem_1fr] items-start gap-5">
+            <div key={i} className="grid grid-cols-[4.5rem_1fr] items-start gap-6">
               <div className="flex flex-col items-end gap-1.5 pt-3">
                 <Skeleton className="h-3.5 w-14" />
                 <Skeleton className="h-3 w-12" />

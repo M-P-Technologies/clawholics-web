@@ -3,7 +3,7 @@ import type { Appointment } from "@/utils/profile";
 
 // The client's appointment as the tracker's input. The client gets no payment record or review
 // time, so those stay empty, and a confirmed booking reads "Downpayment received".
-export const clientTrackInput = (a: Appointment): TrackInput => ({
+const clientTrackInput = (a: Appointment): TrackInput => ({
   status: a.status,
   service_name: a.service_name,
   nailist_name: a.nailist_name,

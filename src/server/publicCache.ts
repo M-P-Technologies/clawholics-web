@@ -30,7 +30,7 @@ import {
 export const CATALOG_TAG = "catalog";
 
 /** The longest a cached copy is kept without a write clearing it */
-export const REVALIDATE_SECONDS = 60 * 60;
+const REVALIDATE_SECONDS = 60 * 60;
 
 // The rows are stored as JSON, which is also how the routes answer, so a cached answer is the
 // same as a fresh one
@@ -56,7 +56,7 @@ export const publicReads = {
 };
 
 /** Drops every cached public read, so the next request reads the database again. */
-export function catalogChanged() {
+function catalogChanged() {
   // expire: 0, not "max": the admin's editor fetches again right after saving, and must not be
   // answered with the copy from before the save
   revalidateTag(CATALOG_TAG, { expire: 0 });

@@ -66,7 +66,7 @@ export function googleFontsHref(fonts: FontChoice[]): string | null {
 }
 
 const DEFAULT_THEME = { palette: "clawholics", display: "gloock", script: "luxurious", body: "noto" };
-export type SiteTheme = typeof DEFAULT_THEME;
+type SiteTheme = typeof DEFAULT_THEME;
 
 const choose = (list: FontChoice[], key: unknown) => list.find((f) => f.key === key) ?? list[0];
 const paletteOf = (key: string) => PALETTES.find((p) => p.key === key) ?? PALETTES[0];

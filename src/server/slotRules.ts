@@ -21,7 +21,7 @@ export function normalizeSlot(time: string): string | null {
 }
 
 /** A real calendar day written YYYY-MM-DD */
-export function isValidDate(date: string) {
+function isValidDate(date: string) {
   const match = DATE.exec(date);
   if (!match) return false;
   const day = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
@@ -34,7 +34,7 @@ const minutes = (clock: string) => {
 };
 
 /** Two "HH:MM-HH:MM" ranges share some time */
-export function slotsOverlap(a: string, b: string) {
+function slotsOverlap(a: string, b: string) {
   const [aStart, aEnd] = a.split("-").map((t) => minutes(t.trim()));
   const [bStart, bEnd] = b.split("-").map((t) => minutes(t.trim()));
   return aStart < bEnd && bStart < aEnd;
@@ -46,7 +46,7 @@ export function hasStarted(date: string, slot: string, now: Date = new Date()) {
   return date < today || (date === today && minutes(slot.slice(0, 5)) <= minutes(clock));
 }
 
-export type SlotCheck =
+type SlotCheck =
   | { ok: true; time: string }
   | { ok: false; status: number; code: string; message: string };
 

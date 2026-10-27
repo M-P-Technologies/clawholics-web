@@ -7,7 +7,7 @@ import { getSql } from "./db";
 
 import { DEFAULT_BOOKING_HOLD_MINUTES, MAX_BOOKING_HOLD_MINUTES, MIN_BOOKING_HOLD_MINUTES } from "../lib/bookingHold";
 
-export { DEFAULT_BOOKING_HOLD_MINUTES, MAX_BOOKING_HOLD_MINUTES, MIN_BOOKING_HOLD_MINUTES };
+export { MAX_BOOKING_HOLD_MINUTES, MIN_BOOKING_HOLD_MINUTES };
 
 export async function getBookingHoldMinutes(): Promise<number> {
   const [row] = await getSql()<{ value: string }[]>`select value from site_settings where key = 'booking_hold_minutes'`;

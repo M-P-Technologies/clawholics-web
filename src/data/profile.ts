@@ -19,7 +19,7 @@ export const cleanHandle = (key: SocialHandle, value: string) => {
 
 // The profile details shown (and edited) in the "My Details" tab, in the order they appear.
 // Gender is a dropdown, so it is written out on the page.
-export interface ProfileFieldConfig {
+interface ProfileFieldConfig {
   id: string;
   /** Key in the profile */
   key: "first_name" | "last_name" | "email" | "phone" | "dob" | "alt_phone" | "instagram_handle" | "facebook_handle";

@@ -38,7 +38,6 @@ const fetchAppointmentPage = vi.fn(async (params: AppointmentPageParams) => page
 const updateAppointmentStatus = vi.fn();
 vi.mock("@/services/appointmentService", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/services/appointmentService")>()),
-  fetchAppointments: (...a: unknown[]) => fetchAppointments(...a),
   fetchAppointmentPage: (params: AppointmentPageParams) => fetchAppointmentPage(params),
   updateAppointmentStatus: (...a: unknown[]) => updateAppointmentStatus(...a),
 }));

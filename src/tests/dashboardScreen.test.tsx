@@ -23,7 +23,6 @@ vi.mock("@/services/dashboardService", () => ({
 }));
 vi.mock("@/services/appointmentService", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/services/appointmentService")>()),
-  fetchAppointments: (...args: unknown[]) => fetchAppointments(...args),
   fetchAppointmentPage: async (params: AppointmentPageParams) => pageOf((await fetchAppointments()) as Appointment[], params),
 }));
 // The bookings table: Dana's upcoming visit (far ahead, so it is upcoming whatever today is)
@@ -51,32 +50,25 @@ const base = (over: Partial<DashboardResponse> = {}): DashboardResponse => ({
   range: "month",
   period: { from: "2026-10-01", to: "2026-10-31" },
   previous: { from: "2026-09-01", to: "2026-09-30" },
-  kpis: {
-    collected: { value: 2000, previous: 1000 },
-    estimatedSales: { value: 3100, previous: 1700 },
-    bookings: { value: 7, previous: 0 },
-    newClients: { value: 2, previous: 2 }, recurringClients: { value: 0, previous: 0 },
-  },
   rates: {
     cancellation: { value: 2 / 9, previous: 0 },
     conversion: { value: null, previous: null },
     returning: { value: 1 / 3, previous: 0 },
-    averageSale: { value: 775, previous: 567 }, leadConversion: { value: 0.5, previous: 0.5 },
+    leadConversion: { value: 0.5, previous: 0.5 },
   },
-  lapsedClients: 1, leads: { accounts: 4, booked: 2 }, clientBase: { clients: 5, lifetimeValue: 1120, churn: 0.2 }, totals: { clients: 17, services: 35, artists: 5, appointments: 6, trend: [], growth: { clients: 15, appointments: 4, servicesBooked: { value: 8, previous: 10 }, artistsBooked: { value: 5, previous: 5 } } }, sales: [],
-  loyalty: { stamps: 3, redeemed: 1 },
+  lapsedClients: 1, leads: { accounts: 4, booked: 2 }, totals: { clients: { value: 17, previous: 15 }, services: { value: 8, previous: 10 }, artists: { value: 5, previous: 5 }, appointments: { value: 6, previous: 4 }, trend: [] }, sales: [],
   attention: { today: 2, proofsToReview: 2, toComplete: 0, photosToAdd: 0, unpaid: 2, warmLeads: 0 },
   money: { grossReceipts: { value: 0, previous: 0 }, unearned: { value: 0, previous: 0 }, revenue: { value: 0, previous: 0 }, otherIncome: { value: 0, previous: 0 }, refunds: { value: 0, previous: 0 }, points: [] },
   trend: { granularity: "day", points: [] },
-  monthly: [
-    { month: "2026-05", completed: 0, cancelled: 0 }, { month: "2026-06", completed: 1, cancelled: 0 },
-    { month: "2026-07", completed: 0, cancelled: 0 }, { month: "2026-08", completed: 0, cancelled: 0 },
-    { month: "2026-09", completed: 3, cancelled: 0 }, { month: "2026-10", completed: 4, cancelled: 2 },
-  ],
+  rateTrend: [],
+  bookingsTrend: {
+    granularity: "week",
+    points: [{ date: "2026-10-01", completed: 1, cancelled: 0 }, { date: "2026-10-08", completed: 3, cancelled: 2 }],
+  },
   services: [{ name: "Gel Manicure", bookings: 3, estimatedSales: 1300 }, { name: "Nail Art", bookings: 2, estimatedSales: 300 }],
   weekdays: [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({ weekday, bookings: weekday === 3 ? 2 : 0 })),
   artists: [{ name: "Jun", bookings: 4 }],
-  allTime: { services: [], weekdays: [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({ weekday, bookings: 2 })), artists: [], decided: 10, cancellation: 0.1, conversion: 0.9, returningClients: 0, loyaltyRedeemed: 0 }, outcomes: { confirmed: 3, completed: 4, pending: 2, cancelled: 1, refunded: 1 },
+  overview: { services: [], weekdays: [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({ weekday, bookings: 2 })), artists: [], decided: 10, cancellation: 0.1, conversion: 0.9, returningClients: 0, loyaltyRedeemed: 0 }, outcomes: { confirmed: 3, completed: 4, pending: 2, cancelled: 1, refunded: 1 },
   next: [{ id: 1, client_name: "Dana D", service_name: "Gel Manicure", nailist_name: "Maxine", appointment_date: "2026-10-14", appointment_time: "15:00-16:00" }],
   ...over,
 });
@@ -94,7 +86,7 @@ describe("Dashboard", () => {
     // the salon at a glance: clients who came, services, artists and confirmed appointments
     const clients = await screen.findByRole("group", { name: "Total clients" });
     expect(within(clients).getByText("17")).toBeInTheDocument();
-    expect(within(screen.getByRole("group", { name: "Total services" })).getByText("35")).toBeInTheDocument();
+    expect(within(screen.getByRole("group", { name: "Total services" })).getByText("8")).toBeInTheDocument();
     expect(within(screen.getByRole("group", { name: "Artists" })).getByText("5")).toBeInTheDocument();
     expect(within(screen.getByRole("group", { name: "Appointments" })).getByText("6")).toBeInTheDocument();
     // the visits done moved to Performance
@@ -159,12 +151,21 @@ describe("Dashboard", () => {
     expect(fetchDashboard).toHaveBeenCalledTimes(1);
   });
 
-  it("has no period switch: it's all time and today", async () => {
+  it("has the period switch, opening on This month, with All time among the periods", async () => {
     fetchDashboard.mockResolvedValue(base());
     render(<Dashboard />);
     await screen.findByRole("group", { name: "Total clients" });
-    expect(screen.queryByRole("tab", { name: "This week" })).toBeNull();
     expect(fetchDashboard).toHaveBeenCalledWith("month", "tok", "admin_1");
+    fireEvent.click(screen.getAllByRole("tab", { name: "All time" })[0]);
+    await waitFor(() => expect(fetchDashboard).toHaveBeenLastCalledWith("all", "tok", "admin_1"));
+  });
+
+  it("shows no change pills on All time", async () => {
+    fetchDashboard.mockResolvedValue(base({ range: "all" }));
+    render(<Dashboard />);
+    const clients = within(await screen.findByRole("group", { name: "Total clients" }));
+    expect(clients.getByText("17")).toBeInTheDocument();
+    expect(clients.queryByText("+13%")).toBeNull();
   });
 
   it("asks again when the period changes (Sales)", async () => {
@@ -200,8 +201,7 @@ describe("Dashboard", () => {
   it("shows empty states instead of blank charts when nothing has happened", async () => {
     fetchDashboard.mockResolvedValue(
       base({
-        kpis: { collected: { value: 0, previous: 0 }, estimatedSales: { value: 0, previous: 0 }, bookings: { value: 0, previous: 0 }, newClients: { value: 0, previous: 0 }, recurringClients: { value: 0, previous: 0 } },
-        monthly: base().monthly.map((m) => ({ ...m, completed: 0, cancelled: 0 })),
+        bookingsTrend: { ...base().bookingsTrend, points: base().bookingsTrend.points.map((b) => ({ ...b, completed: 0, cancelled: 0 })) },
         services: [], artists: [], next: [],
         weekdays: base().weekdays.map((w) => ({ ...w, bookings: 0 })),
         outcomes: { confirmed: 0, completed: 0, pending: 0, cancelled: 0, refunded: 0 },

@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Activity, Flame, UserPlus, Users } from "lucide-react";
 import type { DirectoryProfile, DirectoryUser } from "@/components/features/admin/directory/DirectoryProfileCard";
 import { adminQueries } from "../../lib/adminQueries";
-import { countWithin, isClientRole } from "../../lib/directoryStats";
+import { countUniqueClients, countWithin, isClientRole, uniqueClients } from "../../lib/directoryStats";
 import { useNavigate, useSearchParams } from "../../lib/router";
 import { useAdminSession } from "./useAdminSession";
 
@@ -34,7 +34,8 @@ export function useClientDirectory() {
   const settled = !usersQuery.isPending && !profilesQuery.isPending && !leadsQuery.isPending;
 
   const clients = users ?? [];
-  const leads = leadIds ? clients.filter((u) => leadIds.has(u.id)) : [];
+  // Each warm lead once (a person with two accounts shows as one), as the card counts them
+  const leads = leadIds ? uniqueClients(clients.filter((u) => leadIds.has(u.id))) : [];
 
   // Each client's Clerk details by users.id, for the appointments' rows
   const profilesByUserId: Record<number, DirectoryProfile> = {};
@@ -66,7 +67,7 @@ export function useClientDirectory() {
         : `${leads.length} warm ${leads.length === 1 ? "lead: made an account or started a booking in the last 60 days, but hasn't" : "leads: made an account or started a booking in the last 60 days, but haven't"} booked a visit yet.`,
     // A card that can't be worked out once everything answered shows a dash
     stats: [
-      { label: "Total clients", value: users ? clients.length : null, hint: "in the directory", icon: Users, loading: !settled },
+      { label: "Total clients", value: users ? countUniqueClients(clients) : null, hint: "unique, in the directory", icon: Users, loading: !settled },
       { label: "New clients", value: users && profilesLoaded ? countWithin(clients, profiles, "joinedAt", 30) : null, hint: "joined in the last 30 days", icon: UserPlus, loading: !settled },
       { label: "Active clients", value: users && profilesLoaded ? countWithin(clients, profiles, "lastSignInAt", 30) : null, hint: "signed in in the last 30 days", icon: Activity, loading: !settled },
       { label: "Warm leads", value: users && leadIds && !leadsError ? leads.length : null, hint: "active, but haven't booked yet", icon: Flame, loading: !settled },

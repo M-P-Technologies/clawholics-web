@@ -1,5 +1,6 @@
 // The create-appointment form's types and pure helpers (state in hooks/admin/useCreateAppointment)
 import { timeRangeLabel } from "../timeFormat";
+import { parseTimeRange } from "../../utils/booking";
 
 export interface Service {
   id: number;
@@ -18,20 +19,6 @@ export interface NailArtist {
   name: string;
   category_id?: number;
 }
-
-export const parseTimeRange = (range: string) => {
-  const [start, end] = range.split("-");
-
-  const toNumber = (time: string) => {
-    const [hour, minute] = time.split(":").map(Number);
-    return hour * 60 + minute;
-  };
-
-  return {
-    start: toNumber(start),
-    end: toNumber(end),
-  };
-};
 
 export const toLocalDate = (dateStr: string) => {
   const [year, monthNumber, day] = dateStr.split("-").map(Number);

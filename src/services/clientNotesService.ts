@@ -16,7 +16,7 @@ export interface ClientNote {
   updated_at: string;
 }
 
-export interface ClientNextSteps {
+interface ClientNextSteps {
   client_user_id: number;
   text: string;
   updated_by?: number | null;

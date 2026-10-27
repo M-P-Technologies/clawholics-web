@@ -7,6 +7,7 @@ export const PERIOD_LABELS: Record<DashboardRange, string> = {
   last30: "Last 30 days",
   last90: "Last 3 months",
   year: "This year",
+  all: "All time",
 };
 
 const PERIOD_OPTIONS = DASHBOARD_RANGES.map((range) => ({ value: range, label: PERIOD_LABELS[range] }));

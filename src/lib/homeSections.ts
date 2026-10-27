@@ -151,7 +151,7 @@ export const FAQ_PAGE_DEFAULTS = {
   home_faq_cta_secondary_link: "/services",
 };
 
-export type FaqPageKey = keyof typeof FAQ_PAGE_DEFAULTS;
+type FaqPageKey = keyof typeof FAQ_PAGE_DEFAULTS;
 
 /** Saved words over their defaults: a key that was never saved (or is empty) shows the default */
 function readWords<K extends string>(defaults: Record<K, string>, content: object | null | undefined): Record<K, string> {
@@ -237,7 +237,7 @@ export const MAX_OFFERS = 6;
 const textOf = (value: unknown) => (typeof value === "string" ? value : "");
 
 /** The saved offers; anything unreadable, and items without a title, are left out */
-export function readOffers(raw: unknown): HomeOffer[] {
+function readOffers(raw: unknown): HomeOffer[] {
   if (typeof raw !== "string" || !raw.trim()) return [];
   try {
     const parsed: unknown = JSON.parse(raw);
@@ -252,7 +252,7 @@ export function readOffers(raw: unknown): HomeOffer[] {
 }
 
 /** An offer's button may also open the app's services, or one service */
-export function offerLinkProblem(link: string, what: string): string | null {
+function offerLinkProblem(link: string, what: string): string | null {
   if (/^\/my\/explore(\/\d+)?$/.test(link)) return null;
   return linkProblem(link, what);
 }

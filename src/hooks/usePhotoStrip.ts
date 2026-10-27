@@ -4,7 +4,7 @@ import type { NailistGalleryImage } from "../services/nailistService";
 import { readSocialLinks } from "../lib/socialLinks";
 import type { RowPhoto } from "../components/home/PhotoRow";
 
-export interface InstagramLink {
+interface InstagramLink {
   name: string;
   url: string;
 }

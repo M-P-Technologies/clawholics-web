@@ -12,7 +12,7 @@ import type { Nailist } from "../utils/booking";
 export const BOOKING = "booking";
 
 /** How long taken times count as fresh */
-export const BOOKED_STALE_MS = 15_000;
+const BOOKED_STALE_MS = 15_000;
 
 export const bookingQueries = {
   /** The artists who offer a service */

@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { Trash2 } from "lucide-react";
-import { Card, Checkbox, Divider, IconButton, Input, Radio, Textarea } from "@/components/atoms";
+import { Card, Checkbox, IconButton, Input, Textarea } from "@/components/atoms";
 
 describe("Card", () => {
   it("is the admin's card, as the element asked for", () => {
@@ -36,14 +36,10 @@ describe("form atoms", () => {
         <Input aria-label="Name" defaultValue="Ana" />
         <Textarea aria-label="Note" rows={2} />
         <Checkbox aria-label="Agree" defaultChecked />
-        <Radio aria-label="One" name="r" />
-        <Divider />
       </>,
     );
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Ana");
     expect(screen.getByRole("textbox", { name: "Note" })).toHaveAttribute("rows", "2");
     expect(screen.getByRole("checkbox", { name: "Agree" })).toBeChecked();
-    expect(screen.getByRole("radio", { name: "One" })).not.toBeChecked();
-    expect(screen.getByRole("separator")).toBeInTheDocument();
   });
 });

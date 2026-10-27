@@ -27,5 +27,7 @@ export const useAdminWideLayout = () => useMinWidth("64rem");
 /** From Tailwind's `md` up an ⓘ note opens as a tooltip; below it, as a bottom sheet */
 export const useTooltipLayout = () => useMinWidth("48rem");
 
-/** From Tailwind's `2xl` up the report pages' period switch fits in the top bar; below it, it sits under it */
-export const useReportWideLayout = () => useMinWidth("96rem");
+/** From 112rem (1792px) up the report pages' period switch (six periods) fits in the top bar beside
+ *  the title, View site, the bell and the admin; below it, it gets its own row under the top bar.
+ *  Keep in step with the `min-[112rem]` classes in the report skeleton. */
+export const useReportWideLayout = () => useMinWidth("112rem");

@@ -8,5 +8,5 @@ import { useAttentionLoader, useBookingsLoader } from "@/hooks/admin/useReports"
 export default function Dashboard() {
   const loadBookings = useBookingsLoader();
   const loadAttention = useAttentionLoader();
-  return <ReportPage title="Dashboard" periodSwitch={false}>{(report) => <DashboardView {...report} loadBookings={loadBookings} loadAttention={loadAttention} />}</ReportPage>;
+  return <ReportPage title="Dashboard">{(report) => <DashboardView {...report} loadBookings={loadBookings} loadAttention={loadAttention} />}</ReportPage>;
 }

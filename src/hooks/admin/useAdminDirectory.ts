@@ -18,7 +18,7 @@ export interface AdminEditForm {
 }
 
 /** The result of adding an admin, shown in a dialog */
-export interface AdminFeedback {
+interface AdminFeedback {
   isOpen: boolean;
   title: string;
   message: string;
@@ -27,7 +27,7 @@ export interface AdminFeedback {
 
 const NO_USERS: DirectoryUser[] = [];
 /** Admins to a page: five keeps the table beside the profile card short */
-export const ADMIN_PAGE_SIZE = 5;
+const ADMIN_PAGE_SIZE = 5;
 const NO_PROFILES: Record<string, DirectoryProfile> = {};
 
 const errorMessage = (error: unknown) => (error instanceof Error ? error.message : "");

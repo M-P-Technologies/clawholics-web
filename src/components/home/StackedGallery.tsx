@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import clsx from "clsx";
 import { SharpenFilter, SHARPEN_FILTER } from "@/components/atoms";
 
-export interface GalleryPhoto {
+interface GalleryPhoto {
   id: number | string;
   url: string;
 }

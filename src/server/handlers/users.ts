@@ -292,7 +292,7 @@ export const promoteAdmin = ported(async (req) => {
   return Response.json({ message: "User successfully promoted to admin", status: "promoted", email });
 });
 
-export const MAX_ADMIN_PAGE_SIZE = 50;
+const MAX_ADMIN_PAGE_SIZE = 50;
 
 // GET /users/admins: every admin, by name. With ?page=N (and pageSize 1-50, default 5) it answers
 // one page as { rows, total, page, pageSize, clerkIds }: clerkIds are every admin's Clerk id (null

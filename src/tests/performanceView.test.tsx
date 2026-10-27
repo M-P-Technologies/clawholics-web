@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import PerformanceView from "@/components/features/admin/dashboard/PerformanceView";
 import { dashboardData as data } from "./dashboardFixture";
@@ -8,37 +8,18 @@ vi.mock("@/lib/router", () => ({
 }));
 
 describe("PerformanceView", () => {
-  it("shows the visits done, the key rates, then the weekday and artist charts", () => {
+  it("shows the key rates, then the weekday and artist charts", () => {
     render(<PerformanceView data={data} />);
-    const glance = screen.getByRole("region", { name: "Visits done" });
     const rates = screen.getByRole("region", { name: "Key rates" });
     const weekdays = screen.getByRole("region", { name: "Busiest weekdays" });
-    expect(glance.compareDocumentPosition(rates) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(rates.compareDocumentPosition(weekdays) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "Visits done" })).toBeNull();
     expect(screen.getByRole("region", { name: "Bookings per artist" })).toBeInTheDocument();
   });
 
-  it("lays the eight key rates out four across from sm up, two on a phone, with no icons", () => {
+  it("no longer shows the money, the visit counts, average sale, client lifetime value, churn or loyalty", () => {
     render(<PerformanceView data={data} />);
-    const rates = screen.getByRole("region", { name: "Key rates" });
-    expect(rates).toHaveClass("grid-cols-2", "sm:grid-cols-4");
-    expect(within(rates).getAllByRole("group")).toHaveLength(8);
-    expect(within(rates).queryByTestId("kpi-icon")).toBeNull();
-  });
-
-  it("shows lead conversion with its counts", () => {
-    render(<PerformanceView data={data} />);
-    const tile = within(screen.getByRole("group", { name: "Lead conversion" }));
-    expect(tile.getByText("50%")).toBeInTheDocument();
-    expect(tile.getByText("2 of 4 new accounts booked")).toBeInTheDocument();
-  });
-
-  it("shows client lifetime value and churn", () => {
-    render(<PerformanceView data={data} />);
-    expect(within(screen.getByRole("group", { name: "Client lifetime value" })).getByText("₱1,120")).toBeInTheDocument();
-    const churn = within(screen.getByRole("group", { name: "Churn" }));
-    expect(churn.getByText("40%")).toBeInTheDocument();
-    expect(churn.getByText("2 of 5 clients, no visit in 60 days")).toBeInTheDocument();
+    for (const name of ["Collected", "Sales", "Bookings", "Returning clients", "Average sale", "Client lifetime value", "Churn", "Loyalty"]) expect(screen.queryByRole("group", { name })).toBeNull();
   });
 
   it("shows artist utilization after the key rates when the screen can load it", async () => {

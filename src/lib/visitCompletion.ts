@@ -22,7 +22,7 @@ const LATE_FEES = [
   { from: 20, fee: 150 },
   { from: 15, fee: 100 },
 ];
-export const LATE_CANCEL_MINUTES = 25;
+const LATE_CANCEL_MINUTES = 25;
 
 const toMinutes = (hhmm: string) => {
   const match = /^(\d{1,2}):(\d{2})$/.exec(hhmm.trim());

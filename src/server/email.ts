@@ -128,7 +128,7 @@ function baseAdminEmailTemplate(title: string, tableRows: string) {
   `;
 }
 
-export interface ConfirmationData {
+interface ConfirmationData {
   appointment_id: number;
   payment_id: unknown;
   user_id: unknown;

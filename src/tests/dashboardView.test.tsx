@@ -16,7 +16,7 @@ describe("DashboardView layout", () => {
     render(<DashboardView data={data} />);
     const collected = screen.getByRole("region", { name: "Salon at a glance" });
     const notes = screen.getByRole("region", { name: "Salon notes" });
-    const charts = screen.getByRole("region", { name: "Bookings per month" });
+    const charts = screen.getByRole("region", { name: "Bookings over time" });
     expect(collected.compareDocumentPosition(notes) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(notes.compareDocumentPosition(charts) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
@@ -32,7 +32,7 @@ describe("DashboardView layout", () => {
     render(<DashboardView data={data} />);
     const column = screen.getByRole("region", { name: "Salon notes" }).parentElement as HTMLElement;
     const lower = column.parentElement as HTMLElement;
-    const main = (screen.getByRole("region", { name: "Bookings per month" }).parentElement as HTMLElement).parentElement as HTMLElement;
+    const main = (screen.getByRole("region", { name: "Bookings over time" }).parentElement as HTMLElement).parentElement as HTMLElement;
     expect(lower.className).toContain("lg:grid-cols-3");
     expect(main.className).toContain("lg:col-span-2");
   });
@@ -42,7 +42,7 @@ describe("DashboardView layout", () => {
     const statGrid = screen.getByRole("region", { name: "Salon at a glance" });
     const column = screen.getByRole("region", { name: "Salon notes" }).parentElement as HTMLElement;
     const lower = column.parentElement as HTMLElement;
-    const charts = screen.getByRole("region", { name: "Bookings per month" }).parentElement as HTMLElement;
+    const charts = screen.getByRole("region", { name: "Bookings over time" }).parentElement as HTMLElement;
     const main = charts.parentElement as HTMLElement;
     const page = lower.parentElement as HTMLElement;
     for (const el of [statGrid, lower, main, charts, page]) {
@@ -72,11 +72,11 @@ describe("DashboardView layout", () => {
 
   it("keeps only the essentials: the glance cards, the notes, two charts and the bookings", async () => {
     render(<DashboardView data={data} loadBookings={paged(async () => [])} />);
-    for (const name of ["Salon notes", "Bookings per month", "Service mix"]) expect(screen.getByRole("region", { name })).toBeInTheDocument();
+    for (const name of ["Salon notes", "Bookings over time", "Service mix"]) expect(screen.getByRole("region", { name })).toBeInTheDocument();
     expect(await screen.findByRole("region", { name: "Bookings" })).toBeInTheDocument();
     expect(await screen.findByRole("region", { name: "Active bookings" })).toBeInTheDocument();
     // moved to the Sales and Performance pages
-    for (const name of ["Money", "Sales record", "Top services", "How bookings ended", "Key rates", "Visits done", "Busiest weekdays", "Bookings per artist", "Artist utilization"]) {
+    for (const name of ["Money", "Sales record", "Top services", "How bookings ended", "Key rates", "Busiest weekdays", "Bookings per artist", "Artist utilization"]) {
       expect(screen.queryByRole("region", { name })).toBeNull();
     }
     expect(screen.getAllByRole("group").map((g) => g.getAttribute("aria-label"))).toEqual(GLANCE);

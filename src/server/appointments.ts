@@ -108,7 +108,7 @@ export const APPOINTMENT_SORTS = {
 } as const;
 export type AppointmentSort = keyof typeof APPOINTMENT_SORTS;
 
-export interface AppointmentPageQuery {
+interface AppointmentPageQuery {
   /** Upper-case statuses to include; none means every status */
   statuses: string[];
   /** Only appointments whose payment proof is waiting for review (the dashboard's "Proofs to review") */

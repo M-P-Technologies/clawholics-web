@@ -4,12 +4,10 @@ export { ButtonTextSizeProvider, useButtonTextSize, BUTTON_TEXT, type ButtonText
 export { default as Badge, type BadgeTone } from "./Badge";
 export { default as Card } from "./Card";
 export { default as IconButton } from "./IconButton";
-export { default as Divider } from "./Divider";
 export { default as Avatar, initialsOf } from "./Avatar";
 export { default as Input } from "./Input";
 export { default as Textarea } from "./Textarea";
 export { default as Checkbox } from "./Checkbox";
-export { default as Radio } from "./Radio";
 export { default as Select, type SelectOption } from "./Select";
 export { LoadingBar } from "./LoadingBar";
 export { TyingBow } from "./TyingBow";

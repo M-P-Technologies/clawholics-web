@@ -1,6 +1,6 @@
-export type DashboardRange = "week" | "month" | "last30" | "last90" | "year";
+export type DashboardRange = "week" | "month" | "last30" | "last90" | "year" | "all";
 
-export const DASHBOARD_RANGES: DashboardRange[] = ["week", "month", "last30", "last90", "year"];
+export const DASHBOARD_RANGES: DashboardRange[] = ["week", "month", "last30", "last90", "year", "all"];
 export const DEFAULT_RANGE: DashboardRange = "month";
 
 // Clients whose last visit is further back than this are "lapsed"
@@ -40,9 +40,16 @@ export const monthEnd = (ymd: string) => {
 };
 
 // The period for a range and the one it is compared with. Week, month and year are whole
-// calendar spans (so upcoming bookings count); last30 and last90 end today.
-export function resolvePeriod(range: DashboardRange, today: string): { period: Span; previous: Span } {
+// calendar spans (so upcoming bookings count); last30 and last90 end today. All time runs over
+// everything on record (`all`: the first and last day the data holds, today when there is none) and
+// has nothing before it to compare with: its previous span is empty.
+export function resolvePeriod(range: DashboardRange, today: string, all?: Span): { period: Span; previous: Span } {
   switch (range) {
+    case "all": {
+      const from = all && all.from < today ? all.from : today;
+      const to = all && all.to > today ? all.to : today;
+      return { period: { from, to }, previous: { from: addDays(from, -1), to: addDays(from, -2) } };
+    }
     case "week": {
       const sinceMonday = (parse(today).getUTCDay() + 6) % 7;
       const from = addDays(today, -sinceMonday);
@@ -76,12 +83,4 @@ export function resolvePeriod(range: DashboardRange, today: string): { period: S
       };
     }
   }
-}
-
-// "YYYY-MM" for the last `count` months, oldest first, ending with today's month
-export function monthKeys(today: string, count: number): string[] {
-  const [year, month] = today.split("-").map(Number);
-  return Array.from({ length: count }, (_, i) =>
-    new Date(Date.UTC(year, month - 1 - (count - 1 - i), 1)).toISOString().slice(0, 7),
-  );
 }

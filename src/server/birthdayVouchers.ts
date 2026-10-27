@@ -24,7 +24,7 @@ export interface BirthdayVoucher {
 }
 
 /** Used when the site setting is missing or unreadable */
-export const DEFAULT_BIRTHDAY_DISCOUNT_PCT = 20;
+const DEFAULT_BIRTHDAY_DISCOUNT_PCT = 20;
 
 const MANILA_OFFSET_MS = 8 * 3600 * 1000;
 /**

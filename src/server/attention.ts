@@ -23,7 +23,7 @@ const KIND_ORDER: AttentionKind[] = ["review", "complete", "photos", "lead"];
 /** The largest page the queue answers */
 export const MAX_ATTENTION_PAGE_SIZE = 50;
 
-export interface AttentionItem {
+interface AttentionItem {
   kind: AttentionKind;
   /** The booking, or null for a warm lead */
   appointment_id: number | null;
