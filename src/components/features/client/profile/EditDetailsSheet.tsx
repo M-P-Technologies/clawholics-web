@@ -24,7 +24,19 @@ interface EditDetailsSheetProps {
 // The details form, in a sheet. Same fields, validation and save as before; email stays locked.
 export default function EditDetailsSheet(p: EditDetailsSheetProps) {
   return (
-    <Dialog open={p.open} title="Edit details" onClose={p.onCancel} placement="sheet" size="xl">
+    <Dialog
+      open={p.open}
+      title="Edit details"
+      onClose={p.onCancel}
+      placement="sheet"
+      size="xl"
+      footer={
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <Button type="button" variant="secondary" onClick={p.onCancel}>Cancel</Button>
+          <Button type="button" onClick={p.onSave}>Save</Button>
+        </div>
+      }
+    >
       <div className="flex flex-col gap-3">
         {p.error && <div role="alert" className="rounded-xl bg-danger/10 px-3 py-3 text-[13px] font-bold text-danger-ink">{p.error}</div>}
 
@@ -71,11 +83,6 @@ export default function EditDetailsSheet(p: EditDetailsSheetProps) {
             <Select aria-label="Best way to reach you" value={p.contactMethod} options={p.contactMethodOptions} placeholder="No preference" onChange={(e) => p.onSelectContactMethod(e.target.value)} />
             <p className="text-xs text-gray-red">We use these only to reach you about your appointment.</p>
           </div>
-        </div>
-
-        <div className="flex flex-col gap-3 border-t border-crimson-light/50 pt-3 sm:flex-row-reverse sm:justify-start">
-          <Button type="button" onClick={p.onSave} className="w-full sm:w-auto">Save</Button>
-          <Button type="button" variant="secondary" onClick={p.onCancel} className="w-full sm:w-auto">Cancel</Button>
         </div>
       </div>
     </Dialog>

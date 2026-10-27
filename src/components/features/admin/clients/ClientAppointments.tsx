@@ -85,10 +85,27 @@ export default function ClientAppointments({ appointments, notesFor, draft, busy
       <ImagePreviewDialog imageUrl={photo} title="Photo" onClose={() => setPhoto(null)} />
       {addingPhoto !== null && <VisitPhotoDialog appointmentId={addingPhoto} open onClose={() => setAddingPhoto(null)} />}
       {notesOf && (
-        <Dialog open onClose={closeNotes} title={`Notes · ${dateLabel(notesOf.appointment_date)}`} size="lg">
+        <Dialog
+          open
+          onClose={closeNotes}
+          title={`Notes · ${dateLabel(notesOf.appointment_date)}`}
+          size="lg"
+          footer={
+            draft?.appointmentId === notesOf.id ? (
+              <div className="flex flex-wrap items-center justify-end gap-3">
+                <Button variant="secondary" type="button" onClick={() => onDraft(null)} disabled={busy}>
+                  Cancel
+                </Button>
+                <Button type="button" onClick={onSaveNote} loading={busy} disabled={!draft.text.trim()}>
+                  Save note
+                </Button>
+              </div>
+            ) : undefined
+          }
+        >
           <div className="flex flex-col gap-3">
             {notesFor(notesOf.id).length === 0 && draft?.appointmentId !== notesOf.id && <p className="text-sm text-gray-red">No notes about this visit yet.</p>}
-            <VisitNotes appointment={notesOf} notes={notesFor(notesOf.id)} draft={draft} busy={busy} onDraft={onDraft} onSave={onSaveNote} onDelete={onDeleteNote} />
+            <VisitNotes appointment={notesOf} notes={notesFor(notesOf.id)} draft={draft} busy={busy} onDraft={onDraft} onDelete={onDeleteNote} />
             {draft?.appointmentId !== notesOf.id && (
               <Button type="button" variant="secondary" size="sm" onClick={() => onDraft({ appointmentId: notesOf.id, text: "" })} className="self-start">
                 Add a note
