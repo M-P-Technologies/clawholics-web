@@ -2,15 +2,11 @@ import { useRef, useState } from "react";
 import { ArrowDown, ArrowUp, Check, Pencil, Trash2 } from "lucide-react";
 import {
   ApiError,
-  createAddon,
   createCategory,
-  deleteAddon,
   deleteCategory,
   renameCategory,
   reorderCategories,
-  updateAddon,
   type Auth,
-  type ServiceAddon,
   type ServiceCategory,
 } from "@/services/catalogService";
 import { Button, IconButton } from "@/components/atoms";
@@ -27,88 +23,6 @@ type Props = {
 // Inputs and buttons share one height, so every row lines up
 const inputClass =
   "h-9 min-w-0 flex-1 bg-milk rounded-md px-3 text-sm text-gray-red outline-none focus:ring-2 focus:ring-crimson border border-crimson-light";
-
-function AddonRow({ addon, run, busy }: { addon: ServiceAddon; run: Run; busy: boolean }) {
-  const [name, setName] = useState(addon.name);
-  const [price, setPrice] = useState(String(addon.price));
-  const dirty = name !== addon.name || price !== String(addon.price);
-  const valid = name.trim() !== "" && price !== "";
-
-  return (
-    <div className="flex items-center gap-3">
-      <input aria-label={`Add-on name ${addon.name}`} className={inputClass} value={name} onChange={(e) => setName(e.target.value)} />
-      <input
-        aria-label={`Add-on price ${addon.name}`}
-        className={`${inputClass} max-w-27.5 flex-none`}
-        inputMode="numeric"
-        value={price}
-        onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ""))}
-      />
-      <Button
-        size="sm"
-        variant="secondary"
-        type="button"
-        disabled={busy || !dirty || !valid}
-        onClick={() => run((auth) => updateAddon(addon.id, name.trim(), Number(price), auth))}
-      >
-        Save
-      </Button>
-      <Button
-        size="sm"
-        variant="secondary"
-        type="button"
-        aria-label={`Remove add-on ${addon.name}`}
-        disabled={busy}
-        onClick={() => run((auth) => deleteAddon(addon.id, auth))}
-      >
-        Remove
-      </Button>
-    </div>
-  );
-}
-
-function NewAddon({ category, run, busy }: { category: ServiceCategory; run: Run; busy: boolean }) {
-  const [name, setName] = useState("");
-  const [price, setPrice] = useState("");
-
-  const add = async () => {
-    const ok = await run((auth) => createAddon(category.id, name.trim(), Number(price), auth));
-    if (ok) {
-      setName("");
-      setPrice("");
-    }
-  };
-
-  return (
-    <div className="flex items-center gap-3">
-      <input
-        aria-label={`New add-on name for ${category.name}`}
-        placeholder="Add-on name"
-        className={inputClass}
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-      <input
-        aria-label={`New add-on price for ${category.name}`}
-        placeholder="Price"
-        inputMode="numeric"
-        className={`${inputClass} max-w-27.5 flex-none`}
-        value={price}
-        onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ""))}
-      />
-      <Button
-        size="sm"
-        variant="secondary"
-        type="button"
-        aria-label={`Add add-on to ${category.name}`}
-        disabled={busy || !name.trim() || price === ""}
-        onClick={add}
-      >
-        Add
-      </Button>
-    </div>
-  );
-}
 
 export default function CategoryPanel({ categories, tokenFetcher, clerkId, onChanged }: Props) {
   const [newName, setNewName] = useState("");
@@ -217,14 +131,6 @@ export default function CategoryPanel({ categories, tokenFetcher, clerkId, onCha
                   </div>
                 </div>
               )}
-            </div>
-
-            <div className="flex flex-col gap-3 border-t border-crimson/20 pt-2">
-              <p className="text-sm text-gray-red">Add-ons offered with every service in this category</p>
-              {category.addons.map((addon) => (
-                <AddonRow key={`${addon.id}-${addon.name}-${addon.price}`} addon={addon} run={run} busy={busy} />
-              ))}
-              <NewAddon category={category} run={run} busy={busy} />
             </div>
           </div>
         ))}
