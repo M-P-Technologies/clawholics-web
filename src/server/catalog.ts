@@ -63,9 +63,17 @@ export function getCategories(admin: boolean) {
 
 // Worker SERVICE_SELECT / PUBLIC_SERVICE_FILTER. GROUP_CONCAT(ns.nailist_id) becomes
 // string_agg, still a comma-separated string (or null when no artist offers it).
+// pricing_type/price are the admin form's names for pricing_mode ('single' is 'flat') and the
+// one price, and variants the service's options, as json (array parameters aren't typed here).
 const serviceSelect = () => getSql()`
   select s.*, c.name as category_name,
-    string_agg(ns.nailist_id::text, ',' order by ns.nailist_id) as nailist_ids
+    string_agg(ns.nailist_id::text, ',' order by ns.nailist_id) as nailist_ids,
+    case when s.pricing_mode = 'single' then 'flat' else 'tiered' end as pricing_type,
+    case when s.pricing_mode = 'single' then s.master_price else 0 end as price,
+    coalesce((
+      select json_agg(json_build_object('id', v.id, 'name', v.name, 'price', v.price) order by v.position, v.id)
+      from service_variants v where v.service_id = s.id
+    ), '[]'::json) as variants
   from services s
   left join service_categories c on s.category_id = c.id
   left join nailist_services ns on s.id = ns.service_id
