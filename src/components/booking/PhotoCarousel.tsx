@@ -86,7 +86,7 @@ export default function PhotoCarousel({ photos, label, aspect = "aspect-square",
       {photos.length > 1 && (
         <div className="flex items-center justify-center">
           {photos.map((photo, index) => (
-            // Dots 6px apart, as in every carousel: the arrows are the full-size way to move
+            // Each dot is a 24px tap target (the arrows are the other way to move)
             <button
               key={photo.id}
               type="button"

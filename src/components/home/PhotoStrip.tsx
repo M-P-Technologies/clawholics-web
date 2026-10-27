@@ -178,7 +178,8 @@ export default function PhotoStrip({ items }: PhotoStripProps) {
                   }}
                 >
                   <Image
-                    loading={Math.abs(k - pos) <= 3 ? "eager" : "lazy"}
+                    // Below the hero, so lazy: eager ones are preloaded and compete with the hero photo for the first bytes
+                    loading="lazy"
                     src={item.image}
                     alt={k === pos ? item.name : ""}
                     fill

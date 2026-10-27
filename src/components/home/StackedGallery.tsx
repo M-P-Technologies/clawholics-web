@@ -77,14 +77,14 @@ export default function StackedGallery({ photos, label = "Photo gallery" }: { ph
 
           <div className="flex items-center">
             {photos.map((photo, index) => (
-              // Dots 6px apart, as in every carousel: the arrows are the full-size way to move
+              // Each dot is a 24px tap target (the arrows are the other way to move)
               <button
                 key={`${photo.id}-${index}`}
                 type="button"
                 aria-label={`Show photo ${index + 1}`}
                 aria-current={index === current}
                 onClick={() => setCurrent(index)}
-                className="group flex h-6 cursor-pointer items-center justify-center px-0.75"
+                className="group flex h-6 min-w-6 cursor-pointer items-center justify-center px-0.75"
               >
                 <span
                   aria-hidden="true"
