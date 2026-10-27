@@ -13,12 +13,14 @@ const TimeSlotCard = ({
   timeSlots,
   setTimeSlots,
   onTimeSlotsLoaded,
+  artistName,
 }: {
   nailistId?: number;
   disabled: boolean;
   timeSlots: NailistTimeSlots;
   setTimeSlots: React.Dispatch<React.SetStateAction<NailistTimeSlots>>;
   onTimeSlotsLoaded: (timeSlots: NailistTimeSlots) => void;
+  artistName?: string;
 }) => {
   const {
     isLoading,
@@ -29,7 +31,7 @@ const TimeSlotCard = ({
     updateTimeSlot,
     deleteTimeSlot,
     handleAddTimeSlot,
-  } = useTimeSlots({ nailistId, disabled, timeSlots, setTimeSlots, onTimeSlotsLoaded });
+  } = useTimeSlots({ nailistId, disabled, timeSlots, setTimeSlots, onTimeSlotsLoaded, artistName });
 
   const TimePill = ({
     value,

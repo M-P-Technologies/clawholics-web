@@ -143,7 +143,7 @@ describe("Appointments table", () => {
     expect(screen.queryByRole("option", { name: "Awaiting confirmation" })).toBeNull();
     await user.click(screen.getByRole("option", { name: "Confirmed" }));
     await waitFor(() => expect(updateAppointmentStatus).toHaveBeenCalledWith(2, "CONFIRMED", "tok", "admin_1"));
-    expect(show).toHaveBeenCalledWith("success", "Appointment updated", "Appointment #2 is now confirmed.");
+    expect(show).toHaveBeenCalledWith("success", "Appointment updated", "Appointment #2 (Bea Lim, Gel) is now confirmed.");
   });
 
   it("sends Manage to the client's page, and opens a proof to review", async () => {

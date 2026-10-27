@@ -256,15 +256,34 @@ export function ImageField({ label, value, uploading, onUpload, onRemove, hint, 
   );
 }
 
-// A dashed area that takes a photo by click or drop
-export function DropArea({ id, uploading, onFile, input, label = "Upload a photo" }: { id: string; uploading: boolean; onFile: (file?: File) => void; input: ReactNode; label?: string }) {
+interface DropAreaProps {
+  id: string;
+  uploading: boolean;
+  /** One photo, from a click or a drop */
+  onFile?: (file?: File) => void;
+  /** Several photos at once (the input needs `multiple`): every file that was dropped */
+  onFiles?: (files: FileList) => void;
+  input: ReactNode;
+  label?: string;
+  /** The small line under the label */
+  hint?: ReactNode;
+}
+
+// A dashed area that takes a photo (or, with `onFiles`, several) by click or drop. The caller
+// brings the file input (with this `id`), so it decides what one pick does.
+export function DropArea({ id, uploading, onFile, onFiles, input, label = "Upload a photo", hint = "PNG, JPG or WebP. Click, or drop it here." }: DropAreaProps) {
   return (
     <label
       htmlFor={id}
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => {
         e.preventDefault();
-        if (!uploading) onFile(e.dataTransfer.files?.[0]);
+        if (uploading) return;
+        if (onFiles) {
+          if (e.dataTransfer.files?.length) onFiles(e.dataTransfer.files);
+        } else {
+          onFile?.(e.dataTransfer.files?.[0]);
+        }
       }}
       className={clsx(
         "flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-crimson-light px-3 py-6 text-center transition-colors focus-within:ring-2 focus-within:ring-crimson",
@@ -275,7 +294,7 @@ export function DropArea({ id, uploading, onFile, input, label = "Upload a photo
         {uploading ? <Loader2 size={18} className="animate-spin" /> : <ImagePlus size={18} />}
       </span>
       <span className="text-[13px] font-bold text-gray-red">{uploading ? "Uploading…" : label}</span>
-      {!uploading && <span className="text-xs text-gray-red">PNG, JPG or WebP. Click, or drop it here.</span>}
+      {!uploading && <span className="text-xs text-gray-red">{hint}</span>}
       {input}
     </label>
   );

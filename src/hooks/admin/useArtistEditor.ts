@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ADMIN } from "@/lib/adminQueries";
 import { bookingQueries } from "@/lib/bookingQueries";
 import { useToast, type SortableHandleProps } from "@/components/molecules";
+import { itemName, upperFirst } from "@/lib/itemName";
 import {
   createNailist,
   deleteNailist,
@@ -183,8 +184,9 @@ export function useArtistEditor({
     const trimmedSpecialty = specialty.trim();
     const trimmedBio = bio.trim();
     const trimmedImage = image.trim();
+    const who = itemName(trimmedName, "this artist");
     if (!trimmedName || !trimmedPosition || !trimmedSpecialty || !trimmedBio || !trimmedImage) {
-      toast.show("error", "Some fields are empty", "Please fill in every field before saving. Nothing was saved.");
+      toast.show("error", "Some fields are empty", `Please fill in every field${trimmedName ? ` for ${who}` : ""} before saving. Nothing was saved.`);
       return;
     }
 
@@ -193,7 +195,7 @@ export function useArtistEditor({
       return !startTime || !endTime || startTime >= endTime;
     });
     if (invalidTimeSlot) {
-      toast.show("error", "Finish the time slots", "Every time slot needs both a start time and an end time before you can save.");
+      toast.show("error", "Finish the time slots", `Every time slot for ${who} needs both a start time and an end time before you can save.`);
       return;
     }
 
@@ -208,7 +210,7 @@ export function useArtistEditor({
 
         onNailistCreated?.({ ...createdNailist, service_ids: updatedServiceIds });
         resetCreateForm();
-        toast.show("success", "Artist added", "They now appear on the Artists page. Assign services and set their schedule so clients can book them.");
+        toast.show("success", `${who} added`, `${upperFirst(who)} now appears on the Artists page. Assign services and set their schedule so clients can book them.`);
         return;
       }
 
@@ -237,15 +239,15 @@ export function useArtistEditor({
       queryClient.setQueryData(bookingQueries.timeSlots(nailist.id).queryKey, updatedTimeSlots);
       setIsEditing(false);
       onNailistUpdated?.({ ...updatedNailist, service_ids: updatedServiceIds });
-      toast.show("success", "Artist saved", "Your changes are now live on the website and in booking.");
+      toast.show("success", `${who} saved`, "Your changes are now live on the website and in booking.");
     } catch (error) {
       console.error(`Failed to ${isCreateMode ? "create" : "save"} artist:`, error);
       toast.show(
         "error",
-        isCreateMode ? "Artist not created" : "Artist not saved",
+        isCreateMode ? `${who} not created` : `${who} not saved`,
         error instanceof Error
           ? error.message
-          : "We couldn't save this artist, so the website is unchanged. Your edits are still on screen. Please try again.",
+          : `We couldn't save ${who}, so the website is unchanged. Your edits are still on screen. Please try again.`,
       );
     } finally {
       setIsSaving(false);
@@ -254,6 +256,7 @@ export function useArtistEditor({
 
   const handleDelete = async () => {
     if (!nailist) return;
+    const who = itemName(nailist.name, "this artist");
 
     try {
       setIsDeleting(true);
@@ -261,10 +264,10 @@ export function useArtistEditor({
       await deleteNailist(nailist.id, token, clerkId);
       setIsDeleteModalOpen(false);
       onNailistDeleted?.(nailist.id);
-      toast.show("success", "Artist deleted", "They were removed from the Artists page and can no longer be booked.");
+      toast.show("success", `${who} deleted`, `${upperFirst(who)} was removed from the Artists page and can no longer be booked.`);
     } catch (error) {
       console.error("Failed to delete artist:", error);
-      toast.show("error", "Artist not deleted", "We couldn't delete this artist, so they are still listed. Please try again.");
+      toast.show("error", `${who} not deleted`, `We couldn't delete ${who}, so they are still listed. Please try again.`);
     } finally {
       setIsDeleting(false);
     }
@@ -281,7 +284,7 @@ export function useArtistEditor({
       setName((prevName) => prevName || currentName || nailist?.name || originalName);
     } catch (error) {
       console.error("Failed to upload image:", error);
-      toast.show("error", "Photo not uploaded", "We couldn't upload that photo. Please check that it is an image file and try again.");
+      toast.show("error", "Photo not uploaded", `We couldn't upload that photo for ${itemName(name || nailist?.name, "this artist")}. Please check that it is an image file and try again.`);
     } finally {
       setIsUploading(false);
     }

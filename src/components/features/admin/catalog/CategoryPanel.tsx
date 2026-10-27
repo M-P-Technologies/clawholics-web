@@ -2,20 +2,18 @@ import { useRef, useState } from "react";
 import { ArrowDown, ArrowUp, Check, Pencil, Trash2 } from "lucide-react";
 import {
   ApiError,
-  createAddon,
   createCategory,
-  deleteAddon,
   deleteCategory,
   renameCategory,
   reorderCategories,
-  updateAddon,
   type Auth,
-  type ServiceAddon,
   type ServiceCategory,
 } from "@/services/catalogService";
 import { Button, IconButton } from "@/components/atoms";
+import { itemName } from "@/lib/itemName";
 
-type Run = (fn: (auth: Auth) => Promise<unknown>) => Promise<boolean>;
+// `what` says what is being done to which category ("delete Manicure"), for the error if it fails
+type Run = (fn: (auth: Auth) => Promise<unknown>, what?: string) => Promise<boolean>;
 
 type Props = {
   categories: ServiceCategory[];
@@ -28,88 +26,6 @@ type Props = {
 const inputClass =
   "h-9 min-w-0 flex-1 bg-milk rounded-md px-3 text-sm text-gray-red outline-none focus:ring-2 focus:ring-crimson border border-crimson-light";
 
-function AddonRow({ addon, run, busy }: { addon: ServiceAddon; run: Run; busy: boolean }) {
-  const [name, setName] = useState(addon.name);
-  const [price, setPrice] = useState(String(addon.price));
-  const dirty = name !== addon.name || price !== String(addon.price);
-  const valid = name.trim() !== "" && price !== "";
-
-  return (
-    <div className="flex items-center gap-3">
-      <input aria-label={`Add-on name ${addon.name}`} className={inputClass} value={name} onChange={(e) => setName(e.target.value)} />
-      <input
-        aria-label={`Add-on price ${addon.name}`}
-        className={`${inputClass} max-w-27.5 flex-none`}
-        inputMode="numeric"
-        value={price}
-        onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ""))}
-      />
-      <Button
-        size="sm"
-        variant="secondary"
-        type="button"
-        disabled={busy || !dirty || !valid}
-        onClick={() => run((auth) => updateAddon(addon.id, name.trim(), Number(price), auth))}
-      >
-        Save
-      </Button>
-      <Button
-        size="sm"
-        variant="secondary"
-        type="button"
-        aria-label={`Remove add-on ${addon.name}`}
-        disabled={busy}
-        onClick={() => run((auth) => deleteAddon(addon.id, auth))}
-      >
-        Remove
-      </Button>
-    </div>
-  );
-}
-
-function NewAddon({ category, run, busy }: { category: ServiceCategory; run: Run; busy: boolean }) {
-  const [name, setName] = useState("");
-  const [price, setPrice] = useState("");
-
-  const add = async () => {
-    const ok = await run((auth) => createAddon(category.id, name.trim(), Number(price), auth));
-    if (ok) {
-      setName("");
-      setPrice("");
-    }
-  };
-
-  return (
-    <div className="flex items-center gap-3">
-      <input
-        aria-label={`New add-on name for ${category.name}`}
-        placeholder="Add-on name"
-        className={inputClass}
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-      <input
-        aria-label={`New add-on price for ${category.name}`}
-        placeholder="Price"
-        inputMode="numeric"
-        className={`${inputClass} max-w-27.5 flex-none`}
-        value={price}
-        onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ""))}
-      />
-      <Button
-        size="sm"
-        variant="secondary"
-        type="button"
-        aria-label={`Add add-on to ${category.name}`}
-        disabled={busy || !name.trim() || price === ""}
-        onClick={add}
-      >
-        Add
-      </Button>
-    </div>
-  );
-}
-
 export default function CategoryPanel({ categories, tokenFetcher, clerkId, onChanged }: Props) {
   const [newName, setNewName] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -119,7 +35,7 @@ export default function CategoryPanel({ categories, tokenFetcher, clerkId, onCha
   const [busy, setBusy] = useState(false);
   const inFlight = useRef(false);
 
-  const run: Run = async (action) => {
+  const run: Run = async (action, what = "save that change") => {
     if (inFlight.current) return false;
     inFlight.current = true;
     setBusy(true);
@@ -130,7 +46,7 @@ export default function CategoryPanel({ categories, tokenFetcher, clerkId, onCha
       await onChanged();
       return true;
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Something went wrong. Please try again.");
+      setError(e instanceof ApiError ? `Couldn't ${what}. ${e.message}` : `Couldn't ${what}. Please try again.`);
       return false;
     } finally {
       inFlight.current = false;
@@ -144,7 +60,7 @@ export default function CategoryPanel({ categories, tokenFetcher, clerkId, onCha
     const target = index + delta;
     if (target < 0 || target >= ids.length) return;
     [ids[index], ids[target]] = [ids[target], ids[index]];
-    return run((auth) => reorderCategories(ids, auth));
+    return run((auth) => reorderCategories(ids, auth), `move ${itemName(categories[index].name, "that category")}`);
   };
 
   return (
@@ -175,7 +91,7 @@ export default function CategoryPanel({ categories, tokenFetcher, clerkId, onCha
                       type="button"
                       disabled={busy || !editingName.trim()}
                       onClick={async () => {
-                        const ok = await run((auth) => renameCategory(category.id, editingName.trim(), auth));
+                        const ok = await run((auth) => renameCategory(category.id, editingName.trim(), auth), `rename ${itemName(category.name, "that category")} to ${itemName(editingName, "that name")}`);
                         if (ok) setEditingId(null);
                       }}
                     >
@@ -209,7 +125,7 @@ export default function CategoryPanel({ categories, tokenFetcher, clerkId, onCha
                         label={`Confirm delete ${category.name}`}
                         disabled={busy}
                         className="text-danger-ink"
-                        onClick={() => run((auth) => deleteCategory(category.id, auth))}
+                        onClick={() => run((auth) => deleteCategory(category.id, auth), `delete ${itemName(category.name, "that category")}`)}
                       />
                     ) : (
                       <IconButton size="sm" icon={Trash2} label={`Delete ${category.name}`} disabled={busy} onClick={() => setConfirmId(category.id)} />
@@ -217,14 +133,6 @@ export default function CategoryPanel({ categories, tokenFetcher, clerkId, onCha
                   </div>
                 </div>
               )}
-            </div>
-
-            <div className="flex flex-col gap-3 border-t border-crimson/20 pt-2">
-              <p className="text-sm text-gray-red">Add-ons offered with every service in this category</p>
-              {category.addons.map((addon) => (
-                <AddonRow key={`${addon.id}-${addon.name}-${addon.price}`} addon={addon} run={run} busy={busy} />
-              ))}
-              <NewAddon category={category} run={run} busy={busy} />
             </div>
           </div>
         ))}
@@ -244,7 +152,7 @@ export default function CategoryPanel({ categories, tokenFetcher, clerkId, onCha
           type="button"
           disabled={busy || !newName.trim()}
           onClick={async () => {
-            const ok = await run((auth) => createCategory(newName.trim(), auth));
+            const ok = await run((auth) => createCategory(newName.trim(), auth), `add ${itemName(newName, "that category")}`);
             if (ok) setNewName("");
           }}
         >

@@ -108,7 +108,7 @@ export default function ServicesTable({ services, onBook, label, paginateTable =
                 </p>
               )}
               <CardFields fields={[["Price", shortPriceLabel(service)]]} />
-              <BookButton service={service} onBook={onBook} className="w-full" />
+              <BookButton service={service} onBook={onBook} className="self-end" />
             </RowCard>
           ))}
         </RowCards>

@@ -8,7 +8,8 @@ import { formatSlot, isOverlapping, toLocalDate, toLocalDateString } from "@/uti
 import { CLIENT_PATHS } from "@/lib/client/clientNav";
 import { rescheduleLabels } from "@/lib/client/reschedule";
 import { useArtistAvailability } from "../useArtistAvailability";
-import { longDateLabel } from "@/lib/timeFormat";
+import { longDateLabel, timeRangeLabel } from "@/lib/timeFormat";
+import { itemName } from "@/lib/itemName";
 
 export function useReschedule() {
   const navigate = useNavigate();
@@ -51,7 +52,7 @@ export function useReschedule() {
       if (diff <= 0) {
         showModal(
           "Reservation expired",
-          "Your reservation time has expired and this appointment was cancelled.",
+          `Your reservation for ${itemName(appointment.service_name, "this appointment")}${appointment.nailist_name ? ` with ${appointment.nailist_name}` : ""} has expired and the appointment was cancelled.`,
           () => navigate(CLIENT_PATHS.appointments, { replace: true }),
         );
         return false;
@@ -127,7 +128,7 @@ export function useReschedule() {
 
   const handleConfirmReschedule = async () => {
     if (!appointment || !selectedDate || !selectedTime) {
-      showModal("Almost there", "Please choose both a new date and a new time. Your current appointment stays as it is until you confirm.");
+      showModal("Almost there", `Please choose both a new date and a new time. Your ${itemName(appointment.service_name, "current")} appointment stays as it is until you confirm.`);
       return;
     }
 
@@ -146,7 +147,7 @@ export function useReschedule() {
       if (conflict) {
         showModal(
           "Slot Unavailable",
-          "Someone else just reserved that time. Your appointment has not changed yet, so please pick a different time.",
+          `Someone else just reserved ${itemName(appointment.nailist_name, "that artist")} at ${timeRangeLabel(selectedTime)}. Your ${itemName(appointment.service_name, "current")} appointment has not changed yet, so please pick a different time.`,
         );
         setSelectedTime("");
         return;
@@ -163,13 +164,13 @@ export function useReschedule() {
 
       showModal(
         "Appointment rescheduled",
-        "Your appointment is now on the new date and time. You can see the updated details in My Schedule.",
+        `Your ${itemName(appointment.service_name, "booked")} appointment with ${itemName(appointment.nailist_name, "your artist")} is now on ${longDateLabel(selectedDate)} at ${timeRangeLabel(selectedTime)}. You can see the updated details in My Schedule.`,
         () => navigate(CLIENT_PATHS.appointments, { replace: true }),
       );
     } catch (err) {
       showModal(
         "We couldn't reschedule",
-        (err as { message?: string } | null)?.message || "Something went wrong, so your appointment was not changed and is still on its original date and time. Please try again in a moment.",
+        (err as { message?: string } | null)?.message || `Something went wrong, so your ${itemName(appointment.service_name, "booked")} appointment was not changed and is still on its original date and time. Please try again in a moment.`,
       );
     } finally {
       setIsSubmitting(false);
@@ -187,7 +188,7 @@ export function useReschedule() {
     const fullyBooked = isDayFullyBooked(times);
 
     if (fullyBooked) {
-      showModal("Fully booked", "There are no times left on this day. Please choose another date.");
+      showModal("Fully booked", `${itemName(appointment.nailist_name, "This artist")} has no times left on ${longDateLabel(formatted)}. Please choose another date.`);
       return;
     }
 

@@ -44,7 +44,7 @@ export default function CompleteVisitForm({ visit, artists, onSaved, onCancelLat
             {form.hasPhoto ? "Change photo" : "Add photo"}
           </button>
         </div>
-        <VisitPhotoDialog appointmentId={visit.id} open={form.photoOpen} onClose={form.closePhoto} />
+        <VisitPhotoDialog appointmentId={visit.id} open={form.photoOpen} onClose={form.closePhoto} label={visit.label} />
       </div>
     );
   }

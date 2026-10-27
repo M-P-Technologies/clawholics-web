@@ -1,5 +1,6 @@
 "use client";
 
+import { itemName } from "../../lib/itemName";
 import { useState } from "react";
 import { useAdminWideLayout } from "@/hooks/useMinWidth";
 import { useAuth, useUser } from "@clerk/nextjs";
@@ -34,6 +35,10 @@ const errorMessage = (error: unknown) => (error instanceof Error ? error.message
 
 // The Admin Directory's data and actions: the admins, their Clerk details and stat cards, the
 // chosen admin, and adding, editing and removing one.
+// How messages call an admin: their name, or "this admin" if they have none
+const nameOf = (admin: { firstName?: string | null; lastName?: string | null } | null) =>
+  itemName(`${admin?.firstName ?? ""} ${admin?.lastName ?? ""}`, "this admin");
+
 export function useAdminDirectory() {
   const toast = useToast();
   const { getToken, isLoaded } = useAuth();
@@ -130,9 +135,9 @@ export function useAdminDirectory() {
       await loadUsers();
       setIsEditModalOpen(false);
       setSelectedAdmin(null);
-      toast.show("success", "Admin updated", "The new details were saved.");
+      toast.show("success", "Admin updated", `${nameOf(selectedAdmin)}'s new details were saved.`);
     } catch (err) {
-      toast.show("error", "Admin not updated", errorMessage(err) || "We couldn't save the changes to this admin profile, so it still shows the previous details. Please try again.");
+      toast.show("error", "Admin not updated", errorMessage(err) || `We couldn't save the changes to ${nameOf(selectedAdmin)}'s admin profile, so it still shows the previous details. Please try again.`);
     } finally {
       setIsSaving(false);
     }
@@ -162,9 +167,9 @@ export function useAdminDirectory() {
       // A removed admin's profile doesn't stay beside the table
       setChosen((current) => (current?.id === selectedAdmin.id ? null : current));
       setSelectedAdmin(null);
-      toast.show("success", "Admin removed", "They no longer have admin access.");
+      toast.show("success", "Admin removed", `${nameOf(selectedAdmin)} no longer has admin access.`);
     } catch (err) {
-      toast.show("error", "Admin not removed", errorMessage(err) || "We couldn't remove this admin, so they still have access. Please try again.");
+      toast.show("error", "Admin not removed", errorMessage(err) || `We couldn't remove ${nameOf(selectedAdmin)}, so they still have access. Please try again.`);
     } finally {
       setIsDeleting(false);
     }

@@ -10,6 +10,8 @@ export const PHONE_STICKY_TOP_BAR =
 
 interface TopBarProps {
   title: string;
+  /** Keeps the title for screen readers only (the screen has a back button and no visible title) */
+  hideTitle?: boolean;
   /** Above the title on computers, e.g. "Welcome, Ana!" */
   greeting?: string;
   /** Beside the title, e.g. a Create button */
@@ -32,7 +34,7 @@ interface TopBarProps {
 // The bar across the top of every admin screen and client app tab: the greeting, title and the
 // screen's controls on the left; a link to the public site, an optional bell (e.g. new bookings)
 // and who is signed in on the right.
-export default function TopBar({ title, greeting, titleAside, leading, actions, account, bell, wide = true, actionsOnPhone = true, className }: TopBarProps) {
+export default function TopBar({ title, hideTitle = false, greeting, titleAside, leading, actions, account, bell, wide = true, actionsOnPhone = true, className }: TopBarProps) {
   return (
     <header className={clsx("flex w-full flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk/80 px-3 py-3 shadow-petal backdrop-blur-sm sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:gap-6", className)}>
       <div className="flex min-w-0 items-center justify-between gap-3 lg:shrink-0">
@@ -40,7 +42,7 @@ export default function TopBar({ title, greeting, titleAside, leading, actions, 
           {greeting && <p className="hidden font-display text-base leading-none text-berry lg:block">{greeting}</p>}
           <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
             {leading}
-            <h1 className="font-display text-2xl font-normal normal-case leading-tight tracking-normal text-gray-red sm:text-3xl">{title}</h1>
+            <h1 className={clsx("font-display text-2xl font-normal normal-case leading-tight tracking-normal text-gray-red sm:text-3xl", hideTitle && "sr-only")}>{title}</h1>
             {titleAside}
           </div>
         </div>

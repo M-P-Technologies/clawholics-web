@@ -1,5 +1,5 @@
-import { ChevronDown as DropdownIcon, Plus as PlusIcon, Star as StarIcon, Upload as UploadIcon, X as XIcon } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
+import { ChevronDown as DropdownIcon, Plus as PlusIcon, Star as StarIcon, X as XIcon } from "lucide-react";
+import React, { useEffect, useId, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ADMIN } from "@/lib/adminQueries";
 import { useFillForm } from "@/hooks/admin/useFillForm";
@@ -26,8 +26,10 @@ import ServicePricingFields, {
 
 import { PHOTO_UPLOAD_OPTIONS, uploadImage } from "@/services/uploadService";
 import { DragHandle, useToast, EditActions, SectionHeader } from "@/components/molecules";
+import { itemName, upperFirst } from "@/lib/itemName";
 import type { SortableHandleProps } from "@/components/molecules";
 import { Button } from "@/components/atoms";
+import { DropArea } from "@/components/features/admin/cms/fields";
 import { ConfirmDialog, ImagePreviewDialog } from "@/components/organisms";
 
 type NailServiceDropdownProps = {
@@ -108,6 +110,7 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
   isDragging = false,
 }) => {
   const toast = useToast();
+  const uploadId = useId();
   const isCreateMode = mode === "create";
 
   const [isOpen, setIsOpen] = useState(false);
@@ -145,6 +148,8 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
     queryKey: [ADMIN, "services", service?.id ?? 0, "gallery"],
     queryFn: async () => [...(await fetchServiceGallery(service?.id ?? 0))].sort((a, b) => a.position - b.position),
   };
+  // What messages call this service: its name as typed (or saved), or "this service" while it has none
+  const who = itemName(name || service?.name || originalName, "this service");
   const loadedGallery = useQuery({ ...galleryQuery, enabled: !isCreateMode && !!service });
   const galleryShown = useFillForm(loadedGallery.data, isEditing, (data) => {
     setGallery(data);
@@ -153,7 +158,7 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
   useEffect(() => {
     if (!loadedGallery.isError) return;
     console.error("Failed to fetch service gallery:", loadedGallery.error);
-    toast.show("error", "Couldn't load the gallery", "We couldn't load this service's photos. Please close and reopen the service to try again.");
+    toast.show("error", "Couldn't load the gallery", `We couldn't load the photos of ${who}. Please close and reopen it to try again.`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadedGallery.isError, loadedGallery.error]);
 
@@ -211,7 +216,7 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
     const remainingSlots = MAX_IMAGES - gallery.length;
 
     if (selectedFiles.length > remainingSlots) {
-      toast.show("error", "Too many photos", `A service can have up to ${MAX_IMAGES} photos. Remove some before uploading more.`);
+      toast.show("error", "Too many photos", `${upperFirst(who)} can have up to ${MAX_IMAGES} photos. Remove some before uploading more.`);
       return;
     }
 
@@ -237,7 +242,7 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
       setName((prevName) => prevName || currentName || service?.name || originalName);
     } catch (error) {
       console.error("Failed to upload service images:", error);
-      toast.show("error", "Photos not uploaded", "We couldn't upload the photos. Please check that they are image files and try again.");
+      toast.show("error", "Photos not uploaded", `We couldn't upload the photos for ${who}. Please check that they are image files and try again.`);
     } finally {
       setIsUploading(false);
     }
@@ -250,7 +255,7 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
         await deleteServiceGalleryImage(image.id, token, clerkId);
       } catch (error) {
         console.error("Failed to delete service image:", error);
-        toast.show("error", "Photo not removed", "We couldn't remove that photo, so it is still in the gallery. Please try again.");
+        toast.show("error", "Photo not removed", `We couldn't remove that photo from ${who}, so it is still in the gallery. Please try again.`);
         return;
       }
     }
@@ -273,14 +278,15 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
     const trimmedDescription = description.trim();
     const trimmedDuration = duration.trim();
 
+    const target = itemName(trimmedName, "this service");
     if (!trimmedName || !trimmedDescription || !trimmedDuration || gallery.length === 0) {
-      toast.show("error", "Some fields are empty", "Please fill in every field before saving. Nothing was saved.");
+      toast.show("error", "Some fields are empty", `Please fill in every field${trimmedName ? ` for ${target}` : ""} before saving. Nothing was saved.`);
       return;
     }
 
     const pricingError = validateDraft(pricing);
     if (pricingError) {
-      toast.show("error", "Check the pricing", `${pricingError} Nothing was saved.`);
+      toast.show("error", `Check the pricing of ${target}`, `${pricingError} Nothing was saved.`);
       return;
     }
 
@@ -312,7 +318,7 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
 
         await onServiceCreated?.(createdService);
         resetCreateForm();
-        toast.show("success", "Service added", "It now appears on the Services page. Assign artists to it so clients can book it.");
+        toast.show("success", `${target} added`, `${upperFirst(target)} now appears on the Services page. Assign artists to it so clients can book it.`);
         return;
       }
 
@@ -368,7 +374,7 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
 
       setIsEditing(false);
       await onServiceUpdated?.(updatedService);
-      toast.show("success", "Service saved", "Your changes are now live on the website. Appointments already booked keep the price they were booked at.");
+      toast.show("success", `${target} saved`, "Your changes are now live on the website. Appointments already booked keep the price they were booked at.");
     } catch (error) {
       console.error(
         `Failed to ${isCreateMode ? "create" : "save"} service:`,
@@ -376,10 +382,10 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
       );
       toast.show(
         "error",
-        isCreateMode ? "Service not created" : "Service not saved",
+        isCreateMode ? `${target} not created` : `${target} not saved`,
         error instanceof Error && error.message
           ? error.message
-          : "We couldn't save this service, so the website is unchanged. Your edits are still on screen. Please try again.",
+          : `We couldn't save ${target}, so the website is unchanged. Your edits are still on screen. Please try again.`,
       );
     } finally {
       setIsSaving(false);
@@ -388,6 +394,7 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
 
   const handleDelete = async () => {
     if (!service) return;
+    const target = itemName(service.name, "this service");
 
     try {
       setIsDeleting(true);
@@ -395,10 +402,10 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
       await deleteService(service.id, token, clerkId);
       setIsDeleteModalOpen(false);
       onServiceDeleted?.(service.id);
-      toast.show("success", "Service deleted", "It was removed from the Services page and can no longer be booked.");
+      toast.show("success", `${target} deleted`, `${upperFirst(target)} was removed from the Services page and can no longer be booked.`);
     } catch (error) {
       console.error("Failed to delete service:", error);
-      toast.show("error", "Service not deleted", "We couldn't delete this service, so it is still listed. Please try again.");
+      toast.show("error", `${target} not deleted`, `We couldn't delete ${target}, so it is still listed. Please try again.`);
     } finally {
       setIsDeleting(false);
     }
@@ -526,33 +533,29 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
               </div>
 
               {isEditing && gallery.length < MAX_IMAGES && (
-                <label
-                  className={`flex flex-col items-center justify-center w-full mt-3 rounded-xl bg-crimson/15 p-3 ${
-                    !isUploading ? "cursor-pointer" : "cursor-not-allowed"
-                  }`}
-                >
-                  <div className="flex items-center justify-center w-10.5 h-10.5 rounded-sm text-gray-red">
-                    <UploadIcon size={28} className="text-crimson" />
-                  </div>
-
-                  <p className="text-[13px] text-gray-red">
-                    {isUploading
-                      ? "Uploading photos..."
-                      : "Click here to upload photos"}
-                  </p>
-
-                  <input
-                    type="file"
-                    accept="image/png, image/jpeg, image/webp"
-                    multiple
-                    disabled={isUploading}
-                    className="border border-crimson-light focus:border-crimson hidden"
-                    onChange={async (e) => {
-                      await handleUploadImages(e.target.files);
-                      e.target.value = "";
-                    }}
+                <div className="mt-3">
+                  <DropArea
+                    id={uploadId}
+                    uploading={isUploading}
+                    label="Add photos"
+                    hint="PNG, JPG or WebP. Click, or drop them here."
+                    onFiles={(files) => void handleUploadImages(files)}
+                    input={
+                      <input
+                        id={uploadId}
+                        type="file"
+                        accept="image/png, image/jpeg, image/webp"
+                        multiple
+                        disabled={isUploading}
+                        className="sr-only"
+                        onChange={async (e) => {
+                          await handleUploadImages(e.target.files);
+                          e.target.value = "";
+                        }}
+                      />
+                    }
                   />
-                </label>
+                </div>
               )}
             </div>
 
@@ -580,7 +583,7 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
           onClose={() => setIsDeleteModalOpen(false)}
           onConfirm={handleDelete}
         >
-          Are you sure you want to delete this service? This action cannot be undone.
+          Are you sure you want to delete <strong>{itemName(service?.name, "this service")}</strong>? This action cannot be undone.
         </ConfirmDialog>
       )}
 

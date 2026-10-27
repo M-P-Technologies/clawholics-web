@@ -44,17 +44,30 @@ export default function ClientPage() {
 
   if (!details) return <ClientPageSkeleton />;
 
+  // A round icon before the title, like the settings and bell buttons (the client's name is in their profile panel)
+  const backButton = (
+    <Link
+      to="/clients"
+      aria-label="Back to clients"
+      title="Back to clients"
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-crimson-light text-berry transition-colors hover:bg-crimson-light/30 focus-visible:outline-2 focus-visible:outline-crimson"
+    >
+      <ArrowLeft size={17} aria-hidden="true" />
+    </Link>
+  );
+
   const { summary, appointments } = details;
 
   return (
-    <AdminShell title={page.name} actions={back}>
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-2">
-        {/* Two panels, as in the client's My profile: the profile (1/3) and the tabs (2/3), each 80vh
-            tall on a computer: they scroll inside, the tab bar stays put */}
-        <div className="grid grid-cols-1 items-start gap-3 md:gap-6 lg:grid-cols-3">
+    <AdminShell title="Client" hideTitle leading={backButton}>
+      {/* Below lg the panels stack and the page scrolls. From lg the page doesn't: the two panels, as in
+          the client's My profile (the profile 1/3, the tabs 2/3), fill the space under the top bar and
+          scroll inside (the tab bar stays put), so there is one scrollbar per panel and none for the page */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-2 lg:overflow-hidden">
+        <div className="grid grid-cols-1 items-start gap-3 md:gap-6 lg:min-h-0 lg:flex-1 lg:grid-cols-3 lg:grid-rows-[minmax(0,1fr)] lg:items-stretch">
           <ProfilePanel
             label="Client profile"
-            className="lg:h-[80vh] lg:overflow-y-auto"
+            className="lg:h-full lg:min-h-0 lg:overflow-y-auto"
             name={page.name}
             badges={
               <>
@@ -67,7 +80,7 @@ export default function ClientPage() {
             rows={page.panelRows}
           />
 
-          <section aria-label="Client details" className="flex min-w-0 flex-col overflow-clip rounded-2xl border border-crimson-light/40 bg-milk shadow-petal lg:col-span-2 lg:h-[80vh]">
+          <section aria-label="Client details" className="flex min-w-0 flex-col overflow-clip rounded-2xl border border-crimson-light/40 bg-milk shadow-petal lg:col-span-2 lg:h-full lg:min-h-0">
             <Tabs
               label="Client sections"
               idPrefix="client"
@@ -87,7 +100,7 @@ export default function ClientPage() {
                     </div>
                   </TabSection>
                   <TabSection title="Booking tracker" description="Where a booking is, from booking to the finished visit. It follows their current booking; pick another to see it.">
-                    <BookingTracker appointments={appointments} today={page.today} artists={page.artists} onNoShow={page.markNoShow} onCancelLate={page.cancelLate} />
+                    <BookingTracker appointments={appointments} today={page.today} artists={page.artists} onNoShow={page.markNoShow} onCancelLate={page.cancelLate} clientName={page.name} />
                   </TabSection>
                 </>
               )}

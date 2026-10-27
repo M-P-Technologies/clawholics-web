@@ -109,14 +109,5 @@ export const deleteCategory = (id: number, auth: Auth, reassignTo?: number) =>
     auth,
   );
 
-export const createAddon = (categoryId: number, name: string, price: number, auth: Auth) =>
-  call<ServiceAddon>(`${CATEGORIES}/${categoryId}/addons`, { method: "POST", body: JSON.stringify({ name, price }) }, auth);
-
-export const updateAddon = (id: number, name: string, price: number, auth: Auth) =>
-  call<ServiceAddon>(`${CATEGORIES}/addons/${id}`, { method: "PUT", body: JSON.stringify({ name, price }) }, auth);
-
-export const deleteAddon = (id: number, auth: Auth) =>
-  call<void>(`${CATEGORIES}/addons/${id}`, { method: "DELETE" }, auth);
-
 // Through the admin editor's live preview (see lib/cmsPreview); a plain fetch everywhere else
 export const fetchCategories = () => previewed("categories", () => loadCategories());

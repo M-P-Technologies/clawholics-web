@@ -118,8 +118,8 @@ export function useArtistsEditor() {
     savingWords,
     saveWords,
     discardWords: () => setWords(savedWords),
-    onNailistUpdated: refreshAfter("Saved", "Your changes were saved. We couldn't refresh the list, so please reload the page to see them."),
-    onNailistCreated: refreshAfter("Created", "The artist was created. We couldn't refresh the list, so please reload the page to see them."),
+    onNailistUpdated: (n: Nailist) => refreshAfter("Saved", `Your changes to ${n.name} were saved. We couldn't refresh the list, so please reload the page to see them.`)(),
+    onNailistCreated: (n: Nailist) => refreshAfter("Created", `${n.name} was created. We couldn't refresh the list, so please reload the page to see them.`)(),
     onNailistDeleted: (nailistId: number) => {
       queryClient.setQueryData<Nailist[]>(NAILISTS_KEY, (prev) => prev?.filter((item) => item.id !== nailistId));
       changed();

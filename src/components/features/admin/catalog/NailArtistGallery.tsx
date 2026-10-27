@@ -1,5 +1,5 @@
-import { Upload as UploadIcon, X as XIcon } from "lucide-react";
-import { useState } from "react";
+import { X as XIcon } from "lucide-react";
+import { useId, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ADMIN } from "@/lib/adminQueries";
 import {
@@ -10,7 +10,9 @@ import {
 } from "@/services/nailistService";
 import { PHOTO_UPLOAD_OPTIONS, uploadImage } from "@/services/uploadService";
 import { Button } from "@/components/atoms";
+import { DropArea } from "@/components/features/admin/cms/fields";
 import { useToast } from "@/components/molecules";
+import { itemName, upperFirst } from "@/lib/itemName";
 
 const MAX_IMAGES = 10;
 
@@ -23,12 +25,15 @@ interface NailArtistGalleryProps {
   onPreview: (url: string) => void;
   /** After a photo is added or removed (they save at once), e.g. to refresh a preview */
   onChanged?: () => void;
+  /** The artist's name, for the messages about their photos */
+  artistName?: string;
 }
 
 // The photos of an artist's work, shown on their page. Unlike the other fields of the form,
 // photos are saved the moment they are uploaded or removed (Save and Cancel don't apply to them).
-export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, clerkId, onPreview, onChanged }: NailArtistGalleryProps) {
+export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, clerkId, onPreview, onChanged, artistName }: NailArtistGalleryProps) {
   const toast = useToast();
+  const who = itemName(artistName, "this artist");
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState(false);
 
@@ -45,12 +50,13 @@ export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, 
   const setImages = (update: (prev: NailistGalleryImage[]) => NailistGalleryImage[]) =>
     queryClient.setQueryData<NailistGalleryImage[]>(galleryKey, (prev) => update(prev ?? []));
 
+  const uploadId = useId();
   const upload = async (files: FileList | null) => {
     if (!files || nailistId === null) return;
     const chosen = Array.from(files);
 
     if (chosen.length > MAX_IMAGES - images.length) {
-      toast.show("error", "Too many photos", `An artist can have up to ${MAX_IMAGES} photos. Remove some before uploading more.`);
+      toast.show("error", "Too many photos", `${upperFirst(who)} can have up to ${MAX_IMAGES} photos. Remove some before uploading more.`);
       return;
     }
 
@@ -66,7 +72,7 @@ export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, 
       }
     } catch (error) {
       console.error("Failed to add artist photos:", error);
-      toast.show("error", "Photos not added", "We couldn't add all the photos. The ones shown above were saved. Please check that they are image files and try again.");
+      toast.show("error", "Photos not added", `We couldn't add all the photos for ${who}. The ones shown above were saved. Please check that they are image files and try again.`);
     } finally {
       setBusy(false);
     }
@@ -81,7 +87,7 @@ export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, 
       onChanged?.();
     } catch (error) {
       console.error("Failed to remove artist photo:", error);
-      toast.show("error", "Photo not removed", "We couldn't remove that photo, so it is still in the gallery. Please try again.");
+      toast.show("error", "Photo not removed", `We couldn't remove that photo from ${who}'s gallery, so it is still there. Please try again.`);
     } finally {
       setBusy(false);
     }
@@ -99,7 +105,7 @@ export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, 
         <p className="text-[13px] text-gray-red">Save the artist first, then you can add photos of their work.</p>
       ) : loadFailed ? (
         <p role="alert" className="text-[13px] text-danger-ink">
-          We couldn&apos;t load this artist&apos;s photos. Please close and reopen the artist to try again.
+          We couldn&apos;t load the photos of {who}. Please close and reopen the artist to try again.
         </p>
       ) : (
         <>
@@ -138,26 +144,29 @@ export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, 
           </div>
 
           {isEditing && images.length < MAX_IMAGES && (
-            <label className={`flex flex-col items-center justify-center w-full mt-3 ${busy ? "cursor-not-allowed" : "cursor-pointer"}`}>
-              <div className="flex items-center justify-center w-10.5 h-10.5 rounded-sm bg-crimson/15 text-gray-red">
-                <UploadIcon size={28} className="text-crimson" />
-              </div>
-
-              <p className="text-[13px] text-gray-red">{busy ? "Working..." : "Click here to upload photos"}</p>
-              <p className="text-xs text-gray-red">Photos are saved as soon as they are uploaded or removed.</p>
-
-              <input
-                type="file"
-                accept="image/png, image/jpeg, image/webp"
-                multiple
-                disabled={busy}
-                className="hidden"
-                onChange={async (e) => {
-                  await upload(e.target.files);
-                  e.target.value = "";
-                }}
+            <div className="mt-3">
+              <DropArea
+                id={uploadId}
+                uploading={busy}
+                label="Add photos"
+                hint="PNG, JPG or WebP. Click, or drop them here. Photos are saved as soon as they are uploaded or removed."
+                onFiles={(files) => void upload(files)}
+                input={
+                  <input
+                    id={uploadId}
+                    type="file"
+                    accept="image/png, image/jpeg, image/webp"
+                    multiple
+                    disabled={busy}
+                    className="sr-only"
+                    onChange={async (e) => {
+                      await upload(e.target.files);
+                      e.target.value = "";
+                    }}
+                  />
+                }
               />
-            </label>
+            </div>
           )}
         </>
       )}

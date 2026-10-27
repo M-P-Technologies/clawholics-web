@@ -167,6 +167,8 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
   const [selected, setSelected] = useState<Appointment | null>(null);
   const [creating, setCreating] = useState(false);
   const [slotTaken, setSlotTaken] = useState(false);
+  // Which appointment hit a taken slot, for the message that says so
+  const [slotTakenFor, setSlotTakenFor] = useState<Appointment | null>(null);
   // Phone: which filter's drawer is open
   const [openFilter, setOpenFilter] = useState<"status" | "artist" | "sort" | null>(null);
   const [firstRender] = useState(() => Date.now());
@@ -219,10 +221,13 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
   };
 
   const changeStatus = async (id: number, next: AppointmentStatus) => {
+    // The appointment as the admin sees it in the list: "Appointment #992 (Audit Tester, Gel Manicure)"
+    const row = (appointments ?? []).find((a) => a.id === id) ?? selected;
+    const what = row ? `Appointment #${id} (${clientName(row)}, ${row.service_name || "no service"})` : `Appointment #${id}`;
     try {
       const updated = await updateAppointmentStatus(id, next, await getToken(), currentUser?.id);
       const updatedStatus = statusOf(updated);
-      toast.show("success", "Appointment updated", `Appointment #${id} is now ${updatedStatus.toLowerCase().replace(/_/g, " ")}.`);
+      toast.show("success", "Appointment updated", `${what} is now ${updatedStatus.toLowerCase().replace(/_/g, " ")}.`);
       void refresh();
       // The change answers the appointment alone: what the list added (proof, downpayment, completion) is kept
       setSelected((current) => {
@@ -233,11 +238,12 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
     } catch (error) {
       const message = error instanceof Error ? error.message : "";
       if (message.includes("SLOT_TAKEN") || message.includes("slot")) {
+        setSlotTakenFor(row ?? null);
         setSlotTaken(true);
         return;
       }
       console.error(error);
-      toast.show("error", "Status not changed", serverMessage(message) ?? "The appointment status is unchanged. Please try again.");
+      toast.show("error", "Status not changed", serverMessage(message) ?? `${what} is unchanged. Please try again.`);
     }
   };
 
@@ -545,7 +551,11 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
       <AlertDialog
         open={slotTaken}
         title="Slot already taken"
-        message="This appointment slot has already been taken by another active appointment."
+        message={
+          slotTakenFor
+            ? `${slotTakenFor.nailist_name || "The artist"} already has another active appointment on ${slotTakenFor.appointment_date} at ${slotTakenFor.appointment_time}, so appointment #${slotTakenFor.id} (${clientName(slotTakenFor)}, ${slotTakenFor.service_name || "no service"}) can't be set back to active.`
+            : "This appointment slot has already been taken by another active appointment."
+        }
         buttonText="Okay"
         onClose={() => setSlotTaken(false)}
         onAction={() => setSlotTaken(false)}

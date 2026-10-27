@@ -1,3 +1,4 @@
+import { itemName } from "@/lib/itemName";
 import { useState } from "react";
 import { ConfirmDialog } from "@/components/organisms";
 import { dateLabel, statusOf } from "@/lib/admin/clientPage";
@@ -20,11 +21,13 @@ interface BookingTrackerProps {
   onNoShow: (appointmentId: number) => void;
   /** Cancels a visit the client came 25+ minutes late to (the downpayment is kept) */
   onCancelLate: (appointmentId: number) => void;
+  /** The client's name, for the questions it asks ("Audit Tester didn't come…") */
+  clientName?: string;
 }
 
 // Where one appointment is, from booking to the finished visit, with what the admin does at each
 // step: the payment proof (when one was sent), and Complete visit (its form in a dialog) or Didn't show up
-export default function BookingTracker({ appointments, today, artists, onNoShow, onCancelLate }: BookingTrackerProps) {
+export default function BookingTracker({ appointments, today, artists, onNoShow, onCancelLate, clientName }: BookingTrackerProps) {
   const [chosenId, setChosenId] = useState<number | null>(null);
   const [asking, setAsking] = useState<"no-show" | null>(null);
   const [completing, setCompleting] = useState(false);
@@ -40,6 +43,7 @@ export default function BookingTracker({ appointments, today, artists, onNoShow,
     nailist_id: tracked.nailist_id ?? null,
     price: tracked.price,
     paid_downpayment: tracked.paid_downpayment ?? 0,
+    label: `${clientName ? `${itemName(clientName, "")}'s ` : ""}${tracked.service_name} visit`,
     completion: tracked.completion ?? null,
   };
 
@@ -124,7 +128,7 @@ export default function BookingTracker({ appointments, today, artists, onNoShow,
         }}
         onClose={() => setAsking(null)}
       >
-        The client didn&apos;t come to this visit. By the terms the downpayment is kept, and the client page counts their no-shows.
+        <strong>{itemName(clientName, "The client")}</strong> didn&apos;t come to their {tracked.service_name} visit on {dateLabel(tracked.appointment_date)}. By the terms the downpayment is kept, and the client page counts their no-shows.
       </ConfirmDialog>
     </div>
   );

@@ -11,15 +11,15 @@ interface ClientScreenProps {
   title: string;
   /** The screen's own controls (wrap under the title on phones) */
   actions?: ReactNode;
-  /** A back control before the actions: a path to go to, or "history" to go back one step */
+  /** A round back button before the title: a path to go to, or "history" to go back one step */
   back?: string | "history";
   children: ReactNode;
 }
 
-// The text link from `lg` up, where the top bar is one row; below it, a round icon before the title
-const backClass = "hidden items-center gap-1.5 text-sm font-bold text-berry underline decoration-crimson-light underline-offset-4 lg:flex";
+// A round icon before the title at every width, like the settings and bell buttons (and the admin's
+// client page)
 const backCircleClass =
-  "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-crimson-light bg-milk text-berry transition-colors hover:bg-crimson-light/30 lg:hidden";
+  "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-crimson-light text-berry transition-colors hover:bg-crimson-light/30 focus-visible:outline-2 focus-visible:outline-crimson";
 
 // The page frame of every client screen, shaped like the admin's AdminShell: the top bar (a welcome,
 // the title, a link to the site and who is signed in) and the content below it with
@@ -33,45 +33,38 @@ export default function ClientScreen({ title, actions, back, children }: ClientS
   const name = [dbUser?.first_name, dbUser?.last_name].filter(Boolean).join(" ") || firstName || "You";
   const imageUrl = clerkUser?.hasImage ? clerkUser.imageUrl : "";
 
-  const backControl =
-    back === "history" ? (
-      <Button variant="bare" type="button" onClick={() => navigate(-1)} className={backClass}>
-        <ArrowLeft size={16} aria-hidden="true" />
-        Back
-      </Button>
-    ) : back ? (
-      <Link to={back} className={backClass}>
-        <ArrowLeft size={16} aria-hidden="true" />
-        Back
-      </Link>
-    ) : null;
-
   const backCircle =
     back === "history" ? (
-      <Button variant="bare" type="button" onClick={() => navigate(-1)} aria-label="Back" className={backCircleClass}>
+      <Button variant="bare" type="button" onClick={() => navigate(-1)} aria-label="Back" title="Back" className={backCircleClass}>
         <ArrowLeft size={18} aria-hidden="true" />
       </Button>
     ) : back ? (
-      <Link to={back} aria-label="Back" className={backCircleClass}>
+      <Link to={back} aria-label="Back" title="Back" className={backCircleClass}>
         <ArrowLeft size={18} aria-hidden="true" />
       </Link>
     ) : null;
 
   return (
-    // From `sm` the scroller around this already has the sidebar's top and bottom inset, so only
-    // the sides are padded there
-    <div className="flex min-w-0 flex-col gap-3 p-3 sm:py-0 md:gap-6 md:px-6">
+    // From `sm` the frame is fitted to the screen (see AppShell): the top bar stays put and only the
+    // content below it scrolls, as in the admin, inside the same top and bottom inset as the sidebar,
+    // so only the sides are padded here. Below `sm` it's the page that scrolls (the bar is sticky).
+    <div className="flex min-w-0 flex-col gap-3 p-3 sm:h-full sm:py-0 md:gap-6 md:px-6">
       <TopBar
         title={title}
         leading={backCircle}
         actionsOnPhone={Boolean(actions)}
-        actions={backControl || actions ? <>{backControl}{actions}</> : undefined}
+        actions={actions}
         greeting={`Welcome back${firstName ? `, ${firstName}` : ""}!`}
         account={{ name, email: dbUser?.email ?? "", imageUrl }}
         // On phones it stays at the top as the tab bar stays at the bottom
         className={PHONE_STICKY_TOP_BAR}
       />
-      {children}
+      {/* The scroller from `sm`: ScrollToTop finds it by [data-scroll-root]. It's `relative` so
+          absolutely placed pieces inside it (sr-only text) are placed in it: against `main` they
+          would sit far down it and give the page a second scrollbar */}
+      <div data-scroll-root className="relative flex min-w-0 flex-col gap-3 sm:min-h-0 sm:flex-1 sm:overflow-y-auto sm:pb-2 md:gap-6">
+        {children}
+      </div>
     </div>
   );
 }

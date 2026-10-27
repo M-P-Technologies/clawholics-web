@@ -102,7 +102,7 @@ export function useAdminScanner() {
     setIsProcessing(true);
 
     if (action === "stamp" && lastScan.client.stamps >= stampTarget) {
-      toast.show("info", "The card is full", `This client has ${stampTarget} stamps. Please redeem their reward first.`);
+      toast.show("info", `${lastScan.client.name}'s card is full`, `${lastScan.client.name} has ${stampTarget} stamps. Please redeem their reward first.`);
       setIsProcessing(false);
       return;
     }
@@ -135,7 +135,7 @@ export function useAdminScanner() {
       // Nothing was saved: show the card and the recent scans as they were
       setNewest((p) => ({ ...p, rows: p.rows.filter((r) => r.id !== record.id), total: Math.max(0, p.total - 1) }));
       setLastScan(lastScan);
-      toast.show("error", action === "stamp" ? "Stamp not added" : "Reward not redeemed", error instanceof Error ? error.message : "Please try again.");
+      toast.show("error", `${action === "stamp" ? "Stamp not added for" : "Reward not redeemed for"} ${lastScan.client.name}`, error instanceof Error ? error.message : "Please try again.");
       setIsProcessing(false);
     }
   };

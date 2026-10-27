@@ -10,19 +10,40 @@ interface VisitPhotoDialogProps {
   onClose: () => void;
   /** After the photo is uploaded */
   onDone?: () => void;
+  /** What messages call the visit, e.g. "Audit Tester's Gel Manicure visit" */
+  label?: string;
 }
 
 // The visit's one nail photo, added after it was completed: picked, previewed, then uploaded to the
 // artist's gallery (a new one replaces the visit's earlier photo)
-export default function VisitPhotoDialog({ appointmentId, open, onClose, onDone }: VisitPhotoDialogProps) {
-  const photo = useVisitPhoto(appointmentId, () => {
-    onDone?.();
-    onClose();
-  });
+export default function VisitPhotoDialog({ appointmentId, open, onClose, onDone, label }: VisitPhotoDialogProps) {
+  const photo = useVisitPhoto(
+    appointmentId,
+    () => {
+      onDone?.();
+      onClose();
+    },
+    label,
+  );
   const id = useId();
 
   return (
-    <Dialog open={open} onClose={onClose} title="Add a visit photo" size="md">
+    <Dialog
+      open={open}
+      onClose={onClose}
+      title="Add a visit photo"
+      size="md"
+      footer={
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <Button type="button" variant="secondary" onClick={onClose} disabled={photo.busy}>
+            Cancel
+          </Button>
+          <Button type="button" onClick={() => void photo.upload()} disabled={!photo.file} loading={photo.busy}>
+            Upload photo
+          </Button>
+        </div>
+      }
+    >
       <div className="flex flex-col gap-3">
         <p className="text-sm text-gray-red">
           One photo, up to {photo.maxMb} MB. It&apos;s made smaller before it&apos;s saved, and goes first in the artist&apos;s gallery.
@@ -50,14 +71,6 @@ export default function VisitPhotoDialog({ appointmentId, open, onClose, onDone 
             {photo.error}
           </p>
         )}
-        <div className="flex flex-wrap gap-3">
-          <Button type="button" onClick={() => void photo.upload()} disabled={!photo.file} loading={photo.busy}>
-            Upload photo
-          </Button>
-          <Button type="button" variant="secondary" onClick={onClose} disabled={photo.busy}>
-            Cancel
-          </Button>
-        </div>
       </div>
     </Dialog>
   );
