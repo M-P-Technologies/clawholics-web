@@ -10,8 +10,12 @@ import SideBar from "@/components/features/admin/shell/SideBar";
 
 interface AdminShellProps {
   title: string;
+  /** Keeps the title for screen readers only, for a screen with a back button and no visible title */
+  hideTitle?: boolean;
   /** Beside the title, for example a Create button */
   titleAside?: ReactNode;
+  /** Before the title, in the same row, for example a round back button */
+  leading?: ReactNode;
   /** On the right of the title row (wraps under it on phones) */
   actions?: ReactNode;
   children: ReactNode;
@@ -22,7 +26,7 @@ interface AdminShellProps {
 // the page so the milk-white cards have something to lift off.
 // On a computer the frame is clipped, not hidden: a hidden box can still be scrolled by script, and
 // the content editors' preview scrolling to a section used to drag the whole page up with it.
-export default function AdminShell({ title, titleAside, actions, children }: AdminShellProps) {
+export default function AdminShell({ title, hideTitle, titleAside, leading, actions, children }: AdminShellProps) {
   const account = useAdminAccount();
   // The new-bookings bell is drawn once, in the place for the screen's width: two (one hidden by
   // CSS) would each ask for the notifications and each announce a new one
@@ -32,7 +36,9 @@ export default function AdminShell({ title, titleAside, actions, children }: Adm
     <AppShell variant="admin" sideBar={<SideBar />}>
       <TopBar
         title={title}
+        hideTitle={hideTitle}
         titleAside={titleAside}
+        leading={leading}
         actions={actions}
         greeting={`Welcome, ${account.firstName}!`}
         account={{ name: account.name, email: account.email || "Admin", imageUrl: account.imageUrl }}

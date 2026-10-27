@@ -44,10 +44,22 @@ export default function ClientPage() {
 
   if (!details) return <ClientPageSkeleton />;
 
+  // A round icon before the title, like the settings and bell buttons (the client's name is in their profile panel)
+  const backButton = (
+    <Link
+      to="/clients"
+      aria-label="Back to clients"
+      title="Back to clients"
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-crimson-light text-berry transition-colors hover:bg-crimson-light/30 focus-visible:outline-2 focus-visible:outline-crimson"
+    >
+      <ArrowLeft size={17} aria-hidden="true" />
+    </Link>
+  );
+
   const { summary, appointments } = details;
 
   return (
-    <AdminShell title={page.name} actions={back}>
+    <AdminShell title="Client" hideTitle leading={backButton}>
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-2">
         {/* Two panels, as in the client's My profile: the profile (1/3) and the tabs (2/3), each 80vh
             tall on a computer: they scroll inside, the tab bar stays put */}

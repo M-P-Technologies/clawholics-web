@@ -11,15 +11,15 @@ interface ClientScreenProps {
   title: string;
   /** The screen's own controls (wrap under the title on phones) */
   actions?: ReactNode;
-  /** A back control before the actions: a path to go to, or "history" to go back one step */
+  /** A round back button before the title: a path to go to, or "history" to go back one step */
   back?: string | "history";
   children: ReactNode;
 }
 
-// The text link from `lg` up, where the top bar is one row; below it, a round icon before the title
-const backClass = "hidden items-center gap-1.5 text-sm font-bold text-berry underline decoration-crimson-light underline-offset-4 lg:flex";
+// A round icon before the title at every width, like the settings and bell buttons (and the admin's
+// client page)
 const backCircleClass =
-  "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-crimson-light bg-milk text-berry transition-colors hover:bg-crimson-light/30 lg:hidden";
+  "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-crimson-light text-berry transition-colors hover:bg-crimson-light/30 focus-visible:outline-2 focus-visible:outline-crimson";
 
 // The page frame of every client screen, shaped like the admin's AdminShell: the top bar (a welcome,
 // the title, a link to the site and who is signed in) and the content below it with
@@ -33,26 +33,13 @@ export default function ClientScreen({ title, actions, back, children }: ClientS
   const name = [dbUser?.first_name, dbUser?.last_name].filter(Boolean).join(" ") || firstName || "You";
   const imageUrl = clerkUser?.hasImage ? clerkUser.imageUrl : "";
 
-  const backControl =
-    back === "history" ? (
-      <Button variant="bare" type="button" onClick={() => navigate(-1)} className={backClass}>
-        <ArrowLeft size={16} aria-hidden="true" />
-        Back
-      </Button>
-    ) : back ? (
-      <Link to={back} className={backClass}>
-        <ArrowLeft size={16} aria-hidden="true" />
-        Back
-      </Link>
-    ) : null;
-
   const backCircle =
     back === "history" ? (
-      <Button variant="bare" type="button" onClick={() => navigate(-1)} aria-label="Back" className={backCircleClass}>
+      <Button variant="bare" type="button" onClick={() => navigate(-1)} aria-label="Back" title="Back" className={backCircleClass}>
         <ArrowLeft size={18} aria-hidden="true" />
       </Button>
     ) : back ? (
-      <Link to={back} aria-label="Back" className={backCircleClass}>
+      <Link to={back} aria-label="Back" title="Back" className={backCircleClass}>
         <ArrowLeft size={18} aria-hidden="true" />
       </Link>
     ) : null;
@@ -65,7 +52,7 @@ export default function ClientScreen({ title, actions, back, children }: ClientS
         title={title}
         leading={backCircle}
         actionsOnPhone={Boolean(actions)}
-        actions={backControl || actions ? <>{backControl}{actions}</> : undefined}
+        actions={actions}
         greeting={`Welcome back${firstName ? `, ${firstName}` : ""}!`}
         account={{ name, email: dbUser?.email ?? "", imageUrl }}
         // On phones it stays at the top as the tab bar stays at the bottom

@@ -65,6 +65,15 @@ const openTab = async (name: RegExp | string) => {
 };
 
 describe("Client page", () => {
+  it("keeps the client's name out of the top bar, and goes back to the clients with a round button", async () => {
+    render(<ClientPage />);
+    await screen.findByRole("complementary", { name: "Client profile" });
+    // The name is only in the profile panel; the top bar says "Client" and has the back button
+    expect(screen.getAllByRole("heading", { name: "Ana Cruz" })).toHaveLength(1);
+    expect(screen.getByRole("heading", { level: 1, name: "Client" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Back to clients" })).toHaveAttribute("href", "/clients");
+  });
+
   it("shows the profile on the left, and the overview tab first", async () => {
     render(<ClientPage />);
     const profile = within(await screen.findByRole("complementary", { name: "Client profile" }));
