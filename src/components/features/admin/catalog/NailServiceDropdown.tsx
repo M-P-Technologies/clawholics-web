@@ -1,5 +1,5 @@
-import { ChevronDown as DropdownIcon, Plus as PlusIcon, Star as StarIcon, Upload as UploadIcon, X as XIcon } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
+import { ChevronDown as DropdownIcon, Plus as PlusIcon, Star as StarIcon, X as XIcon } from "lucide-react";
+import React, { useEffect, useId, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ADMIN } from "@/lib/adminQueries";
 import { useFillForm } from "@/hooks/admin/useFillForm";
@@ -28,6 +28,7 @@ import { PHOTO_UPLOAD_OPTIONS, uploadImage } from "@/services/uploadService";
 import { DragHandle, useToast, EditActions, SectionHeader } from "@/components/molecules";
 import type { SortableHandleProps } from "@/components/molecules";
 import { Button } from "@/components/atoms";
+import { DropArea } from "@/components/features/admin/cms/fields";
 import { ConfirmDialog, ImagePreviewDialog } from "@/components/organisms";
 
 type NailServiceDropdownProps = {
@@ -108,6 +109,7 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
   isDragging = false,
 }) => {
   const toast = useToast();
+  const uploadId = useId();
   const isCreateMode = mode === "create";
 
   const [isOpen, setIsOpen] = useState(false);
@@ -526,33 +528,29 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
               </div>
 
               {isEditing && gallery.length < MAX_IMAGES && (
-                <label
-                  className={`flex flex-col items-center justify-center w-full mt-3 rounded-xl bg-crimson/15 p-3 ${
-                    !isUploading ? "cursor-pointer" : "cursor-not-allowed"
-                  }`}
-                >
-                  <div className="flex items-center justify-center w-10.5 h-10.5 rounded-sm text-gray-red">
-                    <UploadIcon size={28} className="text-crimson" />
-                  </div>
-
-                  <p className="text-[13px] text-gray-red">
-                    {isUploading
-                      ? "Uploading photos..."
-                      : "Click here to upload photos"}
-                  </p>
-
-                  <input
-                    type="file"
-                    accept="image/png, image/jpeg, image/webp"
-                    multiple
-                    disabled={isUploading}
-                    className="border border-crimson-light focus:border-crimson hidden"
-                    onChange={async (e) => {
-                      await handleUploadImages(e.target.files);
-                      e.target.value = "";
-                    }}
+                <div className="mt-3">
+                  <DropArea
+                    id={uploadId}
+                    uploading={isUploading}
+                    label="Add photos"
+                    hint="PNG, JPG or WebP. Click, or drop them here."
+                    onFiles={(files) => void handleUploadImages(files)}
+                    input={
+                      <input
+                        id={uploadId}
+                        type="file"
+                        accept="image/png, image/jpeg, image/webp"
+                        multiple
+                        disabled={isUploading}
+                        className="sr-only"
+                        onChange={async (e) => {
+                          await handleUploadImages(e.target.files);
+                          e.target.value = "";
+                        }}
+                      />
+                    }
                   />
-                </label>
+                </div>
               )}
             </div>
 

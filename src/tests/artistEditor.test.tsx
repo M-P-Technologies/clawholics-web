@@ -449,10 +449,10 @@ describe("artist editor", () => {
     it("offers an upload once the photo is removed and uploads a new one", async () => {
       await renderArtist();
       fireEvent.click(screen.getByRole("button", { name: "Edit" }));
-      expect(screen.queryByText("Click here to upload a photo")).not.toBeInTheDocument();
+      expect(screen.queryByText("Add a photo")).not.toBeInTheDocument();
       removePhoto();
       expect(screen.queryByText("mara.webp")).not.toBeInTheDocument();
-      expect(screen.getByText("Click here to upload a photo")).toBeInTheDocument();
+      expect(screen.getByText("Add a photo")).toBeInTheDocument();
       uploadImage.mockResolvedValue({ key: "k", imageUrl: "https://img/nailists/new.webp" });
       const file = new File(["x"], "new.png", { type: "image/png" });
       fireEvent.change(document.querySelector('input[type="file"]') as HTMLInputElement, { target: { files: [file] } });
@@ -468,7 +468,7 @@ describe("artist editor", () => {
       const file = new File(["x"], "new.png", { type: "image/png" });
       fireEvent.change(document.querySelector('input[type="file"]') as HTMLInputElement, { target: { files: [file] } });
       await waitFor(() => expect(show).toHaveBeenCalledWith("error", "Photo not uploaded", expect.any(String)));
-      expect(screen.getByText("Click here to upload a photo")).toBeInTheDocument();
+      expect(screen.getByText("Add a photo")).toBeInTheDocument();
     });
   });
 });

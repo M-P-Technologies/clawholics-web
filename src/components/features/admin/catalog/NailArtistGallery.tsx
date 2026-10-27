@@ -1,5 +1,5 @@
-import { Upload as UploadIcon, X as XIcon } from "lucide-react";
-import { useState } from "react";
+import { X as XIcon } from "lucide-react";
+import { useId, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ADMIN } from "@/lib/adminQueries";
 import {
@@ -10,6 +10,7 @@ import {
 } from "@/services/nailistService";
 import { PHOTO_UPLOAD_OPTIONS, uploadImage } from "@/services/uploadService";
 import { Button } from "@/components/atoms";
+import { DropArea } from "@/components/features/admin/cms/fields";
 import { useToast } from "@/components/molecules";
 
 const MAX_IMAGES = 10;
@@ -45,6 +46,7 @@ export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, 
   const setImages = (update: (prev: NailistGalleryImage[]) => NailistGalleryImage[]) =>
     queryClient.setQueryData<NailistGalleryImage[]>(galleryKey, (prev) => update(prev ?? []));
 
+  const uploadId = useId();
   const upload = async (files: FileList | null) => {
     if (!files || nailistId === null) return;
     const chosen = Array.from(files);
@@ -138,26 +140,29 @@ export default function NailArtistGallery({ nailistId, isEditing, tokenFetcher, 
           </div>
 
           {isEditing && images.length < MAX_IMAGES && (
-            <label className={`flex flex-col items-center justify-center w-full mt-3 ${busy ? "cursor-not-allowed" : "cursor-pointer"}`}>
-              <div className="flex items-center justify-center w-10.5 h-10.5 rounded-sm bg-crimson/15 text-gray-red">
-                <UploadIcon size={28} className="text-crimson" />
-              </div>
-
-              <p className="text-[13px] text-gray-red">{busy ? "Working..." : "Click here to upload photos"}</p>
-              <p className="text-xs text-gray-red">Photos are saved as soon as they are uploaded or removed.</p>
-
-              <input
-                type="file"
-                accept="image/png, image/jpeg, image/webp"
-                multiple
-                disabled={busy}
-                className="hidden"
-                onChange={async (e) => {
-                  await upload(e.target.files);
-                  e.target.value = "";
-                }}
+            <div className="mt-3">
+              <DropArea
+                id={uploadId}
+                uploading={busy}
+                label="Add photos"
+                hint="PNG, JPG or WebP. Click, or drop them here. Photos are saved as soon as they are uploaded or removed."
+                onFiles={(files) => void upload(files)}
+                input={
+                  <input
+                    id={uploadId}
+                    type="file"
+                    accept="image/png, image/jpeg, image/webp"
+                    multiple
+                    disabled={busy}
+                    className="sr-only"
+                    onChange={async (e) => {
+                      await upload(e.target.files);
+                      e.target.value = "";
+                    }}
+                  />
+                }
               />
-            </label>
+            </div>
           )}
         </>
       )}
