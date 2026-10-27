@@ -1,0 +1,95 @@
+# Checks every pull request and every push to main: the type-check, lint, the unit tests and the
+# Postgres integration tests (src/tests/db). It never touches Supabase: the database tests run
+# against a throwaway Postgres service container, which they drop and rebuild (see
+# src/tests/db/testDatabase.ts). Vercel builds the app itself, so there's no `next build` here.
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# A newer push to the same branch or PR replaces the run still going for it.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Type-check and unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # next-env.d.ts is gitignored: it holds the types for importing images (.png etc.), so a fresh
+      # checkout fails the type-check on every image import without it
+      - name: Generate Next's types
+        run: npx next typegen
+
+      - name: Type-check
+        run: npx tsc --noEmit
+
+      # jsdom screens are slow on a shared runner, so each test gets 30s instead of the default 5s
+      - name: Unit tests
+        run: npx vitest run --testTimeout=30000
+
+  db-test:
+    name: Postgres integration tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # Must be a localhost database: the tests drop the public schema and skip anything else
+      TEST_DATABASE_URL: postgres://postgres:test@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # One file at a time: each rebuilds the schema
+      - name: Database tests
+        run: npx vitest run src/tests/db --no-file-parallelism --testTimeout=30000
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint

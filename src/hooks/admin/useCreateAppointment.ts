@@ -56,7 +56,7 @@ export function useCreateAppointment({ onCreated }: { onCreated: () => void }) {
   const artistServices = useMemo(() => {
     if (!selectedNailist) return services;
   
-    return services.filter((service: any) => {
+    return services.filter((service) => {
       if (!service.nailist_ids) return false;
   
       const nailistIds = String(service.nailist_ids)
@@ -172,10 +172,10 @@ export function useCreateAppointment({ onCreated }: { onCreated: () => void }) {
       void adminDataChanged(queryClient);
 
       onCreated();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
 
-      const errorMessage = err?.message || "";
+      const errorMessage = (err as { message?: string } | null)?.message || "";
 
       if (
         errorMessage.includes("SLOT_TAKEN") ||

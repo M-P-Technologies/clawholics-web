@@ -334,9 +334,9 @@ export function useProfile() {
         `Your ${selectedAppt.service_name} appointment was cancelled and the time slot was released. You can find it under Past & Cancelled Appointments.`,
       );
       setSelectedAppt(null);
-    } catch (err: any) {
+    } catch (err) {
       setActionError(
-        err.message ||
+        (err as { message?: string } | null)?.message ||
           "We couldn't cancel this appointment, so it is still active. Please try again, or contact us if this keeps happening.",
       );
     } finally {

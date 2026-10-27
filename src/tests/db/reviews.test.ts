@@ -10,6 +10,8 @@ vi.mock("@clerk/nextjs/server", () => ({
   clerkClient: async () => ({ users: { getUser: vi.fn(async () => null) } }),
 }));
 vi.mock("next/server", () => ({ after: () => {} }));
+// A real WEBP signature: uploads check the first bytes, not just the type
+const WEBP = new Uint8Array([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50, ...new Array(88).fill(0)]);
 const putObject = vi.fn(async (..._args: unknown[]) => {});
 vi.mock("../../server/r2", () => ({ putObject: (...args: unknown[]) => putObject(...args), publicBaseUrl: () => "https://images.test" }));
 
@@ -26,7 +28,7 @@ describe.skipIf(!TEST_DATABASE_URL)("reviews (Postgres)", () => {
     body.set("appointment_id", String(appointmentId));
     body.set("rating", String(rating));
     body.set("comment", comment);
-    if (photoType) body.set("file", new File([new Uint8Array(100)], "nails.webp", { type: photoType }));
+    if (photoType) body.set("file", new File([WEBP], "nails.webp", { type: photoType }));
     return body;
   };
   const post = (body: FormData) => callRoute(reviews.createReview, "/api/reviews", { method: "POST", body });

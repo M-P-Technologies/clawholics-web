@@ -103,10 +103,10 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
 
   it("TC-ADM-03: categories reject duplicates and need reassign_to while they have services", async () => {
     as("user_admin");
-    const created = await call(catalog.createCategory, "/api/categories", { method: "POST", body: { name: "Lashes" } });
+    const created = await call(catalog.createCategory, "/api/categories", { method: "POST", body: { name: "Waxing" } });
     expect(created.status).toBe(201);
-    expect(created.body).toMatchObject({ name: "Lashes", slug: "lashes", is_active: 1, position: 3 });
-    expect((await call(catalog.createCategory, "/api/categories", { method: "POST", body: { name: "lashes" } })).status).toBe(409);
+    expect(created.body).toMatchObject({ name: "Waxing", slug: "waxing", is_active: 1, position: 5 });
+    expect((await call(catalog.createCategory, "/api/categories", { method: "POST", body: { name: "waxing" } })).status).toBe(409);
 
     const renamed = await call(catalog.updateCategory, "/api/categories/2", { method: "PUT", params: { id: "2" }, body: { name: "Pedi" } });
     expect(renamed.body.name).toBe("Pedi");
@@ -284,7 +284,7 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
     ).toEqual({ success: true, newStamps: 0 });
     const history = await call(users.getScanHistory, "/api/users/scan-history");
     expect(history.body.map((h: { action: string }) => h.action).sort()).toEqual(["redeem", "stamp"]);
-    expect(history.body[0]).toEqual({ id: expect.any(String), userId: "user_cust", clientName: "Carla C", action: expect.any(String), time: expect.stringMatching(/^\d{1,2}:\d{2}:\d{2} [AP]M$/) });
+    expect(history.body[0]).toEqual({ id: expect.any(String), userId: "user_cust", clientName: "Carla C", action: expect.any(String), time: expect.stringMatching(/^\d{1,2}:\d{2} [AP]M$/) });
   });
 
   it("the settings set the stamps a reward needs, and the client redeems at that number", async () => {

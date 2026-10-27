@@ -166,10 +166,10 @@ export function useReschedule() {
         "Your appointment is now on the new date and time. You can see the updated details in My Schedule.",
         () => navigate(CLIENT_PATHS.appointments, { replace: true }),
       );
-    } catch (err: any) {
+    } catch (err) {
       showModal(
         "We couldn't reschedule",
-        err.message || "Something went wrong, so your appointment was not changed and is still on its original date and time. Please try again in a moment.",
+        (err as { message?: string } | null)?.message || "Something went wrong, so your appointment was not changed and is still on its original date and time. Please try again in a moment.",
       );
     } finally {
       setIsSubmitting(false);

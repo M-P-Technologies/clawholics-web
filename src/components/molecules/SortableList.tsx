@@ -9,7 +9,7 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import type { DragEndEvent } from "@dnd-kit/core";
+import type { DragEndEvent, DragStartEvent, DraggableAttributes, DraggableSyntheticListeners } from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
@@ -21,8 +21,8 @@ import { CSS } from "@dnd-kit/utilities";
 type ItemId = string | number;
 
 export type SortableHandleProps = {
-  listeners?: Record<string, any>;
-  attributes?: Record<string, any>;
+  listeners?: DraggableSyntheticListeners;
+  attributes?: DraggableAttributes;
   setActivatorNodeRef?: (element: HTMLElement | null) => void;
 };
 
@@ -106,7 +106,7 @@ const SortableList = <T,>({
       ? null
       : items.find((item) => getItemId(item) === activeId) ?? null;
 
-  const handleDragStart = (event: any) => {
+  const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id);
   };
 
