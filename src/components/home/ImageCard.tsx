@@ -46,15 +46,18 @@ export default function ImageCard({
     <article className="group flex h-full flex-row overflow-hidden sm:flex-col rounded-2xl border border-crimson-light/40 bg-light-orange shadow-petal transition-colors duration-300 hover:border-crimson">
       <div className="p-3 max-sm:w-2/5 max-sm:shrink-0">
         <div className={clsx("relative w-full overflow-hidden rounded-xl bg-crimson-light", aspect, "max-sm:aspect-9/16")}>
-          <Image
-            src={image}
-            alt={imageAlt}
-            fill
-            priority={priority}
-            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 40vw"
-            unoptimized={!canOptimizeImage(image)}
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-          />
+          {/* A service or artist without a photo keeps the pink box: an <img> with no source is a broken image */}
+          {image ? (
+            <Image
+              src={image}
+              alt={imageAlt}
+              fill
+              priority={priority}
+              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 40vw"
+              unoptimized={!canOptimizeImage(image)}
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          ) : null}
         </div>
       </div>
 
