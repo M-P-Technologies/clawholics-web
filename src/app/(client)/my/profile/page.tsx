@@ -30,11 +30,11 @@ export default function MyProfile() {
           rowsTitle="Your details"
           rows={p.rows}
         >
-          {/* Side by side while they fit; Log out only on phones (from `sm` it's in the sidebar) */}
+          {/* Edit and Manage side by side while they fit; Log out only on phones (from `sm` it's in the sidebar), on its own row */}
           <div className="flex flex-wrap gap-3">
             <Button type="button" onClick={a.handleEditClick} className="grow">Edit details</Button>
             <Button variant="secondary" type="button" onClick={p.manageAccount} className="grow">Manage account</Button>
-            <Button variant="secondary" type="button" onClick={p.logOut} className="flex-1 sm:hidden">Log out</Button>
+            <Button variant="secondary" type="button" onClick={p.logOut} className="w-full sm:hidden">Log out</Button>
           </div>
         </ProfilePanel>
 
