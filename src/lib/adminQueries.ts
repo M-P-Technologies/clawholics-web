@@ -41,7 +41,10 @@ export const adminKeys = {
   client: (clientId: number) => [ADMIN, "clients", clientId] as const,
   clientNotes: (clientId: number) => [ADMIN, "clients", clientId, "notes"] as const,
   clientNextSteps: (clientId: number) => [ADMIN, "clients", clientId, "nextSteps"] as const,
-  scanHistory: () => [ADMIN, "scanHistory"] as const,
+  /** Every page of the recent scans */
+  scanHistoryAll: () => [ADMIN, "scanHistory"] as const,
+  /** One page of the recent scans */
+  scanHistory: (page: number, pageSize: number) => [ADMIN, "scanHistory", page, pageSize] as const,
   nailists: () => [ADMIN, "nailists"] as const,
   /** A page of the dashboard's To act on queue: under "appointments", so a change to a booking refreshes it */
   attention: (tab: string, page: number, pageSize: number) => [ADMIN, "appointments", "attention", tab, page, pageSize] as const,
@@ -94,8 +97,8 @@ export const adminQueries = {
     }),
   /** Every artist (the Artists editor, the appointment list's artist filter) */
   nailists: () => queryOptions({ queryKey: adminKeys.nailists(), queryFn: (): Promise<Nailist[]> => fetchNailists() }),
-  scanHistory: ({ getToken, clerkId }: AdminSession) =>
-    queryOptions({ queryKey: adminKeys.scanHistory(), queryFn: async () => fetchScanHistory(await getToken(), clerkId) }),
+  scanHistory: (page: number, pageSize: number, { getToken, clerkId }: AdminSession) =>
+    queryOptions({ queryKey: adminKeys.scanHistory(page, pageSize), queryFn: async () => fetchScanHistory(page, pageSize, await getToken(), clerkId) }),
 };
 
 // The admin data that shows appointments, a client's stamps or their visits

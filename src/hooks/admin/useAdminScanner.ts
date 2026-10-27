@@ -2,13 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/molecules";
 import { adminDataChanged, adminKeys, adminQueries } from "../../lib/adminQueries";
 import { isDesktopWidth } from "../../lib/viewport";
 import { useStampTarget } from "../useStampTarget";
 import { manilaTimeOfDay } from "../../lib/timeFormat";
-import { fetchScannedClient, recordScanAction, type ScanRecord, type ScannedClient } from "../../services/scanService";
+import { fetchScannedClient, recordScanAction, type ScanPage, type ScanRecord, type ScannedClient } from "../../services/scanService";
+
+/** Scans to a page of the Recent scans */
+const SCANS_PAGE_SIZE = 5;
 
 /** What the last scanned code turned out to be: a client, or why it couldn't be used */
 interface LastScan {
@@ -28,12 +31,23 @@ export function useAdminScanner() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [lastScan, setLastScan] = useState<LastScan | null>(null);
-  // The recent scans, cached: coming back to the scanner shows them at once
-  const historyQuery = useQuery({ ...adminQueries.scanHistory({ getToken, clerkId: currentUser?.id }), enabled: isLoaded });
-  const history = historyQuery.data ?? [];
+  // One page of the recent scans at a time, cached: coming back to the scanner shows them at once
+  // (and the page before stays up while the next loads)
+  const [page, setPage] = useState(1);
+  const session = { getToken, clerkId: currentUser?.id };
+  const historyQuery = useQuery({
+    ...adminQueries.scanHistory(page, SCANS_PAGE_SIZE, session),
+    enabled: isLoaded,
+    placeholderData: keepPreviousData,
+  });
+  const history = historyQuery.data?.rows ?? [];
+  const historyTotal = historyQuery.data?.total ?? 0;
   const loading = historyQuery.isPending;
-  const setHistory = (update: (h: ScanRecord[]) => ScanRecord[]) =>
-    queryClient.setQueryData<ScanRecord[] | null>(adminKeys.scanHistory(), (h) => update(h ?? []));
+  // The newest page, as the scanner changes it: a scan lands first on page 1
+  const setNewest = (update: (page: ScanPage) => ScanPage) =>
+    queryClient.setQueryData<ScanPage | null>(adminKeys.scanHistory(1, SCANS_PAGE_SIZE), (p) =>
+      update(p ?? { rows: [], total: 0, page: 1, pageSize: SCANS_PAGE_SIZE }),
+    );
   const [cameraError, setCameraError] = useState<string | null>(null);
   const resultRef = useRef<HTMLDivElement | null>(null);
 
@@ -100,13 +114,16 @@ export function useAdminScanner() {
       action,
       time: manilaTimeOfDay(),
     };
-    setHistory((h) => [record, ...h].slice(0, 10));
+    setPage(1);
+    setNewest((p) => ({ ...p, rows: [record, ...p.rows].slice(0, SCANS_PAGE_SIZE), total: p.total + 1 }));
     setLastScan({ ...lastScan, client: { ...lastScan.client, stamps: action === "stamp" ? lastScan.client.stamps + 1 : 0 } });
 
     try {
       await recordScanAction(lastScan.userId, action, await getToken(), currentUser?.id);
-      // The client's stamps show on their page (the recent scans already show this one)
+      // The client's stamps show on their page (the recent scans already show this one; they're asked
+      // for again so every page counts it, with the server's id)
       void adminDataChanged(queryClient);
+      void queryClient.invalidateQueries({ queryKey: adminKeys.scanHistoryAll() });
       // Show the new count for a moment, then go back to scanning
       setTimeout(() => {
         setLastScan(null);
@@ -116,7 +133,7 @@ export function useAdminScanner() {
     } catch (error) {
       console.error("Failed to save action to database:", error);
       // Nothing was saved: show the card and the recent scans as they were
-      setHistory((h) => h.filter((r) => r.id !== record.id));
+      setNewest((p) => ({ ...p, rows: p.rows.filter((r) => r.id !== record.id), total: Math.max(0, p.total - 1) }));
       setLastScan(lastScan);
       toast.show("error", action === "stamp" ? "Stamp not added" : "Reward not redeemed", error instanceof Error ? error.message : "Please try again.");
       setIsProcessing(false);
@@ -134,6 +151,8 @@ export function useAdminScanner() {
     isScanning,
     lastScan,
     history,
+    /** The page of recent scans shown, the scans in all, and moving to another page */
+    historyPage: { page, pageSize: SCANS_PAGE_SIZE, total: historyTotal, onPage: setPage },
     cameraError,
     resultRef,
     handleResult,

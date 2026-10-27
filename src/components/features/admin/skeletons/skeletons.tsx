@@ -267,7 +267,7 @@ function DashboardBody() {
 function SalesBody() {
   return (
     <>
-      <StatsSkeleton spark grid="grid-cols-1 sm:grid-cols-2 xl:grid-cols-4" />
+      <StatsSkeleton spark grid="grid-cols-2 xl:grid-cols-4" />
       <div className="grid grid-cols-1 gap-3 md:gap-6 xl:grid-cols-2">
         <RankedPanelSkeleton title="w-32" />
         <RankedPanelSkeleton title="w-44" />

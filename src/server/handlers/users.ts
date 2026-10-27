@@ -578,23 +578,39 @@ export const redeemOwnReward = ported(async () => {
   return Response.json({ success: true, newStamps: 0 });
 });
 
-// GET /users/scan-history (admin): the last 10 scans.
-export const getScanHistory = ported(async () => {
+const MAX_SCAN_PAGE_SIZE = 50;
+
+// GET /users/scan-history (admin): the last 10 scans. With ?page=N (and pageSize 1-50, default 5) it
+// answers one page of all the scans as { rows, total, page, pageSize }, newest first.
+export const getScanHistory = ported(async (req) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
-  const rows = await getSql()<{ id: number; userId: string; first_name: string; last_name: string; action: string; created_at: string }[]>`
-    select h.id, h.client_clerk_id as "userId", p.first_name, p.last_name, h.action, h.created_at
-    from scan_history h join users u on h.client_clerk_id = u.clerk_id join customer_profiles p on u.id = p.user_id
-    order by h.created_at desc, h.id desc limit 10
-  `;
-  return Response.json(
-    rows.map((r) => ({
-      id: String(r.id),
-      userId: r.userId,
-      clientName: `${r.first_name} ${r.last_name}`,
-      action: r.action,
-      // Manila time, like the scans the scanner adds itself
-      time: manilaTimeOfDay(parseServerTime(r.created_at)),
-    })),
-  );
+  const sql = getSql();
+  const params = new URL(req.url).searchParams;
+  const paged = params.has("page");
+  const page = paged ? Number(params.get("page")) : 1;
+  const pageSize = paged ? (params.has("pageSize") ? Number(params.get("pageSize")) : 5) : 10;
+  if (!Number.isInteger(page) || page < 1 || !Number.isInteger(pageSize) || pageSize < 1 || pageSize > MAX_SCAN_PAGE_SIZE) {
+    return Response.json({ error: `page must be 1 or more, and pageSize 1 to ${MAX_SCAN_PAGE_SIZE}` }, { status: 400 });
+  }
+  const [rows, [{ total }]] = await Promise.all([
+    sql<{ id: number; userId: string; first_name: string; last_name: string; action: string; created_at: string }[]>`
+      select h.id, h.client_clerk_id as "userId", p.first_name, p.last_name, h.action, h.created_at
+      from scan_history h join users u on h.client_clerk_id = u.clerk_id join customer_profiles p on u.id = p.user_id
+      order by h.created_at desc, h.id desc limit ${pageSize} offset ${(page - 1) * pageSize}
+    `,
+    sql<{ total: number }[]>`
+      select count(*)::int as total
+      from scan_history h join users u on h.client_clerk_id = u.clerk_id join customer_profiles p on u.id = p.user_id
+    `,
+  ]);
+  const scans = rows.map((r) => ({
+    id: String(r.id),
+    userId: r.userId,
+    clientName: `${r.first_name} ${r.last_name}`,
+    action: r.action,
+    // Manila time, like the scans the scanner adds itself
+    time: manilaTimeOfDay(parseServerTime(r.created_at)),
+  }));
+  return Response.json(paged ? { rows: scans, total, page, pageSize } : scans);
 });

@@ -56,7 +56,7 @@ export default function Home() {
             <Bow
               aria-hidden="true"
               focusable="false"
-              className="-mb-15 h-14 w-14 -rotate-12 text-light-orange md:-mb-21 drop-shadow-md"
+              className="-mb-15 h-14 w-14 -rotate-12 text-white md:-mb-21 drop-shadow-md"
             />
             <h1 className="font-display font-normal text-6xl md:text-8xl text-crimson">
               {content.home_title}

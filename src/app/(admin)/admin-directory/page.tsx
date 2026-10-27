@@ -22,9 +22,10 @@ export default function AdminDirectory() {
 
   return (
     <AdminShell title="Admin Directory">
-      {!d.error && <DirectoryStats label="Admin totals" stats={d.stats} />}
+      {/* Everything from the totals to the table and the profile scrolls together */}
+      <div className="flex flex-1 flex-col gap-3 overflow-y-auto pb-2 md:gap-6">
+        {!d.error && <DirectoryStats label="Admin totals" stats={d.stats} />}
 
-      <div className="flex-1 overflow-y-auto pb-2">
         {d.error ? (
           <div className="p-3 text-gray-red font-bold">{d.error}</div>
         ) : users.length === 0 ? (

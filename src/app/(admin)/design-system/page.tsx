@@ -91,7 +91,7 @@ export default function DesignSystem() {
             <SegmentedDemo />
           </GallerySection>
           <GallerySection title="StatCard">
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               <StatCard icon={Wallet} label="Collected" value="₱2,000" change={{ kind: "up", label: "+20%" }} hint="downpayments received" />
               <StatCard size="hero" label="Estimated sales" value="₱12,500" hint="list price of completed services" />
               <StatCard size="compact" icon={CalendarHeart} label="Visits" value="4" hint="completed" />
