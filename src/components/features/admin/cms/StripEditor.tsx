@@ -1,7 +1,7 @@
 import { ListChecks, Plus, RotateCcw, X } from "lucide-react";
 import { MAX_STRIP_SLIDES, type StripSlide } from "@/lib/homeSections";
 import type { NailService } from "@/services/serviceService";
-import { Button } from "@/components/atoms";
+import { Button, IconButton } from "@/components/atoms";
 import { DragHandle, SortableList } from "@/components/molecules";
 import { fieldClass, fieldLabelClass } from "@/components/features/admin/cms/fields";
 
@@ -81,9 +81,7 @@ export default function StripEditor({ services, strip, onChange, upload, uploadi
                     ))}
                     {!service && <option value={slide.serviceId}>A deleted service</option>}
                   </select>
-                  <Button type="button" variant="bare" aria-label={`Remove the ${service?.name ?? "deleted service"} slide`} onClick={() => onChange(strip.filter((_, i) => i !== index))} className="rounded-full p-1.5 text-crimson-ink hover:bg-crimson-light/30">
-                    <X size={16} aria-hidden="true" />
-                  </Button>
+                  <IconButton size="sm" icon={X} label={`Remove the ${service?.name ?? "deleted service"} slide`} onClick={() => onChange(strip.filter((_, i) => i !== index))} />
                 </div>
                 <label className="flex flex-col gap-1">
                   <span className={fieldLabelClass}>Title on the photo</span>

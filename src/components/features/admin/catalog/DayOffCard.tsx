@@ -122,7 +122,7 @@ const DayOffCard = ({
                 components={{
                   Chevron: ({ orientation }) => (
                     <BackButtonIcon
-                      size={24} className={`text-gray-red ${
+                      size={16} className={`text-gray-red ${
                         orientation === "right" ? "rotate-180" : ""
                       }`}
                     />

@@ -1,7 +1,7 @@
 import { useId } from "react";
-import { X as XIcon } from "lucide-react";
+import { X } from "lucide-react";
 import { SectionHeader } from "@/components/molecules";
-import { Button } from "@/components/atoms";
+import { Button, IconButton } from "@/components/atoms";
 import { DropArea } from "@/components/features/admin/cms/fields";
 
 type ArtistPhotoFieldProps = {
@@ -32,15 +32,7 @@ const ArtistPhotoField = ({ image, isEditing, isUploading, onPreview, onRemove, 
           </Button>
 
           {isEditing && (
-            <Button
-              variant="bare"
-              type="button"
-              onClick={onRemove}
-              disabled={isUploading}
-              className="flex items-center justify-center w-7 h-7 shrink-0"
-            >
-              <XIcon size={28} className="text-crimson" />
-            </Button>
+            <IconButton size="sm" icon={X} label="Remove photo" onClick={onRemove} disabled={isUploading} />
           )}
         </div>
       )}

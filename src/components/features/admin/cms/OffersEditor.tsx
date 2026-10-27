@@ -2,7 +2,7 @@ import { Plus, X } from "lucide-react";
 import { MAX_OFFERS, type HomeOffer } from "@/lib/homeSections";
 import { serviceDetailPath } from "@/lib/client/clientNav";
 import type { NailService } from "@/services/serviceService";
-import { Button } from "@/components/atoms";
+import { Button, IconButton } from "@/components/atoms";
 import { fieldClass, fieldLabelClass } from "@/components/features/admin/cms/fields";
 
 interface OffersEditorProps {
@@ -36,9 +36,7 @@ export default function OffersEditor({ offers, services, onChange, upload, uploa
           <div key={i} className="flex flex-col gap-3 rounded-xl border border-crimson-light/50 bg-milk p-3">
             <div className="flex items-center justify-between">
               <span className="text-[13px] font-bold text-gray-red">Offer {i + 1}</span>
-              <Button type="button" variant="bare" aria-label={`Remove offer ${i + 1}`} onClick={() => onChange(offers.filter((_, j) => j !== i))} className="rounded-full p-1.5 text-crimson-ink hover:bg-crimson-light/30">
-                <X size={16} aria-hidden="true" />
-              </Button>
+              <IconButton size="sm" icon={X} label={`Remove offer ${i + 1}`} onClick={() => onChange(offers.filter((_, j) => j !== i))} />
             </div>
             {field("Headline", "title")}
             {field("Line under it", "line")}
@@ -75,7 +73,7 @@ export default function OffersEditor({ offers, services, onChange, upload, uploa
           </div>
         );
       })}
-      <Button size="sm" type="button" variant="secondary" disabled={offers.length >= MAX_OFFERS} onClick={() => onChange([...offers, NEW_OFFER])} className="w-fit">
+      <Button fullWidth type="button" variant="secondary" disabled={offers.length >= MAX_OFFERS} onClick={() => onChange([...offers, NEW_OFFER])}>
         <Plus size={16} aria-hidden="true" />
         Add an offer
       </Button>

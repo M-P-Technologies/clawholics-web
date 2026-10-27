@@ -4,19 +4,12 @@ import NailArtistGallery from "@/components/features/admin/catalog/NailArtistGal
 
 const show = vi.fn();
 const fetchNailistGallery = vi.fn();
-const addNailistGalleryImage = vi.fn();
 const deleteNailistGalleryImage = vi.fn();
-const uploadImage = vi.fn();
 
 vi.mock("@/components/molecules", async (orig) => ({ ...(await orig<object>()), useToast: () => ({ show }) }));
 vi.mock("@/services/nailistService", () => ({
   fetchNailistGallery: (...a: unknown[]) => fetchNailistGallery(...a),
-  addNailistGalleryImage: (...a: unknown[]) => addNailistGalleryImage(...a),
   deleteNailistGalleryImage: (...a: unknown[]) => deleteNailistGalleryImage(...a),
-}));
-vi.mock("@/services/uploadService", () => ({
-  PHOTO_UPLOAD_OPTIONS: { maxWidthOrHeight: 1600, maxSizeKB: 400 },
-  uploadImage: (...a: unknown[]) => uploadImage(...a),
 }));
 
 const photo = (id: number, name: string) => ({ id, nailist_id: 7, image_url: `https://img/nailists/${name}.webp`, position: id });
@@ -37,25 +30,17 @@ describe("admin artist gallery card", () => {
     expect(names).toEqual(["a.webp", "b.webp"]);
   });
 
-  it("asks to save a new artist first, and loads nothing", () => {
+  it("doesn't load anything for a new artist, and says where photos come from", () => {
     renderCard({ nailistId: null });
-    expect(screen.getByText(/save the artist first/i)).toBeInTheDocument();
+    expect(screen.getByText(/once visits by this artist are completed/i)).toBeInTheDocument();
     expect(fetchNailistGallery).not.toHaveBeenCalled();
   });
 
-  it("uploads with the photo preset, saves each photo at once and shows it", async () => {
-    fetchNailistGallery.mockResolvedValue([]);
-    uploadImage.mockResolvedValue({ key: "k", imageUrl: "https://img/nailists/new.webp" });
-    addNailistGalleryImage.mockResolvedValue({ id: 5 });
+  it("has no upload: the photos come from completed visits", async () => {
     const { container } = renderCard();
-    await waitFor(() => expect(fetchNailistGallery).toHaveBeenCalledWith(7));
-
-    const file = new File([new Uint8Array(10)], "new.png", { type: "image/png" });
-    fireEvent.change(container.querySelector("input[type=file]")!, { target: { files: [file] } });
-
-    await screen.findByText("new.webp");
-    expect(uploadImage).toHaveBeenCalledWith(file, "nailists", null, undefined, { maxWidthOrHeight: 1600, maxSizeKB: 400 });
-    expect(addNailistGalleryImage).toHaveBeenCalledWith(7, "https://img/nailists/new.webp", null, undefined);
+    await screen.findByText("a.webp");
+    expect(container.querySelector("input[type=file]")).toBeNull();
+    expect(screen.getByText(/come from the visits this artist completes/i)).toBeInTheDocument();
   });
 
   it("removes a photo at once, and keeps it on screen if the removal fails", async () => {

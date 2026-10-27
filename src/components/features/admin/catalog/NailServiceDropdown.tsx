@@ -1,4 +1,4 @@
-import { ChevronDown as DropdownIcon, Plus as PlusIcon, Star as StarIcon, X as XIcon } from "lucide-react";
+import { ChevronDown as DropdownIcon, Plus as PlusIcon, Star as StarIcon, X } from "lucide-react";
 import React, { useEffect, useId, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ADMIN } from "@/lib/adminQueries";
@@ -28,7 +28,7 @@ import { PHOTO_UPLOAD_OPTIONS, uploadImage } from "@/services/uploadService";
 import { DragHandle, useToast, EditActions, SectionHeader } from "@/components/molecules";
 import { itemName, upperFirst } from "@/lib/itemName";
 import type { SortableHandleProps } from "@/components/molecules";
-import { Button } from "@/components/atoms";
+import { Button, IconButton } from "@/components/atoms";
 import { DropArea } from "@/components/features/admin/cms/fields";
 import { ConfirmDialog, ImagePreviewDialog } from "@/components/organisms";
 
@@ -518,15 +518,7 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
                     </Button>
 
                     {isEditing && (
-                      <Button
-                        variant="bare"
-                        type="button"
-                        onClick={() => handleRemoveImage(image)}
-                        disabled={isUploading}
-                        className="flex items-center justify-center w-7 h-7 shrink-0"
-                      >
-                        <XIcon size={28} className="text-crimson" />
-                      </Button>
+                      <IconButton size="sm" icon={X} label="Remove photo" onClick={() => handleRemoveImage(image)} disabled={isUploading} />
                     )}
                   </div>
                 ))}
