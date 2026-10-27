@@ -12,7 +12,23 @@ interface RichTextFieldProps {
   onChange: (html: string) => void;
 }
 
-type Command = { label: string; Icon: LucideIcon; run: () => void };
+// The toolbar's buttons as plain data: `name` is the browser's editing command (and `value` its
+// argument); the Link button has none, since it opens the address bar instead
+type Command = { label: string; Icon: LucideIcon; name?: string; value?: string };
+
+const COMMANDS: Command[] = [
+  { label: "Heading", Icon: Heading2, name: "formatBlock", value: "h2" },
+  { label: "Subheading", Icon: Heading3, name: "formatBlock", value: "h3" },
+  { label: "Paragraph", Icon: Pilcrow, name: "formatBlock", value: "p" },
+  { label: "Bold", Icon: Bold, name: "bold" },
+  { label: "Italic", Icon: Italic, name: "italic" },
+  { label: "Bulleted list", Icon: List, name: "insertUnorderedList" },
+  { label: "Numbered list", Icon: ListOrdered, name: "insertOrderedList" },
+  { label: "Link", Icon: Link2 },
+  { label: "Clear formatting", Icon: RemoveFormatting, name: "removeFormat" },
+  { label: "Undo", Icon: Undo2, name: "undo" },
+  { label: "Redo", Icon: Redo2, name: "redo" },
+];
 
 // Formatted text for long pages like the privacy policy: a toolbar over an editable area. The
 // browser's editing commands do the work, so the text keeps whatever formatting it came with.
@@ -35,28 +51,13 @@ export default function RichTextField({ label, initialHtml, resetKey, onChange }
     changed();
   };
 
-  const commands: Command[] = [
-    { label: "Heading", Icon: Heading2, run: () => exec("formatBlock", "h2") },
-    { label: "Subheading", Icon: Heading3, run: () => exec("formatBlock", "h3") },
-    { label: "Paragraph", Icon: Pilcrow, run: () => exec("formatBlock", "p") },
-    { label: "Bold", Icon: Bold, run: () => exec("bold") },
-    { label: "Italic", Icon: Italic, run: () => exec("italic") },
-    { label: "Bulleted list", Icon: List, run: () => exec("insertUnorderedList") },
-    { label: "Numbered list", Icon: ListOrdered, run: () => exec("insertOrderedList") },
-    {
-      label: "Link",
-      Icon: Link2,
-      run: () => {
-        // Keep the selected words, since typing the address moves the focus away
-        const selection = window.getSelection();
-        savedRange.current = selection && selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null;
-        setLinkOpen(true);
-      },
-    },
-    { label: "Clear formatting", Icon: RemoveFormatting, run: () => exec("removeFormat") },
-    { label: "Undo", Icon: Undo2, run: () => exec("undo") },
-    { label: "Redo", Icon: Redo2, run: () => exec("redo") },
-  ];
+  const runCommand = (command: Command) => {
+    if (command.name) return exec(command.name, command.value);
+    // Link: keep the selected words, since typing the address moves the focus away
+    const selection = window.getSelection();
+    savedRange.current = selection && selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null;
+    setLinkOpen(true);
+  };
 
   const applyLink = () => {
     const url = linkUrl.trim();
@@ -74,18 +75,18 @@ export default function RichTextField({ label, initialHtml, resetKey, onChange }
       <span className={fieldLabelClass}>{label}</span>
       <div className="overflow-hidden rounded-md border border-crimson-light bg-milk focus-within:ring-2 focus-within:ring-crimson">
         <div role="toolbar" aria-label={`${label} formatting`} className="flex flex-wrap gap-0.5 border-b border-crimson-light/60 bg-light-orange/40 p-1">
-          {commands.map(({ label: name, Icon, run }) => (
+          {COMMANDS.map((command) => (
             <button
-              key={name}
+              key={command.label}
               type="button"
-              title={name}
-              aria-label={name}
+              title={command.label}
+              aria-label={command.label}
               // Keep the selection in the text while the button is pressed
               onMouseDown={(e) => e.preventDefault()}
-              onClick={run}
+              onClick={() => runCommand(command)}
               className="flex h-8 w-8 items-center justify-center rounded text-gray-red transition-colors hover:bg-crimson-light/40 focus-visible:outline-2 focus-visible:outline-crimson"
             >
-              <Icon size={16} aria-hidden="true" />
+              <command.Icon size={16} aria-hidden="true" />
             </button>
           ))}
         </div>

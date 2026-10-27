@@ -19,8 +19,8 @@ interface BookingPayload {
 }
 
 interface BookingResponse {
-  status: any;
-  expires_at: any;
+  status: string;
+  expires_at: string | null;
   error: boolean;
   appointment_id: number;
   total_price?: number;
