@@ -4,6 +4,7 @@ import {
   Children,
   isValidElement,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type ChangeEvent,
@@ -85,6 +86,8 @@ export default function Select({
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
   const selected = options.find((o) => o.value === String(value));
 
   useEffect(() => {
@@ -92,9 +95,51 @@ export default function Select({
     const close = (e: MouseEvent) => {
       if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
     };
+    // The list is placed against the window, so it doesn't follow the control: scrolling the page
+    // (or a table around it) or resizing closes it. Scrolling the list itself doesn't.
+    const closeOnMove = (e: Event) => {
+      if (e.target instanceof Node && listRef.current?.contains(e.target)) return;
+      setOpen(false);
+    };
     document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
+    window.addEventListener("scroll", closeOnMove, true);
+    window.addEventListener("resize", closeOnMove);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      window.removeEventListener("scroll", closeOnMove, true);
+      window.removeEventListener("resize", closeOnMove);
+    };
   }, [open]);
+
+  // Places the open list under the control (above it when there's no room below), in the window's
+  // coordinates: a `fixed` box isn't cut off by a table's or a card's overflow, as an `absolute`
+  // one was (a table with one row hid most of a list opening under it)
+  useLayoutEffect(() => {
+    const trigger = triggerRef.current;
+    const list = listRef.current;
+    if (!open || !trigger || !list) return;
+    const GAP = 8;
+    const MAX = 288; // the list's max-h-72
+    const rect = trigger.getBoundingClientRect();
+    const below = window.innerHeight - rect.bottom - GAP * 2;
+    const above = rect.top - GAP * 2;
+    const wanted = Math.min(list.scrollHeight, MAX);
+    const up = wanted > below && above > below;
+    const maxHeight = Math.max(96, Math.min(MAX, up ? above : below));
+    const height = Math.min(list.scrollHeight, maxHeight);
+    const width = Math.max(list.offsetWidth, rect.width);
+    const top = up ? rect.top - GAP - height : rect.bottom + GAP;
+    const left = Math.max(GAP, Math.min(rect.left, window.innerWidth - GAP - width));
+    list.style.minWidth = `${rect.width}px`;
+    list.style.maxHeight = `${maxHeight}px`;
+    list.style.top = `${top}px`;
+    list.style.left = `${left}px`;
+    // An ancestor with a transform (a dialog panel keeps its animation's) makes `fixed` relative to
+    // itself: move the list by however far it landed from where it was meant to be
+    const landed = list.getBoundingClientRect();
+    list.style.top = `${top + (top - landed.top)}px`;
+    list.style.left = `${left + (left - landed.left)}px`;
+  }, [open, options.length]);
 
   const choose = (option: SelectOption) => {
     if (option.disabled) return;
@@ -125,6 +170,7 @@ export default function Select({
   return (
     <div ref={rootRef} className={clsx("relative", className ?? "w-full")} onKeyDown={onKeyDown}>
       <button
+        ref={triggerRef}
         type="button"
         id={id}
         aria-haspopup="listbox"
@@ -160,9 +206,10 @@ export default function Select({
 
       {open && (
         <ul
+          ref={listRef}
           role="listbox"
           aria-label={aria["aria-label"]}
-          className="absolute left-0 top-full z-30 mt-2 flex max-h-72 min-w-full flex-col gap-1 overflow-y-auto rounded-sm border border-crimson-light bg-light-orange p-2 shadow-xl shadow-crimson/20"
+          className="fixed z-50 flex flex-col gap-1 overflow-y-auto rounded-sm border border-crimson-light bg-light-orange p-2 shadow-xl shadow-crimson/20"
         >
           {options.map((option, index) => {
             const isSelected = option.value === String(value);
