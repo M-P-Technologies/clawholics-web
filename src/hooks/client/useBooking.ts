@@ -108,6 +108,8 @@ export function useBooking() {
   // The artists who offer the service
   const artistsQuery = useQuery({ ...bookingQueries.artists(service_id), enabled: !!service_id });
   const nailists = useMemo(() => (Array.isArray(artistsQuery.data) ? artistsQuery.data : []), [artistsQuery.data]);
+  // Until they arrive, the page says so instead of "No available artists"
+  const loadingArtists = artistsQuery.isLoading;
   // Picked once per service, so a refresh of the list doesn't undo the client's choice
   const preselectedFor = useRef<number | null>(null);
 
@@ -380,5 +382,5 @@ export function useBooking() {
   const closeModal = () => setModalOpen(false);
   const reloadPage = () => window.location.reload();
 
-  return { priceLabel, pageData, isPageLoading, pageError, nailists, selectedNailist, setSelectedNailist, selectedDate, setSelectedDate, selectedTime, setSelectedTime, timeSlots, fullyBookedDates, month, setMonth, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, pricing_type, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, selectedPrice, locationUrl, locationText, isDayFullyBooked, isDisabledDate, toLocalDate, toLocalDateString, isTimeBlocked, isPastTimeToday, formatSlot, showModal, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage, contactFields };
+  return { priceLabel, pageData, isPageLoading, pageError, nailists, loadingArtists, selectedNailist, setSelectedNailist, selectedDate, setSelectedDate, selectedTime, setSelectedTime, timeSlots, fullyBookedDates, month, setMonth, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, pricing_type, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, selectedPrice, locationUrl, locationText, isDayFullyBooked, isDisabledDate, toLocalDate, toLocalDateString, isTimeBlocked, isPastTimeToday, formatSlot, showModal, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage, contactFields };
 }

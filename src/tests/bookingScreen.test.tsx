@@ -16,7 +16,7 @@ const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 const day = (n: number) => screen.getByRole("button", { name: new RegExp(`\\b${n}(st|nd|rd|th)?,`) });
 
 const state = () => ({
-  priceLabel: "₱650", pageData: {} as object | null, isPageLoading: false, pageError: "",
+  priceLabel: "₱650", pageData: {} as object | null, isPageLoading: false, loadingArtists: false, pageError: "",
   nailists: [{ id: 1, name: "Max", category_id: 1, image: "" }, { id: 2, name: "Rae", category_id: 2, image: "" }],
   selectedNailist: { id: 1, name: "Max" }, selectedDate: "2026-10-20", selectedTime: "09:00-11:00", setSelectedTime: vi.fn(),
   timeSlots: ["09:00-11:00", "13:00-15:00"], month: thisMonth, setMonth: vi.fn(),
@@ -79,6 +79,14 @@ describe("booking step", () => {
     fireEvent.click(screen.getByRole("button", { name: "Preferred artist" }));
     fireEvent.click(screen.getByRole("option", { name: /Rae/ }));
     expect(s.handleArtistChange).toHaveBeenCalledWith(2);
+  });
+
+  it("says the artists are loading, not that there are none, until they arrive", () => {
+    s.nailists = [];
+    s.loadingArtists = true;
+    render(<Booking />);
+    expect(screen.getByText("Loading artists…")).toBeInTheDocument();
+    expect(screen.queryByText("No available artists for this service.")).toBeNull();
   });
 
   it("says when no artist does this service", () => {
