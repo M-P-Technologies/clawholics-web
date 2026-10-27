@@ -126,7 +126,7 @@ export default function Booking() {
                   onSelect={setSelectedTime}
                   isBlocked={isSlotBlocked}
                   format={formatSlot}
-                  emptyText="No schedule available"
+                  emptyText={selectedDate ? "No schedule available" : "Select a date to view available times."}
                 />
               </div>
               </div>

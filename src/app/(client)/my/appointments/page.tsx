@@ -30,7 +30,9 @@ export default function MyAppointments() {
               </div>
             )}
           </div>
-          {views.length === 0 ? (
+          {a.appointmentsLoading ? (
+              <p role="status" className={clsx(surface.tint, "px-3 py-6 text-center text-[13px] text-gray-red")}>Loading your appointments…</p>
+            ) : views.length === 0 ? (
               <p className={clsx(surface.tint, "px-3 py-6 text-center text-[13px] text-gray-red")}>{emptyText}</p>
             ) : (
               <AppointmentsTable label={tableLabel} views={views} highlightedId={a.highlightedAppointmentId} reviewedIds={reviewedIds} onOpen={openView} selectedId={selectedRowId} />

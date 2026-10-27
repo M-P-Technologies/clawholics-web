@@ -54,6 +54,8 @@ export default function MyProfile() {
                 <TabSection title="Where your booking is" description="From booking to your visit.">
                   {p.trackerSteps ? (
                     <StepTracker label="Booking progress" steps={p.trackerSteps} />
+                  ) : a.appointmentsLoading ? (
+                    <p role="status" className="text-sm text-gray-red">Loading your bookings…</p>
                   ) : (
                     <p className="text-sm text-gray-red">No bookings to track yet.</p>
                   )}

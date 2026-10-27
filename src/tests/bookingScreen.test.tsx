@@ -89,6 +89,17 @@ describe("booking step", () => {
     expect(screen.queryByText("No available artists for this service.")).toBeNull();
   });
 
+  it("asks for a date before saying there is no schedule, and says it once a date is picked", () => {
+    s.selectedDate = "";
+    s.timeSlots = [];
+    const { rerender } = render(<Booking />);
+    expect(screen.getByText("Select a date to view available times.")).toBeInTheDocument();
+    expect(screen.queryByText("No schedule available")).toBeNull();
+    s.selectedDate = "2026-10-31";
+    rerender(<Booking />);
+    expect(screen.getByText("No schedule available")).toBeInTheDocument();
+  });
+
   it("says when no artist does this service", () => {
     s.nailists = [];
     render(<Booking />);

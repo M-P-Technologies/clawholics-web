@@ -462,6 +462,8 @@ export function useProfile() {
   }));
 
   const isBusy = !isLoaded || clerkUser?.publicMetadata?.role === "admin" || !dbUser;
+  // The appointments arrive after the profile: until they do, a screen shouldn't say there are none
+  const appointmentsLoading = appointmentsQuery.isLoading;
   const genderLabel = genderOptions.find((option) => option.value === formData?.gender)?.label ?? "";
 
   // Past appointments as the history list shows them: five at first, all after "View full history"
@@ -514,5 +516,5 @@ export function useProfile() {
   const loadError = profileQuery.isError && !profileQuery.data;
   const retryLoad = () => void profileQuery.refetch();
 
-  return { loadError, retryLoad, toggleGender, toggleHistory, closeRewardModal, loyaltyCardNumber, isBusy, genderLabel, history, hasMoreHistory, noHistory, stampCells, stampTarget, isLateCancellation, selectedApptDateLabel, profileFields, isLoaded, clerkUser, getToken, navigate, highlightedAppointmentId, upcoming, nextAppointment, pastViews, dbUser, isEditing, formData, error, appointments, setAppointments, stamps, isGenderOpen, setIsGenderOpen, showRewardModal, setShowRewardModal, selectedAppt, setSelectedAppt, isCancelModalOpen, setIsCancelModalOpen, actionError, setActionError, currentTime, showAllHistory, setShowAllHistory, isCancelling, historySortBy, setHistorySortBy, historyFilter, setHistoryFilter, processedPastAppointments, todayFormatted, formatDisplayDate, handleEditClick, genderOptions, handleGenderSelect, handleContactMethodSelect, formatTime, handleChange, handleSave, handleCancel, handleClientRedeem, handleCancelAppointment, isEligibleForChanges, formatSlot, todayIso, currentAppointments, payForAppointment, rescheduleAppointment, startCancel, closeCancelModal, handleProofUploaded, handleHistoryFilterChange, handleHistorySortChange };
+  return { loadError, retryLoad, toggleGender, toggleHistory, closeRewardModal, loyaltyCardNumber, isBusy, appointmentsLoading, genderLabel, history, hasMoreHistory, noHistory, stampCells, stampTarget, isLateCancellation, selectedApptDateLabel, profileFields, isLoaded, clerkUser, getToken, navigate, highlightedAppointmentId, upcoming, nextAppointment, pastViews, dbUser, isEditing, formData, error, appointments, setAppointments, stamps, isGenderOpen, setIsGenderOpen, showRewardModal, setShowRewardModal, selectedAppt, setSelectedAppt, isCancelModalOpen, setIsCancelModalOpen, actionError, setActionError, currentTime, showAllHistory, setShowAllHistory, isCancelling, historySortBy, setHistorySortBy, historyFilter, setHistoryFilter, processedPastAppointments, todayFormatted, formatDisplayDate, handleEditClick, genderOptions, handleGenderSelect, handleContactMethodSelect, formatTime, handleChange, handleSave, handleCancel, handleClientRedeem, handleCancelAppointment, isEligibleForChanges, formatSlot, todayIso, currentAppointments, payForAppointment, rescheduleAppointment, startCancel, closeCancelModal, handleProofUploaded, handleHistoryFilterChange, handleHistorySortChange };
 }
