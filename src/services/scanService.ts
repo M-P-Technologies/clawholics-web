@@ -23,9 +23,12 @@ const headers = (token: string | null, clerkId?: string | null, json = false): R
   "x-clawholics-origin": "frontend",
 });
 
-/** The latest scans, or null when they can't be loaded */
-export async function fetchScanHistory(token: string | null, clerkId?: string | null): Promise<ScanRecord[] | null> {
-  const response = await fetch(`${API_BASE_URL}/users/scan-history`, { headers: headers(token, clerkId) });
+/** A page of the scans, newest first, and how many there are in all */
+export type ScanPage = { rows: ScanRecord[]; total: number; page: number; pageSize: number };
+
+/** One page of the scans, or null when they can't be loaded */
+export async function fetchScanHistory(page: number, pageSize: number, token: string | null, clerkId?: string | null): Promise<ScanPage | null> {
+  const response = await fetch(`${API_BASE_URL}/users/scan-history?page=${page}&pageSize=${pageSize}`, { headers: headers(token, clerkId) });
   return response.ok ? response.json() : null;
 }
 

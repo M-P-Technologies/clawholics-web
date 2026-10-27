@@ -34,7 +34,7 @@ export default function MoneyCards({ money, granularity = "day", compare = true 
   };
 
   return (
-    <section aria-label="Money" className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:gap-6 xl:grid-cols-4">
+    <section aria-label="Money" className="grid grid-cols-2 gap-3 md:gap-6 xl:grid-cols-4">
       <StatCard
         icon={TrendingUp}
         label="Revenue" info={<StatInfoTip label="Revenue" which="revenue" />}

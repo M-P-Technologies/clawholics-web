@@ -285,6 +285,11 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
     const history = await call(users.getScanHistory, "/api/users/scan-history");
     expect(history.body.map((h: { action: string }) => h.action).sort()).toEqual(["redeem", "stamp"]);
     expect(history.body[0]).toEqual({ id: expect.any(String), userId: "user_cust", clientName: "Carla C", action: expect.any(String), time: expect.stringMatching(/^\d{1,2}:\d{2} [AP]M$/) });
+    // A page at a time: the rows of the page, and how many scans there are in all
+    const paged = await call(users.getScanHistory, "/api/users/scan-history?page=2&pageSize=1");
+    expect(paged.body).toMatchObject({ total: 2, page: 2, pageSize: 1 });
+    expect(paged.body.rows).toHaveLength(1);
+    expect((await call(users.getScanHistory, "/api/users/scan-history?page=0")).status).toBe(400);
   });
 
   it("the settings set the stamps a reward needs, and the client redeems at that number", async () => {

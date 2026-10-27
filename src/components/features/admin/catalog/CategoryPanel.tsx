@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { ArrowDown, ArrowUp, Check, Pencil, Trash2 } from "lucide-react";
 import {
   ApiError,
   createAddon,
@@ -12,7 +13,7 @@ import {
   type ServiceAddon,
   type ServiceCategory,
 } from "@/services/catalogService";
-import { Button } from "@/components/atoms";
+import { Button, IconButton } from "@/components/atoms";
 
 type Run = (fn: (auth: Auth) => Promise<unknown>) => Promise<boolean>;
 
@@ -157,7 +158,7 @@ export default function CategoryPanel({ categories, tokenFetcher, clerkId, onCha
       <div className="flex flex-col gap-3">
         {categories.map((category, index) => (
           <div key={category.id} className="flex flex-col gap-3 rounded-xl border border-crimson-light/50 p-3">
-            {/* The name (or its rename field) on top, its buttons in a row under it */}
+            {/* The name with its buttons in a row beside it (or, renaming, the field with Save and Cancel under it) */}
             <div className="flex flex-col gap-3">
               {editingId === category.id ? (
                 <>
@@ -186,68 +187,35 @@ export default function CategoryPanel({ categories, tokenFetcher, clerkId, onCha
                   </div>
                 </>
               ) : (
-                <>
+                <div className="flex items-center justify-between gap-3">
                   <p className="min-w-0 wrap-break-word text-base font-bold text-gray-red">{category.name}</p>
-                  <div className="flex flex-wrap gap-3">
-                    <Button
+                  <div className="flex shrink-0 items-center gap-0">
+                    <IconButton size="sm" icon={ArrowUp} label={`Move ${category.name} up`} disabled={busy || index === 0} onClick={() => move(index, -1)} />
+                    <IconButton size="sm" icon={ArrowDown} label={`Move ${category.name} down`} disabled={busy || index === categories.length - 1} onClick={() => move(index, 1)} />
+                    <IconButton
                       size="sm"
-                      variant="secondary"
-                      type="button"
-                      aria-label={`Move ${category.name} up`}
-                      disabled={busy || index === 0}
-                      onClick={() => move(index, -1)}
-                    >
-                      Up
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      type="button"
-                      aria-label={`Move ${category.name} down`}
-                      disabled={busy || index === categories.length - 1}
-                      onClick={() => move(index, 1)}
-                    >
-                      Down
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      type="button"
-
-                      aria-label={`Rename category ${category.name}`}
+                      icon={Pencil}
+                      label={`Rename category ${category.name}`}
                       disabled={busy}
                       onClick={() => {
                         setEditingId(category.id);
                         setEditingName(category.name);
                       }}
-                    >
-                      Rename
-                    </Button>
+                    />
                     {confirmId === category.id ? (
-                      <Button
+                      <IconButton
                         size="sm"
-                        variant="secondary"
-                        type="button"
-                        aria-label={`Confirm delete ${category.name}`}
+                        icon={Check}
+                        label={`Confirm delete ${category.name}`}
                         disabled={busy}
+                        className="text-danger-ink"
                         onClick={() => run((auth) => deleteCategory(category.id, auth))}
-                      >
-                        Confirm?
-                      </Button>
+                      />
                     ) : (
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        type="button"
-                        aria-label={`Delete ${category.name}`}
-                        disabled={busy}
-                        onClick={() => setConfirmId(category.id)}
-                      >
-                        Delete
-                      </Button>
+                      <IconButton size="sm" icon={Trash2} label={`Delete ${category.name}`} disabled={busy} onClick={() => setConfirmId(category.id)} />
                     )}
                   </div>
-                </>
+                </div>
               )}
             </div>
 
