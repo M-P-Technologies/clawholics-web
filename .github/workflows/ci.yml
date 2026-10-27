@@ -33,6 +33,11 @@ jobs:
 
       - run: npm ci
 
+      # next-env.d.ts is gitignored: it holds the types for importing images (.png etc.), so a fresh
+      # checkout fails the type-check on every image import without it
+      - name: Generate Next's types
+        run: npx next typegen
+
       - name: Type-check
         run: npx tsc --noEmit
 

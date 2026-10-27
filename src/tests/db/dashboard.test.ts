@@ -557,7 +557,7 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     const ok = await callRoute(handlers.getDashboard, "/api/dashboard?range=week");
     expect(ok.status).toBe(200);
     expect(Object.keys(ok.body).sort()).toEqual(
-      ["artists", "attention", "clientBase", "kpis", "lapsedClients", "leads", "loyalty", "money", "monthly", "next", "outcomes", "period", "previous", "range", "rates", "sales", "services", "totals", "trend", "weekdays"].sort(),
+      ["allTime", "artists", "attention", "clientBase", "kpis", "lapsedClients", "leads", "loyalty", "money", "monthly", "next", "outcomes", "period", "previous", "range", "rates", "sales", "services", "totals", "trend", "weekdays"].sort(),
     );
     as("user_a");
     expect((await callRoute(handlers.getDashboard, "/api/dashboard")).status).toBe(403);
@@ -570,7 +570,7 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     const d = await dashboard.buildDashboard("month", NOW);
     expect(d.kpis).toEqual({
       collected: { value: 0, previous: 0 }, estimatedSales: { value: 0, previous: 0 },
-      bookings: { value: 0, previous: 0 }, newClients: { value: 0, previous: 0 },
+      bookings: { value: 0, previous: 0 }, newClients: { value: 0, previous: 0 }, recurringClients: { value: 0, previous: 0 },
     });
     expect(d.rates).toEqual({
       cancellation: { value: null, previous: null }, conversion: { value: null, previous: null },
