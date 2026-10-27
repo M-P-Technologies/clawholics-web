@@ -60,13 +60,14 @@ export default function ClientPage() {
 
   return (
     <AdminShell title="Client" hideTitle leading={backButton}>
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-2">
-        {/* Two panels, as in the client's My profile: the profile (1/3) and the tabs (2/3), each 80vh
-            tall on a computer: they scroll inside, the tab bar stays put */}
-        <div className="grid grid-cols-1 items-start gap-3 md:gap-6 lg:grid-cols-3">
+      {/* Below lg the panels stack and the page scrolls. From lg the page doesn't: the two panels, as in
+          the client's My profile (the profile 1/3, the tabs 2/3), fill the space under the top bar and
+          scroll inside (the tab bar stays put), so there is one scrollbar per panel and none for the page */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-2 lg:overflow-hidden">
+        <div className="grid grid-cols-1 items-start gap-3 md:gap-6 lg:min-h-0 lg:flex-1 lg:grid-cols-3 lg:grid-rows-[minmax(0,1fr)] lg:items-stretch">
           <ProfilePanel
             label="Client profile"
-            className="lg:h-[80vh] lg:overflow-y-auto"
+            className="lg:h-full lg:min-h-0 lg:overflow-y-auto"
             name={page.name}
             badges={
               <>
@@ -79,7 +80,7 @@ export default function ClientPage() {
             rows={page.panelRows}
           />
 
-          <section aria-label="Client details" className="flex min-w-0 flex-col overflow-clip rounded-2xl border border-crimson-light/40 bg-milk shadow-petal lg:col-span-2 lg:h-[80vh]">
+          <section aria-label="Client details" className="flex min-w-0 flex-col overflow-clip rounded-2xl border border-crimson-light/40 bg-milk shadow-petal lg:col-span-2 lg:h-full lg:min-h-0">
             <Tabs
               label="Client sections"
               idPrefix="client"

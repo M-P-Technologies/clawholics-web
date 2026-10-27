@@ -160,12 +160,12 @@ export default function AdminScanner() {
               )}
             </div>
 
-            <div className="flex min-h-75 flex-1 flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-6 shadow-petal max-xl:flex-none max-lg:order-3 xl:min-h-0">
+            <div className="flex min-h-75 flex-1 flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-6 shadow-petal max-xl:flex-none max-lg:order-3">
               <SectionHeader size="card" icon={History} title="Recent scans" />
 
-              {/* Five scans to a page: stacked (below xl) the card grows to hold them; beside the camera it keeps the camera card's height */}
-              <div className="relative flex-1 max-xl:flex-none">
-                <ul className="absolute inset-0 overflow-y-auto pr-1 max-xl:static max-xl:overflow-visible">
+              {/* Five scans to a page, so the card just holds them: the page is the only thing that scrolls */}
+              <div>
+                <ul>
                   {history.length === 0 ? (
                     <li className="py-3 text-center text-[13px] text-gray-red">No recent scans.</li>
                   ) : (
