@@ -43,21 +43,24 @@ export const getBookingNailists = ported(async (req) => {
     // Hidden/archived services have no bookable artists
     const serviceId = toId(serviceParam);
     if (serviceId === null || !(await isServiceBookable(serviceId))) return Response.json([]);
+    // The artists in the admin's order (the distinct rows carry it only to be sorted by)
     return Response.json(await sql`
-      select distinct n.id, n.name, n.category_id, nc.name as position, n.specialty, n.bio, n.image,
-        ${sql.unsafe(SERVICE_PRICE_SQL)} as service_price
-      from nailists n
-      inner join nailist_services ns on n.id = ns.nailist_id
-      inner join services s on s.id = ns.service_id
-      left join nailist_categories nc on n.category_id = nc.id
-      where ns.service_id = ${serviceId}
-      order by n.id
+      select id, name, category_id, position, specialty, bio, image, service_price from (
+        select distinct n.id, n.name, n.category_id, nc.name as position, n.specialty, n.bio, n.image,
+          ${sql.unsafe(SERVICE_PRICE_SQL)} as service_price, n.display_order
+        from nailists n
+        inner join nailist_services ns on n.id = ns.nailist_id
+        inner join services s on s.id = ns.service_id
+        left join nailist_categories nc on n.category_id = nc.id
+        where ns.service_id = ${serviceId}
+      ) t
+      order by display_order, id
     `);
   }
   return Response.json(await sql`
     select n.id, n.name, n.category_id, nc.name as position, n.specialty, n.bio, n.image
     from nailists n left join nailist_categories nc on n.category_id = nc.id
-    order by n.id
+    order by n.display_order, n.id
   `);
 });
 

@@ -7,7 +7,7 @@ import { useEditorSource } from "./useEditorSource";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { useToast } from "@/components/molecules";
 import { readServicesPage, servicesPageProblem, type ServicesPageKey } from "../../lib/homeSections";
-import { fetchCategories, type ServiceCategory } from "../../services/catalogService";
+import { fetchCategories, reorderServices, type ServiceCategory } from "../../services/catalogService";
 import { fetchHomeContent, updateHomeContent } from "../../services/contentService";
 import { fetchServices, type NailService } from "../../services/serviceService";
 
@@ -105,9 +105,23 @@ export function useServicesEditor() {
     }
   };
 
+  // A service was dragged: show the new order at once, then save it (the list is asked for again if that fails)
+  const reorder = async (reordered: NailService[]) => {
+    queryClient.setQueryData<NailService[]>(SERVICES_KEY, reordered);
+    try {
+      await reorderServices(reordered.map((service) => service.id), { token: await getToken(), clerkId: currentUser?.id });
+      changed();
+    } catch (error) {
+      console.error("Failed to reorder services:", error);
+      toast.show("error", "Order not saved", "We couldn't save the new order, so the services are back as they were. Please try again.");
+      void loadServices().catch(() => undefined);
+    }
+  };
+
   return {
     isLoading,
     services,
+    reorder,
     categories,
     refreshKey,
     getToken,

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ADMIN } from "@/lib/adminQueries";
 import { bookingQueries } from "@/lib/bookingQueries";
-import { useToast } from "@/components/molecules";
+import { useToast, type SortableHandleProps } from "@/components/molecules";
 import {
   createNailist,
   deleteNailist,
@@ -35,6 +35,9 @@ export type ArtistEditorProps = {
   onGalleryChanged?: () => void;
   tokenFetcher?: () => Promise<string | null>;
   clerkId?: string | null;
+  /** From a SortableList: the handle that drags this card, and whether it is being dragged */
+  dragHandleProps?: SortableHandleProps;
+  isDragging?: boolean;
 };
 
 // One artist's card in the Nail Artists editor (or the Add Artist card): the fields being

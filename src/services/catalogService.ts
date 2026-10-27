@@ -92,6 +92,14 @@ export const renameCategory = async (id: number, name: string, auth: Auth) =>
 export const reorderCategories = (ids: number[], auth: Auth) =>
   call<unknown>(`${CATEGORIES}/reorder`, { method: "PUT", body: JSON.stringify({ ids }) }, auth);
 
+/** Every service, in the order to show them */
+export const reorderServices = (ids: number[], auth: Auth) =>
+  call<unknown>("/services/reorder", { method: "PUT", body: JSON.stringify({ ids }) }, auth);
+
+/** Every artist, in the order to show them */
+export const reorderNailists = (ids: number[], auth: Auth) =>
+  call<unknown>("/nailists/reorder", { method: "PUT", body: JSON.stringify({ ids }) }, auth);
+
 // The backend refuses to delete a category that still has services (409) unless
 // the services are moved with `reassignTo`.
 export const deleteCategory = (id: number, auth: Auth, reassignTo?: number) =>

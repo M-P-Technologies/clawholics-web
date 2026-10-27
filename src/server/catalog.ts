@@ -132,7 +132,7 @@ const nailistsWithServices = (id: number | null) => {
     left join services s on s.id = ns.service_id
     ${id === null ? sql`` : sql`where n.id = ${id}`}
     group by n.id, nc.name
-    order by n.id asc
+    order by n.display_order asc, n.id asc
   `;
 };
 

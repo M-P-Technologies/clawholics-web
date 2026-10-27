@@ -3,7 +3,9 @@
 import CategoryPanel from "@/components/features/admin/catalog/CategoryPanel";
 import CmsEditor from "@/components/features/admin/cms/CmsEditor";
 import { ItemsNote, LinkField, PanelSection, SaveBar, SubCard, TextField } from "@/components/features/admin/cms/fields";
+import DragRowPreview from "@/components/features/admin/catalog/DragRowPreview";
 import NailServiceDropdown from "@/components/features/admin/catalog/NailServiceDropdown";
+import { SortableList } from "@/components/molecules";
 import { CmsEditorSkeleton } from "@/components/features/admin/skeletons/skeletons";
 import { useServicesEditor } from "@/hooks/admin/useServicesEditor";
 import { SERVICES_PREVIEW_PAGES } from "@/lib/admin/cmsPages";
@@ -48,17 +50,26 @@ export default function NailServices() {
         aside={services.length}
       >
         <div className="flex flex-col gap-3">
-          {services.map((service) => (
-            <NailServiceDropdown
-              key={service.id}
-              service={service}
-              categories={categories}
-              tokenFetcher={editor.getToken}
-              clerkId={editor.clerkId}
-              onServiceUpdated={editor.onServiceUpdated}
-              onServiceDeleted={editor.onServiceDeleted}
-            />
-          ))}
+          {/* Drag a service by its handle to put it where it should show on the Services page */}
+          <SortableList
+            items={services}
+            getItemId={(service) => service.id}
+            onReorder={editor.reorder}
+            className="flex flex-col gap-3"
+            renderItem={(service, { dragHandleProps, isDragging }) => (
+              <NailServiceDropdown
+                service={service}
+                categories={categories}
+                tokenFetcher={editor.getToken}
+                clerkId={editor.clerkId}
+                onServiceUpdated={editor.onServiceUpdated}
+                onServiceDeleted={editor.onServiceDeleted}
+                dragHandleProps={dragHandleProps}
+                isDragging={isDragging}
+              />
+            )}
+            renderOverlay={(service) => <DragRowPreview title={service.name} />}
+          />
 
           <NailServiceDropdown mode="create" categories={categories} tokenFetcher={editor.getToken} clerkId={editor.clerkId} onServiceCreated={editor.onServiceCreated} />
         </div>

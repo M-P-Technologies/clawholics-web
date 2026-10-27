@@ -143,6 +143,7 @@ insert into nailists (id, name, category_id, specialty, bio, image) values
   (2, 'Miss Rai', 2, 'Tropical Nail Sets • Classic Nail Sets • Nail Art', 'Fast and efficient, while keeping every appointment fun and engaging. Your go-to nail tech slash entertainer.', 'http://localhost:3000/uploads/MissRai.webp'),
   (3, 'Miss Pring', 2, 'Classic Sets • 3D Sets • Nail Art', 'Detail-oriented in nail prep and skilled in creating clean, durable soft gel extensions.', 'http://localhost:3000/uploads/MissPring.webp')
 on conflict do nothing;
+update nailists set display_order = id where display_order = 0;
 
 insert into nailist_services (nailist_id, service_id) values
   (1, 1),
