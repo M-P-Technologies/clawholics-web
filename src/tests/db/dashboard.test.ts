@@ -589,7 +589,7 @@ describe.skipIf(!TEST_DATABASE_URL)("dashboard (Postgres)", () => {
     expect(d.lapsedClients).toBe(0);
     expect(d.sales).toEqual([]);
     expect(d.clientBase).toEqual({ clients: 0, lifetimeValue: null, churn: null });
-    expect(d.totals).toMatchObject({ clients: 0, upcoming: 0 });
+    expect(d.totals).toMatchObject({ clients: 0, appointments: 0 });
     // the trend still has its 14 daily points, all zero
     expect(d.trend.points).toHaveLength(14);
     expect(d.trend.points.every((p) => p.collected === 0 && p.estimatedSales === 0 && p.bookings === 0 && p.newClients === 0)).toBe(true);
