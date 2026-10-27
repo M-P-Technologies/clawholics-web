@@ -95,6 +95,14 @@ describe("ClientHome", () => {
     expect(screen.getByRole("link", { name: "Grab it" })).toHaveAttribute("href", "/my/explore/2");
   });
 
+  it("says the appointments are loading, not that there are none, until they arrive", () => {
+    account = { ...account, appointmentsLoading: true };
+    render(<ClientHome />);
+    expect(screen.getByText("Loading your appointments…")).toBeInTheDocument();
+    expect(screen.queryByText("You have no upcoming appointments.")).toBeNull();
+    expect(screen.queryByRole("link", { name: "Book now" })).toBeNull();
+  });
+
   it("offers a booking from the empty upcoming card", () => {
     render(<ClientHome />);
     expect(screen.getByText("You have no upcoming appointments.")).toBeInTheDocument();

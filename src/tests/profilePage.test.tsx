@@ -104,6 +104,20 @@ describe("MyProfile", () => {
     expect(screen.getByText("Nothing booked ahead.")).toBeInTheDocument();
   });
 
+  it("says the bookings are loading, not that there are none, until the appointments arrive", () => {
+    hook = makeHook({ upcoming: [], pastViews: [], nextAppointment: null, appointmentsLoading: true });
+    render(<MyProfile />);
+    expect(screen.getByText("Loading your bookings…")).toBeInTheDocument();
+    expect(screen.queryByText("No bookings to track yet.")).toBeNull();
+  });
+
+  it("says the appointments are loading, not that nothing is coming up, until they arrive", () => {
+    hook = makeHook({ upcoming: [], pastViews: [], nextAppointment: null, appointmentsLoading: true });
+    render(<MyAppointments />);
+    expect(screen.getByText("Loading your appointments…")).toBeInTheDocument();
+    expect(screen.queryByText("Nothing coming up yet.")).toBeNull();
+  });
+
   it("links back to the site and to the legal pages, in a new tab", () => {
     render(<MyProfile />);
     for (const [name, href] of [["Back to site", "/"], ["Terms", "/tou"], ["Privacy", "/privacy"]]) {

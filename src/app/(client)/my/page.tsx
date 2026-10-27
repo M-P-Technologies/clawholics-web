@@ -75,6 +75,8 @@ export default function ClientHome() {
               </div>
               {next.isLocked && <p className="text-[13px] text-gray-red">Changes close 3 days before your appointment.</p>}
             </>
+          ) : h.account.appointmentsLoading ? (
+            <p role="status" className="text-sm text-gray-red">Loading your appointments…</p>
           ) : (
             <div className="flex flex-col items-start gap-3">
               <p className="text-sm text-gray-red">You have no upcoming appointments.</p>
