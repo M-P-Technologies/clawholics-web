@@ -46,7 +46,7 @@ export default function SegmentedControl<T extends string>({ label, options, val
               "inline-flex items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-bold transition-colors",
               focusRing,
               fill && "flex-1 sm:flex-none",
-              selected ? "bg-milk text-berry shadow-sm" : "text-gray-red hover:text-berry",
+              selected ? "bg-milk text-berry shadow-sm" : "text-crimson-ink hover:text-berry",
             )}
           >
             {Icon && <Icon size={16} aria-hidden="true" />}

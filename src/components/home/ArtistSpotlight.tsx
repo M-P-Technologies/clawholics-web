@@ -102,8 +102,9 @@ export default function ArtistSpotlight({ artists }: { artists: Nailist[] }) {
               <Button variant="bare" type="button" aria-label="Previous artist" onClick={() => show(index - 1)} className={ROUND_BUTTON}>
                 <ChevronLeft size={20} aria-hidden="true" />
               </Button>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center">
                 {artists.map((a, i) => (
+                  // The button is a 24px square (the smallest comfortable tap target); the dot inside is smaller
                   <Button
                     variant="bare"
                     key={a.id}
@@ -111,10 +112,15 @@ export default function ArtistSpotlight({ artists }: { artists: Nailist[] }) {
                     aria-label={`Show ${a.name}`}
                     aria-current={i === index}
                     onClick={() => show(i)}
-                    className={`h-2 rounded-full transition-all duration-300 ${
-                      i === index ? "w-6 bg-crimson" : "w-2 bg-crimson-light hover:bg-crimson"
-                    }`}
-                  />
+                    className="group h-6 min-w-6"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={`h-2 rounded-full transition-all duration-300 ${
+                        i === index ? "w-6 bg-crimson" : "w-2 bg-crimson-light group-hover:bg-crimson"
+                      }`}
+                    />
+                  </Button>
                 ))}
               </div>
               <Button variant="bare" type="button" aria-label="Next artist" onClick={() => show(index + 1)} className={ROUND_BUTTON}>
@@ -122,7 +128,7 @@ export default function ArtistSpotlight({ artists }: { artists: Nailist[] }) {
               </Button>
             </>
           )}
-          <Button to="/artists" aria-label="Meet all of our artists" className="lg:ml-auto">
+          <Button to="/artists" aria-label="Meet the team: all of our artists" className="lg:ml-auto">
             Meet the team
           </Button>
         </div>
