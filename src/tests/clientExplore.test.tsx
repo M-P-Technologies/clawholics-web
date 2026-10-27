@@ -52,6 +52,13 @@ describe("filterServices", () => {
 });
 
 describe("Explore", () => {
+  it("shows a loading state, not \"No services match\", until the services arrive", async () => {
+    search = "q=lash";
+    render(<Explore />);
+    expect(screen.queryByText("No services match")).toBeNull();
+    await waitFor(() => expect(screen.getAllByRole("listitem")).toHaveLength(1));
+  });
+
   it("lists every service, with the search and category on the same card", async () => {
     render(<Explore />);
     expect(screen.getByRole("banner")).toContainElement(screen.getByRole("heading", { level: 1, name: "Our services" }));
