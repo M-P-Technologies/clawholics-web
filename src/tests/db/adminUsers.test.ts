@@ -222,10 +222,10 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
 
     const saved = await call(users.updateProfile, "/api/users/profile", {
       method: "PUT",
-      body: { firstName: "Carla", lastName: "C", phone: "0917", dob: "2000-01-01", instagramHandle: "@carla" },
+      body: { firstName: "Carla", lastName: "C", phone: "0917", dob: "2000-01-01", instagramHandle: "@carla", tiktokHandle: "@carla.tok" },
     });
     expect(saved.body).toEqual({ message: "Profile updated" });
-    expect((await db`select first_name, instagram_handle from customer_profiles where user_id = ${customerId}`)[0]).toEqual({ first_name: "Carla", instagram_handle: "carla" });
+    expect((await db`select first_name, instagram_handle, tiktok_handle from customer_profiles where user_id = ${customerId}`)[0]).toEqual({ first_name: "Carla", instagram_handle: "carla", tiktok_handle: "carla.tok" });
     expect(clerkUsers.updateUser).toHaveBeenCalledWith("user_cust", { firstName: "Carla", lastName: "C" });
 
     // The birthday is set once: a new one is ignored (it would move the birthday voucher)
@@ -335,7 +335,7 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
     const row = list.body.find((u: { email: string }) => u.email === "walkin@x.test");
     expect(row).toEqual({
       id: Number(id), clerk_id: expect.stringMatching(/^manual_/), firstName: "Walker", lastName: "In", email: "walkin@x.test",
-      phoneNumber: "0919", altPhone: null, preferredContactMethod: "sms", facebookHandle: null, instagramHandle: null, role: "customer",
+      phoneNumber: "0919", altPhone: null, preferredContactMethod: "sms", facebookHandle: null, instagramHandle: null, tiktokHandle: null, role: "customer",
     });
 
     // The customer has an active (COMPLETED) appointment, so they can't be removed

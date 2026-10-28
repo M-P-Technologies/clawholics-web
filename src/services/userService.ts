@@ -25,6 +25,7 @@ export interface UserProfile {
   preferred_contact_method?: string | null;
   facebook_handle?: string | null;
   instagram_handle?: string | null;
+  tiktok_handle?: string | null;
   stamps: number;
   onboarded?: boolean;
   member_since_month?: string;
@@ -104,7 +105,7 @@ export const updateProfile = async (
 
 /** Saves only the given optional contact details (PATCH leaves the rest of the profile alone) */
 export const updateContactDetails = async (
-  fields: Pick<Partial<UserProfile>, "instagram_handle" | "facebook_handle">,
+  fields: Pick<Partial<UserProfile>, "instagram_handle" | "facebook_handle" | "tiktok_handle">,
   token?: string | null
 ): Promise<void> => {
   const res = await fetch(`${API_BASE_URL}/users/profile`, {

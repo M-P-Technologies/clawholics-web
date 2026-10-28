@@ -50,6 +50,7 @@ interface ClientProfile {
   preferred_contact_method: string | null;
   facebook_handle: string | null;
   instagram_handle: string | null;
+  tiktok_handle: string | null;
   /** Date of birth, "YYYY-MM-DD" */
   dob?: string | null;
 }

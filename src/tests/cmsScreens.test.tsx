@@ -171,14 +171,12 @@ describe("Homepage editor: the home page's sections", () => {
     expect(look.getByRole("radio", { name: "Clawholics pink" })).toHaveAttribute("aria-checked", "true");
     fireEvent.click(look.getByRole("radio", { name: "Lavender" }));
     fireEvent.click(within(look.getByRole("radiogroup", { name: "Display font (headings)" })).getByRole("radio", { name: "Playfair Display" }));
-    fireEvent.click(within(look.getByRole("radiogroup", { name: "Script font (accents)" })).getByRole("radio", { name: "Great Vibes" }));
     fireEvent.click(within(look.getByRole("radiogroup", { name: "Body font (text and buttons)" })).getByRole("radio", { name: "Nunito" }));
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() => expect(updateHomeContent).toHaveBeenCalled());
     expect(updateHomeContent.mock.calls[0][0]).toMatchObject({
       home_theme_palette: "lavender",
       home_theme_display: "playfair",
-      home_theme_script: "great-vibes",
       home_theme_body: "nunito",
     });
   });

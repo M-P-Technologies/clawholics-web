@@ -90,7 +90,7 @@ describe("leaving /onboarding without saving", () => {
     const { result, unmount } = renderHook(() => useOnboarding());
     await waitFor(() => expect(result.current.isChecking).toBe(false));
 
-    act(() => result.current.setFormData({ firstName: "Ana", lastName: "Cruz", phone: "09171234567", dob: "01/02/1995", gender: "female", instagram_handle: "", facebook_handle: "" }));
+    act(() => result.current.setFormData({ firstName: "Ana", lastName: "Cruz", phone: "09171234567", dob: "01/02/1995", gender: "female", instagram_handle: "", facebook_handle: "", tiktok_handle: "" }));
     await act(async () => {
       await result.current.handleSubmit({ preventDefault() {} } as React.SyntheticEvent<HTMLFormElement>);
     });
@@ -109,12 +109,12 @@ describe("leaving /onboarding without saving", () => {
     const { result } = renderHook(() => useOnboarding());
     await waitFor(() => expect(result.current.isChecking).toBe(false));
 
-    act(() => result.current.setFormData({ firstName: "Ana", lastName: "Cruz", phone: "09171234567", dob: "01/02/1995", gender: "female", instagram_handle: " @ana.nails ", facebook_handle: "Ana Cruz" }));
+    act(() => result.current.setFormData({ firstName: "Ana", lastName: "Cruz", phone: "09171234567", dob: "01/02/1995", gender: "female", instagram_handle: " @ana.nails ", facebook_handle: "Ana Cruz", tiktok_handle: " @ana.tok " }));
     await act(async () => {
       await result.current.handleSubmit({ preventDefault() {} } as React.SyntheticEvent<HTMLFormElement>);
     });
 
-    expect(updateProfile).toHaveBeenCalledWith("user_1", expect.objectContaining({ instagram_handle: "ana.nails", facebook_handle: "Ana Cruz" }), "tok");
+    expect(updateProfile).toHaveBeenCalledWith("user_1", expect.objectContaining({ instagram_handle: "ana.nails", facebook_handle: "Ana Cruz", tiktok_handle: "ana.tok" }), "tok");
   });
 
   it("leaves the handles out when they're blank, so a saved one isn't cleared", async () => {
@@ -122,7 +122,7 @@ describe("leaving /onboarding without saving", () => {
     const { result } = renderHook(() => useOnboarding());
     await waitFor(() => expect(result.current.isChecking).toBe(false));
 
-    act(() => result.current.setFormData({ firstName: "Ana", lastName: "Cruz", phone: "09171234567", dob: "01/02/1995", gender: "female", instagram_handle: "  ", facebook_handle: "" }));
+    act(() => result.current.setFormData({ firstName: "Ana", lastName: "Cruz", phone: "09171234567", dob: "01/02/1995", gender: "female", instagram_handle: "  ", facebook_handle: "", tiktok_handle: "" }));
     await act(async () => {
       await result.current.handleSubmit({ preventDefault() {} } as React.SyntheticEvent<HTMLFormElement>);
     });
@@ -137,7 +137,7 @@ describe("leaving /onboarding without saving", () => {
     const { result } = renderHook(() => useOnboarding());
     await waitFor(() => expect(result.current.isChecking).toBe(false));
 
-    act(() => result.current.setFormData({ firstName: "Ana", lastName: "Cruz", phone: "09171234567", dob: "01/02/1995", gender: "female", instagram_handle: "", facebook_handle: "" }));
+    act(() => result.current.setFormData({ firstName: "Ana", lastName: "Cruz", phone: "09171234567", dob: "01/02/1995", gender: "female", instagram_handle: "", facebook_handle: "", tiktok_handle: "" }));
     await act(async () => {
       await result.current.handleSubmit({ preventDefault() {} } as React.SyntheticEvent<HTMLFormElement>);
     });

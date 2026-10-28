@@ -25,7 +25,7 @@ const APPOINTMENT_SELECT = `
     coalesce(a.walkin_first_name, ap.first_name, cp.first_name, '') as first_name,
     coalesce(a.walkin_last_name, ap.last_name, cp.last_name, '') as last_name,
     coalesce(a.walkin_phone, cp.phone, '') as phone,
-    cp.alt_phone, cp.preferred_contact_method, cp.facebook_handle, cp.instagram_handle,
+    cp.alt_phone, cp.preferred_contact_method, cp.facebook_handle, cp.instagram_handle, cp.tiktok_handle,
     cp.dob, cp.gender, cp.stamps,
     trim(coalesce(a.walkin_first_name, ap.first_name, cp.first_name, '') || ' ' || coalesce(a.walkin_last_name, ap.last_name, cp.last_name, '')) as client_name,
     p.id as payment_id, p.status as payment_status, p.amount as payment_amount, p.payment_method, p.external_id as payment_reference, p.invoice_url,

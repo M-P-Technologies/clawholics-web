@@ -33,6 +33,7 @@ export function useOnboarding() {
     gender: "",
     instagram_handle: "",
     facebook_handle: "",
+    tiktok_handle: "",
   });
 
   // HARD ADMIN CHECK: Clerk metadata says admin, so the directory isn't asked
@@ -174,6 +175,7 @@ export function useOnboarding() {
       // The optional handles go only when given: an empty one would clear a handle already saved
       const instagram = cleanHandle("instagram_handle", formData.instagram_handle);
       const facebook = cleanHandle("facebook_handle", formData.facebook_handle);
+      const tiktok = cleanHandle("tiktok_handle", formData.tiktok_handle);
       const completeUserData = {
         clerk_id: user.id,
         first_name: formData.firstName,
@@ -184,6 +186,7 @@ export function useOnboarding() {
         email: user.primaryEmailAddress?.emailAddress || "",
         ...(instagram && { instagram_handle: instagram }),
         ...(facebook && { facebook_handle: facebook }),
+        ...(tiktok && { tiktok_handle: tiktok }),
       };
 
       const token = await getToken();

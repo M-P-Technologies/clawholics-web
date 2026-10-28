@@ -1,20 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { BODY_FONTS, DISPLAY_FONTS, PALETTES, SCRIPT_FONTS, googleFontsHref, readSiteTheme, themeFonts, themeVariables } from "@/lib/siteTheme";
+import { BODY_FONTS, DISPLAY_FONTS, PALETTES, googleFontsHref, readSiteTheme, themeFonts, themeVariables } from "@/lib/siteTheme";
 
 describe("site theme", () => {
-  it("offers six colour sets and five fonts for each of display, script and body", () => {
+  it("offers six colour sets and five fonts for each of display and body", () => {
     expect(PALETTES).toHaveLength(6);
-    expect([DISPLAY_FONTS, SCRIPT_FONTS, BODY_FONTS].map((list) => list.length)).toEqual([5, 5, 5]);
+    expect([DISPLAY_FONTS, BODY_FONTS].map((list) => list.length)).toEqual([5, 5]);
   });
 
   it("is the brand's own look until something else is chosen, and changes nothing then", () => {
     const theme = readSiteTheme({});
-    expect(theme).toEqual({ palette: "clawholics", display: "gloock", script: "luxurious", body: "noto" });
+    expect(theme).toEqual({ palette: "clawholics", display: "gloock", body: "noto" });
     expect(themeVariables(theme)).toEqual({});
   });
 
   it("swaps the colour and font variables for the choices", () => {
-    const theme = readSiteTheme({ home_theme_palette: "sage", home_theme_display: "playfair", home_theme_script: "parisienne", home_theme_body: "inter" });
+    const theme = readSiteTheme({ home_theme_palette: "sage", home_theme_display: "playfair", home_theme_body: "inter" });
     expect(themeVariables(theme)).toEqual({
       "--color-crimson": "#8fb59a",
       "--color-crimson-light": "#c5dccb",
@@ -22,7 +22,6 @@ describe("site theme", () => {
       "--color-sand": "#dfe7da",
       "--color-gray-red": "#4f5f52",      "--color-crimson-ink": "#4c6052",      "--color-on-crimson": "#374239",
       "--font-gloock": '"Playfair Display", serif',
-      "--font-luxurious-script": "Parisienne, cursive",
       "--font-noto-sans": "Inter, sans-serif",
     });
   });

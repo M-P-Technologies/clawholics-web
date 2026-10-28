@@ -1,6 +1,6 @@
 import { Cake, CalendarClock, CalendarDays, CalendarX, Gift, Mail, MessageCircle, Phone, Sparkles } from "lucide-react";
 import type { ComponentType } from "react";
-import { FacebookIcon, InstagramIcon, type BadgeTone } from "@/components/atoms";
+import { FacebookIcon, InstagramIcon, TikTokIcon, type BadgeTone } from "@/components/atoms";
 import type { ClientAppointment, ClientDetails } from "../../services/clientNotesService";
 import { manilaDateTime, timeRangeLabel } from "../timeFormat";
 
@@ -75,6 +75,7 @@ const clientInfoRows = ({ client, summary, birthday_voucher }: Pick<ClientDetail
     { label: "Other phone", value: client.alt_phone, Icon: Phone },
     { label: "Instagram", value: client.instagram_handle, Icon: InstagramIcon },
     { label: "Facebook", value: client.facebook_handle, Icon: FacebookIcon },
+    { label: "TikTok", value: client.tiktok_handle, Icon: TikTokIcon },
     { label: "Prefers", value: client.preferred_contact_method, Icon: MessageCircle },
     { label: "Birthday", value: birthdayLabel(client.dob), Icon: Cake },
     { label: "Birthday voucher", value: voucherLabel(birthday_voucher), Icon: Gift },

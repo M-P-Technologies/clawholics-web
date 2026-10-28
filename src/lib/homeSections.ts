@@ -54,10 +54,9 @@ export const SITE_LINK_OPTIONS = SITE_LINKS.map((link) => ({ value: link.path, l
 
 /** The plain words, by content key, with what the site showed before they were editable */
 export const HOME_TEXT_DEFAULTS = {
-  // The site's look (src/lib/siteTheme.ts): a colour set, and the display, script and body fonts
+  // The site's look (src/lib/siteTheme.ts): a colour set, and the display and body fonts
   home_theme_palette: "clawholics",
   home_theme_display: "gloock",
-  home_theme_script: "luxurious",
   home_theme_body: "noto",
   home_hero_text: "Softgel and hard gel extensions, BIAB, Russian manicures and lashes in Cagayan de Oro. Choose your artist and book online.",
   home_offer_eyebrow: "Clawholics by Max",

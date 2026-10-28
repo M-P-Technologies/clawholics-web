@@ -33,8 +33,7 @@ export const nav = {
 } as const;
 
 // The public site's form and section classes. Inputs keep 16px words so phones don't zoom in on focus.
-export const labelClass =
-  "mb-1.5 block label-caps";
+export const labelClass = "mb-1.5 block text-sm font-normal text-gray-red";
 
 export const inputClass =
   "w-full rounded-md border border-crimson-light bg-light-orange/70 px-3 py-2 text-base text-gray-red placeholder:text-gray-red placeholder:italic transition-colors focus:border-crimson focus:outline-none focus:ring-2 focus:ring-crimson/30 disabled:cursor-not-allowed disabled:opacity-60";
