@@ -3,7 +3,10 @@
 export const clerkAppearance = {
   layout: { logoPlacement: "none" as const },
   elements: {
-    cardBox: "shadow-xl! shadow-crimson/10! bg-light-orange! border! border-crimson-light! rounded-sm!",
+    // Clerk caps its card at the viewport minus 2rem; the Login | Sign up tabs above it fill the
+    // gutters (max-w-100), so the card takes the same width to line up on phones
+    rootBox: "w-full max-w-100",
+    cardBox: "w-full! max-w-100! shadow-xl! shadow-crimson/10! bg-light-orange! border! border-crimson-light! rounded-sm!",
     card: "bg-transparent! shadow-none! w-full max-w-100 gap-9",
 
     headerTitle:
