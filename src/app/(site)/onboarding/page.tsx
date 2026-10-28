@@ -127,26 +127,29 @@ export default function Onboarding() {
                 <FormField key={field.id} {...field} />
               ))}
 
-              <Button
-                type="submit"
-                disabled={isSubmitDisabled}
-                className="w-full sm:w-fit sm:self-end"
-              >
-                {isSubmitting ? "Saving..." : "Save & continue"}
-              </Button>
-
               {submitError && (
                 <p role="alert" className="text-center text-sm font-bold text-danger-ink">
                   {submitError}
                 </p>
               )}
 
-              <Link
-                to="/"
-                className="text-center text-sm text-gray-red underline transition-colors hover:text-crimson-ink"
-              >
-                Back to home
-              </Link>
+              {/* Save on top on phones, Back to home left and Save right from sm */}
+              <div className="flex flex-col-reverse items-center gap-3 sm:flex-row sm:justify-between">
+                <Link
+                  to="/"
+                  className="text-sm text-gray-red underline transition-colors hover:text-crimson-ink"
+                >
+                  Back to home
+                </Link>
+
+                <Button
+                  type="submit"
+                  disabled={isSubmitDisabled}
+                  className="w-full sm:w-fit"
+                >
+                  {isSubmitting ? "Saving..." : "Save & continue"}
+                </Button>
+              </div>
             </form>
           </div>
         </Panel>
