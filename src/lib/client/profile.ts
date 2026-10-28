@@ -1,5 +1,5 @@
 import { CalendarClock, Cake, Mail, MessageCircle, Phone, UserRound } from "lucide-react";
-import { FacebookIcon, InstagramIcon } from "@/components/atoms";
+import { FacebookIcon, InstagramIcon, TikTokIcon } from "@/components/atoms";
 import { contactMethodLabel } from "@/data/profile";
 import type { UserProfile } from "@/services/userService";
 import type { AppointmentView } from "@/types/profile";
@@ -17,6 +17,7 @@ export const profileRows = (u: UserProfile, formatDate: (ymd: string) => string)
   { label: "Gender", value: u.gender ?? "", icon: UserRound },
   { label: "Instagram", value: u.instagram_handle ? `@${u.instagram_handle}` : "", icon: InstagramIcon },
   { label: "Facebook", value: u.facebook_handle ?? "", icon: FacebookIcon },
+  { label: "TikTok", value: u.tiktok_handle ? `@${u.tiktok_handle}` : "", icon: TikTokIcon },
   { label: "Reach me by", value: contactMethodLabel(u.preferred_contact_method), icon: MessageCircle },
 ];
 

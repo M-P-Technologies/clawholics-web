@@ -1,7 +1,7 @@
 import type { ChangeEvent } from "react";
 import clsx from "clsx";
 import { AlertCircle, Check, Loader2 } from "lucide-react";
-import { FacebookIcon, InstagramIcon } from "@/components/atoms";
+import { FacebookIcon, InstagramIcon, TikTokIcon } from "@/components/atoms";
 import { SectionHeader } from "@/components/molecules";
 import { field as fieldTokens } from "@/components/tokens";
 
@@ -23,9 +23,10 @@ type Field = {
 const LOOK: Record<string, { Icon: typeof InstagramIcon; prefix?: string }> = {
   instagram_handle: { Icon: InstagramIcon, prefix: "@" },
   facebook_handle: { Icon: FacebookIcon },
+  tiktok_handle: { Icon: TikTokIcon, prefix: "@" },
 };
 
-// Instagram/Facebook for a client whose profile has neither yet (useContactHandles saves them)
+// Instagram/Facebook/TikTok for a client whose profile lacks them (the ones it lacks are asked; useContactHandles saves them)
 export default function ContactHandlesFields({ fields }: { fields: Field[] }) {
   if (fields.length === 0) return null;
 

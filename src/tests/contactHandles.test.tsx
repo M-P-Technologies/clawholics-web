@@ -26,16 +26,16 @@ beforeEach(() => {
   updateContactDetails.mockReset().mockResolvedValue(undefined);
 });
 
-describe("Instagram/Facebook while booking", () => {
+describe("Instagram/Facebook/TikTok while booking", () => {
   it("asks only for the handles the profile doesn't have", async () => {
-    fetchProfile.mockResolvedValue({ id: 1, instagram_handle: "ana.nails", facebook_handle: null });
+    fetchProfile.mockResolvedValue({ id: 1, instagram_handle: "ana.nails", facebook_handle: null, tiktok_handle: "ana.tok" });
     const { result } = renderHook(() => useContactHandles("user_1", getToken), { wrapper });
     await waitFor(() => expect(result.current.contactFields).toHaveLength(1));
     expect(result.current.contactFields[0].name).toBe("facebook_handle");
   });
 
-  it("asks nothing when both are on the profile", async () => {
-    fetchProfile.mockResolvedValue({ id: 1, instagram_handle: "ana.nails", facebook_handle: "Ana Cruz" });
+  it("asks nothing when all are on the profile", async () => {
+    fetchProfile.mockResolvedValue({ id: 1, instagram_handle: "ana.nails", facebook_handle: "Ana Cruz", tiktok_handle: "ana.tok" });
     const { result } = renderHook(() => useContactHandles("user_1", getToken), { wrapper });
     await waitFor(() => expect(fetchProfile).toHaveBeenCalled());
     await act(async () => {});
@@ -43,9 +43,9 @@ describe("Instagram/Facebook while booking", () => {
   });
 
   it("saves a handle to the profile when the client leaves the field, and keeps showing it", async () => {
-    fetchProfile.mockResolvedValue({ id: 1, instagram_handle: null, facebook_handle: null });
+    fetchProfile.mockResolvedValue({ id: 1, instagram_handle: null, facebook_handle: null, tiktok_handle: null });
     const { result } = renderHook(() => useContactHandles("user_1", getToken), { wrapper });
-    await waitFor(() => expect(result.current.contactFields).toHaveLength(2));
+    await waitFor(() => expect(result.current.contactFields).toHaveLength(3));
 
     type(result.current.contactFields[0], " @ana.nails ");
     await act(async () => result.current.contactFields[0].onBlur());
@@ -54,7 +54,7 @@ describe("Instagram/Facebook while booking", () => {
     expect(result.current.contactFields[0].status).toBe("saved");
     expect(queryClient.getQueryData<{ instagram_handle: string }>(accountKeys.profile("user_1"))?.instagram_handle).toBe("ana.nails");
     // Saved, but still on screen so the client can see it
-    expect(result.current.contactFields).toHaveLength(2);
+    expect(result.current.contactFields).toHaveLength(3);
 
     // Leaving it again unchanged doesn't save twice
     await act(async () => result.current.contactFields[0].onBlur());
@@ -62,9 +62,9 @@ describe("Instagram/Facebook while booking", () => {
   });
 
   it("saves on its own a moment after the client stops typing", async () => {
-    fetchProfile.mockResolvedValue({ id: 1, instagram_handle: null, facebook_handle: null });
+    fetchProfile.mockResolvedValue({ id: 1, instagram_handle: null, facebook_handle: null, tiktok_handle: null });
     const { result } = renderHook(() => useContactHandles("user_1", getToken), { wrapper });
-    await waitFor(() => expect(result.current.contactFields).toHaveLength(2));
+    await waitFor(() => expect(result.current.contactFields).toHaveLength(3));
 
     vi.useFakeTimers();
     try {
@@ -78,11 +78,11 @@ describe("Instagram/Facebook while booking", () => {
   });
 
   it("sends a field's saves one at a time, so the newest value is the one kept", async () => {
-    fetchProfile.mockResolvedValue({ id: 1, instagram_handle: null, facebook_handle: null });
+    fetchProfile.mockResolvedValue({ id: 1, instagram_handle: null, facebook_handle: null, tiktok_handle: null });
     let finishFirst!: () => void;
     updateContactDetails.mockImplementationOnce(() => new Promise<void>((resolve) => (finishFirst = resolve)));
     const { result } = renderHook(() => useContactHandles("user_1", getToken), { wrapper });
-    await waitFor(() => expect(result.current.contactFields).toHaveLength(2));
+    await waitFor(() => expect(result.current.contactFields).toHaveLength(3));
 
     type(result.current.contactFields[0], "maxnails");
     await act(async () => void result.current.contactFields[0].onBlur());
@@ -102,14 +102,24 @@ describe("Instagram/Facebook while booking", () => {
   });
 
   it("says so when the save fails", async () => {
-    fetchProfile.mockResolvedValue({ id: 1, instagram_handle: null, facebook_handle: null });
+    fetchProfile.mockResolvedValue({ id: 1, instagram_handle: null, facebook_handle: null, tiktok_handle: null });
     updateContactDetails.mockRejectedValue(new Error("offline"));
     vi.spyOn(console, "error").mockImplementation(() => {});
     const { result } = renderHook(() => useContactHandles("user_1", getToken), { wrapper });
-    await waitFor(() => expect(result.current.contactFields).toHaveLength(2));
+    await waitFor(() => expect(result.current.contactFields).toHaveLength(3));
 
     type(result.current.contactFields[0], "ana.nails");
     await act(async () => result.current.contactFields[0].onBlur());
     expect(result.current.contactFields[0].status).toBe("error");
+  });
+
+  it("saves a TikTok username without its leading @", async () => {
+    fetchProfile.mockResolvedValue({ id: 1, instagram_handle: null, facebook_handle: null, tiktok_handle: null });
+    const { result } = renderHook(() => useContactHandles("user_1", getToken), { wrapper });
+    await waitFor(() => expect(result.current.contactFields).toHaveLength(3));
+
+    type(result.current.contactFields[2], " @ana.tok ");
+    await act(async () => result.current.contactFields[2].onBlur());
+    expect(updateContactDetails).toHaveBeenCalledWith({ tiktok_handle: "ana.tok" }, "tok");
   });
 });

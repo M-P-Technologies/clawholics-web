@@ -53,7 +53,7 @@ export const getClient = ported<IdContext>(async (_req, { params }) => {
   const [[client], appointments, birthdayVoucher] = await Promise.all([
     sql`
       select u.id, u.clerk_id, u.email, u.created_at, cp.first_name, cp.last_name, cp.phone, cp.alt_phone, cp.dob,
-        cp.preferred_contact_method, cp.facebook_handle, cp.instagram_handle, coalesce(cp.stamps, 0)::int as stamps
+        cp.preferred_contact_method, cp.facebook_handle, cp.instagram_handle, cp.tiktok_handle, coalesce(cp.stamps, 0)::int as stamps
       from users u left join customer_profiles cp on cp.user_id = u.id
       where u.id = ${id}`,
     sql.unsafe<{

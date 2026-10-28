@@ -1,7 +1,7 @@
-// The public site's look, chosen in Admin > Homepage: a colour set, and the display, script and
-// body fonts. Each is a swap of the CSS variables the site is built on (globals.css), so every
+// The public site's look, chosen in Admin > Homepage: a colour set, and the display and body
+// fonts. Each is a swap of the CSS variables the site is built on (globals.css), so every
 // page follows. Saved with the homepage content as home_theme_palette, home_theme_display,
-// home_theme_script and home_theme_body; never saved means the brand book's own colours and fonts.
+// and home_theme_body; never saved means the brand book's own colours and fonts.
 
 export interface Palette {
   key: string;
@@ -41,15 +41,6 @@ export const DISPLAY_FONTS: FontChoice[] = [
   { key: "abril", label: "Abril Fatface", css: '"Abril Fatface", serif', google: "Abril+Fatface" },
 ];
 
-/** The flowing accent lettering (font-script) */
-export const SCRIPT_FONTS: FontChoice[] = [
-  { key: "luxurious", label: "Luxurious Script", css: "var(--font-luxurious-script)" },
-  { key: "great-vibes", label: "Great Vibes", css: '"Great Vibes", cursive', google: "Great+Vibes" },
-  { key: "parisienne", label: "Parisienne", css: "Parisienne, cursive", google: "Parisienne" },
-  { key: "alex-brush", label: "Alex Brush", css: '"Alex Brush", cursive', google: "Alex+Brush" },
-  { key: "dancing", label: "Dancing Script", css: '"Dancing Script", cursive', google: "Dancing+Script:wght@400;700" },
-];
-
 /** Body text and buttons (font-sans) */
 export const BODY_FONTS: FontChoice[] = [
   { key: "noto", label: "Noto Sans", css: "var(--font-noto-sans)" },
@@ -65,14 +56,14 @@ export function googleFontsHref(fonts: FontChoice[]): string | null {
   return families.length ? `https://fonts.googleapis.com/css2?${families.map((f) => `family=${f}`).join("&")}&display=swap` : null;
 }
 
-const DEFAULT_THEME = { palette: "clawholics", display: "gloock", script: "luxurious", body: "noto" };
+const DEFAULT_THEME = { palette: "clawholics", display: "gloock", body: "noto" };
 type SiteTheme = typeof DEFAULT_THEME;
 
 const choose = (list: FontChoice[], key: unknown) => list.find((f) => f.key === key) ?? list[0];
 const paletteOf = (key: string) => PALETTES.find((p) => p.key === key) ?? PALETTES[0];
 
 /** The fonts a theme uses (to load the ones that aren't built in) */
-export const themeFonts = (theme: SiteTheme): FontChoice[] => [choose(DISPLAY_FONTS, theme.display), choose(SCRIPT_FONTS, theme.script), choose(BODY_FONTS, theme.body)];
+export const themeFonts = (theme: SiteTheme): FontChoice[] => [choose(DISPLAY_FONTS, theme.display), choose(BODY_FONTS, theme.body)];
 
 /** The chosen theme from the homepage content, or the brand's own */
 export function readSiteTheme(content: object | null | undefined): SiteTheme {
@@ -80,17 +71,15 @@ export function readSiteTheme(content: object | null | undefined): SiteTheme {
   return {
     palette: paletteOf(String(values.home_theme_palette ?? DEFAULT_THEME.palette)).key,
     display: choose(DISPLAY_FONTS, values.home_theme_display).key,
-    script: choose(SCRIPT_FONTS, values.home_theme_script).key,
     body: choose(BODY_FONTS, values.home_theme_body).key,
   };
 }
 
 /**
- * The CSS variables to set for a theme: the brand colours, and the brand's three font variables
- * pointed at the chosen fonts (globals.css maps font-display, font-script and font-sans to
- * --font-gloock, --font-luxurious-script and --font-noto-sans, so setting those to the chosen
- * fonts swaps every
- * heading, accent and body text). Nothing for the brand's own choices.
+ * The CSS variables to set for a theme: the brand colours, and the brand's display and body font
+ * variables pointed at the chosen fonts (globals.css maps font-display and font-sans to
+ * --font-gloock and --font-noto-sans, so setting those to the chosen fonts swaps every
+ * heading and body text). Nothing for the brand's own choices.
  */
 export function themeVariables(theme: SiteTheme): Record<string, string> {
   const vars: Record<string, string> = {};
@@ -106,7 +95,6 @@ export function themeVariables(theme: SiteTheme): Record<string, string> {
   }
   const roles: [FontChoice[], keyof SiteTheme, string][] = [
     [DISPLAY_FONTS, "display", "--font-gloock"],
-    [SCRIPT_FONTS, "script", "--font-luxurious-script"],
     [BODY_FONTS, "body", "--font-noto-sans"],
   ];
   for (const [list, role, brandVariable] of roles) {

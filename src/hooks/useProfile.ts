@@ -238,6 +238,7 @@ export function useProfile() {
         preferred_contact_method: formData.preferred_contact_method ?? "",
         facebook_handle: cleanHandle("facebook_handle", formData.facebook_handle ?? ""),
         instagram_handle: cleanHandle("instagram_handle", formData.instagram_handle ?? ""),
+        tiktok_handle: cleanHandle("tiktok_handle", formData.tiktok_handle ?? ""),
       };
       if (contact.alt_phone && !/^[+\d\s()-]+$/.test(contact.alt_phone)) {
         setError("Please enter a valid other phone number, or leave it empty.");

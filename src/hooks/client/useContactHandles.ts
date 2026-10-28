@@ -9,7 +9,9 @@ type SaveStatus = "idle" | "saving" | "saved" | "error";
 // Saved this long after the client stops typing (or at once when they leave the field)
 const SAVE_DELAY_MS = 1000;
 
-// The booking step's Instagram/Facebook fields: asked only of a client whose profile has none,
+const emptyValues = Object.fromEntries(SOCIAL_HANDLE_FIELDS.map(({ key }) => [key, ""])) as Record<Handle, string>;
+
+// The booking step's Instagram/Facebook/TikTok fields: asked only of a client whose profile has none,
 // and saved to the profile as they're typed, so the salon can reach them about the visit. Takes
 // the signed-in user from useBooking, which already has them.
 export function useContactHandles(clerkId: string | undefined, getToken: GetToken) {
@@ -20,10 +22,10 @@ export function useContactHandles(clerkId: string | undefined, getToken: GetToke
   const [asked, setAsked] = useState<Handle[] | null>(null);
   if (asked === null && profile) setAsked(SOCIAL_HANDLE_FIELDS.filter(({ key }) => !profile[key]).map(({ key }) => key));
 
-  const [values, setValues] = useState<Record<Handle, string>>({ instagram_handle: "", facebook_handle: "" });
-  const [status, setStatus] = useState<Record<Handle, SaveStatus>>({ instagram_handle: "idle", facebook_handle: "idle" });
+  const [values, setValues] = useState<Record<Handle, string>>(emptyValues);
+  const [status, setStatus] = useState<Record<Handle, SaveStatus>>(() => Object.fromEntries(SOCIAL_HANDLE_FIELDS.map(({ key }) => [key, "idle"])) as Record<Handle, SaveStatus>);
   const latest = useRef(values);
-  const savedValue = useRef<Record<Handle, string>>({ instagram_handle: "", facebook_handle: "" });
+  const savedValue = useRef<Record<Handle, string>>(emptyValues);
   const timers = useRef<Partial<Record<Handle, ReturnType<typeof setTimeout>>>>({});
 
   // One save at a time per field, so an older value can never land after a newer one

@@ -41,6 +41,7 @@ const CONTACT_FIELD_ALIASES = {
   preferred_contact_method: "preferredContactMethod",
   facebook_handle: "facebookHandle",
   instagram_handle: "instagramHandle",
+  tiktok_handle: "tiktokHandle",
 } as const;
 type ContactColumn = keyof typeof CONTACT_FIELD_ALIASES;
 
@@ -52,7 +53,7 @@ function parseContactFields(body: Body): { fields: Partial<Record<ContactColumn,
     const raw = body?.[column] !== undefined ? body[column] : body?.[alias];
     if (raw === undefined) continue;
     let value = raw === null ? "" : String(raw).trim();
-    if (column === "instagram_handle") value = value.replace(/^@+/, "");
+    if (column === "instagram_handle" || column === "tiktok_handle") value = value.replace(/^@+/, "");
     if (!value) {
       fields[column] = null;
       continue;
@@ -92,7 +93,7 @@ export const listDirectory = ported(async () => {
       coalesce(ap.first_name, cp.first_name, '') as "firstName", coalesce(ap.last_name, cp.last_name, '') as "lastName",
       u.email, cp.phone as "phoneNumber", cp.alt_phone as "altPhone",
       cp.preferred_contact_method as "preferredContactMethod", cp.facebook_handle as "facebookHandle",
-      cp.instagram_handle as "instagramHandle", u.role
+      cp.instagram_handle as "instagramHandle", cp.tiktok_handle as "tiktokHandle", u.role
     from users u
     left join admin_profiles ap on u.id = ap.user_id
     left join customer_profiles cp on u.id = cp.user_id
@@ -345,7 +346,7 @@ export const listAdmins = ported(async (req) => {
 const profileRow = async (clerkId: string) => {
   const [row] = await getSql()<{ created_at: string; phone: string | null; dob: string | null }[]>`
     select u.*, cp.first_name, cp.last_name, cp.phone, cp.dob, cp.gender, cp.stamps, cp.alt_phone,
-      cp.preferred_contact_method, cp.facebook_handle, cp.instagram_handle
+      cp.preferred_contact_method, cp.facebook_handle, cp.instagram_handle, cp.tiktok_handle
     from users u left join customer_profiles cp on u.id = cp.user_id
     where u.clerk_id = ${clerkId}
   `;

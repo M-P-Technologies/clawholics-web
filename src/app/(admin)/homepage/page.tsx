@@ -10,7 +10,7 @@ import footerLogo from "@/assets/logo/logo-pink-transparent.png";
 import { useHomeEditor } from "@/hooks/admin/useHomeEditor";
 import { HOME_PREVIEW_PAGES } from "@/lib/admin/cmsPages";
 import { FEATURE_ICONS, FEATURE_TEXT_MAX, FEATURE_TITLE_MAX, MAX_STRIP_SLIDES, SITE_LINK_OPTIONS } from "@/lib/homeSections";
-import { BODY_FONTS, DISPLAY_FONTS, SCRIPT_FONTS } from "@/lib/siteTheme";
+import { BODY_FONTS, DISPLAY_FONTS } from "@/lib/siteTheme";
 
 // Everything on the home page that isn't edited elsewhere, top to bottom, and the footer of every
 // page, beside a live preview. (The studio gallery's photos are edited in About Us.) The blocks
@@ -36,7 +36,6 @@ export default function Homepage() {
       <PanelSection title="Look" description="The colours and fonts of the whole public site. The preview shows each choice straight away." page="/">
         <PalettePicker value={t.home_theme_palette} onChange={setText("home_theme_palette")} />
         <FontPicker label="Display font (headings)" fonts={DISPLAY_FONTS} value={t.home_theme_display} onChange={setText("home_theme_display")} sample="Clawholics nails" size="large" />
-        <FontPicker label="Script font (accents)" fonts={SCRIPT_FONTS} value={t.home_theme_script} onChange={setText("home_theme_script")} sample="by Max" size="large" />
         <FontPicker label="Body font (text and buttons)" fonts={BODY_FONTS} value={t.home_theme_body} onChange={setText("home_theme_body")} sample="Book your next set in a few taps." size="small" />
       </PanelSection>
 
