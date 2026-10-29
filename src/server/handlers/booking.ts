@@ -263,14 +263,7 @@ export const createAdminBooking = ported(async (req) => {
 
   const appt = await getAppointment(createdId);
   if (appt) {
-    inBackground("walk-in confirmation email", () =>
-      sendConfirmationEmail({
-        appointment_id: appt.id, payment_id: "WALK-IN", user_id: appt.user_id, customer_email: appt.email,
-        customer_name: appt.client_name, nailist_name: appt.nailist_name, service_name: appt.service_name,
-        service_price: appt.service_price, duration: appt.duration, appointment_date: appt.appointment_date,
-        appointment_time: appt.appointment_time, payment_method: "WALK-IN", service_id: appt.service_id, nailist_id: appt.nailist_id,
-      }),
-    );
+    inBackground("walk-in confirmation email", () => sendConfirmationEmail(appt, { walkIn: true }));
   }
   return Response.json(appt, { status: 201 });
 });
@@ -491,8 +484,7 @@ export const rescheduleAppointment = ported<IdContext>(async (req, { params }) =
     sendRescheduleEmails({
       email: oldAppt.email || "", name: oldAppt.client_name || "Client", service: oldAppt.service_name,
       oldDate: oldAppt.appointment_date, oldTime: oldAppt.appointment_time, newDate, newTime: slot.time,
-      artist: oldAppt.nailist_name, appointmentId: id, userId: oldAppt.user_id,
-      serviceId: oldAppt.service_id, nailistId: oldAppt.nailist_id,
+      artist: oldAppt.nailist_name, appointmentId: id, byClient: requester.role !== "admin",
     }),
   );
   return Response.json({ message: "Rescheduled", appointment: updated });
@@ -583,8 +575,7 @@ export const refundAppointment = ported<IdContext>(async (_req, { params }) => {
     sendCancellationEmails({
       email: app.email || "", name: app.client_name || "Client", service: app.service_name,
       date: app.appointment_date, time: app.appointment_time, artist: app.nailist_name, status: finalStatus,
-      appointmentId: app.id, userId: app.user_id, serviceId: app.service_id, nailistId: app.nailist_id,
-      isLateCancellation, manualRefundAmount,
+      appointmentId: app.id, isLateCancellation, manualRefundAmount, byClient: requester.role !== "admin",
     }),
   );
   return Response.json({ message: `Appointment ${finalStatus.toLowerCase()} successfully.`, status: finalStatus });
