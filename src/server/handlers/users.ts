@@ -12,7 +12,7 @@ import {
   syncUserToClerk,
 } from "../clerkSync";
 import { getSql } from "../db";
-import { sendLoyaltyRewardEmails } from "../email";
+import { sendLoyaltyRewardEmail } from "../email";
 import { inBackground, orNull, pgErrorCode, readJson, routeNotFound, toId } from "../http";
 import { getLoyaltyStampsRequired } from "../loyalty";
 import { ported } from "../worker";
@@ -480,11 +480,11 @@ export const getUserAppointments = ported(async (req) => {
 function emailLoyaltyReward(clerkId: string, stampsRequired?: number) {
   inBackground("loyalty email", async () => {
     const stamps = stampsRequired ?? (await getLoyaltyStampsRequired());
-    const [client] = await getSql()<{ first_name: string; last_name: string; email: string; id: number }[]>`
-      select cp.first_name, cp.last_name, u.email, u.id
+    const [client] = await getSql()<{ first_name: string; last_name: string; email: string }[]>`
+      select cp.first_name, cp.last_name, u.email
       from users u join customer_profiles cp on u.id = cp.user_id where u.clerk_id = ${clerkId}
     `;
-    if (client?.email) await sendLoyaltyRewardEmails(client.email, `${client.first_name} ${client.last_name}`.trim(), client.id, stamps);
+    if (client?.email) await sendLoyaltyRewardEmail(client.email, `${client.first_name} ${client.last_name}`.trim(), stamps);
   });
 }
 

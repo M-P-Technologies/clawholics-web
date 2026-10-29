@@ -3,7 +3,7 @@ import { cancelExpiredPendingAppointments, getAppointment, isSlotConflict } from
 import { slotTaken } from "../slotRules";
 import { canAccess, requireAdmin, requireUserRow, type RequesterUser } from "../auth";
 import { getSql } from "../db";
-import { sendAppointmentConfirmation, sendPaymentProofAdminEmail } from "../email";
+import { sendAppointmentConfirmation } from "../email";
 import { notifyAdmins } from "../notifications";
 import { inBackground, readJson, routeNotFound, toId } from "../http";
 import {
@@ -257,7 +257,6 @@ export const uploadPaymentProof = ported(async (req) => {
     insert into payment_proofs (appointment_id, user_id, image_url) values (${appointmentId}, ${requester.id}, ${imageUrl})
     returning *
   `;
-  inBackground("payment proof email", () => sendPaymentProofAdminEmail(appt, proof.id, imageUrl));
   inBackground("admin notification", () => notifyAdmins("proof_uploaded", proof.id, appointmentId));
   return Response.json(proof, { status: 201 });
 });
