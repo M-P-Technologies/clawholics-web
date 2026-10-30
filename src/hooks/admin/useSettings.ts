@@ -10,7 +10,7 @@ import { PUBLIC } from "../../lib/publicQueries";
 import { fromForm, sameForm, settingsProblem, toForm, type SettingsForm } from "../../lib/admin/settings";
 import { fetchSettings, updateSettings, type SalonSettings } from "../../services/settingsService";
 
-const EMPTY_FORM: SettingsForm = { downpayment: "", methods: [], birthdayPct: "", stampsRequired: "", holdMinutes: "", noticeHours: "", reminders: true };
+const EMPTY_FORM: SettingsForm = { downpayment: "", methods: [], birthdayPct: "", stampsRequired: "", holdMinutes: "", noticeHours: "", advanceDays: "", reminders: true, rebookDays: "" };
 
 // Admin > Settings: the salon's settings, loaded, edited in one form and saved together
 export function useSettings() {
@@ -93,6 +93,8 @@ export function useSettings() {
     setStampsRequired: (value: string) => set("stampsRequired", value),
     setHoldMinutes: (value: string) => set("holdMinutes", value),
     setNoticeHours: (value: string) => set("noticeHours", value),
+    setAdvanceDays: (value: string) => set("advanceDays", value),
+    setRebookDays: (value: string) => set("rebookDays", value),
     toggleReminders: () => setForm((f) => ({ ...f, reminders: !f.reminders })),
     toggleMethod,
     save,

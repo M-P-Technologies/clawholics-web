@@ -23,6 +23,7 @@ import { notifyAdmins } from "../notifications";
 import { createXenditRefund, expireXenditInvoice, getXenditInvoices } from "../payments";
 import { getBookingHoldMinutes } from "../bookingHold";
 import { getBookingMinNoticeHours } from "../bookingNotice";
+import { getBookingMaxAdvanceDays } from "../bookingWindow";
 import { checkSlot, hasStarted, normalizeSlot } from "../slotRules";
 import { ported } from "../worker";
 import { releaseVoucherOf } from "../birthdayVouchers";
@@ -83,8 +84,9 @@ export const getBookedSlots = ported(async (req) => {
 });
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
-/** The longest range /booking/slots-range answers, in days: the booking calendar asks for a month */
-const MAX_SLOTS_RANGE_DAYS = 62;
+/** The longest range /booking/slots-range answers, in days: the booking calendar asks for as far ahead as the booking
+ *  window allows (at most a year, see lib/bookingWindow.ts) */
+const MAX_SLOTS_RANGE_DAYS = 400;
 
 // GET /booking/slots-range?nailist_id=&from=YYYY-MM-DD&to=YYYY-MM-DD (public): the taken times
 // of every day in the range in one query, for the booking calendar's fully booked days (it used
@@ -141,6 +143,7 @@ export const createBooking = ported(async (req) => {
     date: String(b.appointment_date),
     time: String(b.appointment_time),
     minNoticeHours: await getBookingMinNoticeHours(),
+    maxAdvanceDays: await getBookingMaxAdvanceDays(),
   });
   if (!slot.ok) {
     return slot.code === "SLOT_TAKEN"
@@ -478,6 +481,7 @@ export const rescheduleAppointment = ported<IdContext>(async (req, { params }) =
     time: newTime,
     excludeAppointmentId: id,
     minNoticeHours: isAdmin ? 0 : await getBookingMinNoticeHours(),
+    maxAdvanceDays: isAdmin ? undefined : await getBookingMaxAdvanceDays(),
   });
   if (!slot.ok) return Response.json({ code: slot.code, message: slot.message }, { status: slot.status });
 

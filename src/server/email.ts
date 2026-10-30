@@ -70,7 +70,7 @@ async function sendAll(sends: (Promise<unknown> | null)[]) {
  * Up to 100 emails in one Resend call (its batch endpoint). Throws if Resend refuses the batch or
  * there is no key, so the caller can keep them for another try.
  */
-async function sendEmailBatch(emails: { to: string; subject: string; html: string }[]) {
+async function sendEmailBatch(emails: { to: string; subject: string; html: string; headers?: Record<string, string> }[]) {
   const key = process.env.RESEND_API_KEY;
   if (!key) throw new Error("RESEND_API_KEY missing");
   const res = await fetch("https://api.resend.com/emails/batch", {
@@ -270,10 +270,12 @@ interface ClientEmail {
   reminders?: boolean;
   /** The day-before reminder's "Before your visit" box, instead of the confirmation's */
   dayBefore?: boolean;
+  /** A promotional email: the link that turns these emails off, in the footer */
+  unsubscribeUrl?: string;
   location: SalonLocation;
 }
 
-function clientEmailHtml({ title, name, message, preview, details, cta, calendarUrl, calendarAttached = false, reminders = false, dayBefore = false, location }: ClientEmail) {
+function clientEmailHtml({ title, name, message, preview, details, cta, calendarUrl, calendarAttached = false, reminders = false, dayBefore = false, unsubscribeUrl, location }: ClientEmail) {
   const address = escapeHtml(location.text);
   const body = `
     ${eyebrow(title)}
@@ -287,7 +289,8 @@ function clientEmailHtml({ title, name, message, preview, details, cta, calendar
   const footer = `
     <p style="margin: 0 0 6px 0;">📍 ${location.url ? `<a href="${escapeHtml(location.url)}" style="${LINK}">${address}</a>` : address}</p>
     <p style="margin: 0 0 6px 0;">Questions? Reply to this email or <a href="${SITE}/contact" style="${LINK}">contact us</a>.</p>
-    <p style="margin: 0;"><a href="${SITE}/terms" style="${LINK}">Terms</a> &nbsp;·&nbsp; <a href="${SITE}/faq" style="${LINK}">FAQs</a> &nbsp;·&nbsp; <a href="${SITE}" style="${LINK}">clawholicsbymax.com</a></p>`;
+    <p style="margin: 0 0 6px 0;"><a href="${SITE}/terms" style="${LINK}">Terms</a> &nbsp;·&nbsp; <a href="${SITE}/faq" style="${LINK}">FAQs</a> &nbsp;·&nbsp; <a href="${SITE}" style="${LINK}">clawholicsbymax.com</a></p>
+    ${unsubscribeUrl ? `<p style="margin: 0;">Don't want reminders to rebook? <a href="${escapeHtml(unsubscribeUrl)}" style="${LINK}">Unsubscribe</a>. You'll still get emails about your bookings.</p>` : ""}`;
   return emailDocument({ preview, title, body, footer });
 }
 
@@ -537,6 +540,46 @@ export async function sendAppointmentReminderEmails(
           location: location.text, manageUrl: MANAGE.href,
         }),
         dayBefore: true,
+        location,
+      }),
+    })),
+  );
+}
+
+/**
+ * The rebooking emails, one per client, in Resend batches: some days after a completed visit, asking
+ * if they're ready for their next set. A promotional email, so each carries an unsubscribe link (in
+ * the footer and as the List-Unsubscribe header mail apps show). Throws if Resend refuses the batch
+ * or a client has no unsubscribe link, so the caller can put the visits back for another try.
+ */
+export async function sendRebookNudgeEmails(
+  visits: {
+    user_id: number; email: string; first_name: string; service_id: number; service_name: string; nailist_name: string;
+    appointment_date: string; daysSince: number; unsubscribeUrl: string | null;
+  }[],
+) {
+  if (visits.some((v) => !v.unsubscribeUrl)) throw new Error("No unsubscribe link: refusing to send a promotional email without one");
+  const location = await salonLocation();
+  await sendEmailBatch(
+    visits.map((v) => ({
+      to: v.email,
+      subject: "Ready for your next set? | Clawholics by Max",
+      headers: { "List-Unsubscribe": `<${v.unsubscribeUrl}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
+      html: clientEmailHtml({
+        title: "Time for your next set?",
+        name: v.first_name || "there",
+        message: `It's been ${v.daysSince} days since your <strong style="color: ${BRAND.ink};">${escapeHtml(v.service_name)}</strong> with ${escapeHtml(v.nailist_name)}. Ready for your next set? Pick a day that suits you, and we'll have your chair ready.`,
+        preview: `It's been ${v.daysSince} days since your ${v.service_name}: ready for your next set?`,
+        details: {
+          heading: "Your last visit",
+          rows: [
+            ["Service", v.service_name],
+            ["Artist", v.nailist_name],
+            ["Date", longDate(v.appointment_date)],
+          ],
+        },
+        cta: { label: "Book your next visit", href: `${SITE}/services/${v.service_id}` },
+        unsubscribeUrl: v.unsubscribeUrl ?? undefined,
         location,
       }),
     })),

@@ -2,6 +2,8 @@ import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useBooking } from "@/hooks/client/useBooking";
 import { bookingStateFor } from "@/utils/booking";
+import { manilaToday } from "@/lib/bookingNotice";
+import { DEFAULT_MAX_ADVANCE_DAYS, addDays } from "@/lib/bookingWindow";
 
 const location: { state: unknown } = { state: null };
 const fetchBookedSlotsRange = vi.fn();
@@ -42,8 +44,6 @@ const service = {
   image: "",
 };
 
-const ymd = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-
 beforeEach(() => {
   vi.clearAllMocks();
   fetchBookedSlotsDetailed.mockResolvedValue([]);
@@ -63,9 +63,8 @@ describe("booking calendar", () => {
 
     await waitFor(() => expect(result.current.fullyBookedDates).toEqual(["2099-02-01"]));
     expect(fetchBookedSlotsRange).toHaveBeenCalledTimes(1);
-    const end = new Date();
-    end.setMonth(end.getMonth() + 1);
-    expect(fetchBookedSlotsRange).toHaveBeenCalledWith(3, ymd(new Date()), ymd(end));
+    // From today through the booking window (30 days until Admin > Settings says otherwise), in Manila time
+    expect(fetchBookedSlotsRange).toHaveBeenCalledWith(3, manilaToday(), addDays(manilaToday(), DEFAULT_MAX_ADVANCE_DAYS));
     // The per-day request is only for the day the client picks
     expect(fetchBookedSlotsDetailed).not.toHaveBeenCalled();
   });

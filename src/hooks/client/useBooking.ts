@@ -17,6 +17,7 @@ import { type Nailist, type BookingState, parseTimeRange } from "@/utils/booking
 import { CLIENT_PATHS } from "@/lib/client/clientNav";
 import { longDateLabel, timeRangeLabel } from "@/lib/timeFormat";
 import { DEFAULT_MIN_NOTICE_HOURS, manilaToday, noticeText, startsTooSoon } from "@/lib/bookingNotice";
+import { DEFAULT_MAX_ADVANCE_DAYS, daysLabel, lastBookableDay, monthsAheadFor } from "@/lib/bookingWindow";
 
 export function useBooking() {
   const navigate = useNavigate();
@@ -48,10 +49,16 @@ export function useBooking() {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
 
+  // The notice a booking needs and how far ahead one can be made, set in Admin > Settings (the
+  // server enforces them too). Until they load, the defaults, which the server uses when none are saved.
+  const bookingSettings = useQuery(publicQueries.bookingSettings());
+  const minNotice = bookingSettings.data?.min_notice_hours ?? DEFAULT_MIN_NOTICE_HOURS;
+  const maxAdvance = bookingSettings.data?.max_advance_days ?? DEFAULT_MAX_ADVANCE_DAYS;
+
   // The artist's hours, days off, fully booked days and the chosen day's taken times, shared
   // with the other booking screens (lib/bookingQueries)
   const { timeSlots, dayOffs, customOffs, fullyBookedDates, bookedSlots, isDayFullyBooked, fetchTakenTimes } =
-    useArtistAvailability(selectedNailist?.id, selectedDate);
+    useArtistAvailability(selectedNailist?.id, selectedDate, maxAdvance);
 
   const [month, setMonth] = useState(new Date());
 
@@ -134,9 +141,8 @@ export function useBooking() {
     // A day before today in Manila, where the salon is, whatever the visitor's own timezone
     if (toLocalDateString(date) < manilaToday()) return true;
 
-    const max = new Date();
-    max.setMonth(max.getMonth() + 1);
-    if (date > max) return true;
+    // Later than the booking window allows
+    if (toLocalDateString(date) > lastBookableDay(maxAdvance)) return true;
 
     if (selectedNailist) {
       if (dayOffs.includes(date.getDay())) return true;
@@ -168,12 +174,10 @@ export function useBooking() {
     return bookedSlots.some((b) => isOverlapping(b, slot));
   };
 
-  // The notice a booking needs, set in Admin > Settings (the server enforces it too). Until it
-  // loads, the default, which is what the server uses when none is saved.
-  const bookingSettings = useQuery(publicQueries.bookingSettings());
-  const minNotice = bookingSettings.data?.min_notice_hours ?? DEFAULT_MIN_NOTICE_HOURS;
-  /** "Bookings need at least 2 hours' notice.", or nothing when there's no minimum */
-  const noticeHint = minNotice > 0 ? `Bookings need at least ${noticeText(minNotice)}.` : "";
+  /** "Bookings need at least 2 hours' notice and open 30 days ahead." (the notice part left out when there's none) */
+  const rulesHint = `Bookings ${minNotice > 0 ? `need at least ${noticeText(minNotice)} and ` : ""}open up to ${daysLabel(maxAdvance)} ahead.`;
+  /** What the calendar lets the client page forward to: this month and this many after it */
+  const monthsAhead = monthsAheadFor(maxAdvance);
 
   // A time that has started, or starts sooner than the notice allows, in Manila time
   const isTooSoon = (slot: string) => !!selectedDate && startsTooSoon(selectedDate, slot, minNotice);
@@ -363,5 +367,5 @@ export function useBooking() {
   const closeModal = () => setModalOpen(false);
   const reloadPage = () => window.location.reload();
 
-  return { priceLabel, pageData, isPageLoading, pageError, nailists, loadingArtists, selectedNailist, setSelectedNailist, selectedDate, setSelectedDate, selectedTime, setSelectedTime, timeSlots, fullyBookedDates, month, setMonth, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, pricing_type, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, selectedPrice, locationUrl, locationText, isDayFullyBooked, isDisabledDate, toLocalDate, toLocalDateString, isTimeBlocked, isTooSoon, noticeHint, formatSlot, showModal, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage, contactFields };
+  return { priceLabel, pageData, isPageLoading, pageError, nailists, loadingArtists, selectedNailist, setSelectedNailist, selectedDate, setSelectedDate, selectedTime, setSelectedTime, timeSlots, fullyBookedDates, month, setMonth, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, pricing_type, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, selectedPrice, locationUrl, locationText, isDayFullyBooked, isDisabledDate, toLocalDate, toLocalDateString, isTimeBlocked, isTooSoon, rulesHint, monthsAhead, formatSlot, showModal, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage, contactFields };
 }

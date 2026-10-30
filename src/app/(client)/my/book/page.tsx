@@ -14,7 +14,7 @@ import { BookingStepSkeleton, FieldSkeleton } from "@/components/features/client
 import { useBooking } from "@/hooks/client/useBooking";
 
 export default function Booking() {
-  const { noticeHint, priceLabel, pageData, isPageLoading, pageError, nailists, loadingArtists, selectedNailist, selectedDate, selectedTime, setSelectedTime, timeSlots, month, setMonth, modalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, locationUrl, locationText, isDisabledDate, formatSlot, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage, contactFields } = useBooking();
+  const { rulesHint, monthsAhead, priceLabel, pageData, isPageLoading, pageError, nailists, loadingArtists, selectedNailist, selectedDate, selectedTime, setSelectedTime, timeSlots, month, setMonth, modalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, locationUrl, locationText, isDisabledDate, formatSlot, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage, contactFields } = useBooking();
 
   // Inside the same frame as the loaded step, so the top bar and its back button stay put
   if (isPageLoading) {
@@ -107,14 +107,14 @@ export default function Booking() {
 
             <div className="flex flex-col gap-3">
               <SectionHeader size="label" title="Pick date & time" />
-              {noticeHint && <p className="text-xs text-gray-red">{noticeHint}</p>}
+              <p className="text-xs text-gray-red">{rulesHint}</p>
               {/* Side by side only when this column itself is wide enough (the two blocks need about 565px);
                   a screen-width breakpoint is wrong here, since beside the summary card the column is narrower. */}
               <div className="@container">
               <div className="flex flex-col gap-3 @xl:flex-row">
                 <div className={clsx(surface.tint, "flex items-center justify-center p-3")}>
                   <DayCalendar
-                    monthsAhead={1}
+                    monthsAhead={monthsAhead}
                     month={month}
                     onMonthChange={setMonth}
                     selected={selectedDay}

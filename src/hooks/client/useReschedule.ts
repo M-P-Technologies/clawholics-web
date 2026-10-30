@@ -4,6 +4,7 @@ import { useUser, useAuth } from "@clerk/nextjs";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { publicQueries } from "@/lib/publicQueries";
 import { DEFAULT_MIN_NOTICE_HOURS, manilaToday, startsTooSoon } from "@/lib/bookingNotice";
+import { DEFAULT_MAX_ADVANCE_DAYS, lastBookableDay, monthsAheadFor } from "@/lib/bookingWindow";
 import { rescheduleAppointment } from "@/services/bookingService";
 import { ACCOUNT } from "@/lib/accountQueries";
 import { formatSlot, isOverlapping, toLocalDate, toLocalDateString } from "@/utils/reschedule";
@@ -27,10 +28,16 @@ export function useReschedule() {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const queryClient = useQueryClient();
-  // The artist's hours, days off, the next month's fully booked days (one request) and the chosen
-  // day's taken times, shared with booking (lib/bookingQueries)
+  // A new time needs the same notice, and falls within the same window, as a new booking (Admin >
+  // Settings; the server enforces both too). Until they load, the defaults, which the server uses
+  // when none are saved.
+  const bookingSettings = useQuery(publicQueries.bookingSettings());
+  const minNotice = bookingSettings.data?.min_notice_hours ?? DEFAULT_MIN_NOTICE_HOURS;
+  const maxAdvance = bookingSettings.data?.max_advance_days ?? DEFAULT_MAX_ADVANCE_DAYS;
+  // The artist's hours, days off, the fully booked days within the window (one request) and the
+  // chosen day's taken times, shared with booking (lib/bookingQueries)
   const { timeSlots, dayOffs, customOffs, fullyBookedDates, bookedSlots, isDayFullyBooked, fetchTakenTimes } =
-    useArtistAvailability(appointment?.nailist_id, selectedDate);
+    useArtistAvailability(appointment?.nailist_id, selectedDate, maxAdvance);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
@@ -91,9 +98,8 @@ export function useReschedule() {
     // A day before today in Manila, where the salon is, whatever the visitor's own timezone
     if (toLocalDateString(date) < manilaToday()) return true;
 
-    const max = new Date();
-    max.setMonth(max.getMonth() + 1);
-    if (date > max) return true;
+    // Later than the booking window allows
+    if (toLocalDateString(date) > lastBookableDay(maxAdvance)) return true;
 
     if (dayOffs.includes(date.getDay())) return true;
     const formatted = toLocalDateString(date);
@@ -108,11 +114,9 @@ export function useReschedule() {
   const isTimeBlocked = (slot: string) =>
     bookedSlots.some((b) => isOverlapping(b, slot));
 
-  // A new time needs the same notice as a new booking (Admin > Settings; the server enforces it too).
-  // Until it loads, the default, which is what the server uses when none is saved.
-  const bookingSettings = useQuery(publicQueries.bookingSettings());
-  const minNotice = bookingSettings.data?.min_notice_hours ?? DEFAULT_MIN_NOTICE_HOURS;
   const isTooSoon = (slot: string) => !!selectedDate && startsTooSoon(selectedDate, slot, minNotice);
+  /** What the calendar lets the client page forward to: this month and this many after it */
+  const monthsAhead = monthsAheadFor(maxAdvance);
 
   const showModal = (title: string, message: string, action?: () => void) => {
     setModalTitle(title);
@@ -205,5 +209,5 @@ export function useReschedule() {
   // The summary's old and new date and time
   const labels = rescheduleLabels(appointment, selectedDate, selectedTime, formatDisplayDate);
 
-  return { formatSlot, ...labels, isLoaded, appointment, isSubmitting, month, setMonth, selectedDate, setSelectedDate, selectedTime, setSelectedTime, timeSlots, fullyBookedDates, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, isDisabledDate, formatDisplayDate, isTimeBlocked, isTooSoon, showModal, handleConfirmReschedule, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, uniqueTimeSlots, handleModalClose };
+  return { formatSlot, ...labels, isLoaded, appointment, isSubmitting, month, setMonth, selectedDate, setSelectedDate, selectedTime, setSelectedTime, timeSlots, fullyBookedDates, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, isDisabledDate, formatDisplayDate, isTimeBlocked, isTooSoon, monthsAhead, showModal, handleConfirmReschedule, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, uniqueTimeSlots, handleModalClose };
 }

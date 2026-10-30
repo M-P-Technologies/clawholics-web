@@ -12,8 +12,12 @@ export interface SalonSettings {
   booking_hold_minutes: number;
   /** How many hours before its start a slot stops being bookable by clients */
   booking_min_notice_hours: number;
+  /** How many days ahead a client can book */
+  booking_max_advance_days: number;
   /** Whether clients get a reminder email the day before their visit */
   booking_reminders_enabled: boolean;
+  /** Days after a completed visit that a client is asked to rebook by email; 0 is off */
+  rebook_nudge_days: number;
 }
 
 const getHeaders = (token?: string | null) => ({
@@ -29,8 +33,8 @@ export const fetchLoyaltySettings = async (): Promise<{ stamps_required: number 
   return res.json();
 };
 
-/** The notice a booking needs, in hours (public: the booking calendar applies it) */
-export const fetchBookingSettings = async (): Promise<{ min_notice_hours: number }> => {
+/** The notice a booking needs (hours) and how far ahead one can be made (days); public: the booking calendars apply them */
+export const fetchBookingSettings = async (): Promise<{ min_notice_hours: number; max_advance_days: number }> => {
   const res = await fetch(`${API_BASE_URL}/settings/booking`, { headers: getHeaders() });
   if (!res.ok) throw new Error("Failed to load the booking settings");
   return res.json();

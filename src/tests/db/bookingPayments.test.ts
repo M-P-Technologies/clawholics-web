@@ -143,6 +143,36 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       }
     });
 
+    it("TC-BK-02c: a client can't book beyond the window (30 days by default); an admin walk-in can", async () => {
+      vi.useFakeTimers({ toFake: ["Date"] });
+      // 15 June 2098, 09:30 in Manila: the last bookable day is 15 July
+      vi.setSystemTime(new Date(Date.UTC(2098, 5, 15, 1, 30)));
+      try {
+        const far = await book("user_a", "2098-08-30", "12:00-13:00");
+        expect(far.status).toBe(400);
+        expect(far.body.code).toBe("TOO_FAR");
+        expect(far.body.message).toMatch(/30 days ahead/);
+
+        const lastDay = await book("user_a", "2098-07-15", "12:00-13:00");
+        expect(lastDay.status).toBe(200);
+
+        as("user_admin");
+        const walkin = await callRoute(booking.createAdminBooking, "/api/booking/admin/create", {
+          method: "POST",
+          body: { first_name: "Walk", last_name: "In", phone: "0917", service_id: serviceId, nailist_id: nailistId, appointment_date: "2098-08-30", appointment_time: "12:00-13:00" },
+        });
+        expect(walkin.status).toBe(201);
+
+        // Widening the window opens the date to a client again
+        await db`insert into site_settings (key, value) values ('booking_max_advance_days', '90') on conflict (key) do update set value = '90'`;
+        const widened = await book("user_b", "2098-08-30", "13:00-14:00");
+        expect(widened.status).toBe(200);
+      } finally {
+        vi.useRealTimers();
+        await db`delete from site_settings where key = 'booking_max_advance_days'`;
+      }
+    });
+
     it("TC-BK-03: one unpaid booking per client, and one active booking per slot", async () => {
       const date = nextDate();
       expect((await book("user_a", date)).status).toBe(200);

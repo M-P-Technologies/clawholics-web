@@ -31,6 +31,7 @@ const state = () => ({
   handleArtistChange: vi.fn(), handleDateSelect: vi.fn(), selectedDay: new Date(now.getFullYear(), now.getMonth(), 20),
   isDateFullyBooked: () => false, isSlotBlocked: (s: string) => s === "13:00-15:00",
   closeModal: vi.fn(), reloadPage: vi.fn(), contactFields: [],
+  rulesHint: "Bookings need at least 2 hours' notice and open up to 30 days ahead.", monthsAhead: 1,
 });
 
 let s: ReturnType<typeof state>;
@@ -47,6 +48,11 @@ describe("booking step", () => {
     expect(screen.getByRole("button", { name: "Back" })).toBeInTheDocument();
     expect(screen.getByRole("status", { name: "Loading booking details" })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Book your visit" })).toBeNull();
+  });
+
+  it("tells the client how much notice a booking needs and how far ahead it can be made", () => {
+    render(<Booking />);
+    expect(screen.getByText("Bookings need at least 2 hours' notice and open up to 30 days ahead.")).toBeInTheDocument();
   });
 
   it("shows the artist field as a placeholder while the artists load", () => {
