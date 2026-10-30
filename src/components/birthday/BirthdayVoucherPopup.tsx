@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Cake } from "lucide-react";
 import { Button } from "@/components/atoms";
+import { Dialog } from "@/components/organisms";
 import { useLocation } from "@/lib/router";
 import { useBirthdayVoucher } from "../../hooks/useBirthdayVoucher";
 import { CLAIMED_HINT, voucherUntil } from "./voucherText";
@@ -48,17 +49,20 @@ export default function BirthdayVoucherPopup() {
   const close = () => setOpenId(-1);
 
   return (
-    <div className="fixed inset-0 z-999 flex items-end justify-center bg-gray-red/40 px-9 backdrop-blur-sm drawer-backdrop sm:items-center max-sm:p-0">
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="birthday-popup-title"
-        className="flex w-full max-w-md flex-col items-center gap-3 rounded-2xl border border-crimson-light/40 bg-light-orange p-6 text-center text-gray-red shadow-2xl shadow-crimson/20 drawer-panel md:p-9 max-sm:max-h-[90vh] max-sm:max-w-none max-sm:overflow-y-auto max-sm:rounded-t-md max-sm:rounded-b-none"
-      >
-        <Cake size={36} aria-hidden="true" className="text-berry" />
-        <h2 id="birthday-popup-title" className="font-display text-2xl uppercase tracking-widest text-gray-red">
-          Happy birthday!
-        </h2>
+    <Dialog
+      open
+      onClose={close}
+      title="Happy birthday!"
+      size="md"
+      hideClose
+      header={
+        <div className="flex flex-col items-center gap-3 text-center">
+          <Cake size={36} aria-hidden="true" className="text-berry" />
+          <h2 className="font-display text-2xl uppercase tracking-widest text-gray-red">Happy birthday!</h2>
+        </div>
+      }
+    >
+      <div className="flex flex-col items-center gap-3 text-center">
         {claimed ? (
           <p className="leading-relaxed text-gray-red">
             It&apos;s yours: <strong className="font-mono tracking-wider text-berry">{voucher.code}</strong>. {CLAIMED_HINT} Valid until{" "}
@@ -83,6 +87,6 @@ export default function BirthdayVoucherPopup() {
           )}
         </div>
       </div>
-    </div>
+    </Dialog>
   );
 }
