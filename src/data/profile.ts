@@ -50,6 +50,14 @@ export const CONTACT_METHOD_OPTIONS = [
   { value: "sms", label: "Text message" },
   { value: "messenger", label: "Messenger" },
   { value: "instagram", label: "Instagram" },
+  { value: "tiktok", label: "TikTok" },
 ];
+
+/** The handle a social contact method needs; call and text use the phone number */
+export const CONTACT_METHOD_HANDLE: Partial<Record<string, SocialHandle>> = {
+  messenger: "facebook_handle",
+  instagram: "instagram_handle",
+  tiktok: "tiktok_handle",
+};
 
 export const contactMethodLabel = (value?: string | null) => CONTACT_METHOD_OPTIONS.find((option) => option.value && option.value === value)?.label ?? "";

@@ -46,13 +46,13 @@ type NativeAnchorProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, keyof But
 export type ButtonProps = ButtonOwnProps & NativeButtonProps & NativeAnchorProps;
 
 const BASE =
-  "inline-flex min-w-0 shrink-0 cursor-pointer items-center justify-center gap-3 whitespace-nowrap transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson";
+  "inline-flex min-w-0 shrink-0 cursor-pointer items-center justify-center gap-3 whitespace-nowrap transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crimson";
 
 const VARIANTS: Record<ButtonVariant, string> = {
   primary:
-    "rounded-md bg-crimson font-semibold text-light-orange shadow-md shadow-crimson/30 hover:bg-gray-red active:translate-y-px",
+    "rounded-md bg-crimson font-semibold text-light-orange shadow-md shadow-crimson/30 hover:bg-gray-red",
   secondary:
-    "rounded-md border border-crimson font-semibold text-crimson hover:bg-crimson hover:text-on-crimson active:translate-y-px",
+    "rounded-md border border-crimson font-semibold text-crimson hover:bg-crimson hover:text-on-crimson",
   bare: "",
 };
 
@@ -61,6 +61,15 @@ const SIZE_PADDING: Record<ButtonSize, string> = {
   md: "px-3 sm:px-4 py-2",
   sm: "px-3 py-1.5",
 };
+
+// The press answers on pointer-down and lets go quickly, so a tap feels connected to the finger.
+// A bare button is often a whole row or card, so it dips less.
+const PRESS: Record<ButtonVariant, string> = {
+  primary: "active:scale-[0.97] active:duration-100",
+  secondary: "active:scale-[0.97] active:duration-100",
+  bare: "active:scale-[0.98] active:duration-100",
+};
+const NO_PRESS = "disabled:active:scale-100 aria-disabled:active:scale-100 motion-reduce:active:scale-100";
 
 // States that every variant shares
 const STATES = "disabled:cursor-not-allowed disabled:opacity-50 aria-disabled:cursor-not-allowed aria-disabled:opacity-50";
@@ -91,6 +100,8 @@ export default function Button({
       VARIANTS[variant],
       variant !== "bare" && SIZE_PADDING[size],
       variant !== "bare" && BUTTON_TEXT[textSize],
+      PRESS[variant],
+      NO_PRESS,
       STATES,
       arrow && "group",
       fullWidth && "w-full",

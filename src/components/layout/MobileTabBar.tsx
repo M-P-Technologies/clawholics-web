@@ -18,7 +18,7 @@ const MORE_PATHS = ["/about", "/faq", "/contact", "/login", "/signup"];
 
 const tabClass = (active: boolean) =>
   clsx(
-    "flex min-w-0 flex-1 flex-col items-center justify-center gap-1 py-2 text-xs font-medium tracking-wide transition-colors",
+    "flex min-w-0 flex-1 flex-col items-center justify-center gap-1 py-2 text-xs font-medium tracking-wide transition-[color,background-color,border-color,transform] active:scale-95 active:duration-100 motion-reduce:active:scale-100",
     active ? "text-crimson-ink" : "text-gray-red hover:text-crimson-ink",
   );
 

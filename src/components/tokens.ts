@@ -20,14 +20,14 @@ export const nav = {
   /** A sidebar item: a pill, highlighted when it is the current screen */
   item: (active: boolean, collapsed: boolean) =>
     [
-      "w-full whitespace-normal rounded-full text-left text-sm leading-snug transition-colors",
+      "w-full whitespace-normal rounded-full text-left text-sm leading-snug transition-[color,background-color,border-color,transform]",
       collapsed ? "h-10 justify-center px-0" : "justify-start gap-3 px-3 py-1.5",
       active ? "bg-crimson-light/45 font-bold text-berry" : "text-gray-red hover:bg-crimson-light/25 hover:text-berry",
     ].join(" "),
   /** A phone tab */
   tab: (active: boolean) =>
     [
-      "flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-2xl py-2 text-xs font-medium tracking-wide transition-colors",
+      "flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-2xl py-2 text-xs font-medium tracking-wide transition-[color,background-color,border-color,transform]",
       active ? "bg-crimson-light/40 text-berry" : "text-gray-red hover:text-berry",
     ].join(" "),
 } as const;

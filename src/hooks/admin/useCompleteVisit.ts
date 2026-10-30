@@ -4,8 +4,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/molecules";
 import { adminDataChanged } from "../../lib/adminQueries";
 import { BALANCE_METHODS, RESERVATION_FEE, expectedBalance, lateFee, minutesLate, type BalanceMethod } from "../../lib/visitCompletion";
-import { saveCompletion, type VisitToComplete } from "../../services/completionService";
+import { saveCompletion, uploadVisitPhoto, type VisitToComplete } from "../../services/completionService";
 import { checkVoucherForVisit } from "../../services/voucherService";
+import { usePhotoPick } from "./usePhotoPick";
 
 const peso = (n: number) => `₱${n.toLocaleString("en-US")}`;
 const manilaToday = () => new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
@@ -34,7 +35,9 @@ export function useCompleteVisit(visit: VisitToComplete, onSaved?: () => void) {
   const [typedBalance, setTypedBalance] = useState<string | null>(saved ? String(saved.balance_amount) : null);
   const [method, setMethod] = useState<BalanceMethod>(saved?.payment_method ?? "Cash");
   const [artistId, setArtistId] = useState(String(saved?.nailist_id ?? visit.nailist_id ?? ""));
-  // The visit's photo is added afterwards, in its own window (VisitPhotoDialog)
+  // The visit's photo can be dropped in the form (optional), or added afterwards in its own window
+  // (VisitPhotoDialog). It goes up after the visit is saved, so a failed upload never undoes the visit.
+  const pick = usePhotoPick();
   const [photoOpen, setPhotoOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -93,6 +96,7 @@ export function useCompleteVisit(visit: VisitToComplete, onSaved?: () => void) {
 
   const submit = async () => {
     if (locked) return;
+    if (pick.error) return setError(pick.error);
     const typedCode = voucherInput.trim().toUpperCase();
     if (typedCode && typedCode !== voucher?.code) return setError("Apply the voucher code first, or clear it.");
     if (!/^\d+$/.test(balance.trim())) return setError("Enter the balance in whole pesos, 0 or more.");
@@ -106,7 +110,21 @@ export function useCompleteVisit(visit: VisitToComplete, onSaved?: () => void) {
         { token: await getToken(), clerkId: userId },
       );
       setEditing(false);
-      toast.show("success", "Visit completed", `${visit.label ?? "The visit"} is saved.${saved?.photo_url ? "" : " Add the nail photo when you have it."}`);
+      const name = visit.label ?? "The visit";
+      let photoFailed = false;
+      let photoNote = saved?.photo_url ? "" : " Add the nail photo when you have it.";
+      if (pick.file) {
+        try {
+          await uploadVisitPhoto(visit.id, pick.file, { token: await getToken(), clerkId: userId });
+          photoNote = " The photo is in the artist's gallery.";
+          pick.choose(null);
+        } catch {
+          photoFailed = true;
+          photoNote = "";
+        }
+      }
+      toast.show("success", "Visit completed", `${name} is saved.${photoNote}`);
+      if (photoFailed) toast.show("error", "Photo not added", "The visit is saved, but the photo wasn't uploaded. Use Add photo to try again.");
       void adminDataChanged(queryClient);
       onSaved?.();
     } catch (e) {
@@ -130,6 +148,7 @@ export function useCompleteVisit(visit: VisitToComplete, onSaved?: () => void) {
     /** Completed without its nail photo yet: added with the photo window */
     photosMissing: completed && Boolean(saved) && !saved?.photo_url && (saved?.photos_added ?? 0) === 0,
     hasPhoto: Boolean(saved?.photo_url),
+    photo: pick,
     photoOpen,
     openPhoto: () => setPhotoOpen(true),
     closePhoto: () => setPhotoOpen(false),

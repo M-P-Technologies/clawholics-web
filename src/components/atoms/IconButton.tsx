@@ -31,7 +31,7 @@ export default function IconButton({ label, icon: Icon, size = "md", tone = "pla
       title={label}
       onClick={onClick}
       disabled={disabled}
-      className={clsx("flex shrink-0 items-center justify-center rounded-full transition-colors disabled:opacity-40", SIZE[size], TONE[tone], className)}
+      className={clsx("flex shrink-0 items-center justify-center rounded-full disabled:opacity-40", SIZE[size], TONE[tone], className)}
     >
       <Icon size={size === "sm" ? 16 : 18} aria-hidden="true" />
     </Button>

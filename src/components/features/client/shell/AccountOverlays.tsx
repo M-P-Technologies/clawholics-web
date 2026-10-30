@@ -66,28 +66,33 @@ export default function AccountOverlays({ account: a, openId, setOpenId }: Accou
       />
 
       {/* THE REWARD MODAL */}
-      {a.showRewardModal && (
-        <div className="fixed inset-0 z-100 flex items-end sm:items-center justify-center bg-gray-red/40 backdrop-blur-sm px-3 sm:px-9 drawer-backdrop max-sm:p-0">
-          <div className="bg-light-orange border border-crimson-light rounded-sm p-9 md:p-12 max-w-2xl w-full text-center text-gray-red shadow-2xl relative flex flex-col items-center gap-3 md:gap-6 drawer-panel max-sm:max-h-[90vh] max-sm:min-h-[40vh] max-sm:w-full max-sm:max-w-none max-sm:overflow-y-auto max-sm:rounded-t-md max-sm:rounded-b-none">
-            <h1 className="font-display text-3xl font-normal uppercase tracking-widest text-gray-red md:text-4xl">
-              Congratulations, {a.dbUser?.first_name}!
-            </h1>
-            <p className="font-sans text-base md:text-xl opacity-90">
-              You just completed your stamp card on{" "}
-              <span className="font-bold">{a.todayFormatted}</span>!
-            </p>
-            <p className="font-sans text-sm md:text-xl opacity-80">
-              You received a 30% off discount your next appointment! Please check your email to view the official confirmation for your reward.
-              You may show this message or the email to a staff member to claim your discount on your next visit.
-            </p>
-            <Button
-              onClick={a.closeRewardModal}
-            >
-              Continue
-            </Button>
+      <Dialog
+        open={a.showRewardModal}
+        onClose={a.closeRewardModal}
+        title={`Congratulations, ${a.dbUser?.first_name ?? ""}!`}
+        size="md"
+        hideClose
+        header={
+          <h2 className="text-center font-display text-3xl font-normal uppercase tracking-widest text-gray-red">
+            Congratulations, {a.dbUser?.first_name}!
+          </h2>
+        }
+        footer={
+          <div className={FOOTER_ACTIONS_CLASS}>
+            <Button onClick={a.closeRewardModal}>Continue</Button>
           </div>
+        }
+      >
+        <div className="flex flex-col items-center gap-3 text-center text-gray-red">
+          <p className="font-sans text-base md:text-lg">
+            You just completed your stamp card on <span className="font-bold">{a.todayFormatted}</span>!
+          </p>
+          <p className="font-sans text-sm md:text-base">
+            You received a 30% off discount your next appointment! Please check your email to view the official confirmation for your reward.
+            You may show this message or the email to a staff member to claim your discount on your next visit.
+          </p>
         </div>
-      )}
+      </Dialog>
 
       {/* CANCEL CONFIRMATION: the library's alert dialog, like the other messages in the app. It
           can't be dismissed while the cancellation runs */}

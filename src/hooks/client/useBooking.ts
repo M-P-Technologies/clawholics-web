@@ -48,7 +48,7 @@ export function useBooking() {
   const isPageLoading = !pageData && !pageError;
   const [isSubmitting, setIsSubmitting] = useState(false);
   // Instagram/Facebook, asked only when the profile has none, saved as typed
-  const { contactFields } = useContactHandles(user?.id, getToken);
+  const { contactFields, contact } = useContactHandles(user?.id, getToken);
 
   const [selectedNailist, setSelectedNailist] = useState<Nailist | null>(null);
   // "Any available artist": none is chosen, and the salon assigns a free one when the booking is made
@@ -366,6 +366,7 @@ export function useBooking() {
   // Holding the slot takes a moment, so the button shows progress and ignores a second click
   const handleContinue = async () => {
     if (isSubmitting) return;
+    if (!contact.ready) return showModal("How can we reach you?", contact.missing);
     setIsSubmitting(true);
     try {
       await submitBooking();
@@ -460,5 +461,5 @@ export function useBooking() {
   const closeModal = () => setModalOpen(false);
   const reloadPage = () => window.location.reload();
 
-  return { anyArtist, canChooseAnyArtist, artistLabel, loadingAnyDays, priceLabel, pageData, isPageLoading, pageError, nailists, loadingArtists, selectedNailist, setSelectedNailist, selectedDate, setSelectedDate, selectedTime, setSelectedTime, timeSlots, fullyBookedDates, month, setMonth, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, pricing_type, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, selectedPrice, locationUrl, locationText, isDayFullyBooked, isDisabledDate, toLocalDate, toLocalDateString, isTimeBlocked, isTooSoon, rulesHint, monthsAhead, formatSlot, showModal, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage, contactFields };
+  return { anyArtist, canChooseAnyArtist, artistLabel, loadingAnyDays, priceLabel, pageData, isPageLoading, pageError, nailists, loadingArtists, selectedNailist, setSelectedNailist, selectedDate, setSelectedDate, selectedTime, setSelectedTime, timeSlots, fullyBookedDates, month, setMonth, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, pricing_type, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, selectedPrice, locationUrl, locationText, isDayFullyBooked, isDisabledDate, toLocalDate, toLocalDateString, isTimeBlocked, isTooSoon, rulesHint, monthsAhead, formatSlot, showModal, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage, contactFields, contact };
 }

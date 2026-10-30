@@ -105,7 +105,8 @@ export default function ArtistSpotlight({ artists }: { artists: Nailist[] }) {
               </Button>
               <div className="flex items-center">
                 {artists.map((a, i) => (
-                  // The button is a 24px square (the smallest comfortable tap target); the dot inside is smaller
+                  // The button is 24px tall (the smallest comfortable tap target) and as wide as its dot plus
+                  // 3px a side, the same spacing as the photo carousel's dots
                   <Button
                     variant="bare"
                     key={a.id}
@@ -113,7 +114,7 @@ export default function ArtistSpotlight({ artists }: { artists: Nailist[] }) {
                     aria-label={`Show ${a.name}`}
                     aria-current={i === index}
                     onClick={() => show(i)}
-                    className="group h-6 min-w-6"
+                    className="group flex h-6 items-center justify-center px-0.75"
                   >
                     <span
                       aria-hidden="true"

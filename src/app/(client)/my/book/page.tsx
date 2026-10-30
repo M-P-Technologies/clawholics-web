@@ -16,7 +16,7 @@ import { BookingStepSkeleton, FieldSkeleton } from "@/components/features/client
 import { useBooking } from "@/hooks/client/useBooking";
 
 export default function Booking() {
-  const { anyArtist, canChooseAnyArtist, artistLabel, loadingAnyDays, rulesHint, monthsAhead, priceLabel, pageData, isPageLoading, pageError, nailists, loadingArtists, selectedNailist, selectedDate, selectedTime, setSelectedTime, timeSlots, month, setMonth, modalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, locationUrl, locationText, isDisabledDate, formatSlot, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage, contactFields } = useBooking();
+  const { anyArtist, canChooseAnyArtist, artistLabel, loadingAnyDays, rulesHint, monthsAhead, priceLabel, pageData, isPageLoading, pageError, nailists, loadingArtists, selectedNailist, selectedDate, selectedTime, setSelectedTime, timeSlots, month, setMonth, modalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, locationUrl, locationText, isDisabledDate, formatSlot, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage, contactFields, contact } = useBooking();
 
   // Inside the same frame as the loaded step, so the top bar and its back button stay put
   if (isPageLoading) {
@@ -159,7 +159,7 @@ export default function Booking() {
               </div>
             </div>
 
-            <ContactHandlesFields fields={contactFields} />
+            <ContactHandlesFields contact={contact} fields={contactFields} />
           </Card>
 
           {/* SUMMARY */}
@@ -198,7 +198,8 @@ export default function Booking() {
           </Card>
         </div>
 
-        <div className="flex justify-center">
+        {/* On phones the action stays at the bottom of the screen while the page scrolls under it */}
+        <div className="sticky bottom-0 z-30 -mx-3 flex justify-center border-t border-crimson-light/40 bg-milk/95 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_20px_-10px] shadow-crimson/25 backdrop-blur-md sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none">
           <Button
             onClick={handleContinue}
             disabled={isSubmitting}

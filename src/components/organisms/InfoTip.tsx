@@ -77,8 +77,8 @@ export default function InfoTip({ label, children }: InfoTipProps) {
           ref={tipRef}
           id={id}
           role="tooltip"
-          style={{ transform: shift ? `translateX(-${shift}px)` : undefined }}
-          className="absolute left-0 top-full z-40 mt-2 flex w-64 flex-col gap-3 rounded-xl border border-crimson-light/50 bg-milk p-3 text-left text-xs font-normal leading-snug text-gray-red shadow-lg shadow-crimson/15"
+          style={{ transform: shift ? `translateX(-${shift}px)` : undefined, transformOrigin: `${10 + shift}px 0` }}
+          className="popover-in absolute left-0 top-full z-40 mt-2 flex w-64 flex-col gap-3 rounded-xl border border-crimson-light/50 bg-milk p-3 text-left text-xs font-normal leading-snug text-gray-red shadow-lg shadow-crimson/15"
         >
           {children}
         </span>

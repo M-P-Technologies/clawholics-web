@@ -5,6 +5,7 @@ import { FooterActions } from "@/components/organisms";
 import { useCompleteVisit } from "@/hooks/admin/useCompleteVisit";
 import type { VisitToComplete } from "@/services/completionService";
 import VisitPhotoDialog from "@/components/features/admin/bookings/VisitPhotoDialog";
+import VisitPhotoDropzone from "@/components/features/admin/bookings/VisitPhotoDropzone";
 
 interface CompleteVisitFormProps {
   visit: VisitToComplete;
@@ -23,8 +24,9 @@ interface CompleteVisitFormProps {
 
 // Completing a visit: when the client came in (a late fee by the salon's terms), the balance paid
 // at the salon (prefilled with the menu price less the downpayment, plus that fee, editable), how
-// it was paid and who did the nails. Shown locked before the visit's day; once completed it shows
-// what was recorded, with Edit, and the visit's photo is added from its own window (optional).
+// it was paid and who did the nails, and the nail photo (optional: dropped here, or added later from
+// its own window). Shown locked before the visit's day; once completed it shows what was recorded,
+// with Edit.
 export default function CompleteVisitForm({ visit, artists, onSaved, onCancelLate, onCancel, onEdit, actionsHost }: CompleteVisitFormProps) {
   const form = useCompleteVisit(visit, onSaved);
   const id = useId();
@@ -160,6 +162,21 @@ export default function CompleteVisitForm({ visit, artists, onSaved, onCancelLat
             </p>
           )}
         </div>
+      </div>
+      <div className="flex flex-col gap-1">
+        <span className="text-xs font-bold text-gray-red">Nail photo (optional)</span>
+        <VisitPhotoDropzone
+          id={`${id}-photo`}
+          file={form.photo.file}
+          preview={form.photo.preview}
+          error={form.photo.error}
+          maxMb={form.photo.maxMb}
+          disabled={disabled}
+          onChoose={form.photo.choose}
+        />
+        <p className="text-xs text-gray-red">
+          {form.hasPhoto ? "A new photo replaces the visit's current one. " : ""}It goes first in the artist&apos;s gallery. You can also add it later.
+        </p>
       </div>
       {/* How the suggested balance is worked out, the late fee from the time they came in */}
       <dl aria-label="Balance breakdown" className="flex flex-col gap-1 rounded-lg bg-milk/70 p-3 text-xs text-gray-red">
