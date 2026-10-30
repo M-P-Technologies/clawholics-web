@@ -30,7 +30,7 @@ const state = () => ({
   handleContinue: vi.fn(), isSubmitting: false, sectionLabel: "label-caps",
   handleArtistChange: vi.fn(), handleDateSelect: vi.fn(), selectedDay: new Date(now.getFullYear(), now.getMonth(), 20),
   isDateFullyBooked: () => false, isSlotBlocked: (s: string) => s === "13:00-15:00",
-  closeModal: vi.fn(), reloadPage: vi.fn(), contactFields: [],
+  closeModal: vi.fn(), reloadPage: vi.fn(), contactFields: [], contact: { options: [], value: "", status: "idle", choose: vi.fn(), ready: true, missing: "" },
   rulesHint: "Bookings need at least 2 hours' notice and open up to 30 days ahead.", monthsAhead: 1,
   anyArtist: false, canChooseAnyArtist: true, artistLabel: "Max", loadingAnyDays: false,
 });
@@ -188,13 +188,15 @@ describe("booking step", () => {
     expect(s.reloadPage).toHaveBeenCalled();
   });
 
-  it("asks for the Instagram/Facebook the profile is missing, and says when one is saved", () => {
+  it("asks for the primary contact, and for just the handle that choice needs", () => {
     const onBlur = vi.fn();
+    s.contact = { options: [{ value: "call", label: "Call" }, { value: "facebook", label: "Messenger (add yours)" }], value: "messenger", status: "idle", choose: vi.fn(), ready: false, missing: "" } as never;
     s.contactFields = [
       { id: "booking-facebook", name: "facebook_handle", label: "Facebook", type: "text", autoComplete: "off", maxLength: 100, value: "Ana Cruz", status: "saved", onChange: vi.fn(), onBlur },
     ] as never;
     render(<Booking />);
     expect(screen.getByRole("heading", { name: "How can we reach you?" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Primary contact" })).toBeInTheDocument();
     expect(screen.queryByLabelText(/Instagram/)).not.toBeInTheDocument();
     const input = screen.getByRole("textbox", { name: /Facebook/ });
     fireEvent.blur(input);
@@ -202,7 +204,7 @@ describe("booking step", () => {
     expect(screen.getByText("Saved to your profile")).toBeInTheDocument();
   });
 
-  it("leaves the section out when the profile has both", () => {
+  it("leaves the section out when there is no way to reach them to choose from", () => {
     render(<Booking />);
     expect(screen.queryByRole("heading", { name: "How can we reach you?" })).not.toBeInTheDocument();
   });

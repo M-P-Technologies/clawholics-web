@@ -26,35 +26,91 @@ beforeEach(() => {
   updateContactDetails.mockReset().mockResolvedValue(undefined);
 });
 
-describe("Instagram/Facebook/TikTok while booking", () => {
-  it("asks only for the handles the profile doesn't have", async () => {
-    fetchProfile.mockResolvedValue({ id: 1, instagram_handle: "ana.nails", facebook_handle: null, tiktok_handle: "ana.tok" });
-    const { result } = renderHook(() => useContactHandles("user_1", getToken), { wrapper });
-    await waitFor(() => expect(result.current.contactFields).toHaveLength(1));
-    expect(result.current.contactFields[0].name).toBe("facebook_handle");
+const NONE = { id: 1, phone: "09171234567", instagram_handle: null, facebook_handle: null, tiktok_handle: null, preferred_contact_method: null };
+
+// The hook with a profile loaded and its primary contact already chosen
+async function setup(profile: object, chosen?: string) {
+  fetchProfile.mockResolvedValue(profile);
+  const hook = renderHook(() => useContactHandles("user_1", getToken), { wrapper });
+  await waitFor(() => expect(hook.result.current.contact.options.length).toBeGreaterThan(0));
+  if (chosen) await act(async () => hook.result.current.contact.choose(chosen));
+  return hook;
+}
+
+describe("the primary contact while booking", () => {
+  it("offers call and text by the phone number, and a social the profile lacks says so", async () => {
+    const { result } = await setup({ ...NONE, instagram_handle: "ana.nails" });
+    expect(result.current.contact.options.map((o) => o.label)).toEqual(["Call", "Text message", "Messenger (add yours)", "Instagram", "TikTok (add yours)"]);
   });
 
-  it("asks nothing when all are on the profile", async () => {
-    fetchProfile.mockResolvedValue({ id: 1, instagram_handle: "ana.nails", facebook_handle: "Ana Cruz", tiktok_handle: "ana.tok" });
+  it("leaves call and text out when the profile has no phone number", async () => {
+    const { result } = await setup({ ...NONE, phone: "" });
+    expect(result.current.contact.options.map((o) => o.value)).toEqual(["messenger", "instagram", "tiktok"]);
+  });
+
+  it("asks for no handle until a social without one is chosen, and then only that one", async () => {
+    const { result } = await setup(NONE);
+    expect(result.current.contactFields).toHaveLength(0);
+    expect(result.current.contact.ready).toBe(false);
+    await act(async () => result.current.contact.choose("tiktok"));
+    expect(result.current.contactFields.map((f) => f.name)).toEqual(["tiktok_handle"]);
+    // Nothing is saved yet: the choice goes with its handle
+    expect(updateContactDetails).not.toHaveBeenCalled();
+    expect(result.current.contact.ready).toBe(false);
+    expect(result.current.contact.missing).toMatch(/TikTok/);
+  });
+
+  it("saves call or text at once, and asks for nothing else", async () => {
+    const { result } = await setup(NONE, "call");
+    expect(updateContactDetails).toHaveBeenCalledWith({ preferred_contact_method: "call" }, "tok");
+    expect(result.current.contact.status).toBe("saved");
+    expect(result.current.contact.ready).toBe(true);
+    expect(result.current.contactFields).toHaveLength(0);
+    expect(queryClient.getQueryData<{ preferred_contact_method: string }>(accountKeys.profile("user_1"))?.preferred_contact_method).toBe("call");
+  });
+
+  it("saves a social the profile already has at once, without asking for its handle", async () => {
+    const { result } = await setup({ ...NONE, instagram_handle: "ana.nails" }, "instagram");
+    expect(updateContactDetails).toHaveBeenCalledWith({ preferred_contact_method: "instagram" }, "tok");
+    expect(result.current.contactFields).toHaveLength(0);
+    expect(result.current.contact.ready).toBe(true);
+  });
+
+  it("starts from the preference already on the profile", async () => {
+    const { result } = await setup({ ...NONE, preferred_contact_method: "sms" });
+    expect(result.current.contact.value).toBe("sms");
+    expect(result.current.contact.ready).toBe(true);
+  });
+
+  it("doesn't hold the booking up when the profile couldn't be read", async () => {
+    fetchProfile.mockResolvedValue(null);
     const { result } = renderHook(() => useContactHandles("user_1", getToken), { wrapper });
     await waitFor(() => expect(fetchProfile).toHaveBeenCalled());
-    await act(async () => {});
-    expect(result.current.contactFields).toHaveLength(0);
+    expect(result.current.contact.ready).toBe(true);
   });
 
-  it("saves a handle to the profile when the client leaves the field, and keeps showing it", async () => {
-    fetchProfile.mockResolvedValue({ id: 1, instagram_handle: null, facebook_handle: null, tiktok_handle: null });
-    const { result } = renderHook(() => useContactHandles("user_1", getToken), { wrapper });
-    await waitFor(() => expect(result.current.contactFields).toHaveLength(3));
+  it("says so when the choice can't be saved", async () => {
+    updateContactDetails.mockRejectedValue(new Error("offline"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { result } = await setup(NONE, "sms");
+    expect(result.current.contact.status).toBe("error");
+  });
+});
 
+describe("the handle for the chosen social", () => {
+  it("saves with the choice when the client leaves the field, and keeps showing it", async () => {
+    const { result } = await setup(NONE, "instagram");
     type(result.current.contactFields[0], " @ana.nails ");
     await act(async () => result.current.contactFields[0].onBlur());
 
-    expect(updateContactDetails).toHaveBeenCalledWith({ instagram_handle: "ana.nails" }, "tok");
+    expect(updateContactDetails).toHaveBeenCalledWith({ instagram_handle: "ana.nails", preferred_contact_method: "instagram" }, "tok");
     expect(result.current.contactFields[0].status).toBe("saved");
-    expect(queryClient.getQueryData<{ instagram_handle: string }>(accountKeys.profile("user_1"))?.instagram_handle).toBe("ana.nails");
+    const cached = queryClient.getQueryData<{ instagram_handle: string; preferred_contact_method: string }>(accountKeys.profile("user_1"));
+    expect(cached?.instagram_handle).toBe("ana.nails");
+    expect(cached?.preferred_contact_method).toBe("instagram");
+    expect(result.current.contact.ready).toBe(true);
     // Saved, but still on screen so the client can see it
-    expect(result.current.contactFields).toHaveLength(3);
+    expect(result.current.contactFields).toHaveLength(1);
 
     // Leaving it again unchanged doesn't save twice
     await act(async () => result.current.contactFields[0].onBlur());
@@ -62,27 +118,22 @@ describe("Instagram/Facebook/TikTok while booking", () => {
   });
 
   it("saves on its own a moment after the client stops typing", async () => {
-    fetchProfile.mockResolvedValue({ id: 1, instagram_handle: null, facebook_handle: null, tiktok_handle: null });
-    const { result } = renderHook(() => useContactHandles("user_1", getToken), { wrapper });
-    await waitFor(() => expect(result.current.contactFields).toHaveLength(3));
-
+    const { result } = await setup(NONE, "messenger");
     vi.useFakeTimers();
     try {
-      type(result.current.contactFields[1], "Ana Cruz");
+      type(result.current.contactFields[0], "Ana Cruz");
       expect(updateContactDetails).not.toHaveBeenCalled();
       await act(async () => vi.advanceTimersByTime(1000));
     } finally {
       vi.useRealTimers();
     }
-    expect(updateContactDetails).toHaveBeenCalledWith({ facebook_handle: "Ana Cruz" }, "tok");
+    expect(updateContactDetails).toHaveBeenCalledWith({ facebook_handle: "Ana Cruz", preferred_contact_method: "messenger" }, "tok");
   });
 
   it("sends a field's saves one at a time, so the newest value is the one kept", async () => {
-    fetchProfile.mockResolvedValue({ id: 1, instagram_handle: null, facebook_handle: null, tiktok_handle: null });
+    const { result } = await setup(NONE, "instagram");
     let finishFirst!: () => void;
     updateContactDetails.mockImplementationOnce(() => new Promise<void>((resolve) => (finishFirst = resolve)));
-    const { result } = renderHook(() => useContactHandles("user_1", getToken), { wrapper });
-    await waitFor(() => expect(result.current.contactFields).toHaveLength(3));
 
     type(result.current.contactFields[0], "maxnails");
     await act(async () => void result.current.contactFields[0].onBlur());
@@ -96,30 +147,24 @@ describe("Instagram/Facebook/TikTok while booking", () => {
       finishFirst();
       await second;
     });
-    expect(updateContactDetails).toHaveBeenLastCalledWith({ instagram_handle: "maxnails_ph" }, "tok");
+    expect(updateContactDetails).toHaveBeenLastCalledWith({ instagram_handle: "maxnails_ph", preferred_contact_method: "instagram" }, "tok");
     expect(result.current.contactFields[0].status).toBe("saved");
     expect(queryClient.getQueryData<{ instagram_handle: string }>(accountKeys.profile("user_1"))?.instagram_handle).toBe("maxnails_ph");
   });
 
   it("says so when the save fails", async () => {
-    fetchProfile.mockResolvedValue({ id: 1, instagram_handle: null, facebook_handle: null, tiktok_handle: null });
+    const { result } = await setup(NONE, "instagram");
     updateContactDetails.mockRejectedValue(new Error("offline"));
     vi.spyOn(console, "error").mockImplementation(() => {});
-    const { result } = renderHook(() => useContactHandles("user_1", getToken), { wrapper });
-    await waitFor(() => expect(result.current.contactFields).toHaveLength(3));
-
     type(result.current.contactFields[0], "ana.nails");
     await act(async () => result.current.contactFields[0].onBlur());
     expect(result.current.contactFields[0].status).toBe("error");
   });
 
   it("saves a TikTok username without its leading @", async () => {
-    fetchProfile.mockResolvedValue({ id: 1, instagram_handle: null, facebook_handle: null, tiktok_handle: null });
-    const { result } = renderHook(() => useContactHandles("user_1", getToken), { wrapper });
-    await waitFor(() => expect(result.current.contactFields).toHaveLength(3));
-
-    type(result.current.contactFields[2], " @ana.tok ");
-    await act(async () => result.current.contactFields[2].onBlur());
-    expect(updateContactDetails).toHaveBeenCalledWith({ tiktok_handle: "ana.tok" }, "tok");
+    const { result } = await setup(NONE, "tiktok");
+    type(result.current.contactFields[0], " @ana.tok ");
+    await act(async () => result.current.contactFields[0].onBlur());
+    expect(updateContactDetails).toHaveBeenCalledWith({ tiktok_handle: "ana.tok", preferred_contact_method: "tiktok" }, "tok");
   });
 });

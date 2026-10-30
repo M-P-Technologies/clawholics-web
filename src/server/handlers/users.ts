@@ -35,7 +35,7 @@ const errorOk = (error: string) => Response.json({ error });
 
 // --- CONTACT FIELDS (customer_profiles), as in the Worker's parseContactFields ---------------
 
-const CONTACT_METHODS = ["call", "sms", "messenger", "instagram"];
+const CONTACT_METHODS = ["call", "sms", "messenger", "instagram", "tiktok"];
 const CONTACT_FIELD_ALIASES = {
   alt_phone: "altPhone",
   preferred_contact_method: "preferredContactMethod",

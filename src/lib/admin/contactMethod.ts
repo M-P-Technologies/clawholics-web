@@ -76,6 +76,10 @@ export function preferredContact(info: ContactInfo): PreferredContact | null {
       const handle = clean(info.instagram_handle);
       return { label, detail: handle ? `@${handle.replace(/^@+/, "")}` : "No Instagram username saved", href: handle ? instagramUrl(handle) : null };
     }
+    case "tiktok": {
+      const handle = clean(info.tiktok_handle);
+      return { label, detail: handle ? `@${handle.replace(/^@+/, "")}` : "No TikTok username saved", href: handle ? tiktokUrl(handle) : null };
+    }
     default:
       return null;
   }

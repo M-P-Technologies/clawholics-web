@@ -1,7 +1,7 @@
 import type { ChangeEvent } from "react";
 import clsx from "clsx";
 import { AlertCircle, Check, Loader2 } from "lucide-react";
-import { FacebookIcon, InstagramIcon, TikTokIcon } from "@/components/atoms";
+import { FacebookIcon, InstagramIcon, Select, TikTokIcon } from "@/components/atoms";
 import { SectionHeader } from "@/components/molecules";
 import { field as fieldTokens } from "@/components/tokens";
 
@@ -26,15 +26,46 @@ const LOOK: Record<string, { Icon: typeof InstagramIcon; prefix?: string }> = {
   tiktok_handle: { Icon: TikTokIcon, prefix: "@" },
 };
 
-// Instagram/Facebook/TikTok for a client whose profile lacks them (the ones it lacks are asked; useContactHandles saves them)
-export default function ContactHandlesFields({ fields }: { fields: Field[] }) {
-  if (fields.length === 0) return null;
+type Contact = {
+  options: { value: string; label: string }[];
+  value: string;
+  status: "idle" | "saving" | "saved" | "error";
+  choose: (value: string) => void;
+};
+
+// The primary contact, picked from the ways the salon can reach the client, and the one handle that
+// choice needs when the profile has none (useContactHandles saves both)
+export default function ContactHandlesFields({ contact, fields }: { contact: Contact; fields: Field[] }) {
+  if (contact.options.length === 0) return null;
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-1">
         <SectionHeader size="label" title="How can we reach you?" />
-        <p className="text-sm text-gray-red">Add your socials so the salon can message you about your visit. They&apos;re saved to your profile as you type.</p>
+        <p className="text-sm text-gray-red">Choose the way you&apos;d like the salon to reach you about your visit. It&apos;s saved to your profile.</p>
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <span className={fieldTokens.label}>Primary contact</span>
+        <div className="flex items-center gap-2">
+          <Select
+            aria-label="Primary contact"
+            value={contact.value}
+            placeholder="Choose one"
+            options={contact.options}
+            onChange={(e) => contact.choose(e.target.value)}
+            className="min-w-0 flex-1"
+          />
+          <span aria-live="polite" className="flex size-6 shrink-0 items-center justify-center">
+            {contact.status === "saving" && <Loader2 aria-label="Saving" className="size-4 animate-spin text-gray-red" />}
+            {contact.status === "saved" && (
+              <span className="flex size-5 items-center justify-center rounded-full bg-success/25 text-success-ink" title="Saved to your profile">
+                <Check aria-hidden="true" className="size-3.5" strokeWidth={3} />
+                <span className="sr-only">Saved to your profile</span>
+              </span>
+            )}
+            {contact.status === "error" && <AlertCircle aria-label="Couldn't save" className="size-4 text-danger-ink" />}
+          </span>
+        </div>
       </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {fields.map(({ status, label, ...input }) => {
@@ -44,7 +75,7 @@ export default function ContactHandlesFields({ fields }: { fields: Field[] }) {
             <div key={input.id} className="flex flex-col gap-1.5">
               <label htmlFor={input.id} className={clsx(fieldTokens.label, "flex items-center justify-between")}>
                 {label}
-                <span className="text-xs font-normal text-gray-red">Optional</span>
+                <span className="text-xs font-normal text-gray-red">For your primary contact</span>
               </label>
               <div
                 className={clsx(
