@@ -62,10 +62,14 @@ describe("payment confirmation when paid", () => {
       data: { service_name: "Hard Gel", appointment_date: "2026-10-20", appointment_time: "9:00 AM - 11:00 AM" },
       dateLabel: "October 20, 2026",
       timeLabel: "9:00 AM - 11:00 AM",
+      paid: "₱700",
     });
     render(<PaymentConfirmation />);
     expect(screen.getByRole("heading", { name: "Booking confirmed" })).toBeInTheDocument();
     expect(screen.getByText(/Thank you, Ana!/)).toBeInTheDocument();
+    // What was actually paid, not a fixed ₱500
+    expect(screen.getByText("₱700", { selector: "dd" })).toBeInTheDocument();
+    expect(screen.getByText(/of ₱700 via QR Ph/)).toBeInTheDocument();
     expect(screen.getByText(/ana@example.com/)).toBeInTheDocument();
     for (const v of ["Hard Gel", "October 20, 2026", "9:00 AM - 11:00 AM"]) expect(screen.getByText(v)).toBeInTheDocument();
     expect(screen.getByText("Amount paid", { selector: "dt" })).toBeInTheDocument();

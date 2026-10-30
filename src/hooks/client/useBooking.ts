@@ -16,6 +16,7 @@ import { estimateTotal } from "@/services/pricing";
 import { type Nailist, type BookingState, parseTimeRange } from "@/utils/booking";
 import { CLIENT_PATHS } from "@/lib/client/clientNav";
 import { longDateLabel, timeRangeLabel } from "@/lib/timeFormat";
+import { DEFAULT_MIN_NOTICE_HOURS, manilaToday, noticeText, startsTooSoon } from "@/lib/bookingNotice";
 
 export function useBooking() {
   const navigate = useNavigate();
@@ -130,10 +131,8 @@ export function useBooking() {
   };
 
   const isDisabledDate = (date: Date) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    if (date < today) return true;
+    // A day before today in Manila, where the salon is, whatever the visitor's own timezone
+    if (toLocalDateString(date) < manilaToday()) return true;
 
     const max = new Date();
     max.setMonth(max.getMonth() + 1);
@@ -147,7 +146,7 @@ export function useBooking() {
 
       if (fullyBookedDates.includes(formatted)) return true;
 
-      if (areAllSlotsPastForDate(date)) return true;
+      if (areAllSlotsTooSoon(date)) return true;
     }
 
     return false;
@@ -169,38 +168,19 @@ export function useBooking() {
     return bookedSlots.some((b) => isOverlapping(b, slot));
   };
 
-  const isPastTimeToday = (slot: string) => {
-    if (!selectedDate) return false;
+  // The notice a booking needs, set in Admin > Settings (the server enforces it too). Until it
+  // loads, the default, which is what the server uses when none is saved.
+  const bookingSettings = useQuery(publicQueries.bookingSettings());
+  const minNotice = bookingSettings.data?.min_notice_hours ?? DEFAULT_MIN_NOTICE_HOURS;
+  /** "Bookings need at least 2 hours' notice.", or nothing when there's no minimum */
+  const noticeHint = minNotice > 0 ? `Bookings need at least ${noticeText(minNotice)}.` : "";
 
-    const today = new Date();
-    const selected = toLocalDate(selectedDate);
+  // A time that has started, or starts sooner than the notice allows, in Manila time
+  const isTooSoon = (slot: string) => !!selectedDate && startsTooSoon(selectedDate, slot, minNotice);
 
-    if (selected.toDateString() !== today.toDateString()) return false;
-
-    const now = today.getHours() * 60 + today.getMinutes();
-
-    const [start] = slot.split("-");
-    const [h, m] = start.split(":").map(Number);
-
-    return h * 60 + m <= now;
-  };
-
-  const areAllSlotsPastForDate = (date: Date) => {
-    const today = new Date();
-
-    if (date.toDateString() !== today.toDateString()) {
-      return false;
-    }
-
-    return timeSlots.every((slot) => {
-      const [start] = slot.split("-");
-      const [h, m] = start.split(":").map(Number);
-
-      const slotMinutes = h * 60 + m;
-      const nowMinutes = today.getHours() * 60 + today.getMinutes();
-
-      return slotMinutes <= nowMinutes;
-    });
+  const areAllSlotsTooSoon = (date: Date) => {
+    const day = toLocalDateString(date);
+    return timeSlots.length > 0 && timeSlots.every((slot) => startsTooSoon(day, slot, minNotice));
   };
 
   const formatSlot = timeRangeLabel;
@@ -379,9 +359,9 @@ export function useBooking() {
 
   const selectedDay = selectedDate ? toLocalDate(selectedDate) : undefined;
   const isDateFullyBooked = (date: Date) => fullyBookedDates.includes(toLocalDateString(date));
-  const isSlotBlocked = (slot: string) => isTimeBlocked(slot) || isPastTimeToday(slot);
+  const isSlotBlocked = (slot: string) => isTimeBlocked(slot) || isTooSoon(slot);
   const closeModal = () => setModalOpen(false);
   const reloadPage = () => window.location.reload();
 
-  return { priceLabel, pageData, isPageLoading, pageError, nailists, loadingArtists, selectedNailist, setSelectedNailist, selectedDate, setSelectedDate, selectedTime, setSelectedTime, timeSlots, fullyBookedDates, month, setMonth, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, pricing_type, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, selectedPrice, locationUrl, locationText, isDayFullyBooked, isDisabledDate, toLocalDate, toLocalDateString, isTimeBlocked, isPastTimeToday, formatSlot, showModal, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage, contactFields };
+  return { priceLabel, pageData, isPageLoading, pageError, nailists, loadingArtists, selectedNailist, setSelectedNailist, selectedDate, setSelectedDate, selectedTime, setSelectedTime, timeSlots, fullyBookedDates, month, setMonth, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, pricing_type, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, selectedPrice, locationUrl, locationText, isDayFullyBooked, isDisabledDate, toLocalDate, toLocalDateString, isTimeBlocked, isTooSoon, noticeHint, formatSlot, showModal, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage, contactFields };
 }

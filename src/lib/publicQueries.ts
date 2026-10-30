@@ -21,7 +21,7 @@ import {
 } from "../services/nailistService";
 import { fetchPublicReviews, type PublicReview } from "../services/reviewService";
 import { fetchPaymentSettings } from "../services/paymentService";
-import { fetchLoyaltySettings } from "../services/settingsService";
+import { fetchBookingSettings, fetchLoyaltySettings } from "../services/settingsService";
 import type { HomeContent, TeamContent } from "../types";
 import { PUBLIC, publicKeys } from "./publicKeys";
 
@@ -91,7 +91,9 @@ export const publicQueries = {
     queryOptions({ queryKey: publicKeys.nailistGallery(id), queryFn: (): Promise<NailistGalleryImage[]> => fetchNailistGallery(id) }),
   reviews: () => queryOptions({ queryKey: [PUBLIC, "reviews"], queryFn: (): Promise<PublicReview[]> => fetchPublicReviews() }),
   /** The downpayment and the payment methods the salon has turned on */
-  paymentSettings: () => queryOptions({ queryKey: [PUBLIC, "paymentSettings"], queryFn: fetchPaymentSettings }),
+  paymentSettings: () => queryOptions({ queryKey: publicKeys.paymentSettings, queryFn: fetchPaymentSettings }),
   /** The stamps a loyalty card needs for a reward */
   loyaltySettings: () => queryOptions({ queryKey: [PUBLIC, "loyaltySettings"], queryFn: fetchLoyaltySettings }),
+  /** The notice a booking needs, in hours */
+  bookingSettings: () => queryOptions({ queryKey: publicKeys.bookingSettings, queryFn: fetchBookingSettings }),
 };

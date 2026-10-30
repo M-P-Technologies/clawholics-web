@@ -112,6 +112,37 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       expect(res.status).toBe(401);
     });
 
+    it("TC-BK-02b: a client can't book a slot that starts within the notice (2 hours by default); an admin walk-in can", async () => {
+      vi.useFakeTimers({ toFake: ["Date"] });
+      // 15 June 2098, 09:30 in Manila
+      vi.setSystemTime(new Date(Date.UTC(2098, 5, 15, 1, 30)));
+      try {
+        const soon = await book("user_a", "2098-06-15", "10:00-11:00");
+        expect(soon.status).toBe(400);
+        expect(soon.body.code).toBe("TOO_SOON");
+        expect(soon.body.message).toMatch(/2 hours' notice/);
+
+        const later = await book("user_a", "2098-06-15", "12:00-13:00");
+        expect(later.status).toBe(200);
+
+        // An admin recording a walk-in isn't held to the notice
+        as("user_admin");
+        const walkin = await callRoute(booking.createAdminBooking, "/api/booking/admin/create", {
+          method: "POST",
+          body: { first_name: "Walk", last_name: "In", phone: "0917", service_id: serviceId, nailist_id: nailistId, appointment_date: "2098-06-15", appointment_time: "10:00-11:00" },
+        });
+        expect(walkin.status).toBe(201);
+
+        // With the notice set to 0 the same slot is open to a client again
+        await db`insert into site_settings (key, value) values ('booking_min_notice_hours', '0') on conflict (key) do update set value = '0'`;
+        const none = await book("user_b", "2098-06-15", "11:00-12:00");
+        expect(none.status).toBe(200);
+      } finally {
+        vi.useRealTimers();
+        await db`delete from site_settings where key = 'booking_min_notice_hours'`;
+      }
+    });
+
     it("TC-BK-03: one unpaid booking per client, and one active booking per slot", async () => {
       const date = nextDate();
       expect((await book("user_a", date)).status).toBe(200);

@@ -10,6 +10,10 @@ export interface SalonSettings {
   loyalty_stamps_required: number;
   /** How long a new booking holds its slot while the client pays */
   booking_hold_minutes: number;
+  /** How many hours before its start a slot stops being bookable by clients */
+  booking_min_notice_hours: number;
+  /** Whether clients get a reminder email the day before their visit */
+  booking_reminders_enabled: boolean;
 }
 
 const getHeaders = (token?: string | null) => ({
@@ -22,6 +26,13 @@ const getHeaders = (token?: string | null) => ({
 export const fetchLoyaltySettings = async (): Promise<{ stamps_required: number }> => {
   const res = await fetch(`${API_BASE_URL}/settings/loyalty`, { headers: getHeaders() });
   if (!res.ok) throw new Error("Failed to load the loyalty card settings");
+  return res.json();
+};
+
+/** The notice a booking needs, in hours (public: the booking calendar applies it) */
+export const fetchBookingSettings = async (): Promise<{ min_notice_hours: number }> => {
+  const res = await fetch(`${API_BASE_URL}/settings/booking`, { headers: getHeaders() });
+  if (!res.ok) throw new Error("Failed to load the booking settings");
   return res.json();
 };
 

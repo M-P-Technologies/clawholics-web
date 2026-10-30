@@ -22,6 +22,7 @@ import { inBackground, readJson, routeNotFound, toId } from "../http";
 import { notifyAdmins } from "../notifications";
 import { createXenditRefund, expireXenditInvoice, getXenditInvoices } from "../payments";
 import { getBookingHoldMinutes } from "../bookingHold";
+import { getBookingMinNoticeHours } from "../bookingNotice";
 import { checkSlot, hasStarted, normalizeSlot } from "../slotRules";
 import { ported } from "../worker";
 import { releaseVoucherOf } from "../birthdayVouchers";
@@ -135,7 +136,12 @@ export const createBooking = ported(async (req) => {
   const serviceId = toId(b.service_id)!;
   const nailistId = toId(b.nailist_id)!;
   const userId = requester.id;
-  const slot = await checkSlot({ nailistId, date: String(b.appointment_date), time: String(b.appointment_time) });
+  const slot = await checkSlot({
+    nailistId,
+    date: String(b.appointment_date),
+    time: String(b.appointment_time),
+    minNoticeHours: await getBookingMinNoticeHours(),
+  });
   if (!slot.ok) {
     return slot.code === "SLOT_TAKEN"
       ? Response.json(SLOT_TAKEN, { status: 409 })
@@ -465,7 +471,14 @@ export const rescheduleAppointment = ported<IdContext>(async (req, { params }) =
       { status: 409 },
     );
   }
-  const slot = await checkSlot({ nailistId: oldAppt.nailist_id, date: newDate, time: newTime, excludeAppointmentId: id });
+  // A client's new time needs the same notice as a new booking; an admin moving it isn't held to it
+  const slot = await checkSlot({
+    nailistId: oldAppt.nailist_id,
+    date: newDate,
+    time: newTime,
+    excludeAppointmentId: id,
+    minNoticeHours: isAdmin ? 0 : await getBookingMinNoticeHours(),
+  });
   if (!slot.ok) return Response.json({ code: slot.code, message: slot.message }, { status: slot.status });
 
   try {

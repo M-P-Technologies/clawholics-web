@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { Clock, ReceiptText, Wallet } from "lucide-react";
 import { startingPrice } from "../../services/pricing";
+import { peso } from "../../lib/dashboardFormat";
+import type { DepositTerms } from "../../lib/depositTerms";
 
 // One text size for all the explanatory text below, so the description, prices and deposit read alike
 // (a size set on a wrapper would not reach the <p>s: the site gives every <p> its own size)
@@ -21,6 +23,8 @@ interface ServiceOverviewProps {
     variants?: { id?: number; price: number }[];
   };
   priceLines: PriceLine[];
+  /** The booking deposit from Admin > Settings; null until it loads */
+  deposit: DepositTerms | null;
 }
 
 const Stat = ({ icon, value, label }: { icon: ReactNode; value: string; label: string }) => (
@@ -34,7 +38,7 @@ const Stat = ({ icon, value, label }: { icon: ReactNode; value: string; label: s
 // The phone layout of a service's details: the name with its starting price, three quick facts,
 // then the description under "About this service" and the pricing in full. (From `lg` up the
 // details page uses its table instead.)
-export default function ServiceOverview({ service, priceLines }: ServiceOverviewProps) {
+export default function ServiceOverview({ service, priceLines, deposit }: ServiceOverviewProps) {
   const from = startingPrice(service);
 
   return (
@@ -53,8 +57,8 @@ export default function ServiceOverview({ service, priceLines }: ServiceOverview
 
       <div className="grid grid-cols-3 gap-3 border-y border-crimson-light/80 py-3">
         <Stat icon={<Clock size={28} strokeWidth={1.5} aria-hidden="true" />} value={service.duration} label="Duration" />
-        <Stat icon={<Wallet size={28} strokeWidth={1.5} aria-hidden="true" />} value="₱500" label="Booking deposit" />
-        <Stat icon={<ReceiptText size={28} strokeWidth={1.5} aria-hidden="true" />} value="₱400" label="Deductible" />
+        <Stat icon={<Wallet size={28} strokeWidth={1.5} aria-hidden="true" />} value={deposit ? peso(deposit.total) : "–"} label="Booking deposit" />
+        <Stat icon={<ReceiptText size={28} strokeWidth={1.5} aria-hidden="true" />} value={deposit ? peso(deposit.deductible) : "–"} label="Deductible" />
       </div>
 
       <div className="flex flex-col gap-1">
@@ -77,12 +81,14 @@ export default function ServiceOverview({ service, priceLines }: ServiceOverview
       <div className="flex flex-col gap-1 text-gray-red">
         <h2 className="label-caps">Deposit</h2>
         <p className={bodyClass}>
-          To secure your slot, a <b>₱500</b> booking deposit is required at checkout.
+          To secure your slot, a {deposit && <b>{peso(deposit.total)}</b>} booking deposit is required at checkout.
         </p>
-        <ul className={`ml-3 list-disc text-gray-red ${bodyClass}`}>
-          <li>₱400 is deductible from your final bill.</li>
-          <li>₱100 is a non-refundable reservation fee.</li>
-        </ul>
+        {deposit && (
+          <ul className={`ml-3 list-disc text-gray-red ${bodyClass}`}>
+            <li>{peso(deposit.deductible)} is deductible from your final bill.</li>
+            <li>{peso(deposit.fee)} is a non-refundable reservation fee.</li>
+          </ul>
+        )}
       </div>
     </div>
   );

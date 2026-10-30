@@ -2,6 +2,7 @@ import "server-only";
 import { holdsSlot } from "./appointments";
 import { getSql } from "./db";
 import { manilaNow } from "./visitsToComplete";
+import { noticeText, startsTooSoon } from "../lib/bookingNotice";
 
 // The rules a booked date and time must meet, checked on the server for every booking, walk-in
 // and reschedule (the calendars apply the same ones, but a request can skip them): a real date,
@@ -58,6 +59,7 @@ export async function checkSlot({
   time,
   allowPast = false,
   excludeAppointmentId = null,
+  minNoticeHours = 0,
   now = new Date(),
 }: {
   nailistId: number;
@@ -67,6 +69,8 @@ export async function checkSlot({
   allowPast?: boolean;
   /** The appointment being moved, whose own time doesn't block it */
   excludeAppointmentId?: number | null;
+  /** A client's booking needs this many hours' notice (Admin > Settings); admins pass none */
+  minNoticeHours?: number;
   now?: Date;
 }): Promise<SlotCheck> {
   if (!isValidDate(date)) return refuse(400, "INVALID_DATE", "Please choose a valid date.");
@@ -74,6 +78,9 @@ export async function checkSlot({
   if (!slot) return refuse(400, "INVALID_TIME", "Please choose a valid time.");
   if (!allowPast && hasStarted(date, slot, now)) {
     return refuse(400, "SLOT_PAST", "This time has already passed. Please choose another one.");
+  }
+  if (!allowPast && minNoticeHours > 0 && startsTooSoon(date, slot, minNoticeHours, now.getTime())) {
+    return refuse(400, "TOO_SOON", `Bookings need at least ${noticeText(minNoticeHours)}. Please choose a later time.`);
   }
 
   const sql = getSql();

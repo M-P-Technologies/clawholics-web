@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import ServiceOverview from "@/components/booking/ServiceOverview";
+import { depositTerms } from "@/lib/depositTerms";
 
 const service = {
   name: "Softgel Extensions", category: "Manicure", description: "Lightweight, flexible nail extensions.",
@@ -13,7 +14,7 @@ const priceLines = [
 
 describe("ServiceOverview (phone layout)", () => {
   it("shows the name with the starting price, and three quick facts", () => {
-    render(<ServiceOverview service={service} priceLines={priceLines} />);
+    render(<ServiceOverview service={service} priceLines={priceLines} deposit={depositTerms(500)} />);
     expect(screen.getByRole("heading", { level: 1, name: "Softgel Extensions" })).toBeInTheDocument();
     expect(screen.getByText("₱650")).toBeInTheDocument(); // the lower of the two rates
     expect(screen.getByText("2 hrs")).toBeInTheDocument();
@@ -23,22 +24,37 @@ describe("ServiceOverview (phone layout)", () => {
   });
 
   it("puts the description under 'About this service', then the full pricing and deposit", () => {
-    render(<ServiceOverview service={service} priceLines={priceLines} />);
+    render(<ServiceOverview service={service} priceLines={priceLines} deposit={depositTerms(500)} />);
     expect(screen.getByRole("heading", { name: "About this service" }).nextElementSibling).toHaveTextContent("Lightweight, flexible nail extensions.");
     expect(screen.getByText(/Master technician: starts at/)).toBeInTheDocument();
     expect(screen.getByText(/Junior technician: starts at/)).toBeInTheDocument();
     expect(screen.getByText(/₱100 is a non-refundable reservation fee/)).toBeInTheDocument();
   });
 
+  it("quotes the deposit from the settings, not a fixed amount", () => {
+    render(<ServiceOverview service={service} priceLines={priceLines} deposit={depositTerms(700)} />);
+    expect(screen.getByText("₱700", { selector: "span" })).toBeInTheDocument();
+    expect(screen.getByText("₱600", { selector: "span" })).toBeInTheDocument(); // what comes off the bill
+    expect(screen.getByText(/₱600 is deductible from your final bill/)).toBeInTheDocument();
+    expect(screen.getByText(/₱100 is a non-refundable reservation fee/)).toBeInTheDocument();
+    expect(screen.queryByText("₱500")).toBeNull();
+  });
+
+  it("shows no amounts, rather than a wrong one, until the settings load", () => {
+    render(<ServiceOverview service={service} priceLines={priceLines} deposit={null} />);
+    expect(screen.getByText(/To secure your slot, a\s+booking deposit is required/)).toBeInTheDocument();
+    expect(screen.queryByText(/non-refundable reservation fee/)).toBeNull();
+  });
+
   it("leaves out the starting price when there isn't one", () => {
-    render(<ServiceOverview service={{ ...service, master_price: 0, junior_price: 0 }} priceLines={[]} />);
+    render(<ServiceOverview service={{ ...service, master_price: 0, junior_price: 0 }} priceLines={[]} deposit={depositTerms(500)} />);
     expect(screen.queryByText("Starts at")).toBeNull();
   });
 });
 
 describe("ServiceOverview text sizes", () => {
   it("uses one size for the description, the prices and the deposit text", () => {
-    const { container } = render(<ServiceOverview service={service} priceLines={priceLines} />);
+    const { container } = render(<ServiceOverview service={service} priceLines={priceLines} deposit={depositTerms(500)} />);
     const body = [
       ...container.querySelectorAll("p, ul"),
     ].filter((el) => /Lightweight|starts at|Final fees|To secure your slot|deductible|non-refundable/.test(el.textContent ?? ""));

@@ -11,9 +11,10 @@ import ClientScreen from "@/components/features/client/shell/ClientScreen";
 import { BookingStepSkeleton } from "@/components/features/client/skeletons/skeletons";
 import { usePayment } from "@/hooks/client/usePayment";
 import { CLIENT_PATHS } from "@/lib/client/clientNav";
+import { peso } from "@/lib/dashboardFormat";
 
 export default function Payment() {
-  const { artistLabel, priceLabel, dateLabel, timeLabel, methods, toggleAgree, method, setMethod, agree, loading, isInvalid, timeLeft, modalOpen, modalTitle, modalMessage, modalAction, modalButtonText, modalDismissible, appointment, handlePay, handleModalClose } = usePayment();
+  const { artistLabel, priceLabel, dateLabel, timeLabel, deposit, methods, toggleAgree, method, setMethod, agree, loading, isInvalid, timeLeft, modalOpen, modalTitle, modalMessage, modalAction, modalButtonText, modalDismissible, appointment, handlePay, handleModalClose } = usePayment();
 
   // If loading or invalid, show the placeholders (effectively hiding the pay UI)
   if (loading || isInvalid) {
@@ -113,13 +114,13 @@ export default function Payment() {
               <SummaryRow label="Date" value={dateLabel} />
               <SummaryRow label="Time" value={timeLabel} />
               <SummaryRow label="Price" value={priceLabel} />
-              <SummaryRow label="Deductible from total" value="₱400" />
-              <SummaryRow label="Reservation fee" value="₱100" />
+              <SummaryRow label="Deductible from total" value={deposit ? peso(deposit.deductible) : "–"} />
+              <SummaryRow label="Reservation fee" value={deposit ? peso(deposit.fee) : "–"} />
             </dl>
 
             <p className="flex items-baseline justify-between border-t border-crimson-light/40 pt-3 font-display text-2xl text-gray-red">
               <span>Total due</span>
-              <span className="text-crimson-ink">₱500</span>
+              <span className="text-crimson-ink">{deposit ? peso(deposit.total) : "–"}</span>
             </p>
           </Card>
         </div>

@@ -9,7 +9,7 @@ import { usePaymentConfirmation } from "@/hooks/client/usePaymentConfirmation";
 import { CLIENT_PATHS } from "@/lib/client/clientNav";
 
 export default function PaymentConfirmation() {
-  const { isFailed, isConfirmed, appointment_id, data, dateLabel, timeLabel, payment, loading, timedOut, checkAgain, instagram } = usePaymentConfirmation();
+  const { isFailed, isConfirmed, appointment_id, data, dateLabel, timeLabel, paid, payment, loading, timedOut, checkAgain, instagram } = usePaymentConfirmation();
 
   if (!appointment_id) {
     return (
@@ -104,8 +104,8 @@ export default function PaymentConfirmation() {
         <SectionHeader size="section" title="Booking confirmed" className="items-center" />
 
         <p className="mx-auto max-w-xl text-gray-red">
-          Thank you, {payment?.first_name}! Your downpayment of{" "}
-          <b>₱500 via {payment?.payment_method ?? "N/A"}</b> has been received and your booking is
+          Thank you, {payment?.first_name}! Your downpayment{" "}
+          <b>{paid ? `of ${paid} ` : ""}via {payment?.payment_method ?? "N/A"}</b> has been received and your booking is
           confirmed. Please check your email <b>({payment?.email ?? "your email"})</b> for your
           complete appointment details and a few reminders. We look forward to pampering you soon!
         </p>
@@ -126,7 +126,7 @@ export default function PaymentConfirmation() {
               <SummaryRow label="Service" value={data.service_name} />
               <SummaryRow label="Date" value={dateLabel} />
               <SummaryRow label="Time" value={timeLabel} />
-              <SummaryRow label="Amount paid" value="₱500" />
+              <SummaryRow label="Amount paid" value={paid ?? "–"} />
             </dl>
           </Card>
         ) : (

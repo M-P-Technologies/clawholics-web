@@ -12,6 +12,7 @@ import { CLIENT_PATHS } from "@/lib/client/clientNav";
 import { paymentArtistLabel, paymentPriceLabel } from "@/lib/client/payment";
 import { longDateLabel, timeRangeLabel } from "@/lib/timeFormat";
 import { itemName } from "@/lib/itemName";
+import { depositTerms } from "@/lib/depositTerms";
 
 /** How long the booking check may take before the page gives up and says so: past the server's
  *  own 30s limit (it answers a stalled request with a 503 then), so its retries get their chance */
@@ -115,6 +116,8 @@ export function usePayment() {
   const online = (settings.data?.payment_methods ?? []).filter((m) => OFFERED_PAYMENT_METHODS.includes(m) && Object.hasOwn(PAYMENT_METHOD_LABELS, m));
   const enabledMethods = online.length > 0 ? online : OFFERED_PAYMENT_METHODS;
   const enabledKey = enabledMethods.join(",");
+  // What the payment page quotes: the deposit set in Admin > Settings, split into its fee and what comes off the bill
+  const deposit = settings.data ? depositTerms(settings.data.downpayment_amount) : null;
 
   useEffect(() => {
     const enabled = enabledKey.split(",");
@@ -268,5 +271,5 @@ export function usePayment() {
   const dateLabel = longDateLabel(appointment?.appointment_date);
   const timeLabel = timeRangeLabel(appointment?.appointment_time);
 
-  return { artistLabel, priceLabel, dateLabel, timeLabel, methods, toggleAgree, navigate, method, setMethod, agree, setAgree, loading, isInvalid, timeLeft, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, modalDismissible, appointment, handlePay, handleModalClose };
+  return { artistLabel, priceLabel, dateLabel, timeLabel, deposit, methods, toggleAgree, navigate, method, setMethod, agree, setAgree, loading, isInvalid, timeLeft, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, modalDismissible, appointment, handlePay, handleModalClose };
 }

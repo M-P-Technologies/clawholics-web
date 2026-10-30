@@ -13,9 +13,10 @@ import PhotoCarousel from "@/components/booking/PhotoCarousel";
 import ServiceGallery from "@/components/booking/ServiceGallery";
 import ServiceOverview from "@/components/booking/ServiceOverview";
 import { useAppointment } from "@/hooks/useAppointment";
+import { peso } from "@/lib/dashboardFormat";
 
 function Appointment() {
-  const { priceLines, loading, service, gallery, carouselPhotos, terms, notFound, modalOpen, modalTitle, modalMessage, modalButtonText, modalAction, handleContinue, closeModal } = useAppointment();
+  const { priceLines, deposit, loading, service, gallery, carouselPhotos, terms, notFound, modalOpen, modalTitle, modalMessage, modalButtonText, modalAction, handleContinue, closeModal } = useAppointment();
 
   if (loading) return <LoadingBar label="Loading service details" />;
 
@@ -56,7 +57,7 @@ function Appointment() {
             </div>
             {/* Phones and tablets get the compact overview; the table below is for `lg` and up */}
             <div className="lg:hidden">
-              <ServiceOverview service={service} priceLines={priceLines} />
+              <ServiceOverview service={service} priceLines={priceLines} deposit={deposit} />
             </div>
             <div className="hidden flex-col gap-3 lg:flex">
               <p className="w-fit rounded-full bg-crimson-light/40 px-3 py-1 label-caps text-berry">
@@ -87,12 +88,14 @@ function Appointment() {
               <dt className={infoLabelClass}>Deposit</dt>
               <dd className="flex flex-col gap-3">
                 <p>
-                  To secure your slot, a <b>₱500</b> booking deposit is required at checkout.
+                  To secure your slot, a {deposit && <b>{peso(deposit.total)}</b>} booking deposit is required at checkout.
                 </p>
-                <ul className="ml-3 list-disc text-gray-red">
-                  <li>₱400 is deductible from your final bill.</li>
-                  <li>₱100 is a non-refundable reservation fee.</li>
-                </ul>
+                {deposit && (
+                  <ul className="ml-3 list-disc text-gray-red">
+                    <li>{peso(deposit.deductible)} is deductible from your final bill.</li>
+                    <li>{peso(deposit.fee)} is a non-refundable reservation fee.</li>
+                  </ul>
+                )}
               </dd>
             </dl>
           </div>

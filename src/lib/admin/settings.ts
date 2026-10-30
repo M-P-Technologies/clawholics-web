@@ -1,5 +1,6 @@
 import type { SalonSettings } from "../../services/settingsService";
 import { MAX_BOOKING_HOLD_MINUTES as MAX_HOLD_MINUTES, MIN_BOOKING_HOLD_MINUTES as MIN_HOLD_MINUTES } from "../bookingHold";
+import { MAX_MIN_NOTICE_HOURS, MIN_MIN_NOTICE_HOURS } from "../bookingNotice";
 
 // Admin > Settings: the form's values (text while typing) and the ways to pay it offers
 
@@ -9,6 +10,9 @@ export interface SettingsForm {
   birthdayPct: string;
   stampsRequired: string;
   holdMinutes: string;
+  noticeHours: string;
+  /** The day-before reminder email */
+  reminders: boolean;
 }
 
 /** The ways to pay the downpayment the site has screens for, by their payment_methods code */
@@ -22,6 +26,8 @@ const MAX_DOWNPAYMENT = 100000;
 export const MAX_LOYALTY_STAMPS = 20;
 /** The shortest and longest a new booking can hold its slot while the client pays, in minutes */
 export { MIN_BOOKING_HOLD_MINUTES as MIN_HOLD_MINUTES, MAX_BOOKING_HOLD_MINUTES as MAX_HOLD_MINUTES } from "../bookingHold";
+/** The least and most notice (hours before a slot starts) a booking can need */
+export { MIN_MIN_NOTICE_HOURS as MIN_NOTICE_HOURS, MAX_MIN_NOTICE_HOURS as MAX_NOTICE_HOURS } from "../bookingNotice";
 
 export const toForm = (settings: SalonSettings): SettingsForm => ({
   downpayment: String(settings.downpayment_amount),
@@ -30,10 +36,12 @@ export const toForm = (settings: SalonSettings): SettingsForm => ({
   birthdayPct: String(settings.birthday_discount_pct),
   stampsRequired: String(settings.loyalty_stamps_required),
   holdMinutes: String(settings.booking_hold_minutes),
+  noticeHours: String(settings.booking_min_notice_hours),
+  reminders: settings.booking_reminders_enabled,
 });
 
 export const sameForm = (a: SettingsForm, b: SettingsForm) =>
-  a.downpayment === b.downpayment && a.birthdayPct === b.birthdayPct && a.stampsRequired === b.stampsRequired && a.holdMinutes === b.holdMinutes && [...a.methods].sort().join() === [...b.methods].sort().join();
+  a.downpayment === b.downpayment && a.birthdayPct === b.birthdayPct && a.stampsRequired === b.stampsRequired && a.holdMinutes === b.holdMinutes && a.noticeHours === b.noticeHours && a.reminders === b.reminders && [...a.methods].sort().join() === [...b.methods].sort().join();
 
 const wholeNumber = (value: string) => (/^\d+$/.test(value.trim()) ? Number(value) : NaN);
 
@@ -48,6 +56,8 @@ export function settingsProblem(form: SettingsForm): string | null {
   if (!(stamps >= 1 && stamps <= MAX_LOYALTY_STAMPS)) return `The stamps for a reward must be a whole number from 1 to ${MAX_LOYALTY_STAMPS}.`;
   const hold = wholeNumber(form.holdMinutes);
   if (!(hold >= MIN_HOLD_MINUTES && hold <= MAX_HOLD_MINUTES)) return `The slot hold must be a whole number of minutes from ${MIN_HOLD_MINUTES} to ${MAX_HOLD_MINUTES}.`;
+  const notice = wholeNumber(form.noticeHours);
+  if (!(notice >= MIN_MIN_NOTICE_HOURS && notice <= MAX_MIN_NOTICE_HOURS)) return `The notice for a booking must be a whole number of hours from ${MIN_MIN_NOTICE_HOURS} to ${MAX_MIN_NOTICE_HOURS}.`;
   return null;
 }
 
@@ -57,4 +67,6 @@ export const fromForm = (form: SettingsForm): SalonSettings => ({
   birthday_discount_pct: wholeNumber(form.birthdayPct),
   loyalty_stamps_required: wholeNumber(form.stampsRequired),
   booking_hold_minutes: wholeNumber(form.holdMinutes),
+  booking_min_notice_hours: wholeNumber(form.noticeHours),
+  booking_reminders_enabled: form.reminders,
 });

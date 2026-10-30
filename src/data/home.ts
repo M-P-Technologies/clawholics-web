@@ -27,7 +27,7 @@ export const WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Sa
 // Things the studio offers that are worth knowing before you come in. The default for the
 // About content's Good to know list (about_good_to_know), shown in the home page's Quick contact.
 export const GOOD_TO_KNOW = [
-  "Book online with a ₱500 downpayment",
+  "Book online with a small downpayment",
   "Custom nail art on every set",
   "Loyalty stamp card rewards",
   "Master and junior technicians",

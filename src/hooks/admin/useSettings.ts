@@ -10,7 +10,7 @@ import { PUBLIC } from "../../lib/publicQueries";
 import { fromForm, sameForm, settingsProblem, toForm, type SettingsForm } from "../../lib/admin/settings";
 import { fetchSettings, updateSettings, type SalonSettings } from "../../services/settingsService";
 
-const EMPTY_FORM: SettingsForm = { downpayment: "", methods: [], birthdayPct: "", stampsRequired: "", holdMinutes: "" };
+const EMPTY_FORM: SettingsForm = { downpayment: "", methods: [], birthdayPct: "", stampsRequired: "", holdMinutes: "", noticeHours: "", reminders: true };
 
 // Admin > Settings: the salon's settings, loaded, edited in one form and saved together
 export function useSettings() {
@@ -46,8 +46,9 @@ export function useSettings() {
       setForm(toForm(settings));
       setSaved(toForm(settings));
       source.saved(settings);
-      // The payment page, the loyalty cards and the scanner read these
+      // The payment page, the booking calendar, the loyalty cards and the scanner read these
       void queryClient.invalidateQueries({ queryKey: [PUBLIC, "paymentSettings"] });
+      void queryClient.invalidateQueries({ queryKey: [PUBLIC, "bookingSettings"] });
       void queryClient.invalidateQueries({ queryKey: [PUBLIC, "loyaltySettings"] });
       toast.show("success", "Settings saved", "The site uses the new settings from now on.");
       return true;
@@ -91,6 +92,8 @@ export function useSettings() {
     setBirthdayPct: (value: string) => set("birthdayPct", value),
     setStampsRequired: (value: string) => set("stampsRequired", value),
     setHoldMinutes: (value: string) => set("holdMinutes", value),
+    setNoticeHours: (value: string) => set("noticeHours", value),
+    toggleReminders: () => setForm((f) => ({ ...f, reminders: !f.reminders })),
     toggleMethod,
     save,
     discard: () => {

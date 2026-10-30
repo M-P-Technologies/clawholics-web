@@ -9,6 +9,8 @@ export interface Appointment {
 
 export interface PaymentDetails {
   amount: number;
+  /** What the payment endpoint answers: the downpayment actually paid (the page quotes it, not today's setting) */
+  payment_amount?: number | null;
   payment_method: string;
   status: string;
 

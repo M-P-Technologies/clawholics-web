@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "@/lib/router";
 import { useUser, useAuth } from "@clerk/nextjs";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { publicQueries } from "@/lib/publicQueries";
+import { DEFAULT_MIN_NOTICE_HOURS, manilaToday, startsTooSoon } from "@/lib/bookingNotice";
 import { rescheduleAppointment } from "@/services/bookingService";
 import { ACCOUNT } from "@/lib/accountQueries";
 import { formatSlot, isOverlapping, toLocalDate, toLocalDateString } from "@/utils/reschedule";
@@ -86,9 +88,8 @@ export function useReschedule() {
   }, [isLoaded, isSignedIn, appointment, navigate]);
 
   const isDisabledDate = (date: Date) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (date < today) return true;
+    // A day before today in Manila, where the salon is, whatever the visitor's own timezone
+    if (toLocalDateString(date) < manilaToday()) return true;
 
     const max = new Date();
     max.setMonth(max.getMonth() + 1);
@@ -107,17 +108,11 @@ export function useReschedule() {
   const isTimeBlocked = (slot: string) =>
     bookedSlots.some((b) => isOverlapping(b, slot));
 
-  const isPastTimeToday = (slot: string) => {
-    if (!selectedDate) return false;
-    const today = new Date();
-    const selected = toLocalDate(selectedDate);
-    if (selected.toDateString() !== today.toDateString()) return false;
-
-    const now = today.getHours() * 60 + today.getMinutes();
-    const [start] = slot.split("-");
-    const [h, m] = start.split(":").map(Number);
-    return h * 60 + m <= now;
-  };
+  // A new time needs the same notice as a new booking (Admin > Settings; the server enforces it too).
+  // Until it loads, the default, which is what the server uses when none is saved.
+  const bookingSettings = useQuery(publicQueries.bookingSettings());
+  const minNotice = bookingSettings.data?.min_notice_hours ?? DEFAULT_MIN_NOTICE_HOURS;
+  const isTooSoon = (slot: string) => !!selectedDate && startsTooSoon(selectedDate, slot, minNotice);
 
   const showModal = (title: string, message: string, action?: () => void) => {
     setModalTitle(title);
@@ -199,7 +194,7 @@ export function useReschedule() {
 
   const selectedDay = selectedDate ? toLocalDate(selectedDate) : undefined;
   const isDateFullyBooked = (date: Date) => fullyBookedDates.includes(toLocalDateString(date));
-  const isSlotBlocked = (slot: string) => isTimeBlocked(slot) || isPastTimeToday(slot);
+  const isSlotBlocked = (slot: string) => isTimeBlocked(slot) || isTooSoon(slot);
   const uniqueTimeSlots = Array.from(new Set(timeSlots));
 
   const handleModalClose = () => {
@@ -210,5 +205,5 @@ export function useReschedule() {
   // The summary's old and new date and time
   const labels = rescheduleLabels(appointment, selectedDate, selectedTime, formatDisplayDate);
 
-  return { formatSlot, ...labels, isLoaded, appointment, isSubmitting, month, setMonth, selectedDate, setSelectedDate, selectedTime, setSelectedTime, timeSlots, fullyBookedDates, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, isDisabledDate, formatDisplayDate, isTimeBlocked, isPastTimeToday, showModal, handleConfirmReschedule, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, uniqueTimeSlots, handleModalClose };
+  return { formatSlot, ...labels, isLoaded, appointment, isSubmitting, month, setMonth, selectedDate, setSelectedDate, selectedTime, setSelectedTime, timeSlots, fullyBookedDates, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, isDisabledDate, formatDisplayDate, isTimeBlocked, isTooSoon, showModal, handleConfirmReschedule, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, uniqueTimeSlots, handleModalClose };
 }

@@ -225,6 +225,18 @@ const VISIT_REMINDERS = `
     </td></tr>
   </table>`;
 
+// The day-before reminder's version: the visit is tomorrow, so changing it in the account (72 hours
+// ahead) is no longer possible and it points to the salon instead
+const DAY_BEFORE_REMINDERS = `
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 28px; border-left: 4px solid ${BRAND.pinkLight};">
+    <tr><td style="padding: 2px 0 2px 16px; font-size: 14px; line-height: 1.6;">
+      <p style="margin: 0 0 6px 0; font-family: ${DISPLAY_FONT}; font-size: 17px; color: ${BRAND.onPink};">Before your visit</p>
+      <p style="margin: 0 0 6px 0;">⏰ Please arrive on time. Arriving 15 minutes late adds a ₱100 fee, and 20 minutes ₱150. From 25 minutes late the visit may be cancelled, and the downpayment is kept.</p>
+      <p style="margin: 0 0 6px 0;">📅 Plans changed? Changes close 72 hours before a visit, so please <a href="${SITE}/contact" style="${LINK}">contact us</a> as soon as you can.</p>
+      <p style="margin: 0;">💅 The rest of the price is paid at the salon after your visit.</p>
+    </td></tr>
+  </table>`;
+
 interface ClientEmail {
   /** The small label over the greeting, e.g. "Appointment confirmed"; also the document's title */
   title: string;
@@ -236,10 +248,12 @@ interface ClientEmail {
   details: { heading: string; rows: ([string, unknown, boolean?] | null)[] };
   cta?: { label: string; href: string };
   reminders?: boolean;
+  /** The day-before reminder's "Before your visit" box, instead of the confirmation's */
+  dayBefore?: boolean;
   location: SalonLocation;
 }
 
-function clientEmailHtml({ title, name, message, preview, details, cta, reminders = false, location }: ClientEmail) {
+function clientEmailHtml({ title, name, message, preview, details, cta, reminders = false, dayBefore = false, location }: ClientEmail) {
   const address = escapeHtml(location.text);
   const body = `
     ${eyebrow(title)}
@@ -247,7 +261,7 @@ function clientEmailHtml({ title, name, message, preview, details, cta, reminder
     <p style="margin: 0; font-size: 16px; line-height: 1.6;">${message}</p>
     ${detailsBox(details.heading, details.rows)}
     ${cta ? button(cta.label, cta.href) : ""}
-    ${reminders ? VISIT_REMINDERS : ""}
+    ${dayBefore ? DAY_BEFORE_REMINDERS : reminders ? VISIT_REMINDERS : ""}
     <p style="margin: 32px 0 0 0; font-size: 15px; line-height: 1.6;">See you soon,<br><span style="font-family: ${DISPLAY_FONT}; font-size: 18px; color: ${BRAND.ink};">Clawholics by Max</span> 💖</p>`;
   const footer = `
     <p style="margin: 0 0 6px 0;">📍 ${location.url ? `<a href="${escapeHtml(location.url)}" style="${LINK}">${address}</a>` : address}</p>
@@ -447,6 +461,41 @@ export async function sendLoyaltyRewardEmail(clientEmail: string, clientName: st
       cta: { label: "Book your next visit", href: `${SITE}/my/book` },
       location: await salonLocation(),
     }),
+  );
+}
+
+/**
+ * The day-before reminders, one email per booking, in Resend batches. Throws if Resend refuses the
+ * batch, so the caller can put the bookings back for another try.
+ */
+export async function sendAppointmentReminderEmails(
+  bookings: { id: number; email: string; first_name: string; service_name: string; nailist_name: string; appointment_date: string; appointment_time: string }[],
+) {
+  const location = await salonLocation();
+  await sendEmailBatch(
+    bookings.map((b) => ({
+      to: b.email,
+      subject: "Reminder: your appointment is tomorrow | Clawholics by Max",
+      html: clientEmailHtml({
+        title: "See you tomorrow",
+        name: b.first_name || "there",
+        message: `A friendly reminder that your appointment with <strong style="color: ${BRAND.ink};">${escapeHtml(b.nailist_name)}</strong> is <strong style="color: ${BRAND.ink};">tomorrow</strong>. We can't wait to see you!`,
+        preview: `${b.service_name} tomorrow, ${timeRange(b.appointment_time)}`,
+        details: {
+          heading: "Your appointment",
+          rows: [
+            ["Service", b.service_name],
+            ["Artist", b.nailist_name],
+            ["Date", longDate(b.appointment_date), true],
+            ["Time", timeRange(b.appointment_time), true],
+            ["Booking no.", `#${b.id}`],
+          ],
+        },
+        cta: MANAGE,
+        dayBefore: true,
+        location,
+      }),
+    })),
   );
 }
 

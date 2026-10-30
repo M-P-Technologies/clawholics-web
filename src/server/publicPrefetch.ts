@@ -50,6 +50,7 @@ export function prefetchPublicContent(): Promise<DehydratedState> {
     [publicKeys.faqs, () => publicReads.faqs()],
     [publicKeys.tacs, () => publicReads.tacs()],
     [publicKeys.carousel, () => publicReads.carousel()],
+    [publicKeys.paymentSettings, () => publicReads.paymentSettings()],
   ]);
 }
 
