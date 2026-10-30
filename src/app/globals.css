@@ -380,11 +380,74 @@ html {
   animation: drawer-from-right 320ms cubic-bezier(0.32, 0.72, 0, 1) both;
 }
 
+/* Reduced motion keeps the arrival but drops the travel: sheets and drawers fade instead of sliding. */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .drawer-panel,
-  .drawer-backdrop,
   .drawer-right {
+    animation: fade-in 150ms ease-out both;
+  }
+  .drawer-backdrop {
     animation: none;
+  }
+}
+
+/* Popovers (the info notes, the bell) grow out of the button that opened them: the element sets its
+   transform-origin to the trigger. The individual `scale` property is used so it composes with any
+   `transform` the element already has. */
+@keyframes popover-in {
+  from {
+    opacity: 0;
+    scale: 0.94;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+.popover-in {
+  animation: popover-in 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .popover-in {
+    animation: fade-in 120ms ease-out both;
+  }
+}
+
+/* Translucent chrome (the bars, the sheets' scrim) turns solid for people who ask for less
+   transparency or more contrast: no blur, an opaque fill, and for more contrast a defined edge. */
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  [class*="backdrop-blur"] {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+  [class*="backdrop-blur"][class*="bg-milk/"] {
+    background-color: var(--color-milk) !important;
+  }
+  [class*="backdrop-blur"][class*="bg-light-orange/"] {
+    background-color: var(--color-light-orange) !important;
+  }
+  /* The scrim has no blur to hide behind, so it dims a little more to keep the sheet apart */
+  .drawer-backdrop {
+    background-color: color-mix(in srgb, var(--color-gray-red) 60%, transparent) !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  [class*="backdrop-blur"][class*="border"],
+  .drawer-panel,
+  .drawer-right {
+    border-color: var(--color-gray-red) !important;
   }
 }
 

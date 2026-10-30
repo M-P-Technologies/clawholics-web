@@ -98,7 +98,7 @@ export default function NotificationBell() {
           aria-label="New bookings"
           // Phones: centred on the screen; from sm, under the bell (`--bell-right`)
           style={{ top: place.top, "--bell-right": `${place.right}px` } as CSSProperties}
-          className="fixed z-60 flex max-sm:left-1/2 max-sm:-translate-x-1/2 sm:right-(--bell-right) w-[min(28rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-crimson-light/40 bg-milk shadow-xl shadow-crimson/20"
+          className="popover-in origin-top-right fixed z-60 flex max-sm:left-1/2 max-sm:-translate-x-1/2 sm:right-(--bell-right) w-[min(28rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-crimson-light/40 bg-milk shadow-xl shadow-crimson/20"
         >
           <p className="border-b border-crimson-light/40 px-3 py-3 font-display text-lg text-gray-red">New bookings</p>
           {bell.failed ? (
