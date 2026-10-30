@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { Check, X } from "lucide-react";
 import clsx from "clsx";
+import { useSheetDrag } from "@/hooks/useSheetDrag";
 import { Button } from "../atoms";
 import { FOOTER_ACTIONS_CLASS } from "./FooterActions";
 
@@ -49,12 +50,9 @@ interface DialogProps {
 // and focus goes back to what opened it.
 export default function Dialog({ open, onClose, title, placement = "sheet", size = "lg", role = "dialog", dismissible = true, hideClose = false, header, footer, children }: DialogProps) {
   const panelRef = useRef<HTMLDivElement | null>(null);
+  const backdropRef = useRef<HTMLDivElement | null>(null);
   const closeRef = useRef(onClose);
   const [token] = useState(() => ({}));
-  useEffect(() => {
-    closeRef.current = onClose;
-  }, [onClose]);
-
   useEffect(() => {
     if (!open) return;
     const opener = document.activeElement as HTMLElement | null;
@@ -93,13 +91,29 @@ export default function Dialog({ open, onClose, title, placement = "sheet", size
     }
   };
 
-  if (!open) return null;
   const drawer = placement === "drawer";
+  // Sheets (below lg) and drawers are dragged away by their header; centred dialogs stay put
+  const { close: slideClose, ...dragHandlers } = useSheetDrag({
+    axis: drawer ? "x" : "y",
+    enabled: open && dismissible && placement !== "center",
+    getPanel: () => panelRef.current,
+    getBackdrop: () => backdropRef.current,
+    onDismiss: onClose,
+  });
+
+  // Escape closes the way the close button and backdrop do, with whatever onClose the caller has now
+  useEffect(() => {
+    closeRef.current = slideClose;
+  });
+
+  if (!open) return null;
+  const draggable = placement !== "center";
+  const dragArea = draggable ? { ...dragHandlers, className: "touch-none select-none" } : { className: "" };
   const defaultHeader = (
     <div className="flex items-center justify-between gap-3 border-b border-crimson-light/50 pb-3">
       <h2 className="font-display text-xl font-normal normal-case tracking-normal text-gray-red">{title}</h2>
       {!hideClose && (
-        <Button variant="bare" type="button" aria-label="Close" onClick={onClose} className="shrink-0 rounded-full p-1.5 text-gray-red hover:bg-crimson-light/40 hover:text-gray-red">
+        <Button variant="bare" type="button" aria-label="Close" onClick={slideClose} className="shrink-0 rounded-full p-1.5 text-gray-red hover:bg-crimson-light/40 hover:text-gray-red">
           <X size={20} aria-hidden="true" />
         </Button>
       )}
@@ -108,11 +122,12 @@ export default function Dialog({ open, onClose, title, placement = "sheet", size
 
   return (
     <div
+      ref={backdropRef}
       className={clsx(
         "drawer-backdrop fixed inset-0 z-60 flex bg-gray-red/40 backdrop-blur-sm",
         drawer ? "justify-end" : placement === "center" ? "items-center justify-center px-3" : "items-end justify-center lg:items-center lg:px-9",
       )}
-      onClick={() => dismissible && onClose()}
+      onClick={() => dismissible && slideClose()}
     >
       <div
         ref={panelRef}
@@ -135,13 +150,16 @@ export default function Dialog({ open, onClose, title, placement = "sheet", size
       >
         {drawer ? (
           <>
-            {header ?? defaultHeader}
+            <div {...dragArea}>{header ?? defaultHeader}</div>
             {children}
             {footer}
           </>
         ) : (
           <>
-            <div className="shrink-0 px-6 pt-6">{header ?? defaultHeader}</div>
+            <div {...dragArea} className={clsx(dragArea.className, "shrink-0 px-6 pt-6")}>
+              {placement === "sheet" && <div aria-hidden="true" className="mx-auto -mt-3 mb-3 h-1.5 w-10 rounded-full bg-crimson-light lg:hidden" />}
+              {header ?? defaultHeader}
+            </div>
             <div className={clsx("flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-6 pt-3", footer ? "pb-3" : "pb-6")}>{children}</div>
             {footer && <div className="shrink-0 border-t border-crimson-light/50 px-6 py-3">{footer}</div>}
           </>

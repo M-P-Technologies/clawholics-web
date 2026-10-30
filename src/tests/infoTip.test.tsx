@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { InfoTip } from "@/components/organisms";
 import DashboardView from "@/components/features/admin/dashboard/DashboardView";
@@ -34,7 +34,7 @@ describe("InfoTip", () => {
     expect(screen.queryByRole("tooltip")).toBeNull();
   });
 
-  it("opens its note in a bottom sheet on a phone", () => {
+  it("opens its note in a bottom sheet on a phone", async () => {
     narrow();
     render(<InfoTip label="Sales">What the visits sold for.</InfoTip>);
     const button = screen.getByRole("button", { name: "About Sales" });
@@ -44,7 +44,8 @@ describe("InfoTip", () => {
     const sheet = screen.getByRole("dialog", { name: "Sales" });
     expect(sheet).toHaveTextContent("What the visits sold for.");
     fireEvent.click(within(sheet).getByRole("button", { name: "Close" }));
-    expect(screen.queryByRole("dialog")).toBeNull();
+    // The sheet slides away before it unmounts
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull(), { timeout: 3000 });
   });
 });
 
