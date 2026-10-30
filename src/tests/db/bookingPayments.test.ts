@@ -61,7 +61,8 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
     db = await resetTestDatabase();
     // The bookings below are in 2099, far beyond the booking window (30 days by default) of the real clock: the whole file runs on
     // a clock set just before them, and its window is widened to a year
-    vi.useFakeTimers({ toFake: ["Date"] });
+    // The clock keeps running (a frozen one would give two payments the same external id)
+    vi.useFakeTimers({ toFake: ["Date"], shouldAdvanceTime: true });
     vi.setSystemTime(FILE_NOW);
     await db`insert into site_settings (key, value) values ('booking_max_advance_days', '365') on conflict (key) do update set value = '365'`;
     process.env.XENDIT_CALLBACK_TOKEN = "cb-token";
@@ -340,7 +341,7 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       for (const bad of [
         `nailist_id=abc&from=${first}&to=${second}`,
         `nailist_id=${nailistId}&from=${second}&to=${first}`,
-        `nailist_id=${nailistId}&from=2099-01-01&to=2099-06-01`,
+        `nailist_id=${nailistId}&from=2099-01-01&to=2100-06-01`,
         `nailist_id=${nailistId}&from=x&to=${second}`,
       ]) {
         expect((await callRoute(booking.getBookedSlotsRange, url(bad))).status).toBe(400);
