@@ -17,6 +17,12 @@ describe("the bell's visit to complete", () => {
     expect(notificationLink(note({ client_user_id: null }))).toBe("/clients?status=TO_COMPLETE");
   });
 
+  it("says a refund is waiting to be sent by hand and opens the client's page, or the list for a walk-in", () => {
+    expect(notificationTitle(note({ kind: "refund_to_send" }))).toBe("Refund to send");
+    expect(notificationLink(note({ kind: "refund_to_send" }))).toBe("/clients/3");
+    expect(notificationLink(note({ kind: "refund_to_send", client_user_id: null }))).toBe("/clients");
+  });
+
   it("keeps the other kinds' words and links", () => {
     expect(notificationTitle(note({ kind: "proof_uploaded" }))).toBe("Payment proof to review");
     expect(notificationTitle(note({ kind: "booking_paid" }))).toBe("New booking paid");

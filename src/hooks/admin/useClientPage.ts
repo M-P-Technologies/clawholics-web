@@ -11,6 +11,7 @@ import { itemName, upperFirst } from "../../lib/itemName";
 import { useStampTarget } from "../useStampTarget";
 import { addNote, deleteNote, saveNextSteps, type ClientDetails, type ClientNote } from "../../services/clientNotesService";
 import { setReviewApproval } from "../../services/reviewService";
+import { cancelToast } from "../../lib/admin/cancelBooking";
 import { cancelAndRefundAppointment, updateAppointmentStatus, type AppointmentStatus } from "../../services/appointmentService";
 
 /** The note being written about one appointment */
@@ -71,11 +72,11 @@ export function useClientPage() {
   };
 
   // `message` may be a function, for words that depend on what the work answered
-  const run = async (work: () => Promise<unknown>, done: string, message?: string | (() => string)) => {
+  const run = async (work: () => Promise<unknown>, done: string | (() => string), message?: string | (() => string)) => {
     try {
       setBusy(true);
       await work();
-      toast.show("success", done, typeof message === "function" ? message() : message);
+      toast.show("success", typeof done === "function" ? done() : done, typeof message === "function" ? message() : message);
       return true;
     } catch (error) {
       toast.show("error", `Not saved for ${who()}`, error instanceof Error ? error.message : "Please try again.");
@@ -121,13 +122,13 @@ export function useClientPage() {
   const cancelLate = (appointmentId: number) => changeStatus(appointmentId, "CANCELLED", `${upperFirst(who())}'s visit cancelled for coming late`, `${upperFirst(visitOf(appointmentId))}. The downpayment is kept.`);
   /** Cancelled by an admin: the client is emailed and the downpayment refunded by the terms (72+ hours ahead) */
   const cancelBooking = async (appointmentId: number) => {
-    let refunded = false;
+    let toastOf = cancelToast({ status: "CANCELLED" }, upperFirst(visitOf(appointmentId)));
     const done = await run(
       async () => {
-        refunded = (await cancelAndRefundAppointment(appointmentId, await getToken(), user?.id)).status === "REFUNDED";
+        toastOf = cancelToast(await cancelAndRefundAppointment(appointmentId, await getToken(), user?.id), upperFirst(visitOf(appointmentId)));
       },
-      "Appointment cancelled",
-      () => `${upperFirst(visitOf(appointmentId))}. ${refunded ? "The downpayment is refunded." : "The downpayment is kept, or there was none to refund."}`,
+      () => toastOf.title,
+      () => toastOf.message,
     );
     if (done) await adminDataChanged(queryClient);
   };

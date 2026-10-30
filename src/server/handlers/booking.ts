@@ -19,6 +19,7 @@ import { canAccess, requireAdmin, requireUserRow } from "../auth";
 import { getSql } from "../db";
 import { sendCancellationEmails, sendConfirmationEmail, sendRescheduleEmails } from "../email";
 import { inBackground, readJson, routeNotFound, toId } from "../http";
+import { notifyAdmins } from "../notifications";
 import { createXenditRefund, expireXenditInvoice, getXenditInvoices } from "../payments";
 import { getBookingHoldMinutes } from "../bookingHold";
 import { checkSlot, hasStarted, normalizeSlot } from "../slotRules";
@@ -274,7 +275,7 @@ const DAY = /^\d{4}-\d{2}-\d{2}$/;
 
 // GET /booking/appointments and /appointments[?status=A,B] (admin): every appointment.
 // With ?page=N it answers one page instead, as { rows, total, page, pageSize }, filtered by
-// status (A,B), proof=review, on or from (YYYY-MM-DD), artist and q, and sorted by
+// status (A,B), proof=review, paid=1 (only bookings ever paid), on or from (YYYY-MM-DD), artist and q, and sorted by
 // sort=upcoming|latest|booked_newest|booked_oldest; pageSize is 1-50 (default 10).
 export const listAllAppointments = ported(async (req) => {
   const admin = await requireAdmin();
@@ -306,6 +307,7 @@ export const listAllAppointments = ported(async (req) => {
     proofToReview: params.get("proof") === "review",
     toComplete: params.get("complete") === "due",
     photosToAdd: params.get("complete") === "photos",
+    paidOnly: params.get("paid") === "1",
     on,
     from,
     artist: params.get("artist")?.trim() || null,
@@ -528,6 +530,7 @@ export const refundAppointment = ported<IdContext>(async (_req, { params }) => {
     let finalStatus = "CANCELLED";
     let isLateCancellation = false;
     let manualRefundAmount: number | undefined;
+    let manualRefundReason: "proof" | "gateway" = "proof";
 
     if (eligibleForRefund && manualPayment) {
       finalStatus = "REFUNDED";
@@ -539,12 +542,16 @@ export const refundAppointment = ported<IdContext>(async (_req, { params }) => {
         await createXenditRefund(invoices[0]);
         finalStatus = "REFUNDED";
       } catch (e) {
-        const message = e instanceof Error ? e.message : String(e);
-        console.error("XENDIT REFUND CATCH:", message);
-        return Response.json(
-          { message: `Refund processing error: ${message}. Please contact the salon for manual assistance.` },
-          { status: 400 },
-        );
+        // Xendit can't refund every channel (QR Ph, the one clients pay with, isn't refundable through
+        // its API). The booking is cancelled all the same and the refund is sent by hand: the salon is
+        // told, rather than the client being left with a booking they can't cancel.
+        console.error("XENDIT REFUND CATCH:", e instanceof Error ? e.message : String(e));
+        const [paidRow] = await tx<{ amount: number }[]>`
+          select coalesce(sum(amount), 0)::int as amount from payments where appointment_id = ${id} and upper(trim(status)) = 'PAID'
+        `;
+        finalStatus = "REFUNDED";
+        manualRefundAmount = Number(paidRow?.amount ?? 0);
+        manualRefundReason = "gateway";
       }
     } else {
       if (isPaid && !eligibleForRefund) isLateCancellation = true;
@@ -566,17 +573,25 @@ export const refundAppointment = ported<IdContext>(async (_req, { params }) => {
         cancelled_at = clawholics_utc_now(),
         refunded_at = case when ${finalStatus} = 'REFUNDED' then clawholics_utc_now() else refunded_at end
       where id = ${id}`;
-    return { finalStatus, isLateCancellation, manualRefundAmount };
+    return { finalStatus, isLateCancellation, manualRefundAmount, manualRefundReason };
   });
   if (result instanceof Response) return result;
-  const { finalStatus, isLateCancellation, manualRefundAmount } = result;
+  const { finalStatus, isLateCancellation, manualRefundAmount, manualRefundReason } = result;
 
   inBackground("cancellation email", () =>
     sendCancellationEmails({
       email: app.email || "", name: app.client_name || "Client", service: app.service_name,
       date: app.appointment_date, time: app.appointment_time, artist: app.nailist_name, status: finalStatus,
-      appointmentId: app.id, isLateCancellation, manualRefundAmount, byClient: requester.role !== "admin",
+      appointmentId: app.id, isLateCancellation, manualRefundAmount, manualRefundReason, byClient: requester.role !== "admin",
     }),
   );
-  return Response.json({ message: `Appointment ${finalStatus.toLowerCase()} successfully.`, status: finalStatus });
+  // A refund to send by hand also goes to the admins' bell, which is where they look (the emails to
+  // the salon were cut back)
+  const refundByHand = manualRefundAmount !== undefined;
+  if (refundByHand) inBackground("refund notification", () => notifyAdmins("refund_to_send", id, id));
+  return Response.json({
+    message: `Appointment ${finalStatus.toLowerCase()} successfully.`,
+    status: finalStatus,
+    ...(refundByHand ? { refundByHand: true, refundAmount: manualRefundAmount } : {}),
+  });
 });

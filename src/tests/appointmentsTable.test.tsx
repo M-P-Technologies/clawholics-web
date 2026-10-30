@@ -1,5 +1,5 @@
 import userEvent from "@testing-library/user-event";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import AppointmentsTable, { parseStatusParam } from "@/components/features/admin/bookings/AppointmentsTable";
 import type { Appointment } from "@/services/appointmentService";
@@ -78,16 +78,29 @@ describe("Appointments table", () => {
   });
 
   it("asks the server for one page at a time, with the filters, instead of every appointment", async () => {
-    params = new URLSearchParams("status=PROOF_PENDING");
+    params = new URLSearchParams("status=CONFIRMED");
     render(<AppointmentsTable />);
     await waitFor(() => expect(fetchAppointmentPage).toHaveBeenCalled());
     expect(fetchAppointmentPage.mock.calls.at(-1)?.[0]).toMatchObject({
       page: 1,
       pageSize: 5,
-      proofToReview: true,
       sort: "upcoming",
-      statuses: ["PENDING", "AWAITING_PROOF", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUNDED", "NO_SHOW"],
+      statuses: ["CONFIRMED"],
     });
+  });
+
+  it("lists only paid bookings under Cancelled, not the unpaid holds that ran out", async () => {
+    params = new URLSearchParams("status=CANCELLED");
+    render(<AppointmentsTable />);
+    await waitFor(() => expect(fetchAppointmentPage).toHaveBeenCalled());
+    expect(fetchAppointmentPage.mock.calls.at(-1)?.[0]).toMatchObject({ statuses: ["CANCELLED"], paidOnly: true });
+    cleanup();
+    fetchAppointmentPage.mockClear();
+    // Any other status (and All) lists everything of that status
+    params = new URLSearchParams("status=CONFIRMED");
+    render(<AppointmentsTable />);
+    await waitFor(() => expect(fetchAppointmentPage).toHaveBeenCalled());
+    expect(fetchAppointmentPage.mock.calls.at(-1)?.[0]).toMatchObject({ paidOnly: false });
   });
 
   it("shows the error, not the previous filter's rows, when a new filter can't load", async () => {
@@ -97,26 +110,36 @@ describe("Appointments table", () => {
     fetchAppointmentPage.mockRejectedValueOnce(new Error("down"));
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: "Status" }));
-    await user.click(screen.getByRole("option", { name: "Cancelled" }));
+    await user.click(screen.getByRole("option", { name: "Cancelled (paid)" }));
     expect(await screen.findByText(/couldn't load the appointments/i)).toBeInTheDocument();
     expect(screen.queryByRole("table", { name: "Appointments" })).toBeNull();
   });
 
   it("opens on the status in the link, and filters with the status dropdown", async () => {
-    params = new URLSearchParams("status=PENDING");
+    params = new URLSearchParams("status=CONFIRMED");
     render(<AppointmentsTable />);
     await screen.findByRole("table", { name: "Appointments" });
     const filter = screen.getByRole("button", { name: "Status" });
-    expect(filter).toHaveTextContent("Pending");
+    expect(filter).toHaveTextContent("Confirmed");
     expect(rows()).toHaveLength(1);
     const user = userEvent.setup();
     await user.click(filter);
-    await user.click(screen.getByRole("option", { name: "Proofs to review" }));
-    expect(rows()).toHaveLength(1);
-    expect(within(rows()[0]).getByText("Proof to review")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Status" }));
     await user.click(screen.getByRole("option", { name: "All statuses" }));
     expect(rows()).toHaveLength(4);
+  });
+
+  it("no longer offers the pending and proof filters, and opens an old link to one on All", async () => {
+    params = new URLSearchParams("status=PENDING");
+    render(<AppointmentsTable />);
+    await screen.findByRole("table", { name: "Appointments" });
+    expect(rows()).toHaveLength(4);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Status" }));
+    for (const name of ["Pending", "Awaiting proof", "Proofs to review", "Proof overdue"]) {
+      expect(screen.queryByRole("option", { name })).toBeNull();
+    }
+    expect(screen.getByRole("option", { name: "Confirmed" })).toBeInTheDocument();
+    for (const old of ["PENDING", "AWAITING_PROOF", "PROOF_PENDING", "PROOF_OVERDUE"]) expect(parseStatusParam(old)).toBe("ALL");
   });
 
 
@@ -139,8 +162,12 @@ describe("Appointments table", () => {
     await screen.findByRole("table", { name: "Appointments" });
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: /Status of appointment #2/ }));
-    expect(screen.getByRole("option", { name: "Awaiting proof" })).toBeInTheDocument();
-    expect(screen.queryByRole("option", { name: "Awaiting confirmation" })).toBeNull();
+    // A pending booking can be confirmed; cancelling or refunding by label alone, and the old
+    // proof states, aren't offered (the Cancel appointment button does those for real)
+    expect(screen.getByRole("option", { name: "Pending" })).toBeInTheDocument();
+    for (const name of ["Awaiting proof", "Awaiting confirmation", "Cancelled", "Refunded", "No show", "Completed"]) {
+      expect(screen.queryByRole("option", { name })).toBeNull();
+    }
     await user.click(screen.getByRole("option", { name: "Confirmed" }));
     await waitFor(() => expect(updateAppointmentStatus).toHaveBeenCalledWith(2, "CONFIRMED", "tok", "admin_1"));
     expect(show).toHaveBeenCalledWith("success", "Appointment updated", "Appointment #2 (Bea Lim, Gel) is now confirmed.");
@@ -229,9 +256,9 @@ describe("Appointments on a phone", () => {
       expect(statusButton.parentElement?.className).toContain("grid-cols-3");
       fireEvent.click(statusButton);
       const drawer = within(screen.getByRole("listbox", { name: "Status" }));
-      fireEvent.click(drawer.getByRole("button", { name: "Pending" }));
+      fireEvent.click(drawer.getByRole("button", { name: "Confirmed" }));
       expect(screen.queryByRole("listbox", { name: "Status" })).toBeNull();
-      expect(screen.getByRole("button", { name: "Status: Pending" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Status: Confirmed" })).toBeInTheDocument();
       await waitFor(() => expect(screen.getByRole("list", { name: "Appointments" }).children).toHaveLength(1));
     } finally {
       delete (window as { matchMedia?: unknown }).matchMedia;
@@ -241,7 +268,8 @@ describe("Appointments on a phone", () => {
 
 describe("parseStatusParam", () => {
   it("accepts a known status and falls back to All", () => {
-    expect(parseStatusParam("PROOF_PENDING")).toBe("PROOF_PENDING");
+    expect(parseStatusParam("CONFIRMED")).toBe("CONFIRMED");
+    expect(parseStatusParam("TO_COMPLETE")).toBe("TO_COMPLETE");
     expect(parseStatusParam("nope")).toBe("ALL");
     expect(parseStatusParam(null)).toBe("ALL");
   });

@@ -10,7 +10,7 @@ import ClientNotesPanel from "@/components/features/admin/clients/ClientNotesPan
 import ProofReviewPanel from "@/components/features/admin/bookings/ProofReviewPanel";
 import CompleteVisitForm from "@/components/features/admin/bookings/CompleteVisitForm";
 import CancelBookingDialog from "@/components/features/admin/bookings/CancelBookingDialog";
-import { canCancelBooking } from "@/lib/admin/cancelBooking";
+import { canCancelBooking, manualStatusChoices } from "@/lib/admin/cancelBooking";
 
 interface AppointmentDetailsModalProps {
   appointment: Appointment;
@@ -27,8 +27,9 @@ interface AppointmentDetailsModalProps {
 }
 
 const statusOptions: AppointmentStatus[] = ["PENDING", "AWAITING_PROOF", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUNDED", "NO_SHOW"];
-// Completed is set by completing the visit (its form), so it's only listed while it's the status
-const statusChoices = (current: AppointmentStatus) => statusOptions.filter((s) => s !== "COMPLETED" || current === "COMPLETED");
+// Only what makes sense to set by hand (see manualStatusChoices): Completed is the Complete visit
+// form's, and cancelling with its refund is the Cancel appointment button's
+const statusChoices = (current: AppointmentStatus) => manualStatusChoices(current, statusOptions);
 
 const STATUS_PILL: Record<string, string> = {
   CONFIRMED: "bg-crimson-light/50 text-berry",

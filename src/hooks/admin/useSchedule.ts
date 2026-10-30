@@ -8,6 +8,7 @@ import { scheduleClientName } from "../../services/scheduleAgenda";
 import { buildDayData, formatLocalMonth, getArtistName, parseLocalDate, serviceNamesOf, weekLabel } from "../../lib/admin/schedule";
 import { isDesktopWidth } from "../../lib/viewport";
 import { adminDataChanged, adminQueries } from "../../lib/adminQueries";
+import { cancelToast } from "../../lib/admin/cancelBooking";
 import { cancelAndRefundAppointment, updateAppointmentStatus, type Appointment, type AppointmentStatus } from "../../services/appointmentService";
 import { addDays, mergeSchedules, toDateKey, weekDays, weekMonthKeys } from "../../services/scheduleAgenda";
 import type { MonthlySchedule, ScheduleAppointment } from "../../services/scheduleService";
@@ -124,7 +125,8 @@ export function useSchedule() {
   const cancelAppointment = async (id: number) => {
     try {
       const result = await cancelAndRefundAppointment(id, await getToken(), currentUser?.id);
-      toast.show("success", result.status === "REFUNDED" ? "Cancelled and refunded" : "Appointment cancelled", `Appointment #${id} is now ${result.status.toLowerCase()}.`);
+      const done = cancelToast(result, `Appointment #${id}`);
+      toast.show("success", done.title, done.message);
       setSelectedAppointment(null);
       await adminDataChanged(queryClient);
     } catch (error) {

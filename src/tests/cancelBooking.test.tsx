@@ -2,7 +2,7 @@ import userEvent from "@testing-library/user-event";
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import AppointmentDetailsModal from "@/components/features/admin/bookings/AppointmentDetailsModal";
-import { canCancelBooking, cancelOutcome, refundWindowOpen } from "@/lib/admin/cancelBooking";
+import { canCancelBooking, cancelOutcome, cancelToast, manualStatusChoices, refundWindowOpen } from "@/lib/admin/cancelBooking";
 import type { Appointment } from "@/services/appointmentService";
 
 vi.mock("@/components/features/admin/clients/ClientNotesPanel", () => ({ default: () => <div>Private notes</div> }));
@@ -46,6 +46,34 @@ describe("what cancelling does to the downpayment", () => {
   it("only bookings still to happen can be cancelled", () => {
     expect(["PENDING", "AWAITING_PROOF", "confirmed"].every(canCancelBooking)).toBe(true);
     expect(["COMPLETED", "CANCELLED", "REFUNDED", "NO_SHOW", ""].some(canCancelBooking)).toBe(false);
+  });
+});
+
+describe("the message after cancelling", () => {
+  it("says plainly when the admin still has money to send back", () => {
+    const sent = cancelToast({ status: "REFUNDED" }, "Appointment #7");
+    expect(sent).toEqual({ title: "Cancelled and refunded", message: "Appointment #7 is now refunded." });
+    const byHand = cancelToast({ status: "REFUNDED", refundByHand: true, refundAmount: 500 }, "Appointment #7");
+    expect(byHand.title).toBe("Cancelled: send the refund");
+    expect(byHand.message).toMatch(/Send the ₱500 downpayment back/);
+    expect(byHand.message).toMatch(/Refund to send/);
+    expect(cancelToast({ status: "CANCELLED" }, "Appointment #7").title).toBe("Appointment cancelled");
+  });
+});
+
+describe("the statuses an admin can pick by hand", () => {
+  const ALL = ["PENDING", "AWAITING_PROOF", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUNDED", "NO_SHOW"] as const;
+
+  it("is the current status plus Confirmed, and No-show only from a confirmed visit", () => {
+    expect(manualStatusChoices("PENDING", ALL)).toEqual(["PENDING", "CONFIRMED"]);
+    expect(manualStatusChoices("CONFIRMED", ALL)).toEqual(["CONFIRMED", "NO_SHOW"]);
+    expect(manualStatusChoices("NO_SHOW", ALL)).toEqual(["CONFIRMED", "NO_SHOW"]);
+  });
+
+  it("can re-activate a cancelled or refunded booking, and shows a completed one", () => {
+    expect(manualStatusChoices("CANCELLED", ALL)).toEqual(["CONFIRMED", "CANCELLED"]);
+    expect(manualStatusChoices("REFUNDED", ALL)).toEqual(["CONFIRMED", "REFUNDED"]);
+    expect(manualStatusChoices("COMPLETED", ALL)).toEqual(["CONFIRMED", "COMPLETED"]);
   });
 });
 

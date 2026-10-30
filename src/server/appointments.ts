@@ -117,6 +117,8 @@ interface AppointmentPageQuery {
   toComplete?: boolean;
   /** Only completed visits whose nail photos are still to add */
   photosToAdd?: boolean;
+  /** Only bookings that were ever paid (the cancelled list without the unpaid holds that ran out) */
+  paidOnly?: boolean;
   /** Only this day, or this day and later (YYYY-MM-DD) */
   on: string | null;
   from: string | null;
@@ -179,6 +181,9 @@ export async function listAppointmentPage(query: AppointmentPageQuery) {
       : null,
     query.toComplete ? sql.unsafe(TO_COMPLETE_SQL("a", manilaNow().today, manilaNow().clock)) : null,
     query.photosToAdd ? sql.unsafe(PHOTOS_TO_ADD_SQL("a")) : null,
+    // A paid payment stays PAID through a cancellation or refund, and one that arrived after the
+    // booking was cancelled counts too (it's owed back); a hold that ran out has only a FAILED one
+    query.paidOnly ? sql.unsafe(`exists (select 1 from payments pay where pay.appointment_id = a.id and upper(trim(pay.status)) = 'PAID')`) : null,
     query.on ? sql`a.appointment_date = ${query.on}` : null,
     query.from ? sql`a.appointment_date >= ${query.from}` : null,
     query.artist ? sql`coalesce(n.name, a.nailist_name) = ${query.artist}` : null,

@@ -706,6 +706,32 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       await Promise.all(background);
     });
 
+    it("TC-PAY-05b: when Xendit can't refund (QR Ph), the booking is still cancelled and the refund is left to send by hand", async () => {
+      const { body } = await book("user_a", nextDate());
+      const id = body.appointment_id;
+      await db`insert into payments (id, appointment_id, amount, status, payment_method, external_id) values ('p-qr', ${id}, 500, 'PAID', 'QRPH', 'appt-qr')`;
+      await db`update appointments set status = 'CONFIRMED' where id = ${id}`;
+      process.env.XENDIT_SECRET_KEY = "xnd_development_test";
+      // A fake Xendit that lists the paid invoice but refuses to refund it
+      vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+        if (url.includes("?external_id=")) return Response.json([{ id: "inv-qr", amount: 500, status: "PAID" }]);
+        return Response.json({ error_code: "REFUND_NOT_SUPPORTED", message: "QR Ph can't be refunded" }, { status: 400 });
+      }));
+      try {
+        as("user_a");
+        const res = await callRoute(booking.refundAppointment, "/x", { method: "POST", params: { id: String(id) } });
+        expect(res.status).toBe(200);
+        expect(res.body).toMatchObject({ status: "REFUNDED", refundByHand: true, refundAmount: 500 });
+        expect(await statusOf(id)).toBe("REFUNDED");
+        await Promise.all(background);
+        // The admins' bell says there's a refund to send
+        expect(await db`select kind from admin_notifications where appointment_id = ${id}`).toEqual([{ kind: "refund_to_send" }]);
+      } finally {
+        vi.unstubAllGlobals();
+        delete process.env.XENDIT_SECRET_KEY;
+      }
+    });
+
     it("TC-PAY-07: a payment for an expired booking whose slot was rebooked is recorded, not confirmed", async () => {
       const date = nextDate();
       const { body } = await book("user_a", date);

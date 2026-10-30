@@ -62,6 +62,8 @@ export interface AppointmentPageParams {
   toComplete?: boolean;
   /** Only completed visits whose nail photos are still to add */
   photosToAdd?: boolean;
+  /** Only bookings that were ever paid (not the unpaid holds that ran out) */
+  paidOnly?: boolean;
   /** Only this day, or this day and later (YYYY-MM-DD) */
   on?: string;
   from?: string;
@@ -92,6 +94,7 @@ export const fetchAppointmentPage = async (
   if (params.proofToReview) query.set("proof", "review");
   if (params.toComplete) query.set("complete", "due");
   if (params.photosToAdd) query.set("complete", "photos");
+  if (params.paidOnly) query.set("paid", "1");
   if (params.on) query.set("on", params.on);
   if (params.from) query.set("from", params.from);
   if (params.artist) query.set("artist", params.artist);
@@ -139,7 +142,7 @@ export const cancelAndRefundAppointment = async (
   id: number,
   token?: string | null,
   clerkId?: string | null,
-): Promise<{ message: string; status: "REFUNDED" | "CANCELLED" }> => {
+): Promise<{ message: string; status: "REFUNDED" | "CANCELLED"; refundByHand?: boolean; refundAmount?: number }> => {
   const res = await fetch(`${API_BASE_URL}/booking/${id}/refund`, { method: "POST", headers: getHeaders(token, clerkId) });
   const body = await res.json().catch(() => ({}));
   if (!res.ok) {

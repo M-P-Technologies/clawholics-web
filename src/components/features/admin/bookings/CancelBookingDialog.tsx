@@ -34,7 +34,8 @@ export default function CancelBookingDialog({ open, booking, clientName, loading
         <strong>{clientName || "The client"}</strong>&apos;s {booking.service_name || "booked"} visit on {dateLabel(booking.appointment_date)}, {timeRangeLabel(booking.appointment_time)}, will be cancelled and the slot freed. They&apos;ll be emailed.
       </p>
       <p className="mt-3 font-bold">
-        {outcome === "refund" && `The ${paid} downpayment is refunded to them through Xendit (it's 72+ hours before the visit).`}
+        {outcome === "refund" &&
+          `It's 72+ hours before the visit, so the ${paid} downpayment is refunded. We try Xendit first; QR Ph payments usually can't be refunded that way, and then the booking is still cancelled and you get a "Refund to send" alert to send the money back yourself.`}
         {outcome === "manual-refund" && `The ${paid} downpayment was paid by payment proof, so it's marked refunded here and you send the money back yourself.`}
         {outcome === "keep" && `It's inside 72 hours, so by the terms the ${paid} downpayment is kept, not refunded.`}
         {outcome === "unpaid" && "Nothing was paid, so there is nothing to refund."}

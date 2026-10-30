@@ -29,18 +29,16 @@ import {
   type AppointmentStatus,
 } from "@/services/appointmentService";
 import { getProofState, isProofOverdue } from "@/services/proofState";
+import { cancelToast, manualStatusChoices } from "@/lib/admin/cancelBooking";
 
-/** The status filter; the page can open on one (the dashboard links here): `?status=PENDING` */
+/** The status filter; the page can open on one (the dashboard links here): `?status=CONFIRMED`. A
+ *  status that isn't listed opens on All. */
 const STATUS_OPTIONS: { label: string; value: AppointmentFilterStatus }[] = [
   { label: "All", value: "ALL" },
-  { label: "Pending", value: "PENDING" },
-  { label: "Awaiting proof", value: "AWAITING_PROOF" },
-  { label: "Proofs to review", value: "PROOF_PENDING" },
-  { label: "Proof overdue", value: "PROOF_OVERDUE" },
   { label: "Visits to complete", value: "TO_COMPLETE" },
   { label: "Confirmed", value: "CONFIRMED" },
   { label: "Completed", value: "COMPLETED" },
-  { label: "Cancelled", value: "CANCELLED" },
+  { label: "Cancelled (paid)", value: "CANCELLED" },
   { label: "Refunded", value: "REFUNDED" },
   { label: "No-show", value: "NO_SHOW" },
   { label: "Visit photos to add", value: "PHOTOS_TO_ADD" },
@@ -177,19 +175,19 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
   const search = useDebouncedValue(query.trim());
   const pageSize = asTable ? ROWS_PER_PAGE : CARDS_PER_PAGE;
 
-  // One page from the server (it used to send every appointment to show five). "Proof overdue"
-  // needs a proof deadline the database doesn't store, so, as before, it matches nothing.
-  const proofOverdue = status === "PROOF_OVERDUE";
+  // One page from the server (it used to send every appointment to show five)
   const [lastTotal, setLastTotal] = useState(0);
   const pages = Math.max(1, Math.ceil(lastTotal / pageSize));
   const params: AppointmentPageParams = {
     // A list that shrank (a status changed) keeps you on its last page rather than past it
     page: Math.min(page, pages),
     pageSize,
-    statuses: status === "ALL" || status === "PROOF_PENDING" || proofOverdue ? STATUSES : status === "TO_COMPLETE" ? ["CONFIRMED"] : status === "PHOTOS_TO_ADD" ? ["COMPLETED"] : [status],
-    proofToReview: status === "PROOF_PENDING",
+    statuses: status === "ALL" ? STATUSES : status === "TO_COMPLETE" ? ["CONFIRMED"] : status === "PHOTOS_TO_ADD" ? ["COMPLETED"] : [status],
     toComplete: status === "TO_COMPLETE",
     photosToAdd: status === "PHOTOS_TO_ADD",
+    // Cancelled means a booking that was paid: unpaid holds that ran out are saved as cancelled too,
+    // and would bury the real cancellations (they're still under All)
+    paidOnly: status === "CANCELLED",
     artist: artist === "All" ? undefined : artist,
     search,
     sort: SORT_PARAM[sort],
@@ -197,14 +195,14 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
   const listQuery = useQuery({
     queryKey: [...ADMIN_APPOINTMENTS_KEY, params],
     queryFn: async () => fetchAppointmentPage(params, await getToken(), currentUser?.id),
-    enabled: isAuthLoaded && !proofOverdue,
+    enabled: isAuthLoaded,
     // The page on screen stays (and a failed refresh keeps it) until the next one arrives
     placeholderData: keepPreviousData,
     // Refreshes every 30 seconds, only while this tab is on screen
     refetchInterval: 30_000,
   });
   // The previous page shows while another loads; if that load fails it has no data, and the error shows
-  const result = proofOverdue ? { rows: [], total: 0 } : listQuery.data;
+  const result = listQuery.data;
   if (result && result.total !== lastTotal) setLastTotal(result.total);
   const appointments: Appointment[] | null = result ? result.rows : null;
   const failed = listQuery.isError;
@@ -254,7 +252,8 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
     const what = row ? `Appointment #${id} (${clientName(row)}, ${row.service_name || "no service"})` : `Appointment #${id}`;
     try {
       const result = await cancelAndRefundAppointment(id, await getToken(), currentUser?.id);
-      toast.show("success", result.status === "REFUNDED" ? "Cancelled and refunded" : "Appointment cancelled", `${what} is now ${result.status.toLowerCase()}.`);
+      const done = cancelToast(result, what);
+      toast.show("success", done.title, done.message);
       setSelected(null);
       void refresh();
     } catch (error) {
@@ -334,8 +333,9 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
       aria-label={`Status of appointment #${a.id}`}
       value={statusOf(a)}
       onChange={(e) => changeStatus(a.id, e.target.value as AppointmentStatus)}
-      // Completed is set by completing the visit (its form), not picked here
-      options={statusOf(a) === "COMPLETED" ? STATUS_CHOICES : STATUS_CHOICES.filter((c) => c.value !== "COMPLETED")}
+      // Only what makes sense to set by hand: Completed is the Complete visit form's, and cancelling
+      // (with its refund) is the Cancel appointment button's
+      options={STATUS_CHOICES.filter((c) => manualStatusChoices(statusOf(a), STATUSES).includes(c.value))}
       className="w-37.5"
       triggerClassName="h-8! px-3! py-0! text-xs"
     />

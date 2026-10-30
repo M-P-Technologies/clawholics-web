@@ -318,7 +318,9 @@ export async function sendAppointmentConfirmation(appointmentId: number) {
  */
 export async function sendCancellationEmails(data: {
   email: string; name: string; service: string; date: string; time: string; artist: string; status: string;
-  appointmentId: number; isLateCancellation?: boolean; manualRefundAmount?: number; byClient: boolean;
+  appointmentId: number; isLateCancellation?: boolean; manualRefundAmount?: number;
+  /** Why the refund is by hand: paid by payment proof, or Xendit couldn't refund it (QR Ph can't be) */
+  manualRefundReason?: "proof" | "gateway"; byClient: boolean;
 }) {
   if (!process.env.RESEND_API_KEY) return;
 
@@ -365,7 +367,11 @@ export async function sendCancellationEmails(data: {
               ...rows,
               ["Downpayment", data.isLateCancellation ? "Kept (late cancellation)" : manualRefund ? "To refund by hand" : refunded ? "Refunded" : "None paid"],
             ],
-            manualRefund ? `Manual refund needed: ${escapeHtml(peso(data.manualRefundAmount))} (paid by payment proof).` : "",
+            manualRefund
+              ? data.manualRefundReason === "gateway"
+                ? `Manual refund needed: ${escapeHtml(peso(data.manualRefundAmount))}. Xendit couldn't refund it automatically (QR Ph payments usually can't be refunded that way), so please send it back to the client yourself. Check the Xendit dashboard first, in case it did go through.`
+                : `Manual refund needed: ${escapeHtml(peso(data.manualRefundAmount))} (paid by payment proof).`
+              : "",
           ),
         )
       : null,
