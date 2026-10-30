@@ -1,6 +1,6 @@
 import "server-only";
 import { getSql } from "./db";
-import { toId } from "./http";
+import { inBackground, toId } from "./http";
 import { PROOF_TO_REVIEW_SQL } from "./proofRules";
 import { PHOTOS_TO_ADD_SQL, TO_COMPLETE_SQL, manilaNow } from "./visitsToComplete";
 
@@ -227,18 +227,36 @@ export function listAppointmentsBetween(start: string, end: string) {
 // indexes idx_appointments_pending_expiry and idx_payments_pending) instead of whole tables.
 export async function cancelExpiredPendingAppointments() {
   const now = new Date().toISOString();
-  await getSql()`
+  // The slots just released: the clients waiting for those days are told (server/waitlist.ts)
+  const released = await getSql()<{ nailist_id: number | null; appointment_date: string }[]>`
     with expired as (
       update appointments set status = 'CANCELLED', cancelled_at = clawholics_utc_now()
       where upper(status) = 'PENDING' and expires_at <= ${now}
         and not exists (select 1 from payment_proofs pp where pp.appointment_id = appointments.id and pp.status = 'PENDING')
-      returning id
+      returning id, nailist_id, appointment_date
+    ), failed as (
+      update payments p set status = 'FAILED'
+      where upper(p.status) = 'PENDING'
+        and (p.appointment_id in (select id from expired)
+          or exists (select 1 from appointments a where a.id = p.appointment_id and upper(a.status) = 'CANCELLED'))
+      returning p.id
     )
-    update payments p set status = 'FAILED'
-    where upper(p.status) = 'PENDING'
-      and (p.appointment_id in (select id from expired)
-        or exists (select 1 from appointments a where a.id = p.appointment_id and upper(a.status) = 'CANCELLED'))
+    select nailist_id, appointment_date from expired
   `;
+  if (released.length > 0) {
+    // Imported here, not at the top: the waitlist reads availability from this file
+    const { notifyWaitlistSafely } = await import("./waitlist");
+    const days = new Set(released.map((r) => `${r.nailist_id}|${r.appointment_date}`));
+    for (const day of days) {
+      const [nailistId, date] = day.split("|");
+      // After the response, so it isn't cut short; outside a request there is no "after", so it just runs
+      try {
+        inBackground("waitlist", () => notifyWaitlistSafely(Number(nailistId), date));
+      } catch {
+        void notifyWaitlistSafely(Number(nailistId), date);
+      }
+    }
+  }
 }
 
 /** Active service in an active (or no) category. */

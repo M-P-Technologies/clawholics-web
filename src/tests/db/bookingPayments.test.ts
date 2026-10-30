@@ -355,7 +355,7 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       const refused = await book("user_b", date, "13:00-14:00");
       expect(refused.status).toBe(409);
       // The taken slot's refusal, not another 409 (such as an unpaid booking already open)
-      expect(refused.body).toEqual({ error: true, message: "Time slot already booked" });
+      expect(refused.body).toEqual({ error: true, code: "SLOT_TAKEN", message: "Time slot already booked" });
       const freed = await book("user_b", date, "18:00-19:00");
       expect(freed.status).toBe(200);
       expect(freed.body.appointment_id).toBeDefined();

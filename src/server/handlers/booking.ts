@@ -24,6 +24,10 @@ import { createXenditRefund, expireXenditInvoice, getXenditInvoices } from "../p
 import { getBookingHoldMinutes } from "../bookingHold";
 import { getBookingMinNoticeHours } from "../bookingNotice";
 import { getBookingMaxAdvanceDays } from "../bookingWindow";
+import { anyArtistCandidates, anyArtistDays } from "../anyArtist";
+import { notifyWaitlistSafely } from "../waitlist";
+import { manilaToday } from "../../lib/bookingNotice";
+import { lastBookableDay } from "../../lib/bookingWindow";
 import { checkSlot, hasStarted, normalizeSlot } from "../slotRules";
 import { ported } from "../worker";
 import { releaseVoucherOf } from "../birthdayVouchers";
@@ -35,7 +39,7 @@ import { releaseVoucherOf } from "../birthdayVouchers";
 
 type IdContext = { params: Promise<{ id: string }> };
 
-const SLOT_TAKEN = { error: true, message: "Time slot already booked" };
+const SLOT_TAKEN = { error: true as const, code: "SLOT_TAKEN", message: "Time slot already booked" };
 
 // GET /booking/nailists[?service_id=] (public): artists, or the ones offering a service with
 // the price each charges for it.
@@ -112,6 +116,32 @@ export const getBookedSlotsRange = ported(async (req) => {
   `);
 });
 
+// GET /booking/any-availability?service_id=&from=YYYY-MM-DD&to=YYYY-MM-DD (public): for "any
+// available artist", the times at least one artist offering the service has free on each day, as
+// { days: { "2026-10-21": ["09:00-11:00", ...] }, full: ["2026-10-22"] } (days with none are left out of
+// `days`; `full` lists the open days with nothing free, for the waitlist). It applies what a client's
+// booking does: not before today, not sooner than the notice, not beyond the booking window.
+export const getAnyAvailability = ported(async (req) => {
+  const params = new URL(req.url).searchParams;
+  const serviceId = toId(params.get("service_id"));
+  const from = params.get("from") ?? "";
+  const to = params.get("to") ?? "";
+  if (serviceId === null || !DATE.test(from) || !DATE.test(to) || from > to) {
+    return Response.json({ error: "service_id, from and to (YYYY-MM-DD, from <= to) are required" }, { status: 400 });
+  }
+  const span = (Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000;
+  if (!(span <= MAX_SLOTS_RANGE_DAYS)) {
+    return Response.json({ error: `The range can be at most ${MAX_SLOTS_RANGE_DAYS} days` }, { status: 400 });
+  }
+  // Hidden or archived services have no bookable artists
+  if (!(await isServiceBookable(serviceId))) return Response.json({ days: {} });
+  await cancelExpiredPendingAppointments();
+  const today = manilaToday();
+  const last = lastBookableDay(await getBookingMaxAdvanceDays());
+  const { days, full } = await anyArtistDays(serviceId, from < today ? today : from, to > last ? last : to, await getBookingMinNoticeHours());
+  return Response.json({ days, full });
+});
+
 // POST /booking/create (signed in): the client's own booking, held until paid for the minutes set
 // in Admin > Settings (booking_hold_minutes, default 5).
 // The user comes from the session; the body's user_id is ignored.
@@ -122,64 +152,78 @@ export const createBooking = ported(async (req) => {
   await cancelExpiredPendingAppointments();
   const b = await readJson<Record<string, unknown>>(req);
   if (requester.id === null) return Response.json({ error: true, message: "User ID is required" }, { status: 400 });
+  // "Any available artist": no artist is named, and a free one who offers the service is assigned
+  const anyArtist = b.any_artist === true;
   if (!b.service_id) return Response.json({ error: true, message: "Service ID is required" }, { status: 400 });
-  if (!b.nailist_id) return Response.json({ error: true, message: "Nailist ID is required" }, { status: 400 });
+  if (!anyArtist && !b.nailist_id) return Response.json({ error: true, message: "Nailist ID is required" }, { status: 400 });
   if (!b.appointment_date || !b.appointment_time) {
     return Response.json({ error: true, message: "Appointment date and time are required" }, { status: 400 });
   }
   if (!(await isServiceBookable(b.service_id))) {
     return Response.json({ error: true, message: "This service is no longer available." }, { status: 400 });
   }
-  if (!(await nailistOffersService(b.nailist_id, b.service_id))) {
+  if (!anyArtist && !(await nailistOffersService(b.nailist_id, b.service_id))) {
     return Response.json({ error: true, message: ARTIST_SERVICE_MISMATCH }, { status: 400 });
   }
 
   const sql = getSql();
   const serviceId = toId(b.service_id)!;
-  const nailistId = toId(b.nailist_id)!;
   const userId = requester.id;
-  const slot = await checkSlot({
-    nailistId,
-    date: String(b.appointment_date),
-    time: String(b.appointment_time),
-    minNoticeHours: await getBookingMinNoticeHours(),
-    maxAdvanceDays: await getBookingMaxAdvanceDays(),
-  });
-  if (!slot.ok) {
-    return slot.code === "SLOT_TAKEN"
-      ? Response.json(SLOT_TAKEN, { status: 409 })
-      : Response.json({ error: true, code: slot.code, message: slot.message }, { status: slot.status });
-  }
-  const names = await bookingNames(serviceId, nailistId);
+  const date = String(b.appointment_date);
+  const minNoticeHours = await getBookingMinNoticeHours();
+  const maxAdvanceDays = await getBookingMaxAdvanceDays();
+  // The artist the client named, or, for any artist, the ones who offer the service, lightest day first
+  const candidates = anyArtist ? await anyArtistCandidates(serviceId, date) : [toId(b.nailist_id)!];
+  if (candidates.length === 0) return Response.json({ error: true, message: "No artist offers this service right now." }, { status: 400 });
   const expiresAt = await holdUntil();
 
-  try {
-    // One unpaid booking per client: the lock makes the check and the insert one step, so two
-    // requests at once can't both pass the check
-    const created = await sql.begin(async (tx) => {
-      await tx`select pg_advisory_xact_lock(${PENDING_LOCK}::int, ${userId}::int)`;
-      const [pending] = await tx`select id from appointments where user_id = ${userId} and upper(status) = 'PENDING'`;
-      if (pending) return null;
-      const [row] = await tx<{ id: number }[]>`
-        insert into appointments (user_id, service_id, service_name, nailist_id, nailist_name, appointment_date, appointment_time, status, expires_at)
-        values (${userId}, ${serviceId}, ${names.service}, ${nailistId}, ${names.nailist},
-          ${String(b.appointment_date)}, ${slot.time}, 'PENDING', ${expiresAt})
-        returning id
-      `;
-      return row;
-    });
-    if (!created) {
-      return Response.json(
-        { error: true, code: "PENDING_APPOINTMENT_EXISTS", message: "You already have an unpaid pending appointment." },
-        { status: 409 },
-      );
+  // Why each artist tried couldn't take it; the booking is made with the first who can
+  const refusals: { status: number; body: { error: true; code: string; message: string } }[] = [];
+  for (const nailistId of candidates) {
+    const slot = await checkSlot({ nailistId, date, time: String(b.appointment_time), minNoticeHours, maxAdvanceDays });
+    if (!slot.ok) {
+      refusals.push(slot.code === "SLOT_TAKEN" ? { status: 409, body: SLOT_TAKEN } : { status: slot.status, body: { error: true, code: slot.code, message: slot.message } });
+      continue;
     }
-    return Response.json({ appointment_id: created.id, expires_at: expiresAt, status: "PENDING" });
-  } catch (error) {
-    // Two clients racing for the same slot: the unique index lets only one in
-    if (isSlotConflict(error)) return Response.json(SLOT_TAKEN, { status: 409 });
-    throw error;
+    const names = await bookingNames(serviceId, nailistId);
+    try {
+      // One unpaid booking per client: the lock makes the check and the insert one step, so two
+      // requests at once can't both pass the check
+      const created = await sql.begin(async (tx) => {
+        await tx`select pg_advisory_xact_lock(${PENDING_LOCK}::int, ${userId}::int)`;
+        const [pending] = await tx`select id from appointments where user_id = ${userId} and upper(status) = 'PENDING'`;
+        if (pending) return null;
+        const [row] = await tx<{ id: number }[]>`
+          insert into appointments (user_id, service_id, service_name, nailist_id, nailist_name, appointment_date, appointment_time, status, expires_at)
+          values (${userId}, ${serviceId}, ${names.service}, ${nailistId}, ${names.nailist},
+            ${date}, ${slot.time}, 'PENDING', ${expiresAt})
+          returning id
+        `;
+        return row;
+      });
+      if (!created) {
+        return Response.json(
+          { error: true, code: "PENDING_APPOINTMENT_EXISTS", message: "You already have an unpaid pending appointment." },
+          { status: 409 },
+        );
+      }
+      // Says who took it too: for any artist, that's the first the client hears of it
+      return Response.json({
+        appointment_id: created.id, expires_at: expiresAt, status: "PENDING",
+        nailist_id: nailistId, nailist_name: names.nailist, nailist_category_id: names.category,
+      });
+    } catch (error) {
+      // Two clients racing for the same slot: the unique index lets only one in. For any artist, the next one is tried
+      if (!isSlotConflict(error)) throw error;
+      refusals.push({ status: 409, body: SLOT_TAKEN });
+    }
   }
+
+  // Nobody could take it. One artist: their reason. Any artist: the shared reason (a date out of the
+  // window is out for all of them), otherwise nobody is free then
+  const [first] = refusals;
+  if (!anyArtist || refusals.every((r) => r.body.code === first.body.code)) return Response.json(first.body, { status: first.status });
+  return Response.json({ ...SLOT_TAKEN, message: "No artist is free at this time. Please choose another time." }, { status: 409 });
 });
 
 /** When a booking made now stops holding its slot unless paid (the hold set in Admin > Settings) */
@@ -192,11 +236,12 @@ const PENDING_LOCK = 7_301;
 
 /** The service's and artist's names as the catalog has them, not as the request says */
 async function bookingNames(serviceId: number, nailistId: number) {
-  const [row] = await getSql()<{ service: string | null; nailist: string | null }[]>`
+  const [row] = await getSql()<{ service: string | null; nailist: string | null; category: number | null }[]>`
     select (select name from services where id = ${serviceId}) as service,
-      (select name from nailists where id = ${nailistId}) as nailist
+      (select name from nailists where id = ${nailistId}) as nailist,
+      (select category_id from nailists where id = ${nailistId}) as category
   `;
-  return { service: row?.service ?? "", nailist: row?.nailist ?? "" };
+  return { service: row?.service ?? "", nailist: row?.nailist ?? "", category: row?.category ?? null };
 }
 
 // POST /booking/admin/create (admin): a confirmed walk-in or phone booking.
@@ -410,7 +455,11 @@ export const updateAppointmentStatus = ported<IdContext>(async (req, { params })
     }
     throw error;
   }
-  return Response.json(await getAppointment(id));
+  const updatedRow = await getAppointment(id);
+  // A booking set to cancelled or refunded frees its slot: the clients waiting for that day are told
+  const freesSlot = ["CANCELLED", "REFUNDED"].includes(upperStatus) && !["CANCELLED", "REFUNDED"].includes(was);
+  if (freesSlot && updatedRow) inBackground("waitlist", () => notifyWaitlistSafely(updatedRow.nailist_id, updatedRow.appointment_date));
+  return Response.json(updatedRow);
 });
 
 // GET /booking/schedule?month=YYYY-MM (admin): the admin calendar.
@@ -498,6 +547,8 @@ export const rescheduleAppointment = ported<IdContext>(async (req, { params }) =
     throw error;
   }
   const updated = await getAppointment(id);
+  // Its old time is free again: the clients waiting for that day are told
+  inBackground("waitlist", () => notifyWaitlistSafely(oldAppt.nailist_id, oldAppt.appointment_date));
 
   inBackground("reschedule email", () =>
     sendRescheduleEmails({
@@ -594,6 +645,8 @@ export const refundAppointment = ported<IdContext>(async (_req, { params }) => {
   });
   if (result instanceof Response) return result;
   const { finalStatus, isLateCancellation, manualRefundAmount, manualRefundReason } = result;
+  // The slot is free again: the clients waiting for that day are told
+  inBackground("waitlist", () => notifyWaitlistSafely(app.nailist_id, app.appointment_date));
 
   inBackground("cancellation email", () =>
     sendCancellationEmails({

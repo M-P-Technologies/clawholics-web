@@ -36,7 +36,7 @@ const minutes = (clock: string) => {
 };
 
 /** Two "HH:MM-HH:MM" ranges share some time */
-function slotsOverlap(a: string, b: string) {
+export function slotsOverlap(a: string, b: string) {
   const [aStart, aEnd] = a.split("-").map((t) => minutes(t.trim()));
   const [bStart, bEnd] = b.split("-").map((t) => minutes(t.trim()));
   return aStart < bEnd && bStart < aEnd;

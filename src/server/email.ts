@@ -586,6 +586,38 @@ export async function sendRebookNudgeEmails(
   );
 }
 
+/**
+ * The waitlist emails, one per client, in Resend batches: a time opened up on a day they asked to be
+ * told about. Throws if Resend refuses the batch, so the caller can keep the entries for another try.
+ */
+export async function sendWaitlistOpenedEmails(
+  entries: { email: string; first_name: string | null; service_id: number; service_name: string; nailist_name: string | null; date: string }[],
+) {
+  const location = await salonLocation();
+  await sendEmailBatch(
+    entries.map((e) => ({
+      to: e.email,
+      subject: "A time opened up | Clawholics by Max",
+      html: clientEmailHtml({
+        title: "A time opened up",
+        name: e.first_name || "there",
+        message: `You asked us to tell you if a time opened up on <strong style="color: ${BRAND.ink};">${escapeHtml(longDate(e.date))}</strong>. One just did for your <strong style="color: ${BRAND.ink};">${escapeHtml(e.service_name)}</strong>${e.nailist_name ? ` with ${escapeHtml(e.nailist_name)}` : ""}. Times go quickly, so book it soon.`,
+        preview: `A time opened up on ${longDate(e.date)} for ${e.service_name}`,
+        details: {
+          heading: "The day you were waiting for",
+          rows: [
+            ["Service", e.service_name],
+            ["Artist", e.nailist_name || "Any available artist"],
+            ["Date", longDate(e.date), true],
+          ],
+        },
+        cta: { label: "Book it now", href: `${SITE}/services/${e.service_id}` },
+        location,
+      }),
+    })),
+  );
+}
+
 const voucherDate = (ymd: string) =>
   new Date(`${ymd}T00:00:00Z`).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
 
