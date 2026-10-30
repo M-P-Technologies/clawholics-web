@@ -222,7 +222,9 @@ export const createBooking = ported(async (req) => {
   // Nobody could take it. One artist: their reason. Any artist: the shared reason (a date out of the
   // window is out for all of them), otherwise nobody is free then
   const [first] = refusals;
-  if (!anyArtist || refusals.every((r) => r.body.code === first.body.code)) return Response.json(first.body, { status: first.status });
+  const sameReason = refusals.every((r) => r.body.code === first.body.code);
+  // Every artist's time taken is "nobody is free", not "that time is booked"
+  if (!anyArtist || (sameReason && first.body.code !== SLOT_TAKEN.code)) return Response.json(first.body, { status: first.status });
   return Response.json({ ...SLOT_TAKEN, message: "No artist is free at this time. Please choose another time." }, { status: 409 });
 });
 

@@ -30,6 +30,9 @@ vi.mock("../../server/r2", () => ({ putObject: (...args: unknown[]) => putObject
 
 const as = (clerkId: string | null) => authMock.mockResolvedValue({ userId: clerkId });
 
+// 20 December 2098, 09:30 in Manila: the clock for the file, so the 2099 dates are inside the booking window
+const FILE_NOW = new Date(Date.UTC(2098, 11, 20, 1, 30));
+
 describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () => {
   let db: ReturnType<typeof postgres>;
   let booking: typeof import("../../server/handlers/booking");
@@ -56,6 +59,11 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
 
   beforeAll(async () => {
     db = await resetTestDatabase();
+    // The bookings below are in 2099, far beyond the booking window (30 days by default) of the real clock: the whole file runs on
+    // a clock set just before them, and its window is widened to a year
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(FILE_NOW);
+    await db`insert into site_settings (key, value) values ('booking_max_advance_days', '365') on conflict (key) do update set value = '365'`;
     process.env.XENDIT_CALLBACK_TOKEN = "cb-token";
     delete process.env.XENDIT_SECRET_KEY;
     delete process.env.RESEND_API_KEY;
@@ -92,6 +100,7 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
   });
 
   afterAll(async () => {
+    vi.useRealTimers();
     await db?.end();
     const { getSql } = await import("../../server/db");
     await getSql().end();
@@ -113,7 +122,6 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
     });
 
     it("TC-BK-02b: a client can't book a slot that starts within the notice (2 hours by default); an admin walk-in can", async () => {
-      vi.useFakeTimers({ toFake: ["Date"] });
       // 15 June 2098, 09:30 in Manila
       vi.setSystemTime(new Date(Date.UTC(2098, 5, 15, 1, 30)));
       try {
@@ -138,7 +146,7 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
         const none = await book("user_b", "2098-06-15", "11:00-12:00");
         expect(none.status).toBe(200);
       } finally {
-        vi.useRealTimers();
+        vi.setSystemTime(FILE_NOW);
         await db`delete from site_settings where key = 'booking_min_notice_hours'`;
         // These bookings are held until 2098 (the fake clock): left open they'd block the clients' later bookings
         await db`delete from appointments where appointment_date like '2098-%'`;
@@ -146,8 +154,8 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
     });
 
     it("TC-BK-02c: a client can't book beyond the window (30 days by default); an admin walk-in can", async () => {
-      vi.useFakeTimers({ toFake: ["Date"] });
-      // 15 June 2098, 09:30 in Manila: the last bookable day is 15 July
+      // 15 June 2098, 09:30 in Manila: the last bookable day is 15 July (with the default window)
+      await db`delete from site_settings where key = 'booking_max_advance_days'`;
       vi.setSystemTime(new Date(Date.UTC(2098, 5, 15, 1, 30)));
       try {
         const far = await book("user_a", "2098-08-30", "12:00-13:00");
@@ -170,8 +178,8 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
         const widened = await book("user_b", "2098-08-30", "13:00-14:00");
         expect(widened.status).toBe(200);
       } finally {
-        vi.useRealTimers();
-        await db`delete from site_settings where key = 'booking_max_advance_days'`;
+        vi.setSystemTime(FILE_NOW);
+        await db`update site_settings set value = '365' where key = 'booking_max_advance_days'`;
         await db`delete from appointments where appointment_date like '2098-%'`;
       }
     });
