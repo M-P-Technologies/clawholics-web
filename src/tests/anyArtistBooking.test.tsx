@@ -33,7 +33,7 @@ vi.mock("@/services/nailistService", () => ({
 }));
 vi.mock("@/services/contentService", () => ({ fetchHomeContent: async () => ({}) }));
 vi.mock("@/services/aboutService", () => ({ fetchAboutContent: async () => ({}) }));
-vi.mock("@/services/userService", () => ({ fetchProfileIfExists: async () => ({ id: 9, onboarded: true, first_name: "Ana" }) }));
+vi.mock("@/services/userService", () => ({ fetchProfileIfExists: async () => ({ id: 9, onboarded: true, first_name: "Ana", phone: "09171234567", preferred_contact_method: "call" }) }));
 vi.mock("@/services/catalogService", () => ({ fetchCategories: async () => [] }));
 
 const service = {
