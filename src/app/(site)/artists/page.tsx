@@ -1,5 +1,6 @@
 "use client";
 
+import { publicPosition } from "@/lib/artistRoles";
 import PhotoRow from "@/components/home/PhotoRow";
 import ImageCard from "@/components/home/ImageCard";
 import { Button, LoadingBar } from "@/components/atoms";
@@ -35,11 +36,11 @@ export default function Team() {
               key={n.id}
               priority={index === 0}
               image={n.image}
-              imageAlt={`${n.name}, ${n.position} at Clawholics by Max`}
+              imageAlt={`${n.name}${publicPosition(n) ? `, ${publicPosition(n)}` : ""} at Clawholics by Max`}
               aspect="aspect-3/4"
               title={n.name}
               titleId={`nailist-${n.id}`}
-              subtitle={n.position}
+              subtitle={publicPosition(n) || undefined}
               description={n.bio}
               mobileLines={3}
               footer={

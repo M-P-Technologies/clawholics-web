@@ -30,6 +30,7 @@ interface BookingResponse {
   nailist_id?: number;
   nailist_name?: string;
   nailist_category_id?: number | null;
+  nailist_is_master?: number | null;
 }
 
 export class BookingError extends Error {

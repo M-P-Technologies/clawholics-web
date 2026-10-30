@@ -4,6 +4,10 @@ export interface Nailist {
   id: number;
   name: string;
   category_id?: number;
+  /** The role's name, whether it charges the master price, and whether the artist hides it */
+  position?: string;
+  is_master?: number;
+  hide_position?: number;
   image?: string;
 }
 

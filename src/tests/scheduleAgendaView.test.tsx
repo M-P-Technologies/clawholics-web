@@ -27,10 +27,16 @@ describe("ScheduleAgenda", () => {
     expect(within(strip).getByRole("button", { name: "Mon 12" })).toHaveAttribute("aria-pressed", "false");
   });
 
-  it("lists the day's appointments in time order and notes who is off", () => {
+  it("groups the day's appointments by artist, in time order, and notes who is off", () => {
     render(<ScheduleAgenda selected={new Date(2026, 9, 14)} onSelect={() => {}} dayData={dayData} onOpenAppointment={() => {}} />);
-    const rows = screen.getAllByRole("button", { name: /Client/ });
-    expect(rows.map((r) => r.textContent)).toEqual([expect.stringContaining("Early Client"), expect.stringContaining("Late Client")]);
+    const ana = screen.getByRole("region", { name: "Ana" });
+    const cara = screen.getByRole("region", { name: "Cara" });
+    expect(within(ana).getByText("Late Client")).toBeInTheDocument();
+    expect(within(ana).queryByText("Early Client")).toBeNull();
+    expect(within(cara).getByText("Early Client")).toBeInTheDocument();
+    expect(within(ana).getByText("1 booking")).toBeInTheDocument();
+    // No group for an artist without bookings: they're listed as off
+    expect(screen.queryByRole("region", { name: "Dina" })).toBeNull();
     expect(screen.getByText("Dina is off")).toBeInTheDocument();
   });
 

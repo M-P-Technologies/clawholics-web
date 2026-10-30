@@ -32,6 +32,9 @@ export type Nailist = {
   id: number;
   name: string;
   position: string;
+  category_id?: number;
+  is_master?: number;
+  hide_position?: number;
   specialty: string;
   bio: string;
   image: string;

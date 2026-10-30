@@ -10,7 +10,7 @@ import { PHOTOS_TO_ADD_SQL, TO_COMPLETE_SQL, manilaNow } from "./visitsToComplet
 // Price for a service (alias s) done by an artist whose category is joined as nc. 'single'
 // services cost master_price with every artist.
 export const SERVICE_PRICE_SQL =
-  "case when s.pricing_mode = 'single' or nc.name = 'Master Technician' then s.master_price else s.junior_price end";
+  "case when s.pricing_mode = 'single' or nc.is_master = 1 then s.master_price else s.junior_price end";
 
 // The Worker's appointmentSelect: the appointment plus client, artist, price and its latest
 // (paid first) payment.
@@ -20,7 +20,7 @@ const APPOINTMENT_SELECT = `
     coalesce(n.name, a.nailist_name) as nailist_name,
     a.appointment_date, a.appointment_time, a.status, a.created_at, a.expires_at,
     ${SERVICE_PRICE_SQL} as service_price,
-    s.junior_price, s.master_price, s.pricing_mode, n.category_id as nailist_category_id,
+    s.junior_price, s.master_price, s.pricing_mode, n.category_id as nailist_category_id, nc.is_master as nailist_is_master,
     coalesce(a.walkin_email, u.email, '') as email,
     coalesce(a.walkin_first_name, ap.first_name, cp.first_name, '') as first_name,
     coalesce(a.walkin_last_name, ap.last_name, cp.last_name, '') as last_name,

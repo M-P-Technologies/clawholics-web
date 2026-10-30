@@ -7,6 +7,7 @@ export interface AppointmentState {
   service_name: string;
   nailist_name: string;
   nailist_category_id: number;
+  nailist_is_master?: number | null;
   appointment_date: string;
   appointment_time: string;
   status: string;

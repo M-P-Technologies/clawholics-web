@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { isMasterArtist } from "@/lib/artistRoles";
 import { itemName } from "../../lib/itemName";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -119,10 +120,10 @@ export function useBooking() {
       addonIds: selectedAddonIds,
     });
   // With any artist the price depends on who is assigned: from the lowest of their rates to the highest
-  const anyArtistPrices = anyArtist ? nailists.map((n) => priceFor(n.category_id === 1)).filter((price): price is number => price !== null) : [];
+  const anyArtistPrices = anyArtist ? nailists.map((n) => priceFor(isMasterArtist(n))).filter((price): price is number => price !== null) : [];
   const lowestPrice = anyArtistPrices.length ? Math.min(...anyArtistPrices) : null;
   const highestPrice = anyArtistPrices.length ? Math.max(...anyArtistPrices) : null;
-  const selectedPrice = anyArtist ? lowestPrice : priceFor(selectedNailist?.category_id === 1);
+  const selectedPrice = anyArtist ? lowestPrice : priceFor(isMasterArtist(selectedNailist));
 
   // The price line of the summary, with the artist's rate when the price depends on the tier
   const priceLabel =
@@ -132,7 +133,7 @@ export function useBooking() {
         ? `Starts at ₱${selectedPrice}${highestPrice !== null && highestPrice > selectedPrice ? ` – ₱${highestPrice}, depending on the artist assigned` : ""}`
         : `Starts at ₱${selectedPrice}${
             variants.length === 0 && pricing_type === "tiered"
-              ? selectedNailist?.category_id === 1
+              ? isMasterArtist(selectedNailist)
                 ? " (Master Rate) ★"
                 : " (Junior Rate)"
               : ""
@@ -351,6 +352,7 @@ export function useBooking() {
         // For any artist, the one the salon assigned (the server says who)
         nailist_name: result.nailist_name ?? selectedNailist?.name ?? "",
         nailist_category_id: result.nailist_category_id ?? selectedNailist?.category_id,
+        nailist_is_master: result.nailist_is_master ?? (isMasterArtist(selectedNailist) ? 1 : 0),
         appointment_date: selectedDate,
         appointment_time: selectedTime,
         expires_at: result.expires_at,

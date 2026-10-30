@@ -1,3 +1,4 @@
+import { publicPosition } from "@/lib/artistRoles";
 import { ChevronLeft,ChevronRight } from "lucide-react";
 import { useEffect,useRef,useState } from "react";
 import Image from "next/image";
@@ -67,7 +68,7 @@ export default function ArtistSpotlight({ artists }: { artists: Nailist[] }) {
           <div className="relative h-full w-full overflow-hidden rounded-xl">
             <Image
               src={artist.image}
-              alt={`${artist.name}, ${artist.position}`}
+              alt={`${artist.name}${publicPosition(artist) ? `, ${publicPosition(artist)}` : ""}`}
               fill
               sizes="(min-width: 1024px) 28rem, 24rem"
               unoptimized={!canOptimizeImage(artist.image)}
@@ -83,7 +84,7 @@ export default function ArtistSpotlight({ artists }: { artists: Nailist[] }) {
             <h3 className="font-display text-3xl font-normal uppercase tracking-widest text-gray-red md:text-5xl">
               {artist.name}
             </h3>
-            <p className="text-sm font-bold text-crimson-ink">{artist.position}</p>
+            {publicPosition(artist) && <p className="text-sm font-bold text-crimson-ink">{publicPosition(artist)}</p>}
           </div>
           <p className="whitespace-pre-line copy-lead">
             {artist.bio}

@@ -65,6 +65,7 @@ export function useArtistEditor({
 
   const [name, setName] = useState(nailist?.name ?? "");
   const [position, setPosition] = useState(nailist?.position ?? "");
+  const [hidePosition, setHidePosition] = useState(Number(nailist?.hide_position) === 1);
   const [specialty, setSpecialty] = useState(nailist?.specialty ?? "");
   const [bio, setBio] = useState(nailist?.bio ?? "");
   const [image, setImage] = useState(nailist?.image ?? "");
@@ -86,19 +87,22 @@ export function useArtistEditor({
 
   const [originalName, setOriginalName] = useState(nailist?.name ?? "");
   const [originalPosition, setOriginalPosition] = useState(nailist?.position ?? "");
+  const [originalHidePosition, setOriginalHidePosition] = useState(Number(nailist?.hide_position) === 1);
   const [originalSpecialty, setOriginalSpecialty] = useState(nailist?.specialty ?? "");
   const [originalBio, setOriginalBio] = useState(nailist?.bio ?? "");
   const [originalImage, setOriginalImage] = useState(nailist?.image ?? "");
 
   // Shows the saved details (and remembers them as what Cancel goes back to)
-  const showSaved = (artist: Pick<Nailist, "name" | "position" | "specialty" | "bio" | "image">) => {
+  const showSaved = (artist: Pick<Nailist, "name" | "position" | "specialty" | "bio" | "image" | "hide_position">) => {
     setName(artist.name);
     setPosition(artist.position);
+    setHidePosition(Number(artist.hide_position) === 1);
     setSpecialty(artist.specialty);
     setBio(artist.bio);
     setImage(artist.image);
     setOriginalName(artist.name);
     setOriginalPosition(artist.position);
+    setOriginalHidePosition(Number(artist.hide_position) === 1);
     setOriginalSpecialty(artist.specialty);
     setOriginalBio(artist.bio);
     setOriginalImage(artist.image);
@@ -167,6 +171,7 @@ export function useArtistEditor({
 
     setName(originalName);
     setPosition(originalPosition);
+    setHidePosition(originalHidePosition);
     setSpecialty(originalSpecialty);
     setBio(originalBio);
     setImage(originalImage);
@@ -205,7 +210,7 @@ export function useArtistEditor({
       const serviceIds = Array.from(new Set(selectedServiceIds)).sort((a, b) => a - b);
 
       if (isCreateMode) {
-        const createdNailist = await createNailist(trimmedName, trimmedPosition, trimmedSpecialty, trimmedBio, trimmedImage, token, clerkId);
+        const createdNailist = await createNailist(trimmedName, trimmedPosition, trimmedSpecialty, trimmedBio, trimmedImage, token, clerkId, hidePosition);
         const updatedServiceIds = await updateNailistServices(createdNailist.id, serviceIds, token, clerkId);
 
         onNailistCreated?.({ ...createdNailist, service_ids: updatedServiceIds });
@@ -216,7 +221,7 @@ export function useArtistEditor({
 
       if (!nailist) return;
 
-      const updatedNailist = await updateNailist(nailist.id, trimmedName, trimmedPosition, trimmedSpecialty, trimmedBio, trimmedImage, token, clerkId);
+      const updatedNailist = await updateNailist(nailist.id, trimmedName, trimmedPosition, trimmedSpecialty, trimmedBio, trimmedImage, token, clerkId, hidePosition);
       const updatedServiceIds = await updateNailistServices(nailist.id, serviceIds, token, clerkId);
       const updatedDayOffs = await updateNailistDayOffs(
         nailist.id,
@@ -296,7 +301,7 @@ export function useArtistEditor({
     isCreateMode, title,
     isOpen, setIsOpen, isEditing, setIsEditing, isSaving, isDeleting, isUploading,
     isDeleteModalOpen, setIsDeleteModalOpen, previewImageUrl, setPreviewImageUrl,
-    name, setName, position, setPosition, specialty, setSpecialty, bio, setBio, image, setImage,
+    name, setName, position, setPosition, hidePosition, setHidePosition, specialty, setSpecialty, bio, setBio, image, setImage,
     availableServices, selectedServiceIds, toggleService,
     regularDays, setRegularDays, customDates, setCustomDates, handleDayOffsLoaded,
     timeSlots, setTimeSlots, handleTimeSlotsLoaded,

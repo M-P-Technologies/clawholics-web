@@ -65,10 +65,12 @@ const ArtistEditor: React.FC<ArtistEditorProps> = (props) => {
               isEditing={isEditing}
               name={editor.name}
               position={editor.position}
+              hidePosition={editor.hidePosition}
               specialty={editor.specialty}
               bio={editor.bio}
               onNameChange={editor.setName}
               onPositionChange={editor.setPosition}
+              onHidePositionChange={editor.setHidePosition}
               onSpecialtyChange={editor.setSpecialty}
               onBioChange={editor.setBio}
               services={

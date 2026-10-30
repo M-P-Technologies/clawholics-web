@@ -30,8 +30,8 @@ export const createNailist = changesCatalog(ported(async (req) => {
   const body = await readJson<Body>(req);
   if (typeof body.name !== "string" || !body.name.trim()) return badRequest("Name is required.");
   const [{ id }] = await getSql()<{ id: number }[]>`
-    insert into nailists (name, category_id, specialty, bio, image, display_order)
-    values (${body.name}, ${await categoryIdFor(body.position)}, ${orNull(body.specialty)}, ${orNull(body.bio)}, ${orNull(body.image)},
+    insert into nailists (name, category_id, hide_position, specialty, bio, image, display_order)
+    values (${body.name}, ${await categoryIdFor(body.position)}, ${body.hide_position ? 1 : 0}, ${orNull(body.specialty)}, ${orNull(body.bio)}, ${orNull(body.image)},
       (select coalesce(max(display_order), 0) + 1 from nailists))
     returning id
   `;
@@ -64,7 +64,7 @@ export const updateNailist = changesCatalog(ported<IdContext>(async (req, { para
   const body = await readJson<Body>(req);
   if (typeof body.name !== "string" || !body.name.trim()) return badRequest("Name is required.");
   await getSql()`
-    update nailists set name = ${body.name}, category_id = ${await categoryIdFor(body.position)},
+    update nailists set name = ${body.name}, category_id = ${await categoryIdFor(body.position)}, hide_position = ${body.hide_position ? 1 : 0},
       specialty = ${orNull(body.specialty)}, bio = ${orNull(body.bio)}, image = ${orNull(body.image)}
     where id = ${id}
   `;

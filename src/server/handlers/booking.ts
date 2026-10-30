@@ -52,8 +52,8 @@ export const getBookingNailists = ported(async (req) => {
     if (serviceId === null || !(await isServiceBookable(serviceId))) return Response.json([]);
     // The artists in the admin's order (the distinct rows carry it only to be sorted by)
     return Response.json(await sql`
-      select id, name, category_id, position, specialty, bio, image, service_price from (
-        select distinct n.id, n.name, n.category_id, nc.name as position, n.specialty, n.bio, n.image,
+      select id, name, category_id, position, is_master, hide_position, specialty, bio, image, service_price from (
+        select distinct n.id, n.name, n.category_id, nc.name as position, nc.is_master, n.hide_position, n.specialty, n.bio, n.image,
           ${sql.unsafe(SERVICE_PRICE_SQL)} as service_price, n.display_order
         from nailists n
         inner join nailist_services ns on n.id = ns.nailist_id
@@ -65,7 +65,7 @@ export const getBookingNailists = ported(async (req) => {
     `);
   }
   return Response.json(await sql`
-    select n.id, n.name, n.category_id, nc.name as position, n.specialty, n.bio, n.image
+    select n.id, n.name, n.category_id, nc.name as position, nc.is_master, n.hide_position, n.specialty, n.bio, n.image
     from nailists n left join nailist_categories nc on n.category_id = nc.id
     order by n.display_order, n.id
   `);
@@ -210,7 +210,7 @@ export const createBooking = ported(async (req) => {
       // Says who took it too: for any artist, that's the first the client hears of it
       return Response.json({
         appointment_id: created.id, expires_at: expiresAt, status: "PENDING",
-        nailist_id: nailistId, nailist_name: names.nailist, nailist_category_id: names.category,
+        nailist_id: nailistId, nailist_name: names.nailist, nailist_category_id: names.category, nailist_is_master: names.isMaster,
       });
     } catch (error) {
       // Two clients racing for the same slot: the unique index lets only one in. For any artist, the next one is tried
@@ -236,12 +236,13 @@ const PENDING_LOCK = 7_301;
 
 /** The service's and artist's names as the catalog has them, not as the request says */
 async function bookingNames(serviceId: number, nailistId: number) {
-  const [row] = await getSql()<{ service: string | null; nailist: string | null; category: number | null }[]>`
+  const [row] = await getSql()<{ service: string | null; nailist: string | null; category: number | null; is_master: number | null }[]>`
     select (select name from services where id = ${serviceId}) as service,
       (select name from nailists where id = ${nailistId}) as nailist,
-      (select category_id from nailists where id = ${nailistId}) as category
+      (select category_id from nailists where id = ${nailistId}) as category,
+      (select nc.is_master from nailists n join nailist_categories nc on nc.id = n.category_id where n.id = ${nailistId}) as is_master
   `;
-  return { service: row?.service ?? "", nailist: row?.nailist ?? "", category: row?.category ?? null };
+  return { service: row?.service ?? "", nailist: row?.nailist ?? "", category: row?.category ?? null, isMaster: (row?.is_master ?? 0) === 1 };
 }
 
 // POST /booking/admin/create (admin): a confirmed walk-in or phone booking.

@@ -1,5 +1,6 @@
 "use client";
 
+import { publicPosition } from "@/lib/artistRoles";
 import Image from "next/image";
 import { Users } from "lucide-react";
 import clsx from "clsx";
@@ -114,7 +115,7 @@ export default function Booking() {
                       label: (
                         <span className="flex min-w-0 flex-col">
                           <span className="truncate">{n.name}</span>
-                          <span className="truncate text-xs font-normal text-gray-red">{n.category_id === 1 ? "Master Technician" : "Junior Technician"}</span>
+                          <span className="truncate text-xs font-normal text-gray-red">{publicPosition(n)}</span>
                         </span>
                       ),
                       leading: <Avatar name={n.name} imageUrl={n.image ?? ""} size="sm" cropTop decorative />,

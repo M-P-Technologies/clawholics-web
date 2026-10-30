@@ -1,5 +1,6 @@
 "use client";
 
+import { isMasterArtist } from "@/lib/artistRoles";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -72,7 +73,7 @@ export function useCreateAppointment({ onCreated }: { onCreated: () => void }) {
   const selectedPrice = useMemo(() => {
     if (!selectedService || !selectedNailist) return 0;
 
-    return selectedNailist.category_id === 1
+    return isMasterArtist(selectedNailist)
       ? selectedService.master_price
       : selectedService.junior_price;
   }, [selectedService, selectedNailist]);

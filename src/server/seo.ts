@@ -1,4 +1,5 @@
 import "server-only";
+import { publicPosition } from "../lib/artistRoles";
 import { readSocialLinks } from "@/lib/socialLinkData";
 import { OG_IMAGE, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/seo";
 import { servicePath, artistPath } from "@/utils/slug";
@@ -130,7 +131,7 @@ export function artistSchema(artist: Row): Json {
     "@context": "https://schema.org",
     "@type": "Person",
     name: text(artist.name),
-    jobTitle: text(artist.position) || "Nail technician",
+    jobTitle: text(publicPosition(artist)) || "Nail technician",
     ...(skills.length > 0 && { knowsAbout: skills }),
     url: `${SITE_URL}${artistPath({ name: text(artist.name) })}`,
     ...(text(artist.image) && { image: text(artist.image) }),

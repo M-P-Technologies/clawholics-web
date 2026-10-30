@@ -1,3 +1,4 @@
+import { publicPosition } from "@/lib/artistRoles";
 import { PAGES, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/seo";
 import { publicReads } from "@/server/publicCache";
 import { readOrNull } from "@/server/timeLimit";
@@ -58,7 +59,7 @@ export async function GET() {
     lines.push("## Nail artists", "");
     for (const a of artists) {
       const skills = specialtiesOf(a);
-      const about = [text(a.position), skills.length ? `specializes in ${skills.join(", ")}` : ""].filter(Boolean).join(", ");
+      const about = [text(publicPosition(a)), skills.length ? `specializes in ${skills.join(", ")}` : ""].filter(Boolean).join(", ");
       lines.push(`- [${text(a.name)}](${SITE_URL}${artistPath({ name: text(a.name) })})${about ? `: ${about}` : ""}`);
     }
     lines.push("");

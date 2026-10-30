@@ -3,6 +3,9 @@ export type Nailist = {
   id: number;
   name: string;
   position: string;
+  category_id?: number;
+  is_master?: number;
+  hide_position?: number;
   specialty: string;
   bio: string;
   image: string;
@@ -131,12 +134,13 @@ export const createNailist = async (
   bio: string,
   image: string,
   token?: string | null,
-  clerkId?: string | null
+  clerkId?: string | null,
+  hidePosition = false
 ): Promise<Nailist> => {
   const res = await fetch(`${API_BASE_URL}/nailists`, {
     method: "POST",
     headers: getHeaders(token, clerkId),
-    body: JSON.stringify({ name, position, specialty, bio, image }),
+    body: JSON.stringify({ name, position, specialty, bio, image, hide_position: hidePosition ? 1 : 0 }),
   });
 
   const data = await res.json().catch(() => ({}));
@@ -157,12 +161,13 @@ export const updateNailist = async (
   bio: string,
   image: string,
   token?: string | null,
-  clerkId?: string | null
+  clerkId?: string | null,
+  hidePosition = false
 ): Promise<Nailist> => {
   const res = await fetch(`${API_BASE_URL}/nailists/${id}`, {
     method: "PUT",
     headers: getHeaders(token, clerkId),
-    body: JSON.stringify({ name, position, specialty, bio, image }),
+    body: JSON.stringify({ name, position, specialty, bio, image, hide_position: hidePosition ? 1 : 0 }),
   });
 
   const data = await res.json().catch(() => ({}));
@@ -294,3 +299,24 @@ export const fetchNailistVisitPhotos = async (id: number, token?: string | null,
   if (!res.ok) throw new Error(`Failed to load the visit photos (${res.status})`);
   return res.json();
 };
+
+/** An artist role: charging the master or the junior price, and how many artists have it */
+export type ArtistRole = { id: number; name: string; is_master: number; artists: number };
+
+const roleRequest = async (path: string, method: string, token?: string | null, body?: object): Promise<ArtistRole[]> => {
+  const res = await fetch(`${API_BASE_URL}/nailist-roles${path}`, {
+    method,
+    headers: getHeaders(token),
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !Array.isArray(data)) throw new Error(data?.message || "Couldn't save the roles");
+  return data;
+};
+
+export const fetchArtistRoles = (token?: string | null) => roleRequest(`?t=${Date.now()}`, "GET", token);
+export const createArtistRole = (name: string, isMaster: boolean, token?: string | null) =>
+  roleRequest("", "POST", token, { name, is_master: isMaster });
+export const updateArtistRole = (id: number, name: string, isMaster: boolean, token?: string | null) =>
+  roleRequest(`/${id}`, "PUT", token, { name, is_master: isMaster });
+export const deleteArtistRole = (id: number, token?: string | null) => roleRequest(`/${id}`, "DELETE", token);

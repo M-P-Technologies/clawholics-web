@@ -1,11 +1,6 @@
 // The artist editor's constants and pure helpers (the editor is in
 // components/features/admin/catalog/ArtistEditor.tsx, its state in hooks/admin/useArtistEditor.ts)
 
-export const POSITION_CATEGORIES = [
-  "Master Technician",
-  "Junior Technician",
-];
-
 export const WEEK_DAYS = [
   { label: "Mon", value: 1 },
   { label: "Tue", value: 2 },

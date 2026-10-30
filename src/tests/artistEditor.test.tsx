@@ -29,6 +29,10 @@ vi.mock("@/services/nailistService", () => ({
   deleteNailist: (...a: unknown[]) => nailist.deleteNailist(...a),
   createNailist: (...a: unknown[]) => nailist.createNailist(...a),
   fetchNailistGallery: (...a: unknown[]) => nailist.fetchNailistGallery(...a),
+  fetchArtistRoles: async () => [{ id: 1, name: "Master Technician", is_master: 1, artists: 1 }, { id: 2, name: "Junior Technician", is_master: 0, artists: 0 }],
+  createArtistRole: vi.fn(),
+  updateArtistRole: vi.fn(),
+  deleteArtistRole: vi.fn(),
   addNailistGalleryImage: vi.fn(),
   deleteNailistGalleryImage: vi.fn(),
 }));
@@ -127,13 +131,35 @@ describe("artist editor", () => {
     expect(screen.getByRole("button", { name: "Delete" })).toBeInTheDocument();
   });
 
+  it("lists the roles the admin set up, and saves an artist hiding their role", async () => {
+    nailist.updateNailist.mockResolvedValue({ ...artist, hide_position: 1 });
+    await renderArtist();
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    fireEvent.click(screen.getByText("Master Technician"));
+    expect(await screen.findByRole("option", { name: "Junior Technician" })).toBeInTheDocument();
+    fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" });
+    fireEvent.click(screen.getByLabelText("Hide this role on the site"));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(nailist.updateNailist).toHaveBeenCalled());
+    expect(nailist.updateNailist).toHaveBeenLastCalledWith(7, "Mara", "Master Technician", "Chrome", "Ten years of nails", artist.image, "tok", "clerk_1", true);
+  });
+
+  it("opens Manage roles with each role and what it charges", async () => {
+    await renderArtist();
+    fireEvent.click(screen.getByRole("button", { name: "Manage roles" }));
+    expect(await screen.findByDisplayValue("Junior Technician")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("e.g. Senior Technician")).toBeInTheDocument();
+    // A role in use can't be removed
+    expect(screen.getAllByRole("button", { name: "Remove" })[0]).toBeDisabled();
+  });
+
   it("saves a new name and shows it", async () => {
     const onUpdated = await renderArtist();
     fireEvent.click(screen.getByRole("button", { name: "Edit" }));
     fireEvent.change(textbox("Name"), { target: { value: "Mara Lee" } });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() => expect(nailist.updateNailist).toHaveBeenCalledTimes(1));
-    expect(nailist.updateNailist).toHaveBeenCalledWith(7, "Mara Lee", "Master Technician", "Chrome", "Ten years of nails", artist.image, "tok", "clerk_1");
+    expect(nailist.updateNailist).toHaveBeenCalledWith(7, "Mara Lee", "Master Technician", "Chrome", "Ten years of nails", artist.image, "tok", "clerk_1", false);
     await screen.findByRole("button", { name: "Edit" });
     expect(textbox("Name")).toHaveValue("Mara Lee");
     expect(screen.getByRole("button", { name: /Mara Lee/ })).toBeInTheDocument();
@@ -348,7 +374,7 @@ describe("artist editor", () => {
       fireEvent.click(screen.getByLabelText("Nail Art"));
       fireEvent.click(screen.getByRole("button", { name: "Add" }));
       await waitFor(() => expect(onCreated).toHaveBeenCalledTimes(1));
-      expect(nailist.createNailist).toHaveBeenCalledWith("Ines", "Junior Technician", "French tips", "Loves detail", "https://img/nailists/ines.webp", "tok", "clerk_1");
+      expect(nailist.createNailist).toHaveBeenCalledWith("Ines", "Junior Technician", "French tips", "Loves detail", "https://img/nailists/ines.webp", "tok", "clerk_1", false);
       expect(nailist.updateNailistServices).toHaveBeenCalledWith(9, [2], "tok", "clerk_1");
       expect(onCreated).toHaveBeenCalledWith(expect.objectContaining({ id: 9, service_ids: [2] }));
       expect(show).toHaveBeenCalledWith("success", "Ines added", expect.stringContaining("Ines"));
