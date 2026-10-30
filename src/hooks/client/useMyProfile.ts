@@ -6,8 +6,9 @@ import { completedVisits } from "../../lib/client/appointments";
 import { fullName, memberSince, nextVisitHighlight, profileRows, rewardsLine } from "../../lib/client/profile";
 import { clientTrackerSteps } from "../../lib/client/tracker";
 import { useMyAccount } from "./useMyAccount";
+import { useNotificationSettings } from "./useNotificationSettings";
 
-type ProfileTab = "overview" | "loyalty";
+type ProfileTab = "overview" | "loyalty" | "reminders";
 
 // The Profile screen: the account's details for the profile panel, the counts, the booking to
 // track, the loyalty card's tab, and the Clerk account actions
@@ -18,14 +19,17 @@ export function useMyProfile() {
   const next = account.nextAppointment;
   const since = memberSince(user);
   const [tab, setTab] = useState<ProfileTab>("overview");
+  const reminders = useNotificationSettings(account.clerkUser?.id);
 
   return {
     account,
+    reminders,
     tab,
     setTab,
     tabs: [
       { value: "overview" as const, label: "Overview" },
       { value: "loyalty" as const, label: "Loyalty card" },
+      { value: "reminders" as const, label: "Reminders" },
     ],
     name: fullName(user),
     imageUrl: account.clerkUser?.imageUrl ?? "",

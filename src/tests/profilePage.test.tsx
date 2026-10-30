@@ -9,6 +9,9 @@ vi.mock("@/lib/router", () => ({
 }));
 const signOut = vi.fn();
 vi.mock("@clerk/nextjs", () => ({ useClerk: () => ({ openUserProfile: vi.fn(), signOut }) }));
+vi.mock("@/hooks/client/useNotificationSettings", () => ({
+  useNotificationSettings: () => ({ waiting: [], loadingWaiting: false, waitingFailed: false, leave: vi.fn(), leaving: false, rebookEmails: true, setRebookEmails: vi.fn(), savingRebook: false }),
+}));
 vi.mock("@/hooks/useServicePhotos", () => ({ useServicePhotos: () => () => "" }));
 vi.mock("@/components/features/client/appointments/PaymentProofCard", () => ({ default: () => null }));
 

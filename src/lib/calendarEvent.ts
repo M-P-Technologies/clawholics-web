@@ -71,8 +71,11 @@ function fold(line: string): string {
   return parts.join("\r\n ");
 }
 
-/** The .ics file's text, or null when the visit's date or time isn't readable */
-export function icsContent(event: CalendarEvent, now: number = Date.now()): string | null {
+/**
+ * The .ics file's text, or null when the visit's date or time isn't readable. With `cancelled` it's the
+ * cancellation of the same event (same id, a newer sequence), which calendars apps use to remove it.
+ */
+export function icsContent(event: CalendarEvent, now: number = Date.now(), cancelled = false): string | null {
   const window = eventWindow(event.date, event.time);
   if (!window) return null;
   const lines = [
@@ -80,7 +83,7 @@ export function icsContent(event: CalendarEvent, now: number = Date.now()): stri
     "VERSION:2.0",
     "PRODID:-//Clawholics by Max//Appointments//EN",
     "CALSCALE:GREGORIAN",
-    "METHOD:PUBLISH",
+    cancelled ? "METHOD:CANCEL" : "METHOD:PUBLISH",
     "BEGIN:VEVENT",
     `UID:appointment-${event.id}@${UID_DOMAIN}`,
     `DTSTAMP:${utcStamp(now)}`,
@@ -91,7 +94,7 @@ export function icsContent(event: CalendarEvent, now: number = Date.now()): stri
     `SUMMARY:${escapeText(title(event))}`,
     `DESCRIPTION:${escapeText(description(event).join("\n"))}`,
     event.location ? `LOCATION:${escapeText(event.location)}` : "",
-    "STATUS:CONFIRMED",
+    cancelled ? "STATUS:CANCELLED" : "STATUS:CONFIRMED",
     "END:VEVENT",
     "END:VCALENDAR",
   ].filter(Boolean);

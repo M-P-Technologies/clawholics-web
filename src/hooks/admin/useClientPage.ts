@@ -121,11 +121,11 @@ export function useClientPage() {
   /** Cancelled for coming 25+ minutes late (the downpayment is kept) */
   const cancelLate = (appointmentId: number) => changeStatus(appointmentId, "CANCELLED", `${upperFirst(who())}'s visit cancelled for coming late`, `${upperFirst(visitOf(appointmentId))}. The downpayment is kept.`);
   /** Cancelled by an admin: the client is emailed and the downpayment refunded by the terms (72+ hours ahead) */
-  const cancelBooking = async (appointmentId: number) => {
+  const cancelBooking = async (appointmentId: number, refundAnyway = false) => {
     let toastOf = cancelToast({ status: "CANCELLED" }, upperFirst(visitOf(appointmentId)));
     const done = await run(
       async () => {
-        toastOf = cancelToast(await cancelAndRefundAppointment(appointmentId, await getToken(), user?.id), upperFirst(visitOf(appointmentId)));
+        toastOf = cancelToast(await cancelAndRefundAppointment(appointmentId, await getToken(), user?.id, refundAnyway), upperFirst(visitOf(appointmentId)));
       },
       () => toastOf.title,
       () => toastOf.message,

@@ -248,11 +248,11 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
   };
 
   // Cancels it for real (the client is emailed, the downpayment refunded by the terms), then the list loads again
-  const cancelBooking = async (id: number) => {
+  const cancelBooking = async (id: number, refundAnyway = false) => {
     const row = (appointments ?? []).find((a) => a.id === id) ?? selected;
     const what = row ? `Appointment #${id} (${clientName(row)}, ${row.service_name || "no service"})` : `Appointment #${id}`;
     try {
-      const result = await cancelAndRefundAppointment(id, await getToken(), currentUser?.id);
+      const result = await cancelAndRefundAppointment(id, await getToken(), currentUser?.id, refundAnyway);
       const done = cancelToast(result, what);
       toast.show("success", done.title, done.message);
       setSelected(null);

@@ -24,7 +24,7 @@ interface BookingTrackerProps {
   /** Cancels a visit the client came 25+ minutes late to (the downpayment is kept) */
   onCancelLate: (appointmentId: number) => void;
   /** Cancels a booking that's still to happen and refunds by the terms. Without it there's no Cancel appointment button. */
-  onCancelBooking?: (appointmentId: number) => Promise<void>;
+  onCancelBooking?: (appointmentId: number, refundAnyway?: boolean) => Promise<void>;
   /** The client's name, for the questions it asks ("Audit Tester didn't come…") */
   clientName?: string;
 }
@@ -134,10 +134,10 @@ export default function BookingTracker({ appointments, today, artists, onNoShow,
           clientName={clientName}
           loading={cancelBusy}
           onClose={() => setAsking(null)}
-          onConfirm={async () => {
+          onConfirm={async (refundAnyway) => {
             setCancelBusy(true);
             try {
-              await onCancelBooking(tracked.id);
+              await onCancelBooking(tracked.id, refundAnyway);
             } finally {
               setCancelBusy(false);
               setAsking(null);

@@ -93,3 +93,17 @@ describe("icsFilename", () => {
     expect(icsFilename(event)).toBe("clawholics-appointment-7.ics");
   });
 });
+
+describe("icsContent for a cancelled booking", () => {
+  it("is the cancellation of the same event, with a newer sequence", () => {
+    const confirmed = icsContent(event, NOW)!;
+    const cancelled = icsContent(event, NOW + 3600_000, true)!;
+    expect(cancelled).toContain("METHOD:CANCEL");
+    expect(cancelled).toContain("STATUS:CANCELLED");
+    expect(cancelled).not.toContain("METHOD:PUBLISH");
+    const uid = (text: string) => text.match(/UID:(.+)/)![1];
+    const seq = (text: string) => Number(text.match(/SEQUENCE:(\d+)/)![1]);
+    expect(uid(cancelled)).toBe(uid(confirmed));
+    expect(seq(cancelled)).toBeGreaterThan(seq(confirmed));
+  });
+});

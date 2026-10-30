@@ -122,9 +122,9 @@ export function useSchedule() {
   };
 
   // Cancels it for real (the client is emailed, the downpayment refunded by the terms)
-  const cancelAppointment = async (id: number) => {
+  const cancelAppointment = async (id: number, refundAnyway = false) => {
     try {
-      const result = await cancelAndRefundAppointment(id, await getToken(), currentUser?.id);
+      const result = await cancelAndRefundAppointment(id, await getToken(), currentUser?.id, refundAnyway);
       const done = cancelToast(result, `Appointment #${id}`);
       toast.show("success", done.title, done.message);
       setSelectedAppointment(null);

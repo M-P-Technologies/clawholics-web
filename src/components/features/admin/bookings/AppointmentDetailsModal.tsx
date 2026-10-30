@@ -18,7 +18,7 @@ interface AppointmentDetailsModalProps {
   onClose: () => void;
   onStatusChange: (id: number, status: AppointmentStatus) => void;
   /** Cancels the booking and refunds by the terms (the server's cancel route). Without it there's no Cancel appointment button. */
-  onCancelBooking?: (id: number) => Promise<void>;
+  onCancelBooking?: (id: number, refundAnyway?: boolean) => Promise<void>;
   // Needed for the proof review and notes panels. Without it they are left out.
   tokenFetcher?: () => Promise<string | null>;
   clerkId?: string | null;
@@ -216,10 +216,10 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, onCance
           clientName={customerName}
           loading={cancelBusy}
           onClose={() => setCancelling(false)}
-          onConfirm={async () => {
+          onConfirm={async (refundAnyway) => {
             setCancelBusy(true);
             try {
-              await onCancelBooking(appointment.id);
+              await onCancelBooking(appointment.id, refundAnyway);
             } finally {
               setCancelBusy(false);
               setCancelling(false);

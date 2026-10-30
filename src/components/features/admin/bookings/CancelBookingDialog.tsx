@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { Checkbox } from "@/components/atoms";
 import { ConfirmDialog } from "@/components/organisms";
 import { cancelOutcome, type CancellableBooking } from "@/lib/admin/cancelBooking";
 import { dateLabel } from "@/lib/admin/clientPage";
@@ -10,14 +12,18 @@ interface CancelBookingDialogProps {
   /** "Audit Tester", for the question; "The client" without it */
   clientName?: string;
   loading?: boolean;
-  onConfirm: () => void;
+  /** `refundAnyway`: refund a downpayment the terms would keep (inside 72 hours) */
+  onConfirm: (refundAnyway: boolean) => void;
   onClose: () => void;
 }
 
 // Asks before an admin cancels a booking, saying what happens to the downpayment by the terms:
 // refunded when the visit is 72+ hours away, kept inside that, and nothing to give back when unpaid
 export default function CancelBookingDialog({ open, booking, clientName, loading, onConfirm, onClose }: CancelBookingDialogProps) {
-  const outcome = cancelOutcome(booking);
+  const [refundAnyway, setRefundAnyway] = useState(false);
+  const kept = cancelOutcome(booking) === "keep";
+  // Refunding anyway behaves as inside the window: Xendit first, or by hand when it can't
+  const outcome = kept && refundAnyway ? cancelOutcome(booking, 0) : cancelOutcome(booking);
   const paid = peso(booking.paid_downpayment ?? 0);
   return (
     <ConfirmDialog
@@ -27,8 +33,11 @@ export default function CancelBookingDialog({ open, booking, clientName, loading
       loadingLabel="Cancelling…"
       cancelLabel="Keep it"
       loading={loading}
-      onConfirm={onConfirm}
-      onClose={onClose}
+      onConfirm={() => onConfirm(kept && refundAnyway)}
+      onClose={() => {
+        setRefundAnyway(false);
+        onClose();
+      }}
     >
       <p>
         <strong>{clientName || "The client"}</strong>&apos;s {booking.service_name || "booked"} visit on {dateLabel(booking.appointment_date)}, {timeRangeLabel(booking.appointment_time)}, will be cancelled and the slot freed. They&apos;ll be emailed.
@@ -40,6 +49,12 @@ export default function CancelBookingDialog({ open, booking, clientName, loading
         {outcome === "keep" && `It's inside 72 hours, so by the terms the ${paid} downpayment is kept, not refunded.`}
         {outcome === "unpaid" && "Nothing was paid, so there is nothing to refund."}
       </p>
+      {kept && (
+        <label className="mt-3 flex items-start gap-2 text-sm text-gray-red">
+          <Checkbox className="mt-0.5" checked={refundAnyway} onChange={(e) => setRefundAnyway(e.target.checked)} />
+          Refund the downpayment anyway (an exception to the 72-hour rule)
+        </label>
+      )}
     </ConfirmDialog>
   );
 }

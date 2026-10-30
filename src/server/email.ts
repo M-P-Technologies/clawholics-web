@@ -52,8 +52,8 @@ async function sendEmail(to: string, subject: string, html: string, attachments?
  * The calendar side of an email about a visit: the .ics file to attach (Apple Calendar, Outlook)
  * and the Google Calendar link. Both are left out when the visit's date or time can't be read.
  */
-function calendarFor(event: CalendarEvent) {
-  const ics = icsContent(event);
+function calendarFor(event: CalendarEvent, cancelled = false) {
+  const ics = icsContent(event, Date.now(), cancelled);
   return {
     url: googleCalendarUrl(event),
     attachments: ics ? [{ filename: icsFilename(event), content: Buffer.from(ics).toString("base64"), content_type: "text/calendar" }] : undefined,
@@ -387,6 +387,8 @@ export async function sendCancellationEmails(data: {
     ["Booking no.", `#${data.appointmentId}`],
   ];
   const manualRefund = data.manualRefundAmount !== undefined;
+  // The cancellation of the event the confirmation put in their calendar, so it's removed there
+  const { attachments } = calendarFor({ id: data.appointmentId, service: data.service, artist: data.artist, date: data.date, time: data.time }, true);
 
   await sendAll([
     sendEmail(
@@ -401,6 +403,7 @@ export async function sendCancellationEmails(data: {
         cta: { label: "Book a new visit", href: `${SITE}/my/book` },
         location: await salonLocation(),
       }),
+      attachments,
     ),
     data.byClient || manualRefund
       ? sendEmail(

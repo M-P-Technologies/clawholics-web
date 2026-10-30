@@ -93,7 +93,21 @@ describe("Cancel appointment in the details drawer", () => {
     expect(ask.getByText(/₱400 downpayment is refunded/)).toBeInTheDocument();
     expect(onCancelBooking).not.toHaveBeenCalled();
     await user.click(ask.getByRole("button", { name: "Cancel & refund" }));
-    expect(onCancelBooking).toHaveBeenCalledWith(24);
+    expect(onCancelBooking).toHaveBeenCalledWith(24, false);
+  });
+
+  it("inside 72 hours keeps the downpayment unless the admin chooses to refund anyway", async () => {
+    const tomorrow = new Date(Date.now() + 24 * 3600_000).toISOString().slice(0, 10);
+    const onCancelBooking = vi.fn().mockResolvedValue(undefined);
+    render(<AppointmentDetailsModal appointment={appt({ appointment_date: tomorrow, appointment_time: "23:00-23:59" })} onClose={vi.fn()} onStatusChange={vi.fn()} onCancelBooking={onCancelBooking} />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Cancel appointment" }));
+    const ask = within(screen.getByRole("alertdialog", { name: "Cancel this appointment?" }));
+    expect(ask.getByText(/downpayment is kept/)).toBeInTheDocument();
+    await user.click(ask.getByLabelText(/Refund the downpayment anyway/));
+    expect(ask.getByText(/is refunded/)).toBeInTheDocument();
+    await user.click(ask.getByRole("button", { name: "Cancel & refund" }));
+    expect(onCancelBooking).toHaveBeenCalledWith(24, true);
   });
 
   it("Keep it closes the question without cancelling", async () => {

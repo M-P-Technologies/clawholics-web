@@ -148,8 +148,14 @@ export const cancelAndRefundAppointment = async (
   id: number,
   token?: string | null,
   clerkId?: string | null,
+  /** Inside 72 hours: refund the downpayment all the same (the salon's choice) */
+  refundAnyway = false,
 ): Promise<{ message: string; status: "REFUNDED" | "CANCELLED"; refundByHand?: boolean; refundAmount?: number }> => {
-  const res = await fetch(`${API_BASE_URL}/booking/${id}/refund`, { method: "POST", headers: getHeaders(token, clerkId) });
+  const res = await fetch(`${API_BASE_URL}/booking/${id}/refund`, {
+    method: "POST",
+    headers: getHeaders(token, clerkId),
+    ...(refundAnyway ? { body: JSON.stringify({ refund_anyway: true }) } : {}),
+  });
   const body = await res.json().catch(() => ({}));
   if (!res.ok) {
     if (res.status === 403) window.location.href = "/";
