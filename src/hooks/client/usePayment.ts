@@ -13,6 +13,10 @@ import { paymentArtistLabel, paymentPriceLabel } from "@/lib/client/payment";
 import { longDateLabel, timeRangeLabel } from "@/lib/timeFormat";
 import { itemName } from "@/lib/itemName";
 
+/** How long the booking check may take before the page gives up and says so: past the server's
+ *  own 30s limit (it answers a stalled request with a 503 then), so its retries get their chance */
+const CHECK_TIMEOUT_MS = 35_000;
+
 export function usePayment() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -43,7 +47,18 @@ export function usePayment() {
   const appointmentId = appointment?.appointment_id;
   const latest = useQuery({
     queryKey: [ACCOUNT, "payment", appointmentId],
-    queryFn: async () => fetchAppointmentById(appointmentId!, await getToken()),
+    // Bounded, so a check that never answers ends in the "couldn't check" dialog, not an endless spinner
+    queryFn: async () => {
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const timedOut = new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error("Appointment check timed out")), CHECK_TIMEOUT_MS);
+      });
+      try {
+        return await Promise.race([getToken().then((token) => fetchAppointmentById(appointmentId!, token)), timedOut]);
+      } finally {
+        clearTimeout(timer);
+      }
+    },
     enabled: !!appointmentId,
     staleTime: 0,
     gcTime: 0,
@@ -52,6 +67,17 @@ export function usePayment() {
   });
   const verifying = !!appointmentId && latest.isPending;
   const loading = verifying && !expired;
+
+  // Back from Xendit can bring this page out of the browser's back/forward cache as it was when it
+  // left, and the router then restores it mid-check. Load it afresh instead: the booking is checked
+  // again, and its router state survives a reload.
+  useEffect(() => {
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) window.location.reload();
+    };
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, []);
 
   useEffect(() => {
     if (latest.data) {
