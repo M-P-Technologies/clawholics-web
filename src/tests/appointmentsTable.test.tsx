@@ -89,6 +89,20 @@ describe("Appointments table", () => {
     });
   });
 
+  it("shows how a client prefers to be reached under their phone number", async () => {
+    fetchAppointments.mockResolvedValue([
+      appt(1, { phone: "09171234567", preferred_contact_method: "sms" }),
+      appt(2, { phone: "09181234567" }),
+      appt(3, { phone: "09191234567", preferred_contact_method: "sms", is_walkin: 1 }),
+    ]);
+    render(<AppointmentsTable />);
+    await screen.findByRole("table", { name: "Appointments" });
+    const [withPreference, without, walkin] = rows();
+    expect(within(withPreference).getByText("Prefers text message")).toBeInTheDocument();
+    expect(within(without).queryByText(/Prefers/)).toBeNull();
+    expect(within(walkin).queryByText(/Prefers/)).toBeNull();
+  });
+
   it("lists only paid bookings under Cancelled, not the unpaid holds that ran out", async () => {
     params = new URLSearchParams("status=CANCELLED");
     render(<AppointmentsTable />);

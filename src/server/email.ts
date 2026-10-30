@@ -2,6 +2,7 @@ import "server-only";
 import { getAppointment, type AppointmentRow } from "./appointments";
 import { WALKIN_EMAIL } from "@/lib/admin/walkin";
 import { withSalonLocation } from "@/lib/homeSections";
+import { googleCalendarUrl, icsContent, icsFilename, type CalendarEvent } from "@/lib/calendarEvent";
 import { publicReads } from "./publicCache";
 
 // Resend emails, first ported from worker-api/src/index.ts. Every value is HTML-escaped: names
@@ -25,7 +26,10 @@ const adminEmail = () => process.env.ADMIN_EMAIL || "appointments@clawholicsbyma
 // hurts the domain's sending reputation
 const hasInbox = (to: string) => Boolean(to.trim()) && to.trim().toLowerCase() !== WALKIN_EMAIL;
 
-async function sendEmail(to: string, subject: string, html: string) {
+/** A file sent with an email (Resend's single-send endpoint takes them; its batch endpoint doesn't) */
+type Attachment = { filename: string; content: string; content_type: string };
+
+async function sendEmail(to: string, subject: string, html: string, attachments?: Attachment[]) {
   const key = process.env.RESEND_API_KEY;
   if (!key) {
     console.error("SKIP EMAIL - RESEND_API_KEY missing");
@@ -35,13 +39,25 @@ async function sendEmail(to: string, subject: string, html: string) {
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: FROM, to, subject, html }),
+    body: JSON.stringify({ from: FROM, to, subject, html, ...(attachments?.length ? { attachments } : {}) }),
   });
   const data = (await res.json().catch(() => ({}))) as { id?: string; message?: string };
   if (!res.ok) {
     console.error(`Resend API error for ${to}:`, JSON.stringify(data));
     throw new Error(data.message || "Failed to send email via Resend");
   }
+}
+
+/**
+ * The calendar side of an email about a visit: the .ics file to attach (Apple Calendar, Outlook)
+ * and the Google Calendar link. Both are left out when the visit's date or time can't be read.
+ */
+function calendarFor(event: CalendarEvent) {
+  const ics = icsContent(event);
+  return {
+    url: googleCalendarUrl(event),
+    attachments: ics ? [{ filename: icsFilename(event), content: Buffer.from(ics).toString("base64"), content_type: "text/calendar" }] : undefined,
+  };
 }
 
 /** Sends the client's and the salon's copies independently: one failing doesn't hide the other's error. */
@@ -247,13 +263,17 @@ interface ClientEmail {
   preview: string;
   details: { heading: string; rows: ([string, unknown, boolean?] | null)[] };
   cta?: { label: string; href: string };
+  /** A Google Calendar link for the visit, shown under the button */
+  calendarUrl?: string | null;
+  /** The .ics file is attached too (for Apple Calendar and Outlook) */
+  calendarAttached?: boolean;
   reminders?: boolean;
   /** The day-before reminder's "Before your visit" box, instead of the confirmation's */
   dayBefore?: boolean;
   location: SalonLocation;
 }
 
-function clientEmailHtml({ title, name, message, preview, details, cta, reminders = false, dayBefore = false, location }: ClientEmail) {
+function clientEmailHtml({ title, name, message, preview, details, cta, calendarUrl, calendarAttached = false, reminders = false, dayBefore = false, location }: ClientEmail) {
   const address = escapeHtml(location.text);
   const body = `
     ${eyebrow(title)}
@@ -261,6 +281,7 @@ function clientEmailHtml({ title, name, message, preview, details, cta, reminder
     <p style="margin: 0; font-size: 16px; line-height: 1.6;">${message}</p>
     ${detailsBox(details.heading, details.rows)}
     ${cta ? button(cta.label, cta.href) : ""}
+    ${calendarUrl ? `<p style="margin: 14px 0 0 0; text-align: center; font-size: 14px; line-height: 1.6;">📅 <a href="${escapeHtml(calendarUrl)}" style="${LINK}">Add to Google Calendar</a>${calendarAttached ? ", or open the attached calendar file (.ics) for Apple Calendar or Outlook." : ""}</p>` : ""}
     ${dayBefore ? DAY_BEFORE_REMINDERS : reminders ? VISIT_REMINDERS : ""}
     <p style="margin: 32px 0 0 0; font-size: 15px; line-height: 1.6;">See you soon,<br><span style="font-family: ${DISPLAY_FONT}; font-size: 18px; color: ${BRAND.ink};">Clawholics by Max</span> 💖</p>`;
   const footer = `
@@ -290,6 +311,12 @@ const MANAGE = { label: "Manage your appointment", href: `${SITE}/my/appointment
 export async function sendConfirmationEmail(appt: AppointmentRow, { walkIn = false } = {}) {
   const paid = !walkIn && String(appt.payment_status ?? "").toUpperCase() === "PAID" && Number(appt.payment_amount) > 0;
   const when = `${longDate(appt.appointment_date)}, ${timeRange(appt.appointment_time)}`;
+  const location = await salonLocation();
+  // A walk-in may have no account to manage it from
+  const calendar = calendarFor({
+    id: appt.id, service: appt.service_name, artist: appt.nailist_name, date: appt.appointment_date, time: appt.appointment_time,
+    location: location.text, manageUrl: walkIn ? undefined : MANAGE.href,
+  });
 
   await sendEmail(
     appt.email,
@@ -314,9 +341,12 @@ export async function sendConfirmationEmail(appt: AppointmentRow, { walkIn = fal
       },
       // A walk-in may have no account to manage it from, and may be recorded once it has started
       cta: walkIn ? undefined : MANAGE,
+      calendarUrl: calendar.url,
+      calendarAttached: Boolean(calendar.attachments),
       reminders: !walkIn,
-      location: await salonLocation(),
+      location,
     }),
+    calendar.attachments,
   );
 }
 
@@ -401,6 +431,12 @@ export async function sendRescheduleEmails(data: {
 
   const newWhen = `${longDate(data.newDate)}, ${timeRange(data.newTime)}`;
   const oldWhen = `${longDate(data.oldDate)}, ${timeRange(data.oldTime)}`;
+  const location = await salonLocation();
+  // The same event id as the booking's confirmation, so a calendar that has it moves it
+  const calendar = calendarFor({
+    id: data.appointmentId, service: data.service, artist: data.artist, date: data.newDate, time: data.newTime,
+    location: location.text, manageUrl: MANAGE.href,
+  });
 
   await sendAll([
     sendEmail(
@@ -423,9 +459,12 @@ export async function sendRescheduleEmails(data: {
           ],
         },
         cta: MANAGE,
+        calendarUrl: calendar.url,
+        calendarAttached: Boolean(calendar.attachments),
         reminders: true,
-        location: await salonLocation(),
+        location,
       }),
+      calendar.attachments,
     ),
     data.byClient
       ? sendEmail(
@@ -492,6 +531,11 @@ export async function sendAppointmentReminderEmails(
           ],
         },
         cta: MANAGE,
+        // Resend's batch endpoint takes no attachments, so the reminder links to Google Calendar only
+        calendarUrl: googleCalendarUrl({
+          id: b.id, service: b.service_name, artist: b.nailist_name, date: b.appointment_date, time: b.appointment_time,
+          location: location.text, manageUrl: MANAGE.href,
+        }),
         dayBefore: true,
         location,
       }),

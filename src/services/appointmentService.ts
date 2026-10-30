@@ -30,6 +30,12 @@ export interface Appointment {
   last_name?: string | null;
   email?: string | null;
   phone?: string | null;
+  /** How the client prefers to be reached, and the handles to do it by (a walk-in has none) */
+  alt_phone?: string | null;
+  preferred_contact_method?: string | null;
+  instagram_handle?: string | null;
+  facebook_handle?: string | null;
+  tiktok_handle?: string | null;
 
   payment_status?: string | null;
   payment_method?: string | null;

@@ -1,6 +1,7 @@
 import type { AppointmentStatus } from "../services/appointmentService";
 
 export interface Appointment {
+  nailist_name?: string;
   service_name: string;
   appointment_date: string;
   appointment_time: string;

@@ -25,6 +25,30 @@ describe("ProfilePanel", () => {
     expect(document.querySelector('img[src="https://img/ana.webp"]')).not.toBeNull();
   });
 
+  it("makes a row a link when it has an address: phone apps open in place, a web address in a new tab", () => {
+    render(
+      <ProfilePanel
+        {...base}
+        rows={[
+          { label: "Phone", value: "0917 123 4567", href: "tel:09171234567" },
+          { label: "Instagram", value: "@ana", href: "https://www.instagram.com/ana/" },
+          { label: "Prefers", value: "Call" },
+        ]}
+      />,
+    );
+    const phone = screen.getByRole("link", { name: "0917 123 4567" });
+    expect(phone).toHaveAttribute("href", "tel:09171234567");
+    expect(phone).not.toHaveAttribute("target");
+    const web = screen.getByRole("link", { name: /@ana/ });
+    expect(web).toHaveAttribute("href", "https://www.instagram.com/ana/");
+    expect(web).toHaveAttribute("target", "_blank");
+    expect(web).toHaveAttribute("rel", "noopener noreferrer");
+    expect(web).toHaveTextContent("(opens in a new tab)");
+    // A row with no address stays plain text
+    expect(screen.queryByRole("link", { name: "Call" })).toBeNull();
+    expect(screen.getByText("Call")).toBeInTheDocument();
+  });
+
   it("puts the actions under the rows", () => {
     render(<ProfilePanel {...base}><button type="button">Edit details</button></ProfilePanel>);
     expect(screen.getByRole("button", { name: "Edit details" })).toBeInTheDocument();

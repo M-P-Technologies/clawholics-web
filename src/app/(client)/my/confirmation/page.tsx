@@ -3,6 +3,7 @@
 import { CircleCheckBig as CheckIcon } from "lucide-react";
 import { Button, Card, LoadingBar } from "@/components/atoms";
 import { SectionHeader, EmptyState, SummaryRow } from "@/components/molecules";
+import AddToCalendarButton from "@/components/features/client/appointments/AddToCalendarButton";
 import ClientScreen from "@/components/features/client/shell/ClientScreen";
 import { ConfirmationSkeleton } from "@/components/features/client/skeletons/skeletons";
 import { usePaymentConfirmation } from "@/hooks/client/usePaymentConfirmation";
@@ -131,6 +132,16 @@ export default function PaymentConfirmation() {
           </Card>
         ) : (
           <p className="text-gray-red">Failed to load appointment details.</p>
+        )}
+
+        {data && (
+          <AddToCalendarButton
+            id={Number(appointment_id)}
+            service={data.service_name}
+            artist={data.nailist_name}
+            date={data.appointment_date}
+            time={data.appointment_time}
+          />
         )}
 
         <Button to={CLIENT_PATHS.home}>

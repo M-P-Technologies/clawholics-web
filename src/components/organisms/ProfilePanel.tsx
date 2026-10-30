@@ -7,6 +7,8 @@ export interface ProfileRow {
   label: string;
   value: string | null | undefined;
   icon?: ComponentType<{ className?: string }>;
+  /** Makes the value a link: tel:, sms: and mailto: open the phone's own apps, a web address a new tab */
+  href?: string | null;
 }
 
 export interface ProfilePanelProps {
@@ -66,12 +68,23 @@ export default function ProfilePanel({ label, name, imageUrl, badges, highlight,
         <dl className="flex flex-col gap-3">
           {rows
             .filter((row) => row.value)
-            .map(({ label: rowLabel, value, icon: Icon }) => (
+            .map(({ label: rowLabel, value, icon: Icon, href }) => (
               <div key={rowLabel} className="flex flex-col gap-0.5">
                 <dt className="text-xs text-gray-red">{rowLabel}</dt>
                 <dd className="flex min-w-0 items-center gap-3 text-sm font-medium text-gray-red">
                   {Icon && <Icon className="h-4 w-4 shrink-0 text-berry" />}
-                  <span className="min-w-0 wrap-break-word">{value}</span>
+                  {href ? (
+                    <a
+                      href={href}
+                      {...(/^https?:/i.test(href) ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                      className="min-w-0 wrap-break-word underline decoration-crimson-light underline-offset-4 hover:text-berry"
+                    >
+                      {value}
+                      {/^https?:/i.test(href) && <span className="sr-only"> (opens in a new tab)</span>}
+                    </a>
+                  ) : (
+                    <span className="min-w-0 wrap-break-word">{value}</span>
+                  )}
                 </dd>
               </div>
             ))}

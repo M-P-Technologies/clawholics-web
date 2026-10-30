@@ -30,6 +30,7 @@ import {
 } from "@/services/appointmentService";
 import { getProofState, isProofOverdue } from "@/services/proofState";
 import { cancelToast, manualStatusChoices } from "@/lib/admin/cancelBooking";
+import { preferredContact } from "@/lib/admin/contactMethod";
 
 /** The status filter; the page can open on one (the dashboard links here): `?status=CONFIRMED`. A
  *  status that isn't listed opens on All. */
@@ -271,6 +272,8 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
     return {
       profile,
       phone: a.phone?.trim() || "–",
+      // How they like to be reached ("Text message"), shown with their phone; a walk-in has no preference
+      prefers: isWalkin(a) ? "" : preferredContact(a)?.label ?? "",
       joined: monthYear(profile?.joinedAt) || "–",
       lastActive: relativeDay(profile?.lastSignInAt) || "–",
       visits: isWalkin(a) ? "–" : String(a.client_visits ?? 0),
@@ -479,6 +482,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
                   ["Date", dateLabel(a.appointment_date)],
                   ["Time", timeRangeLabel(a.appointment_time) || "–"],
                   ["Phone", clientFacts(a).phone],
+                  ...(clientFacts(a).prefers ? [["Prefers", clientFacts(a).prefers] as [string, string]] : []),
                   ["Joined", clientFacts(a).joined],
                   ["Last active", clientFacts(a).lastActive],
                   ["Visits", clientFacts(a).visits],
@@ -514,7 +518,10 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
               <th scope="row" className={clsx(cell, "max-w-60 text-left font-normal")}>
                 {clientCell(a, "row")}
               </th>
-              <td className={clsx(cell, "whitespace-nowrap")}>{facts.phone}</td>
+              <td className={clsx(cell, "whitespace-nowrap")}>
+                {facts.phone}
+                {facts.prefers && <span className="block text-[11px] text-gray-red">Prefers {facts.prefers.toLowerCase()}</span>}
+              </td>
               <td className={clsx(cell, "whitespace-nowrap")}>{facts.joined}</td>
               <td className={clsx(cell, "whitespace-nowrap")}>{facts.lastActive}</td>
               <td className={clsx(cell, "text-center font-bold")}>{facts.visits}</td>

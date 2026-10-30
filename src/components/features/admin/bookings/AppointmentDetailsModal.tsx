@@ -11,6 +11,7 @@ import ProofReviewPanel from "@/components/features/admin/bookings/ProofReviewPa
 import CompleteVisitForm from "@/components/features/admin/bookings/CompleteVisitForm";
 import CancelBookingDialog from "@/components/features/admin/bookings/CancelBookingDialog";
 import { canCancelBooking, manualStatusChoices } from "@/lib/admin/cancelBooking";
+import { preferredContact, telHref } from "@/lib/admin/contactMethod";
 
 interface AppointmentDetailsModalProps {
   appointment: Appointment;
@@ -41,6 +42,9 @@ const STATUS_PILL: Record<string, string> = {
   NO_SHOW: "bg-danger/15 text-gray-red",
 };
 
+// A phone number or handle an admin can tap
+const contactLinkClass = "font-bold text-berry underline underline-offset-4";
+
 const label = (status: string) => status.charAt(0) + status.slice(1).toLowerCase().replace(/_/g, " ");
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -62,6 +66,7 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, onCance
   const showProofPanel = currentStatus === "AWAITING_PROOF" || Boolean(appointment.latest_proof);
   // Walk-in bookings have no real client account, so there is nobody to keep notes on.
   const isWalkin = Boolean(appointment.is_walkin);
+  const preferred = preferredContact(appointment);
 
   return (
     <Dialog
@@ -100,7 +105,26 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, onCance
           <Section title="Client" aside={`Client #${appointment.user_id}`}>
             <SummaryRow label="Name" value={customerName} />
             <SummaryRow label="Email" value={appointment.email || "No email"} />
-            <SummaryRow label="Phone" value={appointment.phone || "No phone"} />
+            <SummaryRow
+              label="Phone"
+              value={appointment.phone ? <a href={telHref(appointment.phone)} className={contactLinkClass}>{appointment.phone}</a> : "No phone"}
+            />
+            {/* How they like to be reached, as the action to do it (not for a walk-in, who has no profile) */}
+            {!isWalkin && preferred && (
+              <SummaryRow
+                label="Prefers"
+                value={
+                  preferred.href ? (
+                    <a href={preferred.href} {...(/^https?:/i.test(preferred.href) ? { target: "_blank", rel: "noopener noreferrer" } : {})} className={contactLinkClass}>
+                      {preferred.label}
+                      <span className="font-normal"> · {preferred.detail}</span>
+                    </a>
+                  ) : (
+                    `${preferred.label} · ${preferred.detail}`
+                  )
+                }
+              />
+            )}
           </Section>
 
           <Section title="Appointment">

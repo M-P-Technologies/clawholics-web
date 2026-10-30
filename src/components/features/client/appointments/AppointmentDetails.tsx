@@ -5,6 +5,8 @@ import { FooterActions } from "@/components/organisms";
 import { statusDotTone } from "@/utils/profileView";
 import { isCompleted } from "@/lib/client/appointments";
 import ReviewCard from "@/components/features/client/appointments/ReviewCard";
+import AddToCalendarButton from "@/components/features/client/appointments/AddToCalendarButton";
+import { manilaToday } from "@/lib/bookingNotice";
 import type { AppointmentView } from "@/types/profile";
 import type { PaymentProof } from "@/services/proofService";
 import type { Review, ReviewDraft } from "@/services/reviewService";
@@ -59,6 +61,17 @@ export default function AppointmentDetails({ view, now, tokenFetcher, clerkId, o
         clerkId={clerkId}
         onUploaded={(proof) => onProofUploaded(view.appt.id, proof)}
       />
+
+      {/* A confirmed visit still to come can go in the client's calendar */}
+      {String(view.appt.status ?? "").toUpperCase() === "CONFIRMED" && view.appt.appointment_date >= manilaToday() && (
+        <AddToCalendarButton
+          id={view.appt.id}
+          service={view.appt.service_name}
+          artist={view.appt.nailist_name}
+          date={view.appt.appointment_date}
+          time={view.appt.appointment_time}
+        />
+      )}
 
       {isCompleted(view) && <ReviewCard appointmentId={view.appt.id} review={review} onSubmit={onSubmitReview} />}
 
