@@ -69,6 +69,7 @@ export default function ClientPage() {
             label="Client profile"
             className="lg:h-full lg:min-h-0 lg:overflow-y-auto"
             name={page.name}
+            imageUrl={page.imageUrl}
             badges={
               <>
                 <Badge tone="brand">Client</Badge>

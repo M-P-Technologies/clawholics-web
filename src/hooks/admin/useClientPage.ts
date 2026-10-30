@@ -41,6 +41,8 @@ export function useClientPage() {
   const notesQuery = useQuery({ ...adminQueries.clientNotes(clientId, session), enabled: isLoaded });
   const stepsQuery = useQuery({ ...adminQueries.clientNextSteps(clientId, session), enabled: isLoaded });
   const artistsQuery = useQuery(adminQueries.nailists());
+  // The client's Clerk photo, by Clerk id; without it the panel shows initials
+  const profilesQuery = useQuery({ ...adminQueries.directoryProfiles(session), enabled: isLoaded });
   const details: ClientDetails | null = clientQuery.data ?? null;
   const notFound = !details && (clientQuery.error as { status?: number } | null)?.status === 404;
   // A failed refresh keeps the page already loaded
@@ -147,6 +149,7 @@ export function useClientPage() {
     })),
     /** The profile panel: the name, the stamps badge, the next visit and the Client info rows */
     name: details ? clientName(details.client) : "",
+    imageUrl: (details && profilesQuery.data?.[details.client.clerk_id]?.imageUrl) || undefined,
     stampsLabel: stampsLabel(details?.summary.stamps ?? 0),
     /** The artists, for the Complete visit form's "Done by" */
     artists: (artistsQuery.data ?? []).map((n) => ({ id: n.id, name: n.name })),
