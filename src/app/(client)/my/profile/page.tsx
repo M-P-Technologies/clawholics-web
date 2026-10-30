@@ -6,6 +6,7 @@ import { StatCard, StepTracker, TabSection, Tabs } from "@/components/molecules"
 import LoyaltyCard from "@/components/features/client/profile/LoyaltyCard";
 import { ProfilePanel } from "@/components/organisms";
 import ClientScreen from "@/components/features/client/shell/ClientScreen";
+import { RowsSkeleton } from "@/components/features/client/skeletons/skeletons";
 import { useMyProfile } from "@/hooks/client/useMyProfile";
 import { profileLinkClass } from "@/lib/client/profile";
 
@@ -55,7 +56,7 @@ export default function MyProfile() {
                   {p.trackerSteps ? (
                     <StepTracker label="Booking progress" steps={p.trackerSteps} />
                   ) : a.appointmentsLoading ? (
-                    <p role="status" className="text-sm text-gray-red">Loading your bookings…</p>
+                    <RowsSkeleton label="Loading your bookings" plain />
                   ) : (
                     <p className="text-sm text-gray-red">No bookings to track yet.</p>
                   )}

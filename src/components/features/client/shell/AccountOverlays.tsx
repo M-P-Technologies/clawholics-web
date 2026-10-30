@@ -5,6 +5,7 @@ import AppointmentSheet from "@/components/features/client/appointments/Appointm
 import EditDetailsSheet from "@/components/features/client/profile/EditDetailsSheet";
 import { Button } from "@/components/atoms";
 import { Dialog } from "@/components/organisms";
+import { FOOTER_ACTIONS_CLASS } from "@/components/organisms/FooterActions";
 import { CONTACT_METHOD_OPTIONS } from "@/data/profile";
 import type { MyAccount } from "@/hooks/client/useMyAccount";
 
@@ -98,6 +99,12 @@ export default function AccountOverlays({ account: a, openId, setOpenId }: Accou
         size="md"
         dismissible={!a.isCancelling}
         hideClose
+        footer={
+          <div className={FOOTER_ACTIONS_CLASS}>
+            <Button variant="secondary" onClick={a.closeCancelModal} disabled={a.isCancelling}>Back</Button>
+            <Button onClick={a.handleCancelAppointment} loading={a.isCancelling} loadingText="Cancelling...">Confirm cancel</Button>
+          </div>
+        }
       >
         {a.selectedAppt && (
           <>
@@ -116,10 +123,6 @@ export default function AccountOverlays({ account: a, openId, setOpenId }: Accou
             {a.actionError && (
               <p role="alert" className="rounded-xl border border-danger/40 bg-danger/10 p-3 text-sm text-danger-ink">{a.actionError}</p>
             )}
-            <div className="flex justify-end gap-3">
-              <Button variant="secondary" onClick={a.closeCancelModal} disabled={a.isCancelling}>Back</Button>
-              <Button onClick={a.handleCancelAppointment} loading={a.isCancelling} loadingText="Cancelling...">Confirm cancel</Button>
-            </div>
           </>
         )}
       </Dialog>

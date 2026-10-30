@@ -1,5 +1,6 @@
 // Shared organisms: whole regions of a screen, such as the shell, bars, dialogs and tables. Explicit re-exports only (never `export *`).
 export { default as Dialog, AlertDialog, ConfirmDialog, FeedbackDialog } from "./Dialog";
+export { default as FooterActions, FOOTER_ACTIONS_CLASS } from "./FooterActions";
 export { default as TopBar, PHONE_STICKY_TOP_BAR } from "./TopBar";
 export { default as SideBar, type NavGroup, type NavItem } from "./SideBar";
 export { default as TabBar } from "./TabBar";

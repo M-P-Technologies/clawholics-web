@@ -6,6 +6,7 @@ import { SectionHeader, StatCard, StepTracker, SummaryRow } from "@/components/m
 import { Link } from "@/lib/router";
 import ServicesTable from "@/components/features/client/explore/ServicesTable";
 import ClientScreen from "@/components/features/client/shell/ClientScreen";
+import { SummaryRowsSkeleton } from "@/components/features/client/skeletons/skeletons";
 import { useClientHome } from "@/hooks/client/useClientHome";
 import { CLIENT_PATHS } from "@/lib/client/clientNav";
 
@@ -76,7 +77,7 @@ export default function ClientHome() {
               {next.isLocked && <p className="text-[13px] text-gray-red">Changes close 3 days before your appointment.</p>}
             </>
           ) : h.account.appointmentsLoading ? (
-            <p role="status" className="text-sm text-gray-red">Loading your appointments…</p>
+            <SummaryRowsSkeleton label="Loading your appointments" />
           ) : (
             <div className="flex flex-col items-start gap-3">
               <p className="text-sm text-gray-red">You have no upcoming appointments.</p>

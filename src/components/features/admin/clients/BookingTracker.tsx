@@ -8,6 +8,8 @@ import { appointmentToTrack, trackerSteps, type TrackerStep } from "@/lib/bookin
 import type { ClientAppointment } from "@/services/clientNotesService";
 import { Badge, Button, Select } from "@/components/atoms";
 import { StepTracker } from "@/components/molecules";
+import { canCancelBooking } from "@/lib/admin/cancelBooking";
+import CancelBookingDialog from "@/components/features/admin/bookings/CancelBookingDialog";
 import CompleteVisitDialog from "@/components/features/admin/bookings/CompleteVisitDialog";
 import CompleteVisitForm from "@/components/features/admin/bookings/CompleteVisitForm";
 import ProofThumb from "@/components/features/admin/bookings/ProofThumb";
@@ -21,15 +23,18 @@ interface BookingTrackerProps {
   onNoShow: (appointmentId: number) => void;
   /** Cancels a visit the client came 25+ minutes late to (the downpayment is kept) */
   onCancelLate: (appointmentId: number) => void;
+  /** Cancels a booking that's still to happen and refunds by the terms. Without it there's no Cancel appointment button. */
+  onCancelBooking?: (appointmentId: number) => Promise<void>;
   /** The client's name, for the questions it asks ("Audit Tester didn't come…") */
   clientName?: string;
 }
 
 // Where one appointment is, from booking to the finished visit, with what the admin does at each
 // step: the payment proof (when one was sent), and Complete visit (its form in a dialog) or Didn't show up
-export default function BookingTracker({ appointments, today, artists, onNoShow, onCancelLate, clientName }: BookingTrackerProps) {
+export default function BookingTracker({ appointments, today, artists, onNoShow, onCancelLate, onCancelBooking, clientName }: BookingTrackerProps) {
   const [chosenId, setChosenId] = useState<number | null>(null);
-  const [asking, setAsking] = useState<"no-show" | null>(null);
+  const [asking, setAsking] = useState<"no-show" | "cancel" | null>(null);
+  const [cancelBusy, setCancelBusy] = useState(false);
   const [completing, setCompleting] = useState(false);
   const tracked = appointments.find((a) => a.id === chosenId) ?? appointmentToTrack(appointments, today);
   if (!tracked) return <p className="text-sm text-gray-red">No bookings to track yet.</p>;
@@ -106,6 +111,11 @@ export default function BookingTracker({ appointments, today, artists, onNoShow,
           triggerClassName="h-9! py-0! text-[13px]"
         />
         <Badge tone={statusOf(tracked.status).tone}>{statusOf(tracked.status).label}</Badge>
+        {onCancelBooking && canCancelBooking(tracked.status) && (
+          <Button type="button" size="sm" variant="secondary" onClick={() => setAsking("cancel")} className="sm:ml-auto">
+            Cancel appointment
+          </Button>
+        )}
       </div>
 
       <StepTracker label="Booking progress" steps={steps} renderExtra={extra} />
@@ -117,6 +127,24 @@ export default function BookingTracker({ appointments, today, artists, onNoShow,
         artists={artists}
         onCancelLate={() => onCancelLate(tracked.id)}
       />
+      {onCancelBooking && (
+        <CancelBookingDialog
+          open={asking === "cancel"}
+          booking={tracked}
+          clientName={clientName}
+          loading={cancelBusy}
+          onClose={() => setAsking(null)}
+          onConfirm={async () => {
+            setCancelBusy(true);
+            try {
+              await onCancelBooking(tracked.id);
+            } finally {
+              setCancelBusy(false);
+              setAsking(null);
+            }
+          }}
+        />
+      )}
       <ConfirmDialog
         open={asking === "no-show"}
         title="Mark as a no-show?"

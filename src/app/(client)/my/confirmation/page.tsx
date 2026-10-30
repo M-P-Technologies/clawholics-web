@@ -4,6 +4,7 @@ import { CircleCheckBig as CheckIcon } from "lucide-react";
 import { Button, Card, LoadingBar } from "@/components/atoms";
 import { SectionHeader, EmptyState, SummaryRow } from "@/components/molecules";
 import ClientScreen from "@/components/features/client/shell/ClientScreen";
+import { ConfirmationSkeleton } from "@/components/features/client/skeletons/skeletons";
 import { usePaymentConfirmation } from "@/hooks/client/usePaymentConfirmation";
 import { CLIENT_PATHS } from "@/lib/client/clientNav";
 
@@ -21,7 +22,11 @@ export default function PaymentConfirmation() {
   }
 
   if (loading) {
-    return <LoadingBar label="Loading your payment" />;
+    return (
+      <ClientScreen title="Payment" back={CLIENT_PATHS.appointments}>
+        <ConfirmationSkeleton label="Loading your payment" />
+      </ClientScreen>
+    );
   }
 
   if (isFailed) {
@@ -76,13 +81,18 @@ export default function PaymentConfirmation() {
       );
     }
 
-    // Not inside a card or an animated wrapper: one that animates with `translate` makes a fixed
-    // child position itself inside it instead of covering the screen.
+    // Waiting for the bank or e-wallet: in the same frame as the confirmation it becomes, with the
+    // words that matter (keep it open, don't pay again) under the bow
     return (
-      <LoadingBar
-        label="Confirming your payment"
-        hint="This page updates by itself. Please keep it open and don't pay again."
-      />
+      <ClientScreen title="Payment" back={CLIENT_PATHS.appointments}>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <LoadingBar
+            inline
+            label="Confirming your payment"
+            hint="This page updates by itself. Please keep it open and don't pay again."
+          />
+        </div>
+      </ClientScreen>
     );
   }
 

@@ -13,15 +13,23 @@ const waiting = {
 };
 
 describe("payment confirmation while waiting", () => {
-  it("shows the full-screen loader, outside any Section", () => {
+  it("waits inside the same frame the confirmation appears in, with the words that matter", () => {
     hook.mockReturnValue(waiting);
-    const { container } = render(<PaymentConfirmation />);
+    render(<PaymentConfirmation />);
     const loader = screen.getByRole("status");
     expect(loader).toHaveTextContent("Confirming your payment");
     expect(loader).toHaveTextContent("don't pay again");
-    // A Section animates with `translate`, which would box a fixed loader inside itself
-    expect(loader.closest("section")).toBeNull();
-    expect(container.querySelector("section")).toBeNull();
+    // In the frame (the top bar and its back button), not a full-screen cover over it
+    expect(screen.getByRole("heading", { level: 1, name: "Payment" })).toBeInTheDocument();
+    expect(loader).not.toHaveClass("fixed");
+  });
+
+  it("shows placeholders in the same frame while the payment loads", () => {
+    hook.mockReturnValue({ ...waiting, loading: true });
+    render(<PaymentConfirmation />);
+    expect(screen.getByRole("heading", { level: 1, name: "Payment" })).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "Loading your payment" })).toBeInTheDocument();
+    expect(screen.getAllByTestId("skeleton").length).toBeGreaterThan(5);
   });
 
   it("explains what to do once it has waited too long", () => {

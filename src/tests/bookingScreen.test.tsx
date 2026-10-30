@@ -40,6 +40,21 @@ beforeEach(() => {
 });
 
 describe("booking step", () => {
+  it("loads inside the same frame (title and back button), as placeholders", () => {
+    s = { ...s, isPageLoading: true };
+    render(<Booking />);
+    expect(screen.getByRole("heading", { level: 1, name: "Book" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Back" })).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "Loading booking details" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Book your visit" })).toBeNull();
+  });
+
+  it("shows the artist field as a placeholder while the artists load", () => {
+    s = { ...s, loadingArtists: true };
+    render(<Booking />);
+    expect(screen.getByRole("status", { name: "Loading artists" })).toBeInTheDocument();
+  });
+
   it("shows the choices in the summary", () => {
     render(<Booking />);
     expect(screen.getByRole("heading", { name: "Book your visit" })).toBeInTheDocument();

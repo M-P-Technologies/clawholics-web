@@ -3,20 +3,26 @@
 import Image from "next/image";
 import clsx from "clsx";
 import { AlertDialog } from "@/components/organisms";
-import { Avatar, Badge, Button, Card, LoadingBar, Select } from "@/components/atoms";
+import { Avatar, Badge, Button, Card, Select } from "@/components/atoms";
 import { SectionHeader, EmptyState, SummaryRow, TimeSlotList } from "@/components/molecules";
 import DayCalendar from "@/components/molecules/DayCalendar";
 import { surface } from "@/components/tokens";
 import BookingOptions from "@/components/features/client/booking/BookingOptions";
 import ContactHandlesFields from "@/components/features/client/booking/ContactHandlesFields";
 import ClientScreen from "@/components/features/client/shell/ClientScreen";
+import { BookingStepSkeleton, FieldSkeleton } from "@/components/features/client/skeletons/skeletons";
 import { useBooking } from "@/hooks/client/useBooking";
 
 export default function Booking() {
   const { priceLabel, pageData, isPageLoading, pageError, nailists, loadingArtists, selectedNailist, selectedDate, selectedTime, setSelectedTime, timeSlots, month, setMonth, modalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, locationUrl, locationText, isDisabledDate, formatSlot, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage, contactFields } = useBooking();
 
+  // Inside the same frame as the loaded step, so the top bar and its back button stay put
   if (isPageLoading) {
-    return <LoadingBar label="Loading booking details" />;
+    return (
+      <ClientScreen title="Book" back="history">
+        <BookingStepSkeleton label="Loading booking details" />
+      </ClientScreen>
+    );
   }
 
   if (pageError || !pageData) {
@@ -72,9 +78,7 @@ export default function Booking() {
                 </Button>
               </div>
               {loadingArtists ? (
-                <p role="status" className={clsx(surface.tint, "px-3 py-3 text-sm text-gray-red")}>
-                  Loading artists…
-                </p>
+                <FieldSkeleton label="Loading artists" />
               ) : nailists.length === 0 ? (
                 <p className={clsx(surface.tint, "px-3 py-3 text-sm text-gray-red")}>
                   No available artists for this service.

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import clsx from "clsx";
 import { Skeleton } from "@/components/atoms";
 import AdminShell from "../shell/AdminShell";
+import ClientBackButton from "../clients/ClientBackButton";
 import { ListSkeleton } from "./ListSkeleton";
 
 // The admin screens' loading placeholders: each is shaped like the screen it stands in for, with
@@ -555,7 +556,7 @@ export function ScannerSkeleton() {
  *  then the booking tracker), each 80vh tall on a computer */
 export function ClientPageSkeleton() {
   return (
-    <AdminShell title="Client" actions={<Skeleton className="h-4 w-28" />}>
+    <AdminShell title="Client" hideTitle leading={<ClientBackButton />}>
       <Loading label="Loading the client" className="grid! grid-cols-1 items-start lg:grid-cols-3">
         <ProfileSkeleton className="lg:h-[80vh]" />
         <Card className="gap-0! p-0! lg:col-span-2 lg:h-[80vh]">

@@ -133,6 +133,22 @@ export const fetchAppointmentById = async (
   return res.json();
 };
 
+/** Cancels a booking that's still to happen, refunding the downpayment when it's 72+ hours ahead (it
+ *  answers REFUNDED or CANCELLED) and emailing the client. The server applies the rule. */
+export const cancelAndRefundAppointment = async (
+  id: number,
+  token?: string | null,
+  clerkId?: string | null,
+): Promise<{ message: string; status: "REFUNDED" | "CANCELLED" }> => {
+  const res = await fetch(`${API_BASE_URL}/booking/${id}/refund`, { method: "POST", headers: getHeaders(token, clerkId) });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    if (res.status === 403) window.location.href = "/";
+    throw new Error(typeof body.message === "string" && body.message ? body.message : "Failed to cancel the appointment");
+  }
+  return body;
+};
+
 export const updateAppointmentStatus = async (
   id: number,
   status: AppointmentStatus,

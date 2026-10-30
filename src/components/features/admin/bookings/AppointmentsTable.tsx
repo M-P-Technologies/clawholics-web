@@ -22,6 +22,7 @@ import {
   ADMIN_APPOINTMENTS_KEY,
   fetchAppointmentPage,
   updateAppointmentStatus,
+  cancelAndRefundAppointment,
   type Appointment,
   type AppointmentPageParams,
   type AppointmentSort,
@@ -244,6 +245,21 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
       }
       console.error(error);
       toast.show("error", "Status not changed", serverMessage(message) ?? `${what} is unchanged. Please try again.`);
+    }
+  };
+
+  // Cancels it for real (the client is emailed, the downpayment refunded by the terms), then the list loads again
+  const cancelBooking = async (id: number) => {
+    const row = (appointments ?? []).find((a) => a.id === id) ?? selected;
+    const what = row ? `Appointment #${id} (${clientName(row)}, ${row.service_name || "no service"})` : `Appointment #${id}`;
+    try {
+      const result = await cancelAndRefundAppointment(id, await getToken(), currentUser?.id);
+      toast.show("success", result.status === "REFUNDED" ? "Cancelled and refunded" : "Appointment cancelled", `${what} is now ${result.status.toLowerCase()}.`);
+      setSelected(null);
+      void refresh();
+    } catch (error) {
+      console.error(error);
+      toast.show("error", "Not cancelled", `${error instanceof Error && error.message ? error.message : "Please try again."} ${what} is unchanged.`);
     }
   };
 
@@ -538,6 +554,7 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
           appointment={selected}
           onClose={() => setSelected(null)}
           onStatusChange={changeStatus}
+          onCancelBooking={cancelBooking}
           tokenFetcher={getToken}
           clerkId={currentUser?.id}
           artists={(artistList ?? []).map((n) => ({ id: n.id, name: artistName(n) }))}

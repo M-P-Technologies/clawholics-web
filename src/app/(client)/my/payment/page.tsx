@@ -4,23 +4,22 @@ import Image from "next/image";
 import clsx from "clsx";
 import qrPhLogo from "@/assets/logo/qr_ph.png";
 import { AlertDialog } from "@/components/organisms";
-import { Button, Card, LoadingBar } from "@/components/atoms";
+import { Button, Card } from "@/components/atoms";
 import { ChoiceRow, SectionHeader, SummaryRow } from "@/components/molecules";
 import { surface } from "@/components/tokens";
 import ClientScreen from "@/components/features/client/shell/ClientScreen";
+import { BookingStepSkeleton } from "@/components/features/client/skeletons/skeletons";
 import { usePayment } from "@/hooks/client/usePayment";
 import { CLIENT_PATHS } from "@/lib/client/clientNav";
 
 export default function Payment() {
   const { artistLabel, priceLabel, dateLabel, timeLabel, methods, toggleAgree, method, setMethod, agree, loading, isInvalid, timeLeft, modalOpen, modalTitle, modalMessage, modalAction, modalButtonText, modalDismissible, appointment, handlePay, handleModalClose } = usePayment();
 
-  // If loading or invalid, show the LoadingBar (effectively hiding the pay UI)
+  // If loading or invalid, show the placeholders (effectively hiding the pay UI)
   if (loading || isInvalid) {
     return (
       <ClientScreen title="Payment" back="history">
-        <div className="flex min-h-[70vh] items-center justify-center">
-          <LoadingBar label="Loading your payment details" />
-        </div>
+        <BookingStepSkeleton label="Loading your payment details" />
         <AlertDialog
           open={modalOpen}
           title={modalTitle}

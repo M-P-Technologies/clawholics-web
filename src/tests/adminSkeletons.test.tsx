@@ -37,6 +37,12 @@ describe("admin loading skeletons", () => {
     expect(screen.getAllByTestId("skeleton").length).toBeGreaterThan(5);
   });
 
+  it("has the same top bar as the loaded client page: a back button and a title only screen readers see", () => {
+    render(<ClientPageSkeleton />);
+    expect(screen.getByRole("link", { name: "Back to clients" })).toHaveAttribute("href", "/clients");
+    expect(screen.getByRole("heading", { name: "Client" })).toHaveClass("sr-only");
+  });
+
   it("is what a report page shows the first time it loads", () => {
     render(<ReportPage title="Performance">{() => <p>numbers</p>}</ReportPage>);
     expect(screen.getByRole("status", { name: "Loading performance" })).toBeInTheDocument();

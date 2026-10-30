@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, 
 import { Check, X } from "lucide-react";
 import clsx from "clsx";
 import { Button } from "../atoms";
+import { FOOTER_ACTIONS_CLASS } from "./FooterActions";
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -167,12 +168,22 @@ interface ConfirmDialogProps {
 // "Are you sure?" While the action runs, both buttons are locked and it can't be dismissed.
 export function ConfirmDialog({ open, title, children, confirmLabel, loadingLabel, cancelLabel = "Cancel", loading = false, onConfirm, onClose }: ConfirmDialogProps) {
   return (
-    <Dialog open={open} onClose={onClose} title={title} role="alertdialog" size="md" dismissible={!loading} hideClose>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      title={title}
+      role="alertdialog"
+      size="md"
+      dismissible={!loading}
+      hideClose
+      footer={
+        <div className={FOOTER_ACTIONS_CLASS}>
+          <Button variant="secondary" onClick={onClose} disabled={loading}>{cancelLabel}</Button>
+          <Button onClick={onConfirm} loading={loading} loadingText={loadingLabel}>{confirmLabel}</Button>
+        </div>
+      }
+    >
       <div className="text-left text-sm leading-relaxed text-gray-red md:text-base">{children}</div>
-      <div className="flex flex-wrap justify-center gap-3">
-        <Button variant="secondary" onClick={onClose} disabled={loading}>{cancelLabel}</Button>
-        <Button onClick={onConfirm} loading={loading} loadingText={loadingLabel}>{confirmLabel}</Button>
-      </div>
     </Dialog>
   );
 }
@@ -190,12 +201,24 @@ interface AlertDialogProps {
 // A message that needs reading, with Close and an optional action
 export function AlertDialog({ open, title, message, buttonText = "OK", hideCloseButton = false, onClose, onAction }: AlertDialogProps) {
   return (
-    <Dialog open={open} onClose={onClose} title={title} role="alertdialog" size="md" dismissible={!hideCloseButton} hideClose>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      title={title}
+      role="alertdialog"
+      size="md"
+      dismissible={!hideCloseButton}
+      hideClose
+      footer={
+        (!hideCloseButton || onAction) && (
+          <div className={FOOTER_ACTIONS_CLASS}>
+            {!hideCloseButton && <Button variant="secondary" onClick={onClose}>Close</Button>}
+            {onAction && <Button onClick={onAction}>{buttonText}</Button>}
+          </div>
+        )
+      }
+    >
       <p className="text-left leading-relaxed text-gray-red">{message}</p>
-      <div className="flex justify-end gap-3">
-        {!hideCloseButton && <Button variant="secondary" onClick={onClose}>Close</Button>}
-        {onAction && <Button onClick={onAction}>{buttonText}</Button>}
-      </div>
     </Dialog>
   );
 }
@@ -212,14 +235,25 @@ interface FeedbackDialogProps {
 export function FeedbackDialog({ open, title, message, isError, onClose }: FeedbackDialogProps) {
   const Icon = isError ? X : Check;
   return (
-    <Dialog open={open} onClose={onClose} title={title} size="sm" hideClose header={<span className="sr-only">{title}</span>}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      title={title}
+      size="sm"
+      hideClose
+      header={<span className="sr-only">{title}</span>}
+      footer={
+        <div className={FOOTER_ACTIONS_CLASS}>
+          <Button onClick={onClose}>Continue</Button>
+        </div>
+      }
+    >
       <div className="flex flex-col items-center gap-3 text-center">
         <span className={clsx("flex h-16 w-16 items-center justify-center rounded-full", isError ? "bg-danger/10" : "bg-crimson/10")}>
           <Icon aria-hidden="true" className="h-8 w-8 text-gray-red" />
         </span>
         <p className="font-display text-2xl text-crimson-ink">{title}</p>
         <p className="text-sm leading-relaxed text-gray-red md:text-base">{message}</p>
-        <Button onClick={onClose}>Continue</Button>
       </div>
     </Dialog>
   );
