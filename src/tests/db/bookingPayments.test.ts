@@ -140,6 +140,8 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       } finally {
         vi.useRealTimers();
         await db`delete from site_settings where key = 'booking_min_notice_hours'`;
+        // These bookings are held until 2098 (the fake clock): left open they'd block the clients' later bookings
+        await db`delete from appointments where appointment_date like '2098-%'`;
       }
     });
 
@@ -170,6 +172,7 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       } finally {
         vi.useRealTimers();
         await db`delete from site_settings where key = 'booking_max_advance_days'`;
+        await db`delete from appointments where appointment_date like '2098-%'`;
       }
     });
 
