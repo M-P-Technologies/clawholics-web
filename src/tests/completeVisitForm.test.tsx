@@ -1,5 +1,5 @@
 import userEvent from "@testing-library/user-event";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import CompleteVisitForm from "@/components/features/admin/bookings/CompleteVisitForm";
@@ -38,6 +38,9 @@ const renderForm = (v: VisitToComplete, onSaved = vi.fn(), onCancelLate = vi.fn(
 };
 
 beforeEach(() => {
+  uploadVisitPhoto.mockReset();
+  globalThis.URL.createObjectURL = vi.fn(() => "blob:preview");
+  globalThis.URL.revokeObjectURL = vi.fn();
   saveCompletion.mockReset().mockResolvedValue({ completion: {}, photos: 0 });
   show.mockReset();
 });
@@ -77,9 +80,38 @@ describe("the Complete visit form", () => {
     await user.click(screen.getByRole("option", { name: "Miss Jean" }));
     await user.click(screen.getByRole("button", { name: "Complete visit" }));
     expect(saveCompletion).toHaveBeenCalledWith(7, { balance_amount: 1300, payment_method: "GCash", nailist_id: 2, arrived_at: "", voucher_code: "", photos: [] }, { token: "tok", clerkId: "admin_1" });
-    // The photo is added afterwards, from its own window
-    expect(screen.queryByLabelText(/Photos of the nails/)).toBeNull();
+    // No photo was dropped, so none is uploaded (it can be added later)
+    expect(uploadVisitPhoto).not.toHaveBeenCalled();
     expect(onSaved).toHaveBeenCalled();
+  });
+
+  it("uploads the dropped nail photo once the visit is saved", async () => {
+    uploadVisitPhoto.mockResolvedValue({ photo_url: "https://images.test/x.webp" });
+    const { user, onSaved } = renderForm(visit());
+    const photo = new File(["x"], "nails.jpg", { type: "image/jpeg" });
+    await user.upload(screen.getByLabelText("Nail photo"), photo);
+    expect(screen.getByText("nails.jpg")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Complete visit" }));
+    await waitFor(() => expect(uploadVisitPhoto).toHaveBeenCalledWith(7, photo, { token: "tok", clerkId: "admin_1" }));
+    expect(saveCompletion.mock.invocationCallOrder[0]).toBeLessThan(uploadVisitPhoto.mock.invocationCallOrder[0]);
+    expect(onSaved).toHaveBeenCalled();
+  });
+
+  it("still completes the visit when the photo can't be uploaded, and says so", async () => {
+    uploadVisitPhoto.mockRejectedValue(new Error("too big"));
+    const { user, onSaved } = renderForm(visit());
+    await user.upload(screen.getByLabelText("Nail photo"), new File(["x"], "nails.jpg", { type: "image/jpeg" }));
+    await user.click(screen.getByRole("button", { name: "Complete visit" }));
+    await waitFor(() => expect(onSaved).toHaveBeenCalled());
+    expect(show).toHaveBeenCalledWith("error", "Photo not added", expect.stringContaining("Add photo"));
+  });
+
+  it("refuses a file that isn't a JPG, PNG or WEBP", async () => {
+    const { user } = renderForm(visit());
+    fireEvent.change(screen.getByLabelText("Nail photo"), { target: { files: [new File(["x"], "nails.gif", { type: "image/gif" })] } });
+    expect(screen.getByRole("alert")).toHaveTextContent("Choose a JPG, PNG or WEBP photo.");
+    await user.click(screen.getByRole("button", { name: "Complete visit" }));
+    expect(saveCompletion).not.toHaveBeenCalled();
   });
 
   it("refuses a balance that isn't whole pesos", async () => {
