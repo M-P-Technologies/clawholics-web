@@ -1,11 +1,8 @@
 import type { Appointment, AppointmentStatus } from "./appointmentService";
-import { getProofState, isProofOverdue } from "./proofState";
 
 export type AppointmentFilterStatus =
   | "ALL"
   | AppointmentStatus
-  | "PROOF_PENDING"
-  | "PROOF_OVERDUE"
   | "TO_COMPLETE"
   | "PHOTOS_TO_ADD";
 
@@ -24,8 +21,6 @@ export function matchesAppointmentFilter(
   now: number,
 ): boolean {
   if (filter === "ALL") return true;
-  if (filter === "PROOF_PENDING") return getProofState(appointment, now).kind === "in_review";
-  if (filter === "PROOF_OVERDUE") return isProofOverdue(appointment, now);
   if (filter === "TO_COMPLETE") return isVisitToComplete(appointment, now);
   if (filter === "PHOTOS_TO_ADD") return (appointment.status ?? "").trim().toUpperCase() === "COMPLETED" && appointment.completion?.photos_added === 0;
   return (appointment.status ?? "").trim().toUpperCase() === filter;

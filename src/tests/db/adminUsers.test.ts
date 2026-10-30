@@ -193,7 +193,7 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
   it("TC-ADM-06: nailists, their services, time slots and days off", async () => {
     as("user_admin");
     const created = await call(nailists.createNailist, "/api/nailists", { method: "POST", body: { name: "Miss New", position: "Master Technician", bio: "Hi" } });
-    expect(created.body).toEqual({ id: expect.any(Number), name: "Miss New", category_id: 1, position: "Master Technician", specialty: null, bio: "Hi", image: null });
+    expect(created.body).toEqual({ id: expect.any(Number), name: "Miss New", category_id: 1, position: "Master Technician", is_master: 1, hide_position: 0, specialty: null, bio: "Hi", image: null });
     const id = String(created.body.id);
     const params = { id };
 
@@ -293,7 +293,10 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
   });
 
   it("the settings set the stamps a reward needs, and the client redeems at that number", async () => {
-    const body = { downpayment_amount: 500, payment_methods: ["QRPH"], birthday_discount_pct: 20, loyalty_stamps_required: 3, booking_hold_minutes: 5 };
+    const body = {
+      downpayment_amount: 500, payment_methods: ["QRPH"], birthday_discount_pct: 20, loyalty_stamps_required: 3, booking_hold_minutes: 5,
+      booking_min_notice_hours: 2, booking_max_advance_days: 30, booking_reminders_enabled: true, rebook_nudge_days: 0,
+    };
     as("user_cust");
     expect((await call(settings.updateSettings, "/api/settings", { method: "PUT", body })).status).toBe(403);
     expect((await call(settings.getLoyaltySettings, "/api/settings/loyalty")).body).toEqual({ stamps_required: 10 });

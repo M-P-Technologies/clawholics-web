@@ -11,7 +11,8 @@ import { itemName, upperFirst } from "../../lib/itemName";
 import { useStampTarget } from "../useStampTarget";
 import { addNote, deleteNote, saveNextSteps, type ClientDetails, type ClientNote } from "../../services/clientNotesService";
 import { setReviewApproval } from "../../services/reviewService";
-import { updateAppointmentStatus, type AppointmentStatus } from "../../services/appointmentService";
+import { cancelToast } from "../../lib/admin/cancelBooking";
+import { cancelAndRefundAppointment, updateAppointmentStatus, type AppointmentStatus } from "../../services/appointmentService";
 
 /** The note being written about one appointment */
 export interface VisitDraft {
@@ -70,11 +71,12 @@ export function useClientPage() {
     return a ? `${a.service_name} visit on ${dateLabel(a.appointment_date)}` : "visit";
   };
 
-  const run = async (work: () => Promise<unknown>, done: string, message?: string) => {
+  // `message` may be a function, for words that depend on what the work answered
+  const run = async (work: () => Promise<unknown>, done: string | (() => string), message?: string | (() => string)) => {
     try {
       setBusy(true);
       await work();
-      toast.show("success", done, message);
+      toast.show("success", typeof done === "function" ? done() : done, typeof message === "function" ? message() : message);
       return true;
     } catch (error) {
       toast.show("error", `Not saved for ${who()}`, error instanceof Error ? error.message : "Please try again.");
@@ -118,6 +120,18 @@ export function useClientPage() {
   const markNoShow = (appointmentId: number) => changeStatus(appointmentId, "NO_SHOW", `${upperFirst(who())} marked as a no-show`, `${upperFirst(visitOf(appointmentId))}. The downpayment is kept.`);
   /** Cancelled for coming 25+ minutes late (the downpayment is kept) */
   const cancelLate = (appointmentId: number) => changeStatus(appointmentId, "CANCELLED", `${upperFirst(who())}'s visit cancelled for coming late`, `${upperFirst(visitOf(appointmentId))}. The downpayment is kept.`);
+  /** Cancelled by an admin: the client is emailed and the downpayment refunded by the terms (72+ hours ahead) */
+  const cancelBooking = async (appointmentId: number, refundAnyway = false) => {
+    let toastOf = cancelToast({ status: "CANCELLED" }, upperFirst(visitOf(appointmentId)));
+    const done = await run(
+      async () => {
+        toastOf = cancelToast(await cancelAndRefundAppointment(appointmentId, await getToken(), user?.id, refundAnyway), upperFirst(visitOf(appointmentId)));
+      },
+      () => toastOf.title,
+      () => toastOf.message,
+    );
+    if (done) await adminDataChanged(queryClient);
+  };
   const saveSteps = () =>
     run(async () => {
       await saveNextSteps(clientId, steps, await auth());
@@ -155,6 +169,7 @@ export function useClientPage() {
     artists: (artistsQuery.data ?? []).map((n) => ({ id: n.id, name: n.name })),
     markNoShow,
     cancelLate,
+    cancelBooking,
     highlight: nextVisitHighlight(nextAppointment),
     panelRows: details ? clientPanelRows(details) : [],
     /** Notes about the client in general, and those about one visit with what they're about */

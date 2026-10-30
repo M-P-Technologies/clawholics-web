@@ -13,15 +13,23 @@ const waiting = {
 };
 
 describe("payment confirmation while waiting", () => {
-  it("shows the full-screen loader, outside any Section", () => {
+  it("waits inside the same frame the confirmation appears in, with the words that matter", () => {
     hook.mockReturnValue(waiting);
-    const { container } = render(<PaymentConfirmation />);
+    render(<PaymentConfirmation />);
     const loader = screen.getByRole("status");
     expect(loader).toHaveTextContent("Confirming your payment");
     expect(loader).toHaveTextContent("don't pay again");
-    // A Section animates with `translate`, which would box a fixed loader inside itself
-    expect(loader.closest("section")).toBeNull();
-    expect(container.querySelector("section")).toBeNull();
+    // In the frame (the top bar and its back button), not a full-screen cover over it
+    expect(screen.getByRole("heading", { level: 1, name: "Payment" })).toBeInTheDocument();
+    expect(loader).not.toHaveClass("fixed");
+  });
+
+  it("shows placeholders in the same frame while the payment loads", () => {
+    hook.mockReturnValue({ ...waiting, loading: true });
+    render(<PaymentConfirmation />);
+    expect(screen.getByRole("heading", { level: 1, name: "Payment" })).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "Loading your payment" })).toBeInTheDocument();
+    expect(screen.getAllByTestId("skeleton").length).toBeGreaterThan(5);
   });
 
   it("explains what to do once it has waited too long", () => {
@@ -54,10 +62,14 @@ describe("payment confirmation when paid", () => {
       data: { service_name: "Hard Gel", appointment_date: "2026-10-20", appointment_time: "9:00 AM - 11:00 AM" },
       dateLabel: "October 20, 2026",
       timeLabel: "9:00 AM - 11:00 AM",
+      paid: "₱700",
     });
     render(<PaymentConfirmation />);
     expect(screen.getByRole("heading", { name: "Booking confirmed" })).toBeInTheDocument();
     expect(screen.getByText(/Thank you, Ana!/)).toBeInTheDocument();
+    // What was actually paid, not a fixed ₱500
+    expect(screen.getByText("₱700", { selector: "dd" })).toBeInTheDocument();
+    expect(screen.getByText(/of ₱700 via QR Ph/)).toBeInTheDocument();
     expect(screen.getByText(/ana@example.com/)).toBeInTheDocument();
     for (const v of ["Hard Gel", "October 20, 2026", "9:00 AM - 11:00 AM"]) expect(screen.getByText(v)).toBeInTheDocument();
     expect(screen.getByText("Amount paid", { selector: "dt" })).toBeInTheDocument();

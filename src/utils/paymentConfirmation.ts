@@ -1,6 +1,7 @@
 import type { AppointmentStatus } from "../services/appointmentService";
 
 export interface Appointment {
+  nailist_name?: string;
   service_name: string;
   appointment_date: string;
   appointment_time: string;
@@ -9,6 +10,8 @@ export interface Appointment {
 
 export interface PaymentDetails {
   amount: number;
+  /** What the payment endpoint answers: the downpayment actually paid (the page quotes it, not today's setting) */
+  payment_amount?: number | null;
   payment_method: string;
   status: string;
 

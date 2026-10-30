@@ -3,6 +3,7 @@ import type { ComponentType } from "react";
 import { FacebookIcon, InstagramIcon, TikTokIcon, type BadgeTone } from "@/components/atoms";
 import type { ClientAppointment, ClientDetails } from "../../services/clientNotesService";
 import { manilaDateTime, timeRangeLabel } from "../timeFormat";
+import { contactRowHref, preferredContact } from "./contactMethod";
 
 // The admin client page's labels, styles and the rows of its Client info list
 
@@ -65,18 +66,22 @@ interface ClientInfoRow {
   label: string;
   value: string | null;
   Icon: ComponentType<{ className?: string }>;
+  /** Where tapping the value goes (call, text, email, their profile), when it leads anywhere */
+  href?: string | null;
 }
 
 /** The Client info list: contact details, when they joined, their last and next visits, and their birthday voucher */
-const clientInfoRows = ({ client, summary, birthday_voucher }: Pick<ClientDetails, "client" | "summary" | "birthday_voucher">): ClientInfoRow[] =>
-  [
+const clientInfoRows = ({ client, summary, birthday_voucher }: Pick<ClientDetails, "client" | "summary" | "birthday_voucher">): ClientInfoRow[] => {
+  const prefers = preferredContact(client);
+  return [
     { label: "Email", value: client.email, Icon: Mail },
     { label: "Phone", value: client.phone, Icon: Phone },
     { label: "Other phone", value: client.alt_phone, Icon: Phone },
     { label: "Instagram", value: client.instagram_handle, Icon: InstagramIcon },
     { label: "Facebook", value: client.facebook_handle, Icon: FacebookIcon },
     { label: "TikTok", value: client.tiktok_handle, Icon: TikTokIcon },
-    { label: "Prefers", value: client.preferred_contact_method, Icon: MessageCircle },
+    // "Text message" (tap to text them), or what's missing when they prefer a way they gave no details for
+    { label: "Prefers", value: prefers ? (prefers.href ? prefers.label : `${prefers.label} (${prefers.detail})`) : null, Icon: MessageCircle, href: prefers?.href },
     { label: "Birthday", value: birthdayLabel(client.dob), Icon: Cake },
     { label: "Birthday voucher", value: voucherLabel(birthday_voucher), Icon: Gift },
     { label: "Client since", value: client.created_at ? dateLabel(client.created_at.slice(0, 10)) : null, Icon: CalendarDays },
@@ -84,7 +89,10 @@ const clientInfoRows = ({ client, summary, birthday_voucher }: Pick<ClientDetail
     { label: "Next visit", value: summary.nextVisit ? dateLabel(summary.nextVisit) : null, Icon: CalendarClock },
     // Flagged: the terms say a no-show may be blocked from booking again (the admins decide)
     { label: "No-shows", value: summary.noShows ? String(summary.noShows) : null, Icon: CalendarX },
-  ].filter((row) => row.value);
+  ]
+    .filter((row) => row.value)
+    .map((row) => ({ ...row, href: "href" in row ? row.href : contactRowHref(row.label, row.value) }));
+};
 
 /** The client's name, or their email when they never gave one */
 export const clientName = (client: ClientDetails["client"]) => `${client.first_name ?? ""} ${client.last_name ?? ""}`.trim() || client.email;
@@ -103,7 +111,7 @@ export const nextVisitHighlight = (next?: ClientAppointment) => ({
 
 /** The client panel's rows, with their icons */
 export const clientPanelRows = (details: Pick<ClientDetails, "client" | "summary" | "birthday_voucher">) =>
-  clientInfoRows(details).map(({ label, value, Icon }) => ({ label, value, icon: Icon }));
+  clientInfoRows(details).map(({ label, value, Icon, href }) => ({ label, value, icon: Icon, href }));
 
 /** "1 stamp", "4 stamps" */
 export const stampsLabel = (stamps: number) => `${stamps} ${stamps === 1 ? "stamp" : "stamps"}`;

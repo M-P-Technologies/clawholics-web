@@ -11,7 +11,9 @@ interface BookingPayload {
   service_id: number;
   service_name: string;
   nailist_name: string;
-  nailist_id: number;
+  /** Left out for "any available artist" (any_artist), where the salon assigns one */
+  nailist_id?: number | null;
+  any_artist?: boolean;
   appointment_date: string;
   appointment_time: string;
   variant_id?: number | null;
@@ -24,17 +26,25 @@ interface BookingResponse {
   error: boolean;
   appointment_id: number;
   total_price?: number;
+  /** The artist the booking is with (for any artist, the one assigned) */
+  nailist_id?: number;
+  nailist_name?: string;
+  nailist_category_id?: number | null;
+  nailist_is_master?: number | null;
 }
 
 export class BookingError extends Error {
   status: number;
   field?: string;
+  /** The server's code for the refusal, such as SLOT_TAKEN or PENDING_APPOINTMENT_EXISTS */
+  code?: string;
 
-  constructor(message: string, status: number, field?: string) {
+  constructor(message: string, status: number, field?: string, code?: string) {
     super(message);
     this.name = "BookingError";
     this.status = status;
     this.field = field;
+    this.code = code;
   }
 }
 
@@ -70,6 +80,13 @@ export const fetchBookedSlotsDetailed = async (
   );
   return res.json();
 };
+/** For "any available artist": the times at least one artist offering the service has free, by day (YYYY-MM-DD) */
+export const fetchAnyAvailability = async (serviceId: number, from: string, to: string): Promise<{ days: Record<string, string[]>; full: string[] }> => {
+  const res = await fetch(`${API_BASE_URL}/booking/any-availability?service_id=${serviceId}&from=${from}&to=${to}`, { headers: getHeaders() });
+  if (!res.ok) throw new Error("Failed to fetch the available times");
+  return res.json();
+};
+
 /** An artist's taken times on every day from `from` to `to` (YYYY-MM-DD), in one request */
 export const fetchBookedSlotsRange = async (
   nailist_id: number,
@@ -99,7 +116,7 @@ export const createBooking = async (
   if (!res.ok) {
     // Some responses explain the problem in `message`, others in `error`
     const reason = json.message || (typeof json.error === "string" ? json.error : "");
-    throw new BookingError(reason || "Booking failed", res.status, json.field);
+    throw new BookingError(reason || "Booking failed", res.status, json.field, typeof json.code === "string" ? json.code : undefined);
   }
 
   return json;

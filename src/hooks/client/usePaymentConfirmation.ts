@@ -7,6 +7,7 @@ import { useNavigate, useSearchParams } from "@/lib/router";
 import { API_BASE_URL } from "@/apiConfig";
 import { usePolling } from "@/hooks/usePolling";
 import { longDateLabel, timeRangeLabel } from "@/lib/timeFormat";
+import { peso } from "@/lib/dashboardFormat";
 import { type Appointment, type PaymentDetails } from "@/utils/paymentConfirmation";
 
 export function usePaymentConfirmation() {
@@ -115,5 +116,7 @@ export function usePaymentConfirmation() {
   // Where the client sends the screenshot of their payment (the saved link, or the salon's own)
   const instagram = instagramUrl(useQuery(publicQueries.home()).data);
 
-  return { isFailed, isConfirmed, navigate, appointment_id, data, dateLabel, timeLabel, payment, loading, paymentStatus, timedOut, checkAgain, instagram };
+  /** What was actually paid ("₱500"), or null when the payment details didn't say */
+  const paid = payment?.payment_amount ? peso(payment.payment_amount) : null;
+  return { isFailed, isConfirmed, navigate, appointment_id, data, dateLabel, timeLabel, paid, payment, loading, paymentStatus, timedOut, checkAgain, instagram };
 }

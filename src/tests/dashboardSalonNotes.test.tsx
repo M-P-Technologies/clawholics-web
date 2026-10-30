@@ -122,7 +122,9 @@ describe("Needs attention keeps to three", () => {
   it("shows only the first three rows, in their order", () => {
     render(<SalonNotes data={base({ attention: { today: 5, proofsToReview: 0, toComplete: 4, photosToAdd: 0, unpaid: 3, warmLeads: 146 } })} />);
     const todo = within(screen.getByRole("region", { name: "Needs attention" }));
-    expect(todo.getAllByRole("link").map((l) => l.textContent?.replace(/^\d+/, ""))).toEqual(["Today's appointments", "Visits to complete", "Pending payments"]);
+    expect(todo.getAllByRole("link").map((l) => l.textContent?.replace(/^\d+/, ""))).toEqual(["Today's appointments", "Visits to complete", "Warm leads"]);
+    // Pending payments are no longer a row: a pending booking is only a hold while the client pays
+    expect(todo.queryByText(/Pending payments/)).toBeNull();
     expect(todo.queryByText(/Bookings to confirm/)).toBeNull();
   });
 });

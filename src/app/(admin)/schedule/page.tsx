@@ -122,7 +122,7 @@ export default function Schedule() {
       )}
 
       {s.selectedAppointment && (
-        <AppointmentDetailsModal appointment={s.selectedAppointment} onClose={s.closeAppointment} onStatusChange={s.changeAppointmentStatus} />
+        <AppointmentDetailsModal appointment={s.selectedAppointment} onClose={s.closeAppointment} onStatusChange={s.changeAppointmentStatus} onCancelBooking={s.cancelAppointment} />
       )}
 
     </AdminShell>

@@ -15,6 +15,7 @@ import {
   getTacs,
   type ContentSection,
 } from "./catalog";
+import { getPaymentSettings } from "./payments";
 
 // The public site's reads, cached on the server: every visitor gets the same rows, which change
 // only when an admin edits them, so most visits are answered without asking the database.
@@ -53,6 +54,8 @@ export const publicReads = {
   nailist: cached("nailist", getNailist),
   nailistGallery: cached("nailistGallery", getNailistGallery),
   allNailistGalleries: cached("allNailistGalleries", getAllNailistGalleries),
+  /** The downpayment and payment methods: the pages quote the deposit, and an admin's save of the Settings drops this too */
+  paymentSettings: cached("paymentSettings", getPaymentSettings),
 };
 
 /** Drops every cached public read, so the next request reads the database again. */

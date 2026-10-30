@@ -8,7 +8,8 @@ import { scheduleClientName } from "../../services/scheduleAgenda";
 import { buildDayData, formatLocalMonth, getArtistName, parseLocalDate, serviceNamesOf, weekLabel } from "../../lib/admin/schedule";
 import { isDesktopWidth } from "../../lib/viewport";
 import { adminDataChanged, adminQueries } from "../../lib/adminQueries";
-import { updateAppointmentStatus, type Appointment, type AppointmentStatus } from "../../services/appointmentService";
+import { cancelToast } from "../../lib/admin/cancelBooking";
+import { cancelAndRefundAppointment, updateAppointmentStatus, type Appointment, type AppointmentStatus } from "../../services/appointmentService";
 import { addDays, mergeSchedules, toDateKey, weekDays, weekMonthKeys } from "../../services/scheduleAgenda";
 import type { MonthlySchedule, ScheduleAppointment } from "../../services/scheduleService";
 
@@ -120,6 +121,19 @@ export function useSchedule() {
     await adminDataChanged(queryClient);
   };
 
+  // Cancels it for real (the client is emailed, the downpayment refunded by the terms)
+  const cancelAppointment = async (id: number, refundAnyway = false) => {
+    try {
+      const result = await cancelAndRefundAppointment(id, await getToken(), currentUser?.id, refundAnyway);
+      const done = cancelToast(result, `Appointment #${id}`);
+      toast.show("success", done.title, done.message);
+      setSelectedAppointment(null);
+      await adminDataChanged(queryClient);
+    } catch (error) {
+      toast.show("error", "Not cancelled", `${error instanceof Error && error.message ? error.message : "Please try again."} Appointment #${id} is unchanged.`);
+    }
+  };
+
   // The phone's agenda and month show only the bookings matching the search and the service
   const q = query.trim().toLowerCase();
   const narrow = (artists: ReturnType<typeof buildDayData>) =>
@@ -180,5 +194,6 @@ export function useSchedule() {
     openAppointment: setSelectedAppointment,
     closeAppointment: () => setSelectedAppointment(null),
     changeAppointmentStatus,
+    cancelAppointment,
   };
 }

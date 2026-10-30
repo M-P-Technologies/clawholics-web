@@ -3,9 +3,11 @@
 import { CalendarCheck, CalendarHeart, Stamp } from "lucide-react";
 import { Badge, Button, Card } from "@/components/atoms";
 import { StatCard, StepTracker, TabSection, Tabs } from "@/components/molecules";
+import NotificationsPanel from "@/components/features/client/profile/NotificationsPanel";
 import LoyaltyCard from "@/components/features/client/profile/LoyaltyCard";
 import { ProfilePanel } from "@/components/organisms";
 import ClientScreen from "@/components/features/client/shell/ClientScreen";
+import { RowsSkeleton } from "@/components/features/client/skeletons/skeletons";
 import { useMyProfile } from "@/hooks/client/useMyProfile";
 import { profileLinkClass } from "@/lib/client/profile";
 
@@ -55,12 +57,23 @@ export default function MyProfile() {
                   {p.trackerSteps ? (
                     <StepTracker label="Booking progress" steps={p.trackerSteps} />
                   ) : a.appointmentsLoading ? (
-                    <p role="status" className="text-sm text-gray-red">Loading your bookings…</p>
+                    <RowsSkeleton label="Loading your bookings" plain />
                   ) : (
                     <p className="text-sm text-gray-red">No bookings to track yet.</p>
                   )}
                 </TabSection>
               </>
+            ) : p.tab === "reminders" ? (
+              <NotificationsPanel
+                waiting={p.reminders.waiting}
+                loading={p.reminders.loadingWaiting}
+                failed={p.reminders.waitingFailed}
+                leaving={p.reminders.leaving}
+                onLeave={p.reminders.leave}
+                rebookEmails={p.reminders.rebookEmails}
+                savingRebook={p.reminders.savingRebook}
+                onRebookEmails={p.reminders.setRebookEmails}
+              />
             ) : (
               <TabSection title="Loyalty card" description={`A stamp for every visit. ${p.rewardsLine}`}>
                 <LoyaltyCard stamps={a.stamps} target={a.stampTarget} cardNumber={a.loyaltyCardNumber} clerkId={a.clerkUser?.id} onRedeem={a.handleClientRedeem} />

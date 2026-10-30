@@ -30,6 +30,12 @@ export interface Appointment {
   last_name?: string | null;
   email?: string | null;
   phone?: string | null;
+  /** How the client prefers to be reached, and the handles to do it by (a walk-in has none) */
+  alt_phone?: string | null;
+  preferred_contact_method?: string | null;
+  instagram_handle?: string | null;
+  facebook_handle?: string | null;
+  tiktok_handle?: string | null;
 
   payment_status?: string | null;
   payment_method?: string | null;
@@ -62,6 +68,8 @@ export interface AppointmentPageParams {
   toComplete?: boolean;
   /** Only completed visits whose nail photos are still to add */
   photosToAdd?: boolean;
+  /** Only bookings that were ever paid (not the unpaid holds that ran out) */
+  paidOnly?: boolean;
   /** Only this day, or this day and later (YYYY-MM-DD) */
   on?: string;
   from?: string;
@@ -92,6 +100,7 @@ export const fetchAppointmentPage = async (
   if (params.proofToReview) query.set("proof", "review");
   if (params.toComplete) query.set("complete", "due");
   if (params.photosToAdd) query.set("complete", "photos");
+  if (params.paidOnly) query.set("paid", "1");
   if (params.on) query.set("on", params.on);
   if (params.from) query.set("from", params.from);
   if (params.artist) query.set("artist", params.artist);
@@ -131,6 +140,28 @@ export const fetchAppointmentById = async (
   }
 
   return res.json();
+};
+
+/** Cancels a booking that's still to happen, refunding the downpayment when it's 72+ hours ahead (it
+ *  answers REFUNDED or CANCELLED) and emailing the client. The server applies the rule. */
+export const cancelAndRefundAppointment = async (
+  id: number,
+  token?: string | null,
+  clerkId?: string | null,
+  /** Inside 72 hours: refund the downpayment all the same (the salon's choice) */
+  refundAnyway = false,
+): Promise<{ message: string; status: "REFUNDED" | "CANCELLED"; refundByHand?: boolean; refundAmount?: number }> => {
+  const res = await fetch(`${API_BASE_URL}/booking/${id}/refund`, {
+    method: "POST",
+    headers: getHeaders(token, clerkId),
+    ...(refundAnyway ? { body: JSON.stringify({ refund_anyway: true }) } : {}),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    if (res.status === 403) window.location.href = "/";
+    throw new Error(typeof body.message === "string" && body.message ? body.message : "Failed to cancel the appointment");
+  }
+  return body;
 };
 
 export const updateAppointmentStatus = async (

@@ -2,17 +2,25 @@
 
 import clsx from "clsx";
 import { AlertDialog } from "@/components/organisms";
-import { Button, Card, LoadingBar } from "@/components/atoms";
+import { Button, Card } from "@/components/atoms";
 import { SectionHeader, SummaryRow, TimeSlotList } from "@/components/molecules";
 import DayCalendar from "@/components/molecules/DayCalendar";
 import { surface } from "@/components/tokens";
 import ClientScreen from "@/components/features/client/shell/ClientScreen";
+import { BookingStepSkeleton } from "@/components/features/client/skeletons/skeletons";
 import { useReschedule } from "@/hooks/client/useReschedule";
 
 export default function Reschedule() {
-  const { formatSlot, oldDateLabel, oldTimeLabel, newDateLabel, newTimeLabel, isLoaded, appointment, isSubmitting, month, setMonth, selectedDate, selectedTime, setSelectedTime, modalOpen, modalTitle, modalMessage, isDisabledDate, handleConfirmReschedule, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, uniqueTimeSlots, handleModalClose } = useReschedule();
+  const { monthsAhead, formatSlot, oldDateLabel, oldTimeLabel, newDateLabel, newTimeLabel, isLoaded, appointment, isSubmitting, month, setMonth, selectedDate, selectedTime, setSelectedTime, modalOpen, modalTitle, modalMessage, isDisabledDate, handleConfirmReschedule, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, uniqueTimeSlots, handleModalClose } = useReschedule();
 
-  if (!isLoaded || !appointment) return <LoadingBar label="Loading your appointment" />;
+  // Inside the same frame as the loaded step, so the top bar and its back button stay put
+  if (!isLoaded || !appointment) {
+    return (
+      <ClientScreen title="Reschedule" back="history">
+        <BookingStepSkeleton label="Loading your appointment" />
+      </ClientScreen>
+    );
+  }
 
   return (
     <ClientScreen title="Reschedule" back="history">
@@ -36,7 +44,7 @@ export default function Reschedule() {
               <div className="flex flex-col gap-3 @xl:flex-row">
                 <div className={clsx(surface.tint, "flex items-center justify-center p-3")}>
                   <DayCalendar
-                    monthsAhead={1}
+                    monthsAhead={monthsAhead}
                     month={month}
                     onMonthChange={setMonth}
                     selected={selectedDay}

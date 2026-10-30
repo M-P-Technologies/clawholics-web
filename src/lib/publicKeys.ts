@@ -15,6 +15,8 @@ export const publicKeys = {
   categories: [PUBLIC, "categories"],
   faqs: [PUBLIC, "faqs"],
   tacs: [PUBLIC, "tacs"],
+  paymentSettings: [PUBLIC, "paymentSettings"],
+  bookingSettings: [PUBLIC, "bookingSettings"],
   nailists: [PUBLIC, "nailists"],
   service: (id: number) => [PUBLIC, "services", id] as const,
   serviceGallery: (id: number) => [PUBLIC, "services", id, "gallery"] as const,

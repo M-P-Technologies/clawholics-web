@@ -8,6 +8,7 @@ import { surface } from "@/components/tokens";
 import AppointmentDetails from "@/components/features/client/appointments/AppointmentDetails";
 import AppointmentsTable from "@/components/features/client/appointments/AppointmentsTable";
 import ClientScreen from "@/components/features/client/shell/ClientScreen";
+import { RowsSkeleton } from "@/components/features/client/skeletons/skeletons";
 import { useMyAppointments } from "@/hooks/client/useMyAppointments";
 import { HISTORY_FILTERS, HISTORY_SORTS } from "@/lib/client/appointments";
 
@@ -36,7 +37,7 @@ export default function MyAppointments() {
               ))}
           </div>
           {a.appointmentsLoading ? (
-              <p role="status" className={clsx(surface.tint, "px-3 py-6 text-center text-[13px] text-gray-red")}>Loading your appointments…</p>
+              <RowsSkeleton label="Loading your appointments" />
             ) : views.length === 0 ? (
               <p className={clsx(surface.tint, "px-3 py-6 text-center text-[13px] text-gray-red")}>{emptyText}</p>
             ) : (

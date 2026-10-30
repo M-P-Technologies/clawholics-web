@@ -1,31 +1,35 @@
 import { useCallback, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { bookingQueries } from "@/lib/bookingQueries";
-import { isOverlapping, toLocalDateString } from "../utils/reschedule";
+import { addDays } from "@/lib/bookingWindow";
+import { manilaToday } from "@/lib/bookingNotice";
+import { isOverlapping } from "../utils/reschedule";
 
 const NONE: never[] = [];
 
-/** Today and a month ahead (YYYY-MM-DD), the days a booking can be made on */
-function bookableRange() {
-  const start = new Date();
-  const end = new Date();
-  end.setMonth(end.getMonth() + 1);
-  return { from: toLocalDateString(start), to: toLocalDateString(end) };
+/** What the admin's walk-in form shows: about a month ahead */
+const ADMIN_WINDOW_DAYS = 31;
+
+/** Today (Manila) and `days` ahead (YYYY-MM-DD): the days a booking can be made on */
+function bookableRange(days: number) {
+  const from = manilaToday();
+  return { from, to: addDays(from, days) };
 }
 
 /**
  * An artist's availability for the booking calendars (booking, reschedule, the admin's walk-in
- * form), from the shared booking queries: their hours, days off, the next month's fully booked
- * days (in one request) and the times taken on the chosen day. Without an artist, all are empty.
+ * form), from the shared booking queries: their hours, days off, the fully booked days within the
+ * window (in one request: `windowDays` from today, the booking window set in Admin > Settings; the
+ * walk-in form shows a month) and the times taken on the chosen day. Without an artist, all are empty.
  */
-export function useArtistAvailability(nailistId: number | null | undefined, selectedDate: string) {
+export function useArtistAvailability(nailistId: number | null | undefined, selectedDate: string, windowDays: number = ADMIN_WINDOW_DAYS) {
   const queryClient = useQueryClient();
   const id = nailistId ?? 0;
   const timeSlotsQuery = useQuery({ ...bookingQueries.timeSlots(id), enabled: !!nailistId });
   const timeSlots = timeSlotsQuery.data ?? NONE;
   const dayOffsQuery = useQuery({ ...bookingQueries.dayOffs(id), enabled: !!nailistId });
   const dayOffs = dayOffsQuery.data;
-  const { from, to } = bookableRange();
+  const { from, to } = bookableRange(windowDays);
   // Without it the calendar just marks no day as full: picking one still checks that day
   const booked = useQuery({ ...bookingQueries.bookedRange(id, from, to), enabled: !!nailistId && timeSlots.length > 0 }).data;
   const bookedDayQuery = useQuery({ ...bookingQueries.bookedDay(id, selectedDate), enabled: !!nailistId && !!selectedDate });

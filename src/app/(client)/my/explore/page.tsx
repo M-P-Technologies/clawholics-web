@@ -6,6 +6,7 @@ import { Dialog } from "@/components/organisms";
 import ServicePanel from "@/components/features/client/explore/ServicePanel";
 import ServicesTable from "@/components/features/client/explore/ServicesTable";
 import ClientScreen from "@/components/features/client/shell/ClientScreen";
+import { RowsSkeleton } from "@/components/features/client/skeletons/skeletons";
 import { useExplore } from "@/hooks/client/useExplore";
 
 export default function Explore() {
@@ -33,7 +34,7 @@ export default function Explore() {
         </div>
 
         {e.loading ? (
-          <p role="status" className="py-12 text-center text-gray-red">Loading services…</p>
+          <RowsSkeleton label="Loading services" rows={5} />
         ) : e.loadFailed ? (
           <EmptyState kind="error" title="We couldn't load the services." message="Please check your connection and try again.">
             <Button type="button" onClick={e.retry}>Try again</Button>

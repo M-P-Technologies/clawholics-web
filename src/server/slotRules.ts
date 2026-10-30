@@ -2,6 +2,8 @@ import "server-only";
 import { holdsSlot } from "./appointments";
 import { getSql } from "./db";
 import { manilaNow } from "./visitsToComplete";
+import { noticeText, startsTooSoon } from "../lib/bookingNotice";
+import { daysLabel, isBeyondWindow } from "../lib/bookingWindow";
 
 // The rules a booked date and time must meet, checked on the server for every booking, walk-in
 // and reschedule (the calendars apply the same ones, but a request can skip them): a real date,
@@ -34,7 +36,7 @@ const minutes = (clock: string) => {
 };
 
 /** Two "HH:MM-HH:MM" ranges share some time */
-function slotsOverlap(a: string, b: string) {
+export function slotsOverlap(a: string, b: string) {
   const [aStart, aEnd] = a.split("-").map((t) => minutes(t.trim()));
   const [bStart, bEnd] = b.split("-").map((t) => minutes(t.trim()));
   return aStart < bEnd && bStart < aEnd;
@@ -58,6 +60,8 @@ export async function checkSlot({
   time,
   allowPast = false,
   excludeAppointmentId = null,
+  minNoticeHours = 0,
+  maxAdvanceDays,
   now = new Date(),
 }: {
   nailistId: number;
@@ -67,6 +71,10 @@ export async function checkSlot({
   allowPast?: boolean;
   /** The appointment being moved, whose own time doesn't block it */
   excludeAppointmentId?: number | null;
+  /** A client's booking needs this many hours' notice (Admin > Settings); admins pass none */
+  minNoticeHours?: number;
+  /** A client can't book further ahead than this many days (Admin > Settings); admins pass none */
+  maxAdvanceDays?: number;
   now?: Date;
 }): Promise<SlotCheck> {
   if (!isValidDate(date)) return refuse(400, "INVALID_DATE", "Please choose a valid date.");
@@ -74,6 +82,12 @@ export async function checkSlot({
   if (!slot) return refuse(400, "INVALID_TIME", "Please choose a valid time.");
   if (!allowPast && hasStarted(date, slot, now)) {
     return refuse(400, "SLOT_PAST", "This time has already passed. Please choose another one.");
+  }
+  if (!allowPast && minNoticeHours > 0 && startsTooSoon(date, slot, minNoticeHours, now.getTime())) {
+    return refuse(400, "TOO_SOON", `Bookings need at least ${noticeText(minNoticeHours)}. Please choose a later time.`);
+  }
+  if (!allowPast && maxAdvanceDays !== undefined && isBeyondWindow(date, maxAdvanceDays, now.getTime())) {
+    return refuse(400, "TOO_FAR", `Bookings open up to ${daysLabel(maxAdvanceDays)} ahead. Please choose an earlier date.`);
   }
 
   const sql = getSql();

@@ -114,7 +114,7 @@ describe.skipIf(!TEST_DATABASE_URL)("ported public GETs (Postgres)", () => {
     const res = await get(await import("../../app/api/nailists/route"), "/api/nailists");
     const nailist = res.body[0];
     expect(Object.keys(nailist)).toEqual([
-      "id", "name", "category_id", "position", "specialty", "bio", "image", "service_ids", "offered_services",
+      "id", "name", "category_id", "position", "is_master", "hide_position", "specialty", "bio", "image", "service_ids", "offered_services",
     ]);
     expect(Array.isArray(nailist.service_ids)).toBe(true);
     expect(nailist.service_ids.length).toBe(nailist.offered_services.length);

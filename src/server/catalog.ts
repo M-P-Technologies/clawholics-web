@@ -123,7 +123,7 @@ export const getAllNailistGalleries = () => getSql()`
 const nailistsWithServices = (id: number | null) => {
   const sql = getSql();
   return sql`
-    select n.id, n.name, n.category_id, nc.name as position, n.specialty, n.bio, n.image,
+    select n.id, n.name, n.category_id, nc.name as position, nc.is_master, n.hide_position, n.specialty, n.bio, n.image,
       coalesce(json_agg(ns.service_id order by ns.service_id) filter (where ns.service_id is not null), '[]') as service_ids,
       coalesce(json_agg(s.name order by ns.service_id) filter (where s.id is not null), '[]') as offered_services
     from nailists n
@@ -131,7 +131,7 @@ const nailistsWithServices = (id: number | null) => {
     left join nailist_services ns on ns.nailist_id = n.id
     left join services s on s.id = ns.service_id
     ${id === null ? sql`` : sql`where n.id = ${id}`}
-    group by n.id, nc.name
+    group by n.id, nc.name, nc.is_master
     order by n.display_order asc, n.id asc
   `;
 };
@@ -162,7 +162,7 @@ export const getPublicReviews = () => getSql()`
 /** A nailist row without the service lists (what the Worker returns after a write). */
 export async function getNailistRow(id: number) {
   const [nailist] = await getSql()`
-    select n.id, n.name, n.category_id, nc.name as position, n.specialty, n.bio, n.image
+    select n.id, n.name, n.category_id, nc.name as position, nc.is_master, n.hide_position, n.specialty, n.bio, n.image
     from nailists n left join nailist_categories nc on n.category_id = nc.id where n.id = ${id}
   `;
   return nailist ?? null;

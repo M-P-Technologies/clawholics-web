@@ -27,6 +27,31 @@ describe("appointment details drawer", () => {
     expect(drawer.getByRole("button", { name: "Close" })).toHaveFocus();
   });
 
+  it("lets the admin tap the phone number, and shows how the client prefers to be reached", () => {
+    render(<AppointmentDetailsModal appointment={appt({ preferred_contact_method: "sms" })} onClose={vi.fn()} onStatusChange={vi.fn()} />);
+    const drawer = within(screen.getByRole("dialog", { name: "Cherie Estrera" }));
+    expect(drawer.getByRole("link", { name: "09755222061" })).toHaveAttribute("href", "tel:09755222061");
+    const prefers = drawer.getByRole("link", { name: /Text message/ });
+    expect(prefers).toHaveAttribute("href", "sms:09755222061");
+    expect(prefers).toHaveTextContent("09755222061");
+  });
+
+  it("opens the client's Instagram when that's how they prefer to be reached, in a new tab", () => {
+    render(<AppointmentDetailsModal appointment={appt({ preferred_contact_method: "instagram", instagram_handle: "cherie" })} onClose={vi.fn()} onStatusChange={vi.fn()} />);
+    const link = screen.getByRole("link", { name: /Instagram/ });
+    expect(link).toHaveAttribute("href", "https://www.instagram.com/cherie/");
+    expect(link).toHaveAttribute("target", "_blank");
+  });
+
+  it("says what's missing when they prefer a way they gave no details for, and has no row without a preference or for a walk-in", () => {
+    const { rerender } = render(<AppointmentDetailsModal appointment={appt({ preferred_contact_method: "messenger" })} onClose={vi.fn()} onStatusChange={vi.fn()} />);
+    expect(screen.getByText("Messenger · No Facebook name saved")).toBeInTheDocument();
+    rerender(<AppointmentDetailsModal appointment={appt({ preferred_contact_method: "" })} onClose={vi.fn()} onStatusChange={vi.fn()} />);
+    expect(screen.queryByText("Prefers")).toBeNull();
+    rerender(<AppointmentDetailsModal appointment={appt({ preferred_contact_method: "sms", is_walkin: 1 })} onClose={vi.fn()} onStatusChange={vi.fn()} />);
+    expect(screen.queryByText("Prefers")).toBeNull();
+  });
+
   it("changes the status", async () => {
     const onStatusChange = vi.fn();
     render(<AppointmentDetailsModal appointment={appt()} onClose={vi.fn()} onStatusChange={onStatusChange} />);

@@ -1,5 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
-import { fetchBookedSlotsDetailed, fetchBookedSlotsRange, fetchNailists } from "../services/bookingService";
+import { fetchAnyAvailability, fetchBookedSlotsDetailed, fetchBookedSlotsRange, fetchNailists } from "../services/bookingService";
 import { fetchNailistDayOffs, fetchNailistTimeSlots, type NailistDayOffs, type NailistTimeSlots } from "../services/nailistService";
 import type { Nailist } from "../utils/booking";
 
@@ -35,6 +35,13 @@ export const bookingQueries = {
     queryOptions({
       queryKey: [BOOKING, "booked", nailistId, "range", from, to],
       queryFn: () => fetchBookedSlotsRange(nailistId, from, to),
+      staleTime: BOOKED_STALE_MS,
+    }),
+  /** For "any available artist": the times at least one artist offering the service has free, by day, from `from` to `to` */
+  anyDays: (serviceId: number, from: string, to: string) =>
+    queryOptions({
+      queryKey: [BOOKING, "any", serviceId, from, to],
+      queryFn: () => fetchAnyAvailability(serviceId, from, to),
       staleTime: BOOKED_STALE_MS,
     }),
   /** The times taken on one day */

@@ -22,6 +22,7 @@ const STRICT: Record<string, Rule> = {
   // Sends the salon an email
   "POST /api/submit": { limit: 5, windowMs: 10 * MINUTE },
   "POST /api/booking/create": { limit: 10, windowMs: 10 * MINUTE },
+  "POST /api/waitlist": { limit: 20, windowMs: 10 * MINUTE },
   // Creates a Xendit invoice
   "POST /api/payment/create": { limit: 10, windowMs: 10 * MINUTE },
   "POST /api/payment/proofs": { limit: 10, windowMs: 10 * MINUTE },

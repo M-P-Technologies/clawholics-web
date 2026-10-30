@@ -22,13 +22,17 @@ interface ScheduleAgendaProps {
 
 const sameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
 
-// The phone's schedule: a week strip and the selected day's appointments in time order
+// The phone's schedule: a week strip and the selected day's appointments, grouped by artist
 export default function ScheduleAgenda({ selected, onSelect, dayData, onOpenAppointment }: ScheduleAgendaProps) {
   const days = weekDays(selected);
   const today = new Date();
 
   const artists = dayData(selected);
-  const appointments = sortByStartTime(artists.flatMap((artist) => artist.appointments));
+  const appointments = artists.flatMap((artist) => artist.appointments);
+  // The artists with bookings, each with theirs in time order
+  const booked = artists
+    .map((artist) => ({ ...artist, appointments: sortByStartTime(artist.appointments) }))
+    .filter((artist) => artist.appointments.length > 0);
   const artistOff = artists.filter((artist) => artist.isDayOff);
 
   const weekday = selected.toLocaleDateString("en-US", { weekday: "long" });
@@ -105,38 +109,46 @@ export default function ScheduleAgenda({ selected, onSelect, dayData, onOpenAppo
       {appointments.length === 0 ? (
         <p className="rounded-2xl bg-crimson-light/15 px-3 py-6 text-center text-sm text-gray-red">No appointments on this day.</p>
       ) : (
-        // A timeline: the start (and end) time on the left, a line with a dot per booking, then its card
-        <ol className="relative flex flex-col gap-3 before:absolute before:bottom-3 before:left-19.5 before:top-3 before:w-px before:bg-crimson-light">
-          {appointments.map((appointment) => {
-            const times = agendaTimes(appointment.appointment_time);
-            return (
-              <li key={appointment.id} className="relative grid grid-cols-[4.5rem_1fr] items-start gap-6">
-                <span className="pt-3 text-right leading-tight">
-                  <span className="block text-sm font-bold text-berry">{times?.start ?? "No time"}</span>
-                  {times?.end && <span className="block text-xs text-gray-red">{times.end}</span>}
+        // Grouped by artist, each with their bookings in time order
+        <div className="flex flex-col gap-5">
+          {booked.map((artist) => (
+            <section key={artist.id} aria-label={artist.name} className="flex flex-col gap-3">
+              <h5 className="flex items-center justify-between gap-3 text-base font-bold text-gray-red">
+                <span className="truncate">{artist.name}</span>
+                <span className="shrink-0 text-xs font-medium text-gray-red">
+                  {artist.appointments.length} {artist.appointments.length === 1 ? "booking" : "bookings"}
                 </span>
-                <span aria-hidden="true" className="absolute left-18.5 top-4 h-2.5 w-2.5 rounded-full border-2 border-milk bg-crimson shadow-petal" />
-                <Button
-                  variant="bare"
-                  type="button"
-                  onClick={() => onOpenAppointment(appointment)}
-                  className="flex min-w-0 flex-col items-stretch gap-1 rounded-2xl border border-l-4 border-crimson-light/40 border-l-crimson bg-milk px-3 py-3 text-left shadow-petal transition-colors hover:bg-crimson-light/15"
-                >
-                  <span className="truncate text-[15px] font-bold leading-tight text-gray-red">{scheduleClientName(appointment)}</span>
-                  <span className="flex min-w-0 items-center gap-1.5 text-[13px] text-gray-red">
-                    <Sparkles size={13} aria-hidden="true" className="shrink-0 text-crimson" />
-                    <span className="truncate">{appointment.service_name || "No service"}</span>
-                  </span>
-                  {appointment.nailist_name && (
-                    <span className="mt-1 w-fit max-w-full truncate rounded-full bg-crimson-light/40 px-2.5 py-0.5 text-xs font-bold text-berry">
-                      {appointment.nailist_name}
-                    </span>
-                  )}
-                </Button>
-              </li>
-            );
-          })}
-        </ol>
+              </h5>
+              {/* A timeline: the start (and end) time on the left, a line with a dot per booking, then its card */}
+              <ol className="relative flex flex-col gap-3 before:absolute before:bottom-3 before:left-19.5 before:top-3 before:w-px before:bg-crimson-light">
+                {artist.appointments.map((appointment) => {
+                  const times = agendaTimes(appointment.appointment_time);
+                  return (
+                    <li key={appointment.id} className="relative grid grid-cols-[4.5rem_1fr] items-start gap-6">
+                      <span className="pt-3 text-right leading-tight">
+                        <span className="block text-sm font-bold text-berry">{times?.start ?? "No time"}</span>
+                        {times?.end && <span className="block text-xs text-gray-red">{times.end}</span>}
+                      </span>
+                      <span aria-hidden="true" className="absolute left-18.5 top-4 h-2.5 w-2.5 rounded-full border-2 border-milk bg-crimson shadow-petal" />
+                      <Button
+                        variant="bare"
+                        type="button"
+                        onClick={() => onOpenAppointment(appointment)}
+                        className="flex min-w-0 flex-col items-stretch gap-1 rounded-2xl border border-l-4 border-crimson-light/40 border-l-crimson bg-milk px-3 py-3 text-left shadow-petal transition-colors hover:bg-crimson-light/15"
+                      >
+                        <span className="truncate text-[15px] font-bold leading-tight text-gray-red">{scheduleClientName(appointment)}</span>
+                        <span className="flex min-w-0 items-center gap-1.5 text-[13px] text-gray-red">
+                          <Sparkles size={13} aria-hidden="true" className="shrink-0 text-crimson" />
+                          <span className="truncate">{appointment.service_name || "No service"}</span>
+                        </span>
+                      </Button>
+                    </li>
+                  );
+                })}
+              </ol>
+            </section>
+          ))}
+        </div>
       )}
     </div>
   );

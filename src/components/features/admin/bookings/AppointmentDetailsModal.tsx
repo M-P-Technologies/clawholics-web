@@ -1,6 +1,6 @@
 import { timeRangeLabel } from "@/lib/timeFormat";
 import { ArrowUpRight, X as CloseIconLucide } from "lucide-react";
-import { useId, type ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
 import type { Appointment, AppointmentStatus } from "@/services/appointmentService";
 import { Link } from "@/lib/router";
 import { Avatar, Button, Select } from "@/components/atoms";
@@ -9,11 +9,16 @@ import { SummaryRow } from "@/components/molecules";
 import ClientNotesPanel from "@/components/features/admin/clients/ClientNotesPanel";
 import ProofReviewPanel from "@/components/features/admin/bookings/ProofReviewPanel";
 import CompleteVisitForm from "@/components/features/admin/bookings/CompleteVisitForm";
+import CancelBookingDialog from "@/components/features/admin/bookings/CancelBookingDialog";
+import { canCancelBooking, manualStatusChoices } from "@/lib/admin/cancelBooking";
+import { preferredContact, telHref } from "@/lib/admin/contactMethod";
 
 interface AppointmentDetailsModalProps {
   appointment: Appointment;
   onClose: () => void;
   onStatusChange: (id: number, status: AppointmentStatus) => void;
+  /** Cancels the booking and refunds by the terms (the server's cancel route). Without it there's no Cancel appointment button. */
+  onCancelBooking?: (id: number, refundAnyway?: boolean) => Promise<void>;
   // Needed for the proof review and notes panels. Without it they are left out.
   tokenFetcher?: () => Promise<string | null>;
   clerkId?: string | null;
@@ -23,8 +28,9 @@ interface AppointmentDetailsModalProps {
 }
 
 const statusOptions: AppointmentStatus[] = ["PENDING", "AWAITING_PROOF", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUNDED", "NO_SHOW"];
-// Completed is set by completing the visit (its form), so it's only listed while it's the status
-const statusChoices = (current: AppointmentStatus) => statusOptions.filter((s) => s !== "COMPLETED" || current === "COMPLETED");
+// Only what makes sense to set by hand (see manualStatusChoices): Completed is the Complete visit
+// form's, and cancelling with its refund is the Cancel appointment button's
+const statusChoices = (current: AppointmentStatus) => manualStatusChoices(current, statusOptions);
 
 const STATUS_PILL: Record<string, string> = {
   CONFIRMED: "bg-crimson-light/50 text-berry",
@@ -35,6 +41,9 @@ const STATUS_PILL: Record<string, string> = {
   REFUNDED: "bg-danger/15 text-gray-red",
   NO_SHOW: "bg-danger/15 text-gray-red",
 };
+
+// A phone number or handle an admin can tap
+const contactLinkClass = "font-bold text-berry underline underline-offset-4";
 
 const label = (status: string) => status.charAt(0) + status.slice(1).toLowerCase().replace(/_/g, " ");
 
@@ -48,13 +57,16 @@ const dateLabel = (ymd?: string) => {
 // One appointment's details, in a modal on a computer and a bottom sheet below `lg` (as in the
 // client app): the client, the appointment (with its status), the
 // payment, the proof review and the private notes. The Dialog handles focus, Escape and a click outside.
-const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFetcher, clerkId, onProofReviewed, artists }: AppointmentDetailsModalProps) => {
+const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, onCancelBooking, tokenFetcher, clerkId, onProofReviewed, artists }: AppointmentDetailsModalProps) => {
   const titleId = useId();
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelBusy, setCancelBusy] = useState(false);
   const customerName = `${appointment.first_name ?? ""} ${appointment.last_name ?? ""}`.trim() || `User #${appointment.user_id}`;
   const currentStatus = (appointment.status?.trim().toUpperCase() || "PENDING") as AppointmentStatus;
   const showProofPanel = currentStatus === "AWAITING_PROOF" || Boolean(appointment.latest_proof);
   // Walk-in bookings have no real client account, so there is nobody to keep notes on.
   const isWalkin = Boolean(appointment.is_walkin);
+  const preferred = preferredContact(appointment);
 
   return (
     <Dialog
@@ -93,7 +105,26 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
           <Section title="Client" aside={`Client #${appointment.user_id}`}>
             <SummaryRow label="Name" value={customerName} />
             <SummaryRow label="Email" value={appointment.email || "No email"} />
-            <SummaryRow label="Phone" value={appointment.phone || "No phone"} />
+            <SummaryRow
+              label="Phone"
+              value={appointment.phone ? <a href={telHref(appointment.phone)} className={contactLinkClass}>{appointment.phone}</a> : "No phone"}
+            />
+            {/* How they like to be reached, as the action to do it (not for a walk-in, who has no profile) */}
+            {!isWalkin && preferred && (
+              <SummaryRow
+                label="Prefers"
+                value={
+                  preferred.href ? (
+                    <a href={preferred.href} {...(/^https?:/i.test(preferred.href) ? { target: "_blank", rel: "noopener noreferrer" } : {})} className={contactLinkClass}>
+                      {preferred.label}
+                      <span className="font-normal"> · {preferred.detail}</span>
+                    </a>
+                  ) : (
+                    `${preferred.label} · ${preferred.detail}`
+                  )
+                }
+              />
+            )}
           </Section>
 
           <Section title="Appointment">
@@ -119,6 +150,15 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
               </Select>
               </dd>
             </div>
+            {/* Cancels it for real: the client is emailed and the downpayment refunded by the terms
+                (the Status menu only changes the label) */}
+            {onCancelBooking && canCancelBooking(currentStatus) && (
+              <div className="flex justify-end border-t border-dotted border-crimson-light pt-3">
+                <Button type="button" size="sm" variant="secondary" onClick={() => setCancelling(true)}>
+                  Cancel appointment
+                </Button>
+              </div>
+            )}
           </Section>
 
           <Section title="Payment">
@@ -168,6 +208,25 @@ const AppointmentDetailsModal = ({ appointment, onClose, onStatusChange, tokenFe
             <ClientNotesPanel clientUserId={appointment.user_id} tokenFetcher={tokenFetcher} clerkId={clerkId} />
           )}
         </div>
+      {/* After the sheet's content, so it stacks above it */}
+      {onCancelBooking && (
+        <CancelBookingDialog
+          open={cancelling}
+          booking={appointment}
+          clientName={customerName}
+          loading={cancelBusy}
+          onClose={() => setCancelling(false)}
+          onConfirm={async (refundAnyway) => {
+            setCancelBusy(true);
+            try {
+              await onCancelBooking(appointment.id, refundAnyway);
+            } finally {
+              setCancelBusy(false);
+              setCancelling(false);
+            }
+          }}
+        />
+      )}
     </Dialog>
   );
 };

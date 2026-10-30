@@ -2,6 +2,7 @@ import "server-only";
 import { getAppointment, type AppointmentRow } from "./appointments";
 import { WALKIN_EMAIL } from "@/lib/admin/walkin";
 import { withSalonLocation } from "@/lib/homeSections";
+import { googleCalendarUrl, icsContent, icsFilename, type CalendarEvent } from "@/lib/calendarEvent";
 import { publicReads } from "./publicCache";
 
 // Resend emails, first ported from worker-api/src/index.ts. Every value is HTML-escaped: names
@@ -25,7 +26,10 @@ const adminEmail = () => process.env.ADMIN_EMAIL || "appointments@clawholicsbyma
 // hurts the domain's sending reputation
 const hasInbox = (to: string) => Boolean(to.trim()) && to.trim().toLowerCase() !== WALKIN_EMAIL;
 
-async function sendEmail(to: string, subject: string, html: string) {
+/** A file sent with an email (Resend's single-send endpoint takes them; its batch endpoint doesn't) */
+type Attachment = { filename: string; content: string; content_type: string };
+
+async function sendEmail(to: string, subject: string, html: string, attachments?: Attachment[]) {
   const key = process.env.RESEND_API_KEY;
   if (!key) {
     console.error("SKIP EMAIL - RESEND_API_KEY missing");
@@ -35,13 +39,25 @@ async function sendEmail(to: string, subject: string, html: string) {
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: FROM, to, subject, html }),
+    body: JSON.stringify({ from: FROM, to, subject, html, ...(attachments?.length ? { attachments } : {}) }),
   });
   const data = (await res.json().catch(() => ({}))) as { id?: string; message?: string };
   if (!res.ok) {
     console.error(`Resend API error for ${to}:`, JSON.stringify(data));
     throw new Error(data.message || "Failed to send email via Resend");
   }
+}
+
+/**
+ * The calendar side of an email about a visit: the .ics file to attach (Apple Calendar, Outlook)
+ * and the Google Calendar link. Both are left out when the visit's date or time can't be read.
+ */
+function calendarFor(event: CalendarEvent, cancelled = false) {
+  const ics = icsContent(event, Date.now(), cancelled);
+  return {
+    url: googleCalendarUrl(event),
+    attachments: ics ? [{ filename: icsFilename(event), content: Buffer.from(ics).toString("base64"), content_type: "text/calendar" }] : undefined,
+  };
 }
 
 /** Sends the client's and the salon's copies independently: one failing doesn't hide the other's error. */
@@ -54,7 +70,7 @@ async function sendAll(sends: (Promise<unknown> | null)[]) {
  * Up to 100 emails in one Resend call (its batch endpoint). Throws if Resend refuses the batch or
  * there is no key, so the caller can keep them for another try.
  */
-async function sendEmailBatch(emails: { to: string; subject: string; html: string }[]) {
+async function sendEmailBatch(emails: { to: string; subject: string; html: string; headers?: Record<string, string> }[]) {
   const key = process.env.RESEND_API_KEY;
   if (!key) throw new Error("RESEND_API_KEY missing");
   const res = await fetch("https://api.resend.com/emails/batch", {
@@ -225,6 +241,18 @@ const VISIT_REMINDERS = `
     </td></tr>
   </table>`;
 
+// The day-before reminder's version: the visit is tomorrow, so changing it in the account (72 hours
+// ahead) is no longer possible and it points to the salon instead
+const DAY_BEFORE_REMINDERS = `
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 28px; border-left: 4px solid ${BRAND.pinkLight};">
+    <tr><td style="padding: 2px 0 2px 16px; font-size: 14px; line-height: 1.6;">
+      <p style="margin: 0 0 6px 0; font-family: ${DISPLAY_FONT}; font-size: 17px; color: ${BRAND.onPink};">Before your visit</p>
+      <p style="margin: 0 0 6px 0;">⏰ Please arrive on time. Arriving 15 minutes late adds a ₱100 fee, and 20 minutes ₱150. From 25 minutes late the visit may be cancelled, and the downpayment is kept.</p>
+      <p style="margin: 0 0 6px 0;">📅 Plans changed? Changes close 72 hours before a visit, so please <a href="${SITE}/contact" style="${LINK}">contact us</a> as soon as you can.</p>
+      <p style="margin: 0;">💅 The rest of the price is paid at the salon after your visit.</p>
+    </td></tr>
+  </table>`;
+
 interface ClientEmail {
   /** The small label over the greeting, e.g. "Appointment confirmed"; also the document's title */
   title: string;
@@ -235,11 +263,19 @@ interface ClientEmail {
   preview: string;
   details: { heading: string; rows: ([string, unknown, boolean?] | null)[] };
   cta?: { label: string; href: string };
+  /** A Google Calendar link for the visit, shown under the button */
+  calendarUrl?: string | null;
+  /** The .ics file is attached too (for Apple Calendar and Outlook) */
+  calendarAttached?: boolean;
   reminders?: boolean;
+  /** The day-before reminder's "Before your visit" box, instead of the confirmation's */
+  dayBefore?: boolean;
+  /** A promotional email: the link that turns these emails off, in the footer */
+  unsubscribeUrl?: string;
   location: SalonLocation;
 }
 
-function clientEmailHtml({ title, name, message, preview, details, cta, reminders = false, location }: ClientEmail) {
+function clientEmailHtml({ title, name, message, preview, details, cta, calendarUrl, calendarAttached = false, reminders = false, dayBefore = false, unsubscribeUrl, location }: ClientEmail) {
   const address = escapeHtml(location.text);
   const body = `
     ${eyebrow(title)}
@@ -247,12 +283,14 @@ function clientEmailHtml({ title, name, message, preview, details, cta, reminder
     <p style="margin: 0; font-size: 16px; line-height: 1.6;">${message}</p>
     ${detailsBox(details.heading, details.rows)}
     ${cta ? button(cta.label, cta.href) : ""}
-    ${reminders ? VISIT_REMINDERS : ""}
+    ${calendarUrl ? `<p style="margin: 14px 0 0 0; text-align: center; font-size: 14px; line-height: 1.6;">📅 <a href="${escapeHtml(calendarUrl)}" style="${LINK}">Add to Google Calendar</a>${calendarAttached ? ", or open the attached calendar file (.ics) for Apple Calendar or Outlook." : ""}</p>` : ""}
+    ${dayBefore ? DAY_BEFORE_REMINDERS : reminders ? VISIT_REMINDERS : ""}
     <p style="margin: 32px 0 0 0; font-size: 15px; line-height: 1.6;">See you soon,<br><span style="font-family: ${DISPLAY_FONT}; font-size: 18px; color: ${BRAND.ink};">Clawholics by Max</span> 💖</p>`;
   const footer = `
     <p style="margin: 0 0 6px 0;">📍 ${location.url ? `<a href="${escapeHtml(location.url)}" style="${LINK}">${address}</a>` : address}</p>
     <p style="margin: 0 0 6px 0;">Questions? Reply to this email or <a href="${SITE}/contact" style="${LINK}">contact us</a>.</p>
-    <p style="margin: 0;"><a href="${SITE}/terms" style="${LINK}">Terms</a> &nbsp;·&nbsp; <a href="${SITE}/faq" style="${LINK}">FAQs</a> &nbsp;·&nbsp; <a href="${SITE}" style="${LINK}">clawholicsbymax.com</a></p>`;
+    <p style="margin: 0 0 6px 0;"><a href="${SITE}/terms" style="${LINK}">Terms</a> &nbsp;·&nbsp; <a href="${SITE}/faq" style="${LINK}">FAQs</a> &nbsp;·&nbsp; <a href="${SITE}" style="${LINK}">clawholicsbymax.com</a></p>
+    ${unsubscribeUrl ? `<p style="margin: 0;">Don't want reminders to rebook? <a href="${escapeHtml(unsubscribeUrl)}" style="${LINK}">Unsubscribe</a>. You'll still get emails about your bookings.</p>` : ""}`;
   return emailDocument({ preview, title, body, footer });
 }
 
@@ -276,6 +314,12 @@ const MANAGE = { label: "Manage your appointment", href: `${SITE}/my/appointment
 export async function sendConfirmationEmail(appt: AppointmentRow, { walkIn = false } = {}) {
   const paid = !walkIn && String(appt.payment_status ?? "").toUpperCase() === "PAID" && Number(appt.payment_amount) > 0;
   const when = `${longDate(appt.appointment_date)}, ${timeRange(appt.appointment_time)}`;
+  const location = await salonLocation();
+  // A walk-in may have no account to manage it from
+  const calendar = calendarFor({
+    id: appt.id, service: appt.service_name, artist: appt.nailist_name, date: appt.appointment_date, time: appt.appointment_time,
+    location: location.text, manageUrl: walkIn ? undefined : MANAGE.href,
+  });
 
   await sendEmail(
     appt.email,
@@ -300,9 +344,12 @@ export async function sendConfirmationEmail(appt: AppointmentRow, { walkIn = fal
       },
       // A walk-in may have no account to manage it from, and may be recorded once it has started
       cta: walkIn ? undefined : MANAGE,
+      calendarUrl: calendar.url,
+      calendarAttached: Boolean(calendar.attachments),
       reminders: !walkIn,
-      location: await salonLocation(),
+      location,
     }),
+    calendar.attachments,
   );
 }
 
@@ -318,7 +365,9 @@ export async function sendAppointmentConfirmation(appointmentId: number) {
  */
 export async function sendCancellationEmails(data: {
   email: string; name: string; service: string; date: string; time: string; artist: string; status: string;
-  appointmentId: number; isLateCancellation?: boolean; manualRefundAmount?: number; byClient: boolean;
+  appointmentId: number; isLateCancellation?: boolean; manualRefundAmount?: number;
+  /** Why the refund is by hand: paid by payment proof, or Xendit couldn't refund it (QR Ph can't be) */
+  manualRefundReason?: "proof" | "gateway"; byClient: boolean;
 }) {
   if (!process.env.RESEND_API_KEY) return;
 
@@ -338,6 +387,8 @@ export async function sendCancellationEmails(data: {
     ["Booking no.", `#${data.appointmentId}`],
   ];
   const manualRefund = data.manualRefundAmount !== undefined;
+  // The cancellation of the event the confirmation put in their calendar, so it's removed there
+  const { attachments } = calendarFor({ id: data.appointmentId, service: data.service, artist: data.artist, date: data.date, time: data.time }, true);
 
   await sendAll([
     sendEmail(
@@ -352,6 +403,7 @@ export async function sendCancellationEmails(data: {
         cta: { label: "Book a new visit", href: `${SITE}/my/book` },
         location: await salonLocation(),
       }),
+      attachments,
     ),
     data.byClient || manualRefund
       ? sendEmail(
@@ -365,7 +417,11 @@ export async function sendCancellationEmails(data: {
               ...rows,
               ["Downpayment", data.isLateCancellation ? "Kept (late cancellation)" : manualRefund ? "To refund by hand" : refunded ? "Refunded" : "None paid"],
             ],
-            manualRefund ? `Manual refund needed: ${escapeHtml(peso(data.manualRefundAmount))} (paid by payment proof).` : "",
+            manualRefund
+              ? data.manualRefundReason === "gateway"
+                ? `Manual refund needed: ${escapeHtml(peso(data.manualRefundAmount))}. Xendit couldn't refund it automatically (QR Ph payments usually can't be refunded that way), so please send it back to the client yourself. Check the Xendit dashboard first, in case it did go through.`
+                : `Manual refund needed: ${escapeHtml(peso(data.manualRefundAmount))} (paid by payment proof).`
+              : "",
           ),
         )
       : null,
@@ -381,6 +437,12 @@ export async function sendRescheduleEmails(data: {
 
   const newWhen = `${longDate(data.newDate)}, ${timeRange(data.newTime)}`;
   const oldWhen = `${longDate(data.oldDate)}, ${timeRange(data.oldTime)}`;
+  const location = await salonLocation();
+  // The same event id as the booking's confirmation, so a calendar that has it moves it
+  const calendar = calendarFor({
+    id: data.appointmentId, service: data.service, artist: data.artist, date: data.newDate, time: data.newTime,
+    location: location.text, manageUrl: MANAGE.href,
+  });
 
   await sendAll([
     sendEmail(
@@ -403,9 +465,12 @@ export async function sendRescheduleEmails(data: {
           ],
         },
         cta: MANAGE,
+        calendarUrl: calendar.url,
+        calendarAttached: Boolean(calendar.attachments),
         reminders: true,
-        location: await salonLocation(),
+        location,
       }),
+      calendar.attachments,
     ),
     data.byClient
       ? sendEmail(
@@ -441,6 +506,118 @@ export async function sendLoyaltyRewardEmail(clientEmail: string, clientName: st
       cta: { label: "Book your next visit", href: `${SITE}/my/book` },
       location: await salonLocation(),
     }),
+  );
+}
+
+/**
+ * The day-before reminders, one email per booking, in Resend batches. Throws if Resend refuses the
+ * batch, so the caller can put the bookings back for another try.
+ */
+export async function sendAppointmentReminderEmails(
+  bookings: { id: number; email: string; first_name: string; service_name: string; nailist_name: string; appointment_date: string; appointment_time: string }[],
+) {
+  const location = await salonLocation();
+  await sendEmailBatch(
+    bookings.map((b) => ({
+      to: b.email,
+      subject: "Reminder: your appointment is tomorrow | Clawholics by Max",
+      html: clientEmailHtml({
+        title: "See you tomorrow",
+        name: b.first_name || "there",
+        message: `A friendly reminder that your appointment with <strong style="color: ${BRAND.ink};">${escapeHtml(b.nailist_name)}</strong> is <strong style="color: ${BRAND.ink};">tomorrow</strong>. We can't wait to see you!`,
+        preview: `${b.service_name} tomorrow, ${timeRange(b.appointment_time)}`,
+        details: {
+          heading: "Your appointment",
+          rows: [
+            ["Service", b.service_name],
+            ["Artist", b.nailist_name],
+            ["Date", longDate(b.appointment_date), true],
+            ["Time", timeRange(b.appointment_time), true],
+            ["Booking no.", `#${b.id}`],
+          ],
+        },
+        cta: MANAGE,
+        // Resend's batch endpoint takes no attachments, so the reminder links to Google Calendar only
+        calendarUrl: googleCalendarUrl({
+          id: b.id, service: b.service_name, artist: b.nailist_name, date: b.appointment_date, time: b.appointment_time,
+          location: location.text, manageUrl: MANAGE.href,
+        }),
+        dayBefore: true,
+        location,
+      }),
+    })),
+  );
+}
+
+/**
+ * The rebooking emails, one per client, in Resend batches: some days after a completed visit, asking
+ * if they're ready for their next set. A promotional email, so each carries an unsubscribe link (in
+ * the footer and as the List-Unsubscribe header mail apps show). Throws if Resend refuses the batch
+ * or a client has no unsubscribe link, so the caller can put the visits back for another try.
+ */
+export async function sendRebookNudgeEmails(
+  visits: {
+    user_id: number; email: string; first_name: string; service_id: number; service_name: string; nailist_name: string;
+    appointment_date: string; daysSince: number; unsubscribeUrl: string | null;
+  }[],
+) {
+  if (visits.some((v) => !v.unsubscribeUrl)) throw new Error("No unsubscribe link: refusing to send a promotional email without one");
+  const location = await salonLocation();
+  await sendEmailBatch(
+    visits.map((v) => ({
+      to: v.email,
+      subject: "Ready for your next set? | Clawholics by Max",
+      headers: { "List-Unsubscribe": `<${v.unsubscribeUrl}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
+      html: clientEmailHtml({
+        title: "Time for your next set?",
+        name: v.first_name || "there",
+        message: `It's been ${v.daysSince} days since your <strong style="color: ${BRAND.ink};">${escapeHtml(v.service_name)}</strong> with ${escapeHtml(v.nailist_name)}. Ready for your next set? Pick a day that suits you, and we'll have your chair ready.`,
+        preview: `It's been ${v.daysSince} days since your ${v.service_name}: ready for your next set?`,
+        details: {
+          heading: "Your last visit",
+          rows: [
+            ["Service", v.service_name],
+            ["Artist", v.nailist_name],
+            ["Date", longDate(v.appointment_date)],
+          ],
+        },
+        cta: { label: "Book your next visit", href: `${SITE}/services/${v.service_id}` },
+        unsubscribeUrl: v.unsubscribeUrl ?? undefined,
+        location,
+      }),
+    })),
+  );
+}
+
+/**
+ * The waitlist emails, one per client, in Resend batches: a time opened up on a day they asked to be
+ * told about. Throws if Resend refuses the batch, so the caller can keep the entries for another try.
+ */
+export async function sendWaitlistOpenedEmails(
+  entries: { email: string; first_name: string | null; service_id: number; service_name: string; nailist_name: string | null; date: string }[],
+) {
+  const location = await salonLocation();
+  await sendEmailBatch(
+    entries.map((e) => ({
+      to: e.email,
+      subject: "A time opened up | Clawholics by Max",
+      html: clientEmailHtml({
+        title: "A time opened up",
+        name: e.first_name || "there",
+        message: `You asked us to tell you if a time opened up on <strong style="color: ${BRAND.ink};">${escapeHtml(longDate(e.date))}</strong>. One just did for your <strong style="color: ${BRAND.ink};">${escapeHtml(e.service_name)}</strong>${e.nailist_name ? ` with ${escapeHtml(e.nailist_name)}` : ""}. Times go quickly, so book it soon.`,
+        preview: `A time opened up on ${longDate(e.date)} for ${e.service_name}`,
+        details: {
+          heading: "The day you were waiting for",
+          rows: [
+            ["Service", e.service_name],
+            ["Artist", e.nailist_name || "Any available artist"],
+            ["Date", longDate(e.date), true],
+          ],
+        },
+        cta: { label: "Book it now", href: `${SITE}/services/${e.service_id}` },
+        location,
+      }),
+    })),
   );
 }
 

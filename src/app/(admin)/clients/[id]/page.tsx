@@ -1,7 +1,8 @@
 "use client";
 
-import { ArrowLeft, CalendarCheck, Stamp, Wallet } from "lucide-react";
+import { CalendarCheck, Stamp, Wallet } from "lucide-react";
 import AdminShell from "@/components/features/admin/shell/AdminShell";
+import ClientBackButton from "@/components/features/admin/clients/ClientBackButton";
 import BookingTracker from "@/components/features/admin/clients/BookingTracker";
 import ClientAppointments from "@/components/features/admin/clients/ClientAppointments";
 import NoteItem from "@/components/features/admin/clients/NoteItem";
@@ -12,7 +13,6 @@ import { ClientPageSkeleton } from "@/components/features/admin/skeletons/skelet
 import { useClientPage } from "@/hooks/admin/useClientPage";
 import { noteFieldClass } from "@/lib/admin/clientPage";
 import { peso } from "@/lib/dashboardFormat";
-import { Link } from "@/lib/router";
 
 // One client's page (admin only): who they are on the left, and on the right three tabs: an
 // overview (counts and where their booking is), the notes and next steps, and every appointment
@@ -21,45 +21,25 @@ export default function ClientPage() {
   const page = useClientPage();
   const { details, notes, tab } = page;
 
-  const back = (
-    <Link to="/clients" className="flex items-center gap-1.5 text-sm font-bold text-berry underline decoration-crimson-light underline-offset-4">
-      <ArrowLeft size={16} aria-hidden="true" />
-      Back to clients
-    </Link>
-  );
-
+  // The loading, error and loaded states share one top bar: the round back button, no visible title
   if (page.notFound || page.failed) {
     return (
-      <AdminShell title="Client">
+      <AdminShell title="Client" hideTitle leading={<ClientBackButton />}>
         <EmptyState
           kind="error"
           title={page.notFound ? "We couldn't find this client" : "We couldn't load this client"}
           message={page.notFound ? "They may have been removed, or this is a walk-in booked without an account." : "Please check your connection and try again."}
-        >
-          {back}
-        </EmptyState>
+        />
       </AdminShell>
     );
   }
 
   if (!details) return <ClientPageSkeleton />;
 
-  // A round icon before the title, like the settings and bell buttons (the client's name is in their profile panel)
-  const backButton = (
-    <Link
-      to="/clients"
-      aria-label="Back to clients"
-      title="Back to clients"
-      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-crimson-light text-berry transition-colors hover:bg-crimson-light/30 focus-visible:outline-2 focus-visible:outline-crimson"
-    >
-      <ArrowLeft size={17} aria-hidden="true" />
-    </Link>
-  );
-
   const { summary, appointments } = details;
 
   return (
-    <AdminShell title="Client" hideTitle leading={backButton}>
+    <AdminShell title="Client" hideTitle leading={<ClientBackButton />}>
       {/* Below lg the panels stack and the page scrolls. From lg the page doesn't: the two panels, as in
           the client's My profile (the profile 1/3, the tabs 2/3), fill the space under the top bar and
           scroll inside (the tab bar stays put), so there is one scrollbar per panel and none for the page */}
@@ -101,7 +81,7 @@ export default function ClientPage() {
                     </div>
                   </TabSection>
                   <TabSection title="Booking tracker" description="Where a booking is, from booking to the finished visit. It follows their current booking; pick another to see it.">
-                    <BookingTracker appointments={appointments} today={page.today} artists={page.artists} onNoShow={page.markNoShow} onCancelLate={page.cancelLate} clientName={page.name} />
+                    <BookingTracker appointments={appointments} today={page.today} artists={page.artists} onNoShow={page.markNoShow} onCancelLate={page.cancelLate} onCancelBooking={page.cancelBooking} clientName={page.name} />
                   </TabSection>
                 </>
               )}

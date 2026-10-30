@@ -1,5 +1,6 @@
 "use client";
 
+import { publicPosition } from "@/lib/artistRoles";
 import { AlertDialog } from "@/components/organisms";
 import ArtistOverview from "@/components/booking/ArtistOverview";
 import PhotoCarousel from "@/components/booking/PhotoCarousel";
@@ -50,9 +51,11 @@ export default function ArtistDetail() {
             <BackButton to="/artists" label="All artists" />
             {/* Phones and tablets: the position pill, the photos as a carousel, then the compact
                 overview. From `lg` up: the details here and the photo beside them. */}
-            <p className="w-fit rounded-full bg-crimson-light/40 px-3 py-1 label-caps text-berry lg:hidden">
-              {nailist.position}
-            </p>
+            {publicPosition(nailist) && (
+              <p className="w-fit rounded-full bg-crimson-light/40 px-3 py-1 label-caps text-berry lg:hidden">
+                {publicPosition(nailist)}
+              </p>
+            )}
             <div className="lg:hidden">
               <PhotoCarousel label={nailist.name} photos={carouselPhotos} aspect="aspect-3/4" />
             </div>
@@ -60,9 +63,11 @@ export default function ArtistDetail() {
               <ArtistOverview nailist={nailist} workCount={gallery.length} />
             </div>
             <div className="hidden flex-col gap-3 lg:flex">
-              <p className="w-fit rounded-full bg-crimson-light/40 px-3 py-1 label-caps text-berry">
-                {nailist.position}
-              </p>
+              {publicPosition(nailist) && (
+                <p className="w-fit rounded-full bg-crimson-light/40 px-3 py-1 label-caps text-berry">
+                  {publicPosition(nailist)}
+                </p>
+              )}
               {/* The phone overview above holds the page's one h1 (both are in the HTML; CSS shows one) */}
               <SectionHeader level={2} title={nailist.name} subtitle={nailist.bio} />
             </div>
@@ -99,7 +104,7 @@ export default function ArtistDetail() {
           <div className="hidden overflow-hidden rounded-2xl border border-crimson-light/40 bg-light-orange p-2 shadow-petal lg:block">
             <img
               src={nailist.image}
-              alt={`${nailist.name}, ${nailist.position}`}
+              alt={`${nailist.name}${publicPosition(nailist) ? `, ${publicPosition(nailist)}` : ""}`}
               className="aspect-3/4 w-full rounded-xl object-cover object-top"
             />
           </div>

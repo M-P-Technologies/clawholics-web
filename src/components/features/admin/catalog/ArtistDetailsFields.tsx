@@ -1,16 +1,19 @@
-import type { ReactNode } from "react";
-import { Select } from "@/components/atoms";
-import { POSITION_CATEGORIES } from "@/lib/admin/artistEditor";
+import { useState, type ReactNode } from "react";
+import { Checkbox, Select } from "@/components/atoms";
+import { useArtistRoles } from "@/hooks/admin/useArtistRoles";
+import ArtistRolesDialog from "./ArtistRolesDialog";
 import ArtistInputField from "./ArtistInputField";
 
 type ArtistDetailsFieldsProps = {
   isEditing: boolean;
   name: string;
   position: string;
+  hidePosition: boolean;
   specialty: string;
   bio: string;
   onNameChange: (value: string) => void;
   onPositionChange: (value: string) => void;
+  onHidePositionChange: (value: boolean) => void;
   onSpecialtyChange: (value: string) => void;
   onBioChange: (value: string) => void;
   /** Shown between Specialty and Bio (the services the artist offers) */
@@ -23,14 +26,23 @@ const ArtistDetailsFields = ({
   isEditing,
   name,
   position,
+  hidePosition,
   specialty,
   bio,
   onNameChange,
   onPositionChange,
+  onHidePositionChange,
   onSpecialtyChange,
   onBioChange,
   services,
-}: ArtistDetailsFieldsProps) => (
+}: ArtistDetailsFieldsProps) => {
+  const { roles } = useArtistRoles();
+  const [managingRoles, setManagingRoles] = useState(false);
+  // A role since renamed or removed still shows, so the field never reads blank
+  const names = roles.map((role) => role.name);
+  if (position && roles.length > 0 && !names.includes(position)) names.push(position);
+
+  return (
   <>
     <ArtistInputField
       label="Name"
@@ -44,6 +56,9 @@ const ArtistDetailsFields = ({
         <h3 className="text-[13px] font-medium text-gray-red">
           Position
         </h3>
+        <button type="button" className="text-xs font-medium text-crimson-ink underline" onClick={() => setManagingRoles(true)}>
+          Manage roles
+        </button>
       </div>
 
 
@@ -54,12 +69,17 @@ const ArtistDetailsFields = ({
         >
           <option value="">Select position</option>
 
-          {POSITION_CATEGORIES.map((item) => (
+          {names.map((item) => (
             <option key={item} value={item}>
               {item}
             </option>
           ))}
         </Select>
+      <label className="flex items-center gap-2 text-sm text-gray-red">
+        <Checkbox checked={hidePosition} disabled={!isEditing} onChange={(e) => onHidePositionChange(e.target.checked)} />
+        Hide this role on the site
+      </label>
+      <ArtistRolesDialog open={managingRoles} onClose={() => setManagingRoles(false)} />
     </div>
 
     <ArtistInputField
@@ -78,6 +98,7 @@ const ArtistDetailsFields = ({
       isEditing={isEditing}
     />
   </>
-);
+  );
+};
 
 export default ArtistDetailsFields;

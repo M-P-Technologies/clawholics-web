@@ -1,3 +1,4 @@
+import { publicPosition } from "@/lib/artistRoles";
 import type { ReactNode } from "react";
 import { Award, Images, Sparkles } from "lucide-react";
 import SpecialtyList from "./SpecialtyList";
@@ -6,6 +7,7 @@ interface ArtistOverviewProps {
   nailist: {
     name: string;
     position: string;
+    hide_position?: number;
     bio: string;
     specialty: string;
     offered_services?: string[];
@@ -26,7 +28,7 @@ const Stat = ({ icon, value, label }: { icon: ReactNode; value: string; label: s
 // "About" with the bio, their specialties and the services they offer. (From `lg` up the details
 // page uses its two-column layout instead.)
 export default function ArtistOverview({ nailist, workCount }: ArtistOverviewProps) {
-  const [role, ...rest] = nailist.position.split(" ");
+  const [role, ...rest] = (publicPosition(nailist) || "Nail Technician").split(" ");
   const services = nailist.offered_services ?? [];
 
   return (

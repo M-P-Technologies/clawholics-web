@@ -5,7 +5,7 @@ import { recordVisitsToComplete } from "./visitsToComplete";
 // The admins' notifications of new bookings (the bell in the admin top bar). An event is
 // recorded once, for every admin; each admin's read state is the newest one they've seen.
 
-type AdminNotificationKind = "booking_paid" | "proof_uploaded" | "visit_to_complete" | "payment_to_check";
+type AdminNotificationKind = "booking_paid" | "proof_uploaded" | "visit_to_complete" | "payment_to_check" | "refund_to_send";
 
 /** How many notifications the bell lists at a time: the newest, then more as the admin scrolls */
 export const NOTIFICATIONS_PAGE_SIZE = 5;

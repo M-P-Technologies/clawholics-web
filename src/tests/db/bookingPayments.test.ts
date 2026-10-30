@@ -30,6 +30,9 @@ vi.mock("../../server/r2", () => ({ putObject: (...args: unknown[]) => putObject
 
 const as = (clerkId: string | null) => authMock.mockResolvedValue({ userId: clerkId });
 
+// 20 December 2098, 09:30 in Manila: the clock for the file, so the 2099 dates are inside the booking window
+const FILE_NOW = new Date(Date.UTC(2098, 11, 20, 1, 30));
+
 describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () => {
   let db: ReturnType<typeof postgres>;
   let booking: typeof import("../../server/handlers/booking");
@@ -56,6 +59,12 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
 
   beforeAll(async () => {
     db = await resetTestDatabase();
+    // The bookings below are in 2099, far beyond the booking window (30 days by default) of the real clock: the whole file runs on
+    // a clock set just before them, and its window is widened to a year
+    // The clock keeps running (a frozen one would give two payments the same external id)
+    vi.useFakeTimers({ toFake: ["Date"], shouldAdvanceTime: true });
+    vi.setSystemTime(FILE_NOW);
+    await db`insert into site_settings (key, value) values ('booking_max_advance_days', '365') on conflict (key) do update set value = '365'`;
     process.env.XENDIT_CALLBACK_TOKEN = "cb-token";
     delete process.env.XENDIT_SECRET_KEY;
     delete process.env.RESEND_API_KEY;
@@ -92,6 +101,7 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
   });
 
   afterAll(async () => {
+    vi.useRealTimers();
     await db?.end();
     const { getSql } = await import("../../server/db");
     await getSql().end();
@@ -110,6 +120,69 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       as(null);
       const res = await callRoute(booking.createBooking, "/api/booking/create", { method: "POST", body: {} });
       expect(res.status).toBe(401);
+    });
+
+    it("TC-BK-02b: a client can't book a slot that starts within the notice (2 hours by default); an admin walk-in can", async () => {
+      // 15 June 2098, 09:30 in Manila
+      vi.setSystemTime(new Date(Date.UTC(2098, 5, 15, 1, 30)));
+      try {
+        const soon = await book("user_a", "2098-06-15", "10:00-11:00");
+        expect(soon.status).toBe(400);
+        expect(soon.body.code).toBe("TOO_SOON");
+        expect(soon.body.message).toMatch(/2 hours' notice/);
+
+        const later = await book("user_a", "2098-06-15", "12:00-13:00");
+        expect(later.status).toBe(200);
+
+        // An admin recording a walk-in isn't held to the notice
+        as("user_admin");
+        const walkin = await callRoute(booking.createAdminBooking, "/api/booking/admin/create", {
+          method: "POST",
+          body: { first_name: "Walk", last_name: "In", phone: "0917", service_id: serviceId, nailist_id: nailistId, appointment_date: "2098-06-15", appointment_time: "10:00-11:00" },
+        });
+        expect(walkin.status).toBe(201);
+
+        // With the notice set to 0 the same slot is open to a client again
+        await db`insert into site_settings (key, value) values ('booking_min_notice_hours', '0') on conflict (key) do update set value = '0'`;
+        const none = await book("user_b", "2098-06-15", "11:00-12:00");
+        expect(none.status).toBe(200);
+      } finally {
+        vi.setSystemTime(FILE_NOW);
+        await db`delete from site_settings where key = 'booking_min_notice_hours'`;
+        // These bookings are held until 2098 (the fake clock): left open they'd block the clients' later bookings
+        await db`delete from appointments where appointment_date like '2098-%'`;
+      }
+    });
+
+    it("TC-BK-02c: a client can't book beyond the window (30 days by default); an admin walk-in can", async () => {
+      // 15 June 2098, 09:30 in Manila: the last bookable day is 15 July (with the default window)
+      await db`delete from site_settings where key = 'booking_max_advance_days'`;
+      vi.setSystemTime(new Date(Date.UTC(2098, 5, 15, 1, 30)));
+      try {
+        const far = await book("user_a", "2098-08-30", "12:00-13:00");
+        expect(far.status).toBe(400);
+        expect(far.body.code).toBe("TOO_FAR");
+        expect(far.body.message).toMatch(/30 days ahead/);
+
+        const lastDay = await book("user_a", "2098-07-15", "12:00-13:00");
+        expect(lastDay.status).toBe(200);
+
+        as("user_admin");
+        const walkin = await callRoute(booking.createAdminBooking, "/api/booking/admin/create", {
+          method: "POST",
+          body: { first_name: "Walk", last_name: "In", phone: "0917", service_id: serviceId, nailist_id: nailistId, appointment_date: "2098-08-30", appointment_time: "12:00-13:00" },
+        });
+        expect(walkin.status).toBe(201);
+
+        // Widening the window opens the date to a client again
+        await db`insert into site_settings (key, value) values ('booking_max_advance_days', '90') on conflict (key) do update set value = '90'`;
+        const widened = await book("user_b", "2098-08-30", "13:00-14:00");
+        expect(widened.status).toBe(200);
+      } finally {
+        vi.setSystemTime(FILE_NOW);
+        await db`update site_settings set value = '365' where key = 'booking_max_advance_days'`;
+        await db`delete from appointments where appointment_date like '2098-%'`;
+      }
     });
 
     it("TC-BK-03: one unpaid booking per client, and one active booking per slot", async () => {
@@ -268,7 +341,7 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       for (const bad of [
         `nailist_id=abc&from=${first}&to=${second}`,
         `nailist_id=${nailistId}&from=${second}&to=${first}`,
-        `nailist_id=${nailistId}&from=2099-01-01&to=2099-06-01`,
+        `nailist_id=${nailistId}&from=2099-01-01&to=2100-06-01`,
         `nailist_id=${nailistId}&from=x&to=${second}`,
       ]) {
         expect((await callRoute(booking.getBookedSlotsRange, url(bad))).status).toBe(400);
@@ -294,7 +367,7 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       const refused = await book("user_b", date, "13:00-14:00");
       expect(refused.status).toBe(409);
       // The taken slot's refusal, not another 409 (such as an unpaid booking already open)
-      expect(refused.body).toEqual({ error: true, message: "Time slot already booked" });
+      expect(refused.body).toEqual({ error: true, code: "SLOT_TAKEN", message: "Time slot already booked" });
       const freed = await book("user_b", date, "18:00-19:00");
       expect(freed.status).toBe(200);
       expect(freed.body.appointment_id).toBeDefined();
@@ -704,6 +777,32 @@ describe.skipIf(!TEST_DATABASE_URL)("booking and payment routes (Postgres)", () 
       expect(refunded.body.status).toBe("REFUNDED");
       expect((await callRoute(booking.refundAppointment, "/x", { method: "POST", params: { id: String(paid) } })).status).toBe(400);
       await Promise.all(background);
+    });
+
+    it("TC-PAY-05b: when Xendit can't refund (QR Ph), the booking is still cancelled and the refund is left to send by hand", async () => {
+      const { body } = await book("user_a", nextDate());
+      const id = body.appointment_id;
+      await db`insert into payments (id, appointment_id, amount, status, payment_method, external_id) values ('p-qr', ${id}, 500, 'PAID', 'QRPH', 'appt-qr')`;
+      await db`update appointments set status = 'CONFIRMED' where id = ${id}`;
+      process.env.XENDIT_SECRET_KEY = "xnd_development_test";
+      // A fake Xendit that lists the paid invoice but refuses to refund it
+      vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+        if (url.includes("?external_id=")) return Response.json([{ id: "inv-qr", amount: 500, status: "PAID" }]);
+        return Response.json({ error_code: "REFUND_NOT_SUPPORTED", message: "QR Ph can't be refunded" }, { status: 400 });
+      }));
+      try {
+        as("user_a");
+        const res = await callRoute(booking.refundAppointment, "/x", { method: "POST", params: { id: String(id) } });
+        expect(res.status).toBe(200);
+        expect(res.body).toMatchObject({ status: "REFUNDED", refundByHand: true, refundAmount: 500 });
+        expect(await statusOf(id)).toBe("REFUNDED");
+        await Promise.all(background);
+        // The admins' bell says there's a refund to send
+        expect(await db`select kind from admin_notifications where appointment_id = ${id}`).toEqual([{ kind: "refund_to_send" }]);
+      } finally {
+        vi.unstubAllGlobals();
+        delete process.env.XENDIT_SECRET_KEY;
+      }
     });
 
     it("TC-PAY-07: a payment for an expired booking whose slot was rebooked is recorded, not confirmed", async () => {

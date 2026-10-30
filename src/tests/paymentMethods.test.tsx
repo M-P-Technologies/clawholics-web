@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { paymentArtistLabel, paymentPriceLabel } from "@/lib/client/payment";
 import Payment from "@/app/(client)/my/payment/page";
 import { OFFERED_PAYMENT_METHODS, PAYMENT_METHOD_HINTS, PAYMENT_METHOD_LABELS } from "@/data/payment";
+import { depositTerms } from "@/lib/depositTerms";
 
 const hook = vi.fn();
 vi.mock("@/hooks/client/usePayment", () => ({ usePayment: () => hook() }));
@@ -63,7 +64,22 @@ describe("payment step", () => {
     appointment: { service_name: "Hard Gel", nailist_name: "Max", nailist_category_id: 1, service_price: 650, appointment_date: "2026-10-20", appointment_time: "9:00 AM - 11:00 AM" },
     handlePay: vi.fn(), handleModalClose: vi.fn(), sectionLabel: "label-caps",
   };
-  Object.assign(base, { artistLabel: paymentArtistLabel(base.appointment), priceLabel: paymentPriceLabel(base.appointment) });
+  Object.assign(base, { artistLabel: paymentArtistLabel(base.appointment), priceLabel: paymentPriceLabel(base.appointment), deposit: depositTerms(500) });
+
+  it("quotes the fee and the total from the deposit setting", () => {
+    hook.mockReturnValue({ ...base, deposit: depositTerms(700) });
+    render(<Payment />);
+    expect(screen.getByText("₱600")).toBeInTheDocument(); // deductible
+    expect(screen.getByText("₱100")).toBeInTheDocument(); // the reservation fee
+    expect(screen.getByText("₱700")).toBeInTheDocument(); // total due
+    expect(screen.queryByText("₱500")).toBeNull();
+  });
+
+  it("shows dashes, not made-up amounts, until the settings load", () => {
+    hook.mockReturnValue({ ...base, deposit: null });
+    render(<Payment />);
+    expect(screen.getAllByText("–").length).toBeGreaterThanOrEqual(3);
+  });
 
   it("shows the summary, the fees and the countdown", () => {
     hook.mockReturnValue(base);

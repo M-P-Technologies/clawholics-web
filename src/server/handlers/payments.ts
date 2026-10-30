@@ -89,7 +89,8 @@ export const createPayment = ported(async (req) => {
     await sql`update payments set status = 'FAILED' where appointment_id = ${appointmentId} and upper(status) = 'PENDING'`;
   }
 
-  const externalId = `appt-${appointmentId}-${Date.now()}`;
+  // The random part keeps two invoices started in the same millisecond apart (external_id is unique)
+  const externalId = `appt-${appointmentId}-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
   let invoiceUrl: string;
   try {
     invoiceUrl = await createXenditInvoice(appointmentId!, externalId, downpayment_amount, payment_method, holdSeconds);

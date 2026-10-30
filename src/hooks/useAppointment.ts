@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { publicQueries, SERVICE_NOT_FOUND } from "@/lib/publicQueries";
 import { useNavigate, useParams } from "@/lib/router";
+import { useDepositTerms } from "./useDepositTerms";
 import type { ServiceGalleryImage } from "../services/serviceService";
 import { startingPrice } from "../services/pricing";
 import { findBySlugOrId, servicePath } from "../utils/slug";
@@ -12,6 +13,8 @@ const NO_GALLERY: ServiceGalleryImage[] = [];
 export function useAppointment() {
   const { id } = useParams();
   const navigate = useNavigate();
+  // The booking deposit as set in Admin > Settings, for the page's Deposit section
+  const deposit = useDepositTerms();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
@@ -94,5 +97,5 @@ export function useAppointment() {
   // Phones: the photos as a carousel, the main photo first
   const carouselPhotos = service ? [...gallery].sort((a, b) => Number(b.image_url === service.image) - Number(a.image_url === service.image)) : [];
 
-  return { priceLines, navigate, loading, service, gallery, carouselPhotos, terms, notFound, modalOpen, setModalOpen, modalTitle, modalMessage, modalButtonText, modalAction, handleContinue, closeModal };
+  return { priceLines, navigate, deposit, loading, service, gallery, carouselPhotos, terms, notFound, modalOpen, setModalOpen, modalTitle, modalMessage, modalButtonText, modalAction, handleContinue, closeModal };
 }

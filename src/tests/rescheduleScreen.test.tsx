@@ -37,6 +37,14 @@ beforeEach(() => {
 });
 
 describe("reschedule step", () => {
+  it("loads inside the same frame (title and back button), as placeholders", () => {
+    s = { ...s, isLoaded: false };
+    render(<Reschedule />);
+    expect(screen.getByRole("heading", { level: 1, name: "Reschedule" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Back" })).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "Loading your appointment" })).toBeInTheDocument();
+  });
+
   it("shows the current booking", () => {
     render(<Reschedule />);
     expect(screen.getByRole("heading", { name: "Reschedule your visit" })).toBeInTheDocument();

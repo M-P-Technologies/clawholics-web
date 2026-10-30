@@ -31,6 +31,8 @@ const state = () => ({
   handleArtistChange: vi.fn(), handleDateSelect: vi.fn(), selectedDay: new Date(now.getFullYear(), now.getMonth(), 20),
   isDateFullyBooked: () => false, isSlotBlocked: (s: string) => s === "13:00-15:00",
   closeModal: vi.fn(), reloadPage: vi.fn(), contactFields: [],
+  rulesHint: "Bookings need at least 2 hours' notice and open up to 30 days ahead.", monthsAhead: 1,
+  anyArtist: false, canChooseAnyArtist: true, artistLabel: "Max", loadingAnyDays: false,
 });
 
 let s: ReturnType<typeof state>;
@@ -40,6 +42,26 @@ beforeEach(() => {
 });
 
 describe("booking step", () => {
+  it("loads inside the same frame (title and back button), as placeholders", () => {
+    s = { ...s, isPageLoading: true };
+    render(<Booking />);
+    expect(screen.getByRole("heading", { level: 1, name: "Book" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Back" })).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "Loading booking details" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Book your visit" })).toBeNull();
+  });
+
+  it("tells the client how much notice a booking needs and how far ahead it can be made", () => {
+    render(<Booking />);
+    expect(screen.getByText("Bookings need at least 2 hours' notice and open up to 30 days ahead.")).toBeInTheDocument();
+  });
+
+  it("shows the artist field as a placeholder while the artists load", () => {
+    s = { ...s, loadingArtists: true };
+    render(<Booking />);
+    expect(screen.getByRole("status", { name: "Loading artists" })).toBeInTheDocument();
+  });
+
   it("shows the choices in the summary", () => {
     render(<Booking />);
     expect(screen.getByRole("heading", { name: "Book your visit" })).toBeInTheDocument();
@@ -79,6 +101,31 @@ describe("booking step", () => {
     fireEvent.click(screen.getByRole("button", { name: "Preferred artist" }));
     fireEvent.click(screen.getByRole("option", { name: /Rae/ }));
     expect(s.handleArtistChange).toHaveBeenCalledWith(2);
+  });
+
+  it("offers any available artist first, and chooses it", () => {
+    render(<Booking />);
+    fireEvent.click(screen.getByRole("button", { name: "Preferred artist" }));
+    const options = screen.getAllByRole("option");
+    expect(options[0]).toHaveTextContent("Any available artist");
+    expect(options[0]).toHaveTextContent("We'll assign a free artist");
+    fireEvent.click(options[0]);
+    expect(s.handleArtistChange).toHaveBeenCalledWith("any");
+  });
+
+  it("doesn't offer any artist when only one artist does the service", () => {
+    s = { ...s, canChooseAnyArtist: false };
+    render(<Booking />);
+    fireEvent.click(screen.getByRole("button", { name: "Preferred artist" }));
+    expect(screen.queryByRole("option", { name: /Any available artist/ })).toBeNull();
+  });
+
+  it("names any available artist in the summary, and says the times are being found", () => {
+    s = { ...s, anyArtist: true, selectedNailist: null as never, artistLabel: "Any available artist", loadingAnyDays: true };
+    render(<Booking />);
+    const summary = screen.getByText("Preferred artist", { selector: "dt" }).closest("dl")!;
+    expect(within(summary).getByText("Any available artist")).toBeInTheDocument();
+    expect(screen.getByText(/Finding the times our artists have free/)).toBeInTheDocument();
   });
 
   it("says the artists are loading, not that there are none, until they arrive", () => {

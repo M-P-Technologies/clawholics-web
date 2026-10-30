@@ -1,6 +1,6 @@
 import "server-only";
 import { getSql } from "./db";
-import { toId } from "./http";
+import { inBackground, toId } from "./http";
 import { PROOF_TO_REVIEW_SQL } from "./proofRules";
 import { PHOTOS_TO_ADD_SQL, TO_COMPLETE_SQL, manilaNow } from "./visitsToComplete";
 
@@ -10,7 +10,7 @@ import { PHOTOS_TO_ADD_SQL, TO_COMPLETE_SQL, manilaNow } from "./visitsToComplet
 // Price for a service (alias s) done by an artist whose category is joined as nc. 'single'
 // services cost master_price with every artist.
 export const SERVICE_PRICE_SQL =
-  "case when s.pricing_mode = 'single' or nc.name = 'Master Technician' then s.master_price else s.junior_price end";
+  "case when s.pricing_mode = 'single' or nc.is_master = 1 then s.master_price else s.junior_price end";
 
 // The Worker's appointmentSelect: the appointment plus client, artist, price and its latest
 // (paid first) payment.
@@ -20,7 +20,7 @@ const APPOINTMENT_SELECT = `
     coalesce(n.name, a.nailist_name) as nailist_name,
     a.appointment_date, a.appointment_time, a.status, a.created_at, a.expires_at,
     ${SERVICE_PRICE_SQL} as service_price,
-    s.junior_price, s.master_price, s.pricing_mode, n.category_id as nailist_category_id,
+    s.junior_price, s.master_price, s.pricing_mode, n.category_id as nailist_category_id, nc.is_master as nailist_is_master,
     coalesce(a.walkin_email, u.email, '') as email,
     coalesce(a.walkin_first_name, ap.first_name, cp.first_name, '') as first_name,
     coalesce(a.walkin_last_name, ap.last_name, cp.last_name, '') as last_name,
@@ -117,6 +117,8 @@ interface AppointmentPageQuery {
   toComplete?: boolean;
   /** Only completed visits whose nail photos are still to add */
   photosToAdd?: boolean;
+  /** Only bookings that were ever paid (the cancelled list without the unpaid holds that ran out) */
+  paidOnly?: boolean;
   /** Only this day, or this day and later (YYYY-MM-DD) */
   on: string | null;
   from: string | null;
@@ -179,6 +181,9 @@ export async function listAppointmentPage(query: AppointmentPageQuery) {
       : null,
     query.toComplete ? sql.unsafe(TO_COMPLETE_SQL("a", manilaNow().today, manilaNow().clock)) : null,
     query.photosToAdd ? sql.unsafe(PHOTOS_TO_ADD_SQL("a")) : null,
+    // A paid payment stays PAID through a cancellation or refund, and one that arrived after the
+    // booking was cancelled counts too (it's owed back); a hold that ran out has only a FAILED one
+    query.paidOnly ? sql.unsafe(`exists (select 1 from payments pay where pay.appointment_id = a.id and upper(trim(pay.status)) = 'PAID')`) : null,
     query.on ? sql`a.appointment_date = ${query.on}` : null,
     query.from ? sql`a.appointment_date >= ${query.from}` : null,
     query.artist ? sql`coalesce(n.name, a.nailist_name) = ${query.artist}` : null,
@@ -222,18 +227,36 @@ export function listAppointmentsBetween(start: string, end: string) {
 // indexes idx_appointments_pending_expiry and idx_payments_pending) instead of whole tables.
 export async function cancelExpiredPendingAppointments() {
   const now = new Date().toISOString();
-  await getSql()`
+  // The slots just released: the clients waiting for those days are told (server/waitlist.ts)
+  const released = await getSql()<{ nailist_id: number | null; appointment_date: string }[]>`
     with expired as (
       update appointments set status = 'CANCELLED', cancelled_at = clawholics_utc_now()
       where upper(status) = 'PENDING' and expires_at <= ${now}
         and not exists (select 1 from payment_proofs pp where pp.appointment_id = appointments.id and pp.status = 'PENDING')
-      returning id
+      returning id, nailist_id, appointment_date
+    ), failed as (
+      update payments p set status = 'FAILED'
+      where upper(p.status) = 'PENDING'
+        and (p.appointment_id in (select id from expired)
+          or exists (select 1 from appointments a where a.id = p.appointment_id and upper(a.status) = 'CANCELLED'))
+      returning p.id
     )
-    update payments p set status = 'FAILED'
-    where upper(p.status) = 'PENDING'
-      and (p.appointment_id in (select id from expired)
-        or exists (select 1 from appointments a where a.id = p.appointment_id and upper(a.status) = 'CANCELLED'))
+    select nailist_id, appointment_date from expired
   `;
+  if (released.length > 0) {
+    // Imported here, not at the top: the waitlist reads availability from this file
+    const { notifyWaitlistSafely } = await import("./waitlist");
+    const days = new Set(released.map((r) => `${r.nailist_id}|${r.appointment_date}`));
+    for (const day of days) {
+      const [nailistId, date] = day.split("|");
+      // After the response, so it isn't cut short; outside a request there is no "after", so it just runs
+      try {
+        inBackground("waitlist", () => notifyWaitlistSafely(Number(nailistId), date));
+      } catch {
+        void notifyWaitlistSafely(Number(nailistId), date);
+      }
+    }
+  }
 }
 
 /** Active service in an active (or no) category. */

@@ -1,6 +1,7 @@
 import { useId } from "react";
 import { Clock } from "lucide-react";
 import { Button, Input, Select } from "@/components/atoms";
+import { FooterActions } from "@/components/organisms";
 import { useCompleteVisit } from "@/hooks/admin/useCompleteVisit";
 import type { VisitToComplete } from "@/services/completionService";
 import VisitPhotoDialog from "@/components/features/admin/bookings/VisitPhotoDialog";
@@ -16,13 +17,15 @@ interface CompleteVisitFormProps {
   onCancel?: () => void;
   /** Once completed, Edit calls this (e.g. to open the dialog) instead of opening the form in place */
   onEdit?: () => void;
+  /** In a dialog: the element of its footer, where the Save and Cancel buttons are drawn (`null` while it mounts) */
+  actionsHost?: HTMLElement | null;
 }
 
 // Completing a visit: when the client came in (a late fee by the salon's terms), the balance paid
 // at the salon (prefilled with the menu price less the downpayment, plus that fee, editable), how
 // it was paid and who did the nails. Shown locked before the visit's day; once completed it shows
 // what was recorded, with Edit, and the visit's photo is added from its own window (optional).
-export default function CompleteVisitForm({ visit, artists, onSaved, onCancelLate, onCancel, onEdit }: CompleteVisitFormProps) {
+export default function CompleteVisitForm({ visit, artists, onSaved, onCancelLate, onCancel, onEdit, actionsHost }: CompleteVisitFormProps) {
   const form = useCompleteVisit(visit, onSaved);
   const id = useId();
   const inDialog = Boolean(onCancel);
@@ -53,6 +56,7 @@ export default function CompleteVisitForm({ visit, artists, onSaved, onCancelLat
   const disabled = form.locked || form.busy;
   return (
     <form
+      id={`${id}-form`}
       aria-label="Complete visit"
       className={inDialog ? "flex flex-col gap-3" : "mt-1 flex flex-col gap-3 rounded-xl border border-crimson-light/60 bg-light-orange/40 p-3"}
       onSubmit={(e) => {
@@ -187,16 +191,16 @@ export default function CompleteVisitForm({ visit, artists, onSaved, onCancelLat
           {form.error}
         </p>
       )}
-      <div className="flex flex-wrap gap-3">
-        <Button type="submit" size="sm" disabled={disabled}>
-          {form.busy ? "Saving…" : form.completed ? "Save changes" : "Complete visit"}
-        </Button>
+      <FooterActions host={actionsHost}>
         {(form.completed || inDialog) && (
           <Button type="button" size="sm" variant="secondary" onClick={onCancel ?? form.cancelEditing} disabled={form.busy}>
             Cancel
           </Button>
         )}
-      </div>
+        <Button type="submit" form={`${id}-form`} size="sm" disabled={disabled}>
+          {form.busy ? "Saving…" : form.completed ? "Save changes" : "Complete visit"}
+        </Button>
+      </FooterActions>
     </form>
   );
 }

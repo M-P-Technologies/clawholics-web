@@ -87,7 +87,6 @@ export function buildInsights(data: DashboardResponse): Insights {
   if (conversionLow) watch.push({ id: "conversion", text: `Only ${rounded(conversion)}% of started bookings got paid.` });
 
   // ---- suggestions, each tied to something found above
-  if (conversionLow) tips.push({ id: "followup", text: "Follow up on pending bookings before they expire.", to: "/clients?status=PENDING", cta: "Open pending" });
   if (cancellationHigh) tips.push({ id: "reminder", text: "Send clients a reminder the day before to cut cancellations." });
 
   const dayTotal = overview.weekdays.reduce((sum, d) => sum + d.bookings, 0);

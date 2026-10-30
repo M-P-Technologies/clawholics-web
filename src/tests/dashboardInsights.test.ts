@@ -65,10 +65,10 @@ describe("buildInsights: watch-outs and what to try", () => {
     expect(i.tips.map((t) => t.id)).toEqual(["reminder"]);
   });
 
-  it("flags low booking conversion, with a follow-up linked to the pending bookings", () => {
+  it("flags low booking conversion, without a tip (a pending booking is only a hold while the client pays)", () => {
     const i = buildInsights(steady({ conversion: 0.4 }));
     expect(texts(i.watch)).toEqual(["Only 40% of started bookings got paid."]);
-    expect(i.tips).toEqual([{ id: "followup", text: "Follow up on pending bookings before they expire.", to: "/clients?status=PENDING", cta: "Open pending" }]);
+    expect(i.tips).toEqual([]);
   });
 
   it("links waiting proofs and lapsed clients to where to act on them", () => {

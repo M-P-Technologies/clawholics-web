@@ -61,7 +61,6 @@ export default function SalonNotes({ data }: { data: DashboardResponse }) {
     { label: "Proofs to review", count: data.attention.proofsToReview, to: "/clients?status=PROOF_PENDING" },
     { label: "Visits to complete", count: data.attention.toComplete, to: "/clients?status=TO_COMPLETE" },
     { label: "Visit photos to add", count: data.attention.photosToAdd, to: "/clients?status=PHOTOS_TO_ADD" },
-    { label: "Pending payments", count: data.attention.unpaid, to: "/clients?status=PENDING" },
     { label: "Warm leads", count: data.attention.warmLeads, to: "/clients?view=leads" },
   ]
     .filter((todo) => todo.count > 0)

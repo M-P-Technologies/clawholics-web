@@ -3,12 +3,14 @@
 import { CircleCheckBig as CheckIcon } from "lucide-react";
 import { Button, Card, LoadingBar } from "@/components/atoms";
 import { SectionHeader, EmptyState, SummaryRow } from "@/components/molecules";
+import AddToCalendarButton from "@/components/features/client/appointments/AddToCalendarButton";
 import ClientScreen from "@/components/features/client/shell/ClientScreen";
+import { ConfirmationSkeleton } from "@/components/features/client/skeletons/skeletons";
 import { usePaymentConfirmation } from "@/hooks/client/usePaymentConfirmation";
 import { CLIENT_PATHS } from "@/lib/client/clientNav";
 
 export default function PaymentConfirmation() {
-  const { isFailed, isConfirmed, appointment_id, data, dateLabel, timeLabel, payment, loading, timedOut, checkAgain, instagram } = usePaymentConfirmation();
+  const { isFailed, isConfirmed, appointment_id, data, dateLabel, timeLabel, paid, payment, loading, timedOut, checkAgain, instagram } = usePaymentConfirmation();
 
   if (!appointment_id) {
     return (
@@ -21,7 +23,11 @@ export default function PaymentConfirmation() {
   }
 
   if (loading) {
-    return <LoadingBar label="Loading your payment" />;
+    return (
+      <ClientScreen title="Payment" back={CLIENT_PATHS.appointments}>
+        <ConfirmationSkeleton label="Loading your payment" />
+      </ClientScreen>
+    );
   }
 
   if (isFailed) {
@@ -76,13 +82,18 @@ export default function PaymentConfirmation() {
       );
     }
 
-    // Not inside a card or an animated wrapper: one that animates with `translate` makes a fixed
-    // child position itself inside it instead of covering the screen.
+    // Waiting for the bank or e-wallet: in the same frame as the confirmation it becomes, with the
+    // words that matter (keep it open, don't pay again) under the bow
     return (
-      <LoadingBar
-        label="Confirming your payment"
-        hint="This page updates by itself. Please keep it open and don't pay again."
-      />
+      <ClientScreen title="Payment" back={CLIENT_PATHS.appointments}>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <LoadingBar
+            inline
+            label="Confirming your payment"
+            hint="This page updates by itself. Please keep it open and don't pay again."
+          />
+        </div>
+      </ClientScreen>
     );
   }
 
@@ -94,8 +105,8 @@ export default function PaymentConfirmation() {
         <SectionHeader size="section" title="Booking confirmed" className="items-center" />
 
         <p className="mx-auto max-w-xl text-gray-red">
-          Thank you, {payment?.first_name}! Your downpayment of{" "}
-          <b>₱500 via {payment?.payment_method ?? "N/A"}</b> has been received and your booking is
+          Thank you, {payment?.first_name}! Your downpayment{" "}
+          <b>{paid ? `of ${paid} ` : ""}via {payment?.payment_method ?? "N/A"}</b> has been received and your booking is
           confirmed. Please check your email <b>({payment?.email ?? "your email"})</b> for your
           complete appointment details and a few reminders. We look forward to pampering you soon!
         </p>
@@ -116,11 +127,21 @@ export default function PaymentConfirmation() {
               <SummaryRow label="Service" value={data.service_name} />
               <SummaryRow label="Date" value={dateLabel} />
               <SummaryRow label="Time" value={timeLabel} />
-              <SummaryRow label="Amount paid" value="₱500" />
+              <SummaryRow label="Amount paid" value={paid ?? "–"} />
             </dl>
           </Card>
         ) : (
           <p className="text-gray-red">Failed to load appointment details.</p>
+        )}
+
+        {data && (
+          <AddToCalendarButton
+            id={Number(appointment_id)}
+            service={data.service_name}
+            artist={data.nailist_name}
+            date={data.appointment_date}
+            time={data.appointment_time}
+          />
         )}
 
         <Button to={CLIENT_PATHS.home}>

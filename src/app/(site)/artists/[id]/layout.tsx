@@ -1,3 +1,4 @@
+import { publicPosition } from "@/lib/artistRoles";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { HydrationBoundary } from "@tanstack/react-query";
@@ -23,7 +24,7 @@ async function findArtist(param: string): Promise<Nailist | null> {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const artist = await findArtist((await params).id);
   if (!artist) return NOT_FOUND_METADATA("Artist");
-  const role = artist.position || "Nail technician";
+  const role = publicPosition(artist) || "Nail technician";
   return seoMetadata({
     path: artistPath(artist),
     title: `${artist.name}, ${role}`,
