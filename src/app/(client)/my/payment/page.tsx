@@ -143,8 +143,8 @@ export default function Payment() {
             </dl>
           </Card>
 
-          {/* PAYMENT SUMMARY */}
-          <Card as="aside" className="flex flex-col gap-3">
+          {/* PAYMENT SUMMARY: stretches to the form card's height from `lg`, the total at its foot */}
+          <Card as="aside" className="flex flex-col gap-3 lg:grow">
             <SectionHeader size="card" title="Payment summary" />
             <dl>
               <SummaryRow label="Service" value={appointment.service_name} />
@@ -156,7 +156,7 @@ export default function Payment() {
               <SummaryRow label="Reservation fee" value={deposit ? peso(deposit.fee) : "–"} />
             </dl>
 
-            <p className="flex items-baseline justify-between border-t border-crimson-light/40 pt-3 font-display text-2xl text-gray-red">
+            <p className="flex items-baseline justify-between border-t border-crimson-light/40 pt-3 font-display text-2xl text-gray-red lg:mt-auto">
               <span>Total due</span>
               <span className="text-crimson-ink">{deposit ? peso(deposit.total) : "–"}</span>
             </p>

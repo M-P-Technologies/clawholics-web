@@ -470,7 +470,7 @@ export const getUserAppointments = ported(async (req) => {
   // latest_proof: the screenshot of the payment the client sent, for their appointment's card
   const rows = await sql`
     select a.*, ${sql.unsafe(LATEST_PROOF)} as latest_proof from appointments a join users u on a.user_id = u.id
-    where u.clerk_id = ${clerkId} order by a.appointment_date desc, a.id desc
+    where u.clerk_id = ${clerkId} and a.hidden_by_client = 0 order by a.appointment_date desc, a.id desc
   `;
   return Response.json(rows);
 });

@@ -4,7 +4,7 @@ import type { Dispatch, SetStateAction } from "react";
 import AppointmentSheet from "@/components/features/client/appointments/AppointmentSheet";
 import EditDetailsSheet from "@/components/features/client/profile/EditDetailsSheet";
 import { Button } from "@/components/atoms";
-import { Dialog } from "@/components/organisms";
+import { ConfirmDialog, Dialog } from "@/components/organisms";
 import { FOOTER_ACTIONS_CLASS } from "@/components/organisms/FooterActions";
 import { CONTACT_METHOD_OPTIONS } from "@/data/profile";
 import type { MyAccount } from "@/hooks/client/useMyAccount";
@@ -43,6 +43,11 @@ export default function AccountOverlays({ account: a, openId, setOpenId }: Accou
           if (!openView) return;
           setOpenId(null);
           a.startCancel(openView.appt);
+        }}
+        onDelete={() => {
+          if (!openView) return;
+          setOpenId(null);
+          a.setDeleteTarget(openView.appt);
         }}
         onProofUploaded={a.handleProofUploaded}
         review={openView ? a.reviews[openView.appt.id] : undefined}
@@ -93,6 +98,22 @@ export default function AccountOverlays({ account: a, openId, setOpenId }: Accou
           </p>
         </div>
       </Dialog>
+
+      {/* DELETE CONFIRMATION: a cancelled appointment leaves the client's list (the salon keeps its records) */}
+      <ConfirmDialog
+        open={Boolean(a.deleteTarget)}
+        title="Delete appointment?"
+        confirmLabel="Delete"
+        loadingLabel="Deleting..."
+        cancelLabel="Back"
+        loading={a.isDeleting}
+        onConfirm={a.confirmDelete}
+        onClose={a.closeDelete}
+      >
+        <p>
+          Delete your cancelled <strong>{a.deleteTarget?.service_name}</strong> appointment from your list? This can&apos;t be undone.
+        </p>
+      </ConfirmDialog>
 
       {/* CANCEL CONFIRMATION: the library's alert dialog, like the other messages in the app. It
           can't be dismissed while the cancellation runs */}
