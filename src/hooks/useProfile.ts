@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { useNavigate, useSearchParams } from "@/lib/router";
-import { updateProfile, redeemUserReward, cancelAppointment, isTemporaryFailure, type UserProfile } from "../services/userService";
+import { updateProfile, redeemUserReward, cancelAppointment, deleteCancelledAppointment, isTemporaryFailure, type UserProfile } from "../services/userService";
 import { accountKeys, accountQueries } from "@/lib/accountQueries";
 import { type Appointment } from "../utils/profile";
 import type { ChangeEvent } from "react";
@@ -61,6 +61,9 @@ export function useProfile() {
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [showAllHistory, setShowAllHistory] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  // The cancelled appointment the client is asked to delete
+  const [deleteTarget, setDeleteTarget] = useState<Appointment | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [historySortBy, setHistorySortBy] = useState("appointmentDateDesc");
   const [historyFilter, setHistoryFilter] = useState("all");
@@ -395,6 +398,7 @@ export function useProfile() {
         isExpired,
         canReschedule,
         canCancel,
+        canDelete: false,
         // What the card shows, so the page only lays it out
         statusLabel: displayStatus.replace(/_/g, " "),
         dateLabel: formatDisplayDate(appt.appointment_date),
@@ -430,6 +434,26 @@ export function useProfile() {
   const startCancel = (appt: Appointment) => {
     setSelectedAppt(appt);
     setIsCancelModalOpen(true);
+  };
+
+  const closeDelete = () => setDeleteTarget(null);
+
+  const confirmDelete = async () => {
+    if (!deleteTarget || !clerkUser?.id) return;
+    setIsDeleting(true);
+    try {
+      const token = await getToken();
+      if (!token) throw new Error("No auth token");
+      await deleteCancelledAppointment(deleteTarget.id, token);
+      setAppointments((prev) => prev.filter((a) => a.id !== deleteTarget.id));
+      void queryClient.invalidateQueries({ queryKey: accountKeys.appointments(clerkUser.id) });
+      setDeleteTarget(null);
+      toast.show("success", "Appointment deleted", `Your cancelled ${deleteTarget.service_name} appointment was removed from your list.`);
+    } catch (err) {
+      toast.show("error", "We couldn't delete it", (err as { message?: string } | null)?.message || "Please try again.");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const closeCancelModal = () => {
@@ -486,6 +510,7 @@ export function useProfile() {
     isExpired: false,
     canReschedule: false,
     canCancel: false,
+    canDelete: appt.status.trim().toUpperCase() === "CANCELLED",
     statusLabel: appt.status.replace(/_/g, " "),
     dateLabel,
     timeLabel,
@@ -517,5 +542,5 @@ export function useProfile() {
   const loadError = profileQuery.isError && !profileQuery.data;
   const retryLoad = () => void profileQuery.refetch();
 
-  return { loadError, retryLoad, toggleGender, toggleHistory, closeRewardModal, loyaltyCardNumber, isBusy, appointmentsLoading, genderLabel, history, hasMoreHistory, noHistory, stampCells, stampTarget, isLateCancellation, selectedApptDateLabel, profileFields, isLoaded, clerkUser, getToken, navigate, highlightedAppointmentId, upcoming, nextAppointment, pastViews, dbUser, isEditing, formData, error, appointments, setAppointments, stamps, isGenderOpen, setIsGenderOpen, showRewardModal, setShowRewardModal, selectedAppt, setSelectedAppt, isCancelModalOpen, setIsCancelModalOpen, actionError, setActionError, currentTime, showAllHistory, setShowAllHistory, isCancelling, historySortBy, setHistorySortBy, historyFilter, setHistoryFilter, processedPastAppointments, todayFormatted, formatDisplayDate, handleEditClick, genderOptions, handleGenderSelect, handleContactMethodSelect, formatTime, handleChange, handleSave, handleCancel, handleClientRedeem, handleCancelAppointment, isEligibleForChanges, formatSlot, todayIso, currentAppointments, payForAppointment, rescheduleAppointment, startCancel, closeCancelModal, handleProofUploaded, handleHistoryFilterChange, handleHistorySortChange };
+  return { loadError, retryLoad, toggleGender, toggleHistory, closeRewardModal, loyaltyCardNumber, isBusy, appointmentsLoading, genderLabel, history, hasMoreHistory, noHistory, stampCells, stampTarget, isLateCancellation, selectedApptDateLabel, profileFields, isLoaded, clerkUser, getToken, navigate, highlightedAppointmentId, upcoming, nextAppointment, pastViews, dbUser, isEditing, formData, error, appointments, setAppointments, stamps, isGenderOpen, setIsGenderOpen, showRewardModal, setShowRewardModal, selectedAppt, setSelectedAppt, isCancelModalOpen, setIsCancelModalOpen, actionError, setActionError, currentTime, showAllHistory, setShowAllHistory, isCancelling, historySortBy, setHistorySortBy, historyFilter, setHistoryFilter, processedPastAppointments, todayFormatted, formatDisplayDate, handleEditClick, genderOptions, handleGenderSelect, handleContactMethodSelect, formatTime, handleChange, handleSave, handleCancel, handleClientRedeem, handleCancelAppointment, isEligibleForChanges, formatSlot, todayIso, currentAppointments, payForAppointment, rescheduleAppointment, startCancel, closeCancelModal, deleteTarget, setDeleteTarget, closeDelete, confirmDelete, isDeleting, handleProofUploaded, handleHistoryFilterChange, handleHistorySortChange };
 }

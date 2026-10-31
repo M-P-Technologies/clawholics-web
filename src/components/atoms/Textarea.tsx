@@ -38,6 +38,7 @@ export default function Textarea({ className, ref, ...rest }: TextareaHTMLAttrib
   return (
     <div className="relative">
       <textarea ref={setRef} className={clsx(field.input, "min-h-20", className)} style={{ resize: "none" }} {...rest} />
+      {!rest.disabled && (
       <div
         role="separator"
         aria-orientation="horizontal"
@@ -54,6 +55,7 @@ export default function Textarea({ className, ref, ...rest }: TextareaHTMLAttrib
           <path d="M9 1 1 9M9 5 5 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" />
         </svg>
       </div>
+      )}
     </div>
   );
 }

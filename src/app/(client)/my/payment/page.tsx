@@ -127,21 +127,24 @@ export default function Payment() {
               <SummaryRow label="Preferred artist" value={artistLabel} />
               <SummaryRow label="Date" value={dateLabel} />
               <SummaryRow label="Time" value={timeLabel} />
-              <SummaryRow label="Location" value={
-                  appointment.location_url && appointment.location_text ? (
-                    <a href={appointment.location_url} target="_blank" rel="noopener noreferrer" className="font-bold text-crimson-ink underline underline-offset-4 hover:text-gray-red">
-                      {appointment.location_text}
-                    </a>
-                  ) : (
-                    appointment.location_text || "No location available"
-                  )
-                }
-              />
+              {/* Left out when this step was opened from the appointments list, which doesn't carry the location */}
+              {appointment.location_text && (
+                <SummaryRow label="Location" value={
+                    appointment.location_url ? (
+                      <a href={appointment.location_url} target="_blank" rel="noopener noreferrer" className="font-bold text-crimson-ink underline underline-offset-4 hover:text-gray-red">
+                        {appointment.location_text}
+                      </a>
+                    ) : (
+                      appointment.location_text
+                    )
+                  }
+                />
+              )}
             </dl>
           </Card>
 
-          {/* PAYMENT SUMMARY */}
-          <Card as="aside" className="flex flex-col gap-3">
+          {/* PAYMENT SUMMARY: stretches to the form card's height from `lg`, the total at its foot */}
+          <Card as="aside" className="flex flex-col gap-3 lg:grow">
             <SectionHeader size="card" title="Payment summary" />
             <dl>
               <SummaryRow label="Service" value={appointment.service_name} />
@@ -153,7 +156,7 @@ export default function Payment() {
               <SummaryRow label="Reservation fee" value={deposit ? peso(deposit.fee) : "–"} />
             </dl>
 
-            <p className="flex items-baseline justify-between border-t border-crimson-light/40 pt-3 font-display text-2xl text-gray-red">
+            <p className="flex items-baseline justify-between border-t border-crimson-light/40 pt-3 font-display text-2xl text-gray-red lg:mt-auto">
               <span>Total due</span>
               <span className="text-crimson-ink">{deposit ? peso(deposit.total) : "–"}</span>
             </p>

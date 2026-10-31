@@ -64,6 +64,7 @@ export default function MyAppointments() {
               onPay={() => a.payForAppointment(selected.appt)}
               onReschedule={() => a.rescheduleAppointment(selected.appt)}
               onCancel={() => a.startCancel(selected.appt)}
+              onDelete={() => a.setDeleteTarget(selected.appt)}
               onProofUploaded={a.handleProofUploaded}
               review={a.reviews[selected.appt.id]}
               onSubmitReview={a.submitReview}

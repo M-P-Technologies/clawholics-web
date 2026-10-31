@@ -8,6 +8,8 @@ export interface AppointmentView {
   isExpired: boolean;
   canReschedule: boolean;
   canCancel: boolean;
+  /** A cancelled appointment the client can take out of their list */
+  canDelete?: boolean;
   statusLabel: string;
   dateLabel: string;
   timeLabel: string;
