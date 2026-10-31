@@ -35,6 +35,16 @@ describe("the client's sheets", () => {
     expect(p.onCancel).toHaveBeenCalled();
   });
 
+  it("offers Delete only on a cancelled appointment", () => {
+    const onDelete = vi.fn();
+    const p = sheetProps();
+    const { rerender } = render(<AppointmentSheet view={view()} {...p} onDelete={onDelete} />);
+    expect(screen.queryByRole("button", { name: "Delete appointment" })).toBeNull();
+    rerender(<AppointmentSheet view={view({ canCancel: false, canReschedule: false, canPay: false, canDelete: true, displayStatus: "CANCELLED" })} {...p} onDelete={onDelete} />);
+    fireEvent.click(screen.getByRole("button", { name: "Delete appointment" }));
+    expect(onDelete).toHaveBeenCalled();
+  });
+
   it("edits the details in a modal sheet (no side drawer)", () => {
     render(
       <EditDetailsSheet

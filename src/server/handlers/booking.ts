@@ -389,6 +389,24 @@ export const getAppointmentById = ported<IdContext>(async (_req, { params }) => 
   return Response.json(appt);
 });
 
+// DELETE /appointments/:id (the client who booked it): takes a cancelled appointment out of their own list. The row
+// stays, so the payments and refunds behind it still count for the salon; only CANCELLED ones can go.
+export const deleteCancelledAppointment = ported<IdContext>(async (_req, { params }) => {
+  const requester = await requireUserRow();
+  if (requester instanceof Response) return requester;
+  const id = toId((await params).id);
+  if (id === null) return routeNotFound();
+  await cancelExpiredPendingAppointments();
+  const appt = await getAppointment(id);
+  if (!appt) return routeNotFound();
+  if (appt.user_id !== requester.id) return Response.json({ error: "Forbidden" }, { status: 403 });
+  if (statusOf(appt.status) !== "CANCELLED") {
+    return Response.json({ message: "Only a cancelled appointment can be deleted." }, { status: 409 });
+  }
+  await getSql()`update appointments set hidden_by_client = 1 where id = ${id}`;
+  return Response.json({ message: "Appointment deleted" });
+});
+
 /** Every status an appointment can have (the admin's status menu offers these) */
 const APPOINTMENT_STATUSES = ["PENDING", "AWAITING_PROOF", "CONFIRMED", "COMPLETED", "CANCELLED", "REFUNDED", "NO_SHOW"];
 /** Still to happen: a booking that can be moved or cancelled */

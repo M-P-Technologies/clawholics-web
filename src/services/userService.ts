@@ -146,6 +146,14 @@ export const redeemUserReward = async (clerkId: string, token?: string | null) =
   return json;
 };
 
+/** Deletes a cancelled appointment from the client's own list (the salon keeps its records) */
+export const deleteCancelledAppointment = async (appointmentId: number, token?: string | null) => {
+  const res = await fetch(`${API_BASE_URL}/appointments/${appointmentId}`, { method: "DELETE", headers: getHeaders(token) });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.message || "We couldn't delete this appointment. Please try again.");
+  return json;
+};
+
 // This is a bridge to the booking service for the profile page
 export const cancelAppointment = async (appointmentId: number, token?: string | null) => {
   const res = await fetch(`${API_BASE_URL}/booking/${appointmentId}/refund`, {

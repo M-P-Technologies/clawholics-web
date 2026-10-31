@@ -19,6 +19,8 @@ export interface AppointmentDetailsProps {
   onPay: () => void;
   onReschedule: () => void;
   onCancel: () => void;
+  /** Takes a cancelled appointment out of the client's list */
+  onDelete?: () => void;
   onProofUploaded: (appointmentId: number, proof: PaymentProof) => void;
   /** The client's review of this visit, once left */
   review?: Review;
@@ -28,11 +30,11 @@ export interface AppointmentDetailsProps {
 }
 
 /** Whether the appointment has any button to show (pay, reschedule, cancel) */
-export const appointmentHasActions = (view: AppointmentView) => Boolean(view.canPay || view.canReschedule || view.isLocked || view.canCancel);
+export const appointmentHasActions = (view: AppointmentView) => Boolean(view.canPay || view.canReschedule || view.isLocked || view.canCancel || view.canDelete);
 
 // One appointment in full: what, who, when, its payment proof and every action that applies. Shown
 // in the drawer (AppointmentSheet) and in the panel beside the Appointments list (AppointmentPanel).
-export default function AppointmentDetails({ view, now, tokenFetcher, clerkId, onPay, onReschedule, onCancel, onProofUploaded, review, onSubmitReview, actionsHost }: AppointmentDetailsProps) {
+export default function AppointmentDetails({ view, now, tokenFetcher, clerkId, onPay, onReschedule, onCancel, onDelete, onProofUploaded, review, onSubmitReview, actionsHost }: AppointmentDetailsProps) {
   const grow = actionsHost === undefined ? "grow" : undefined;
   return (
     <div className="flex flex-col gap-3">
@@ -81,6 +83,7 @@ export default function AppointmentDetails({ view, now, tokenFetcher, clerkId, o
           fit, each at least as wide as its words, wrapping rather than shrinking */}
       {appointmentHasActions(view) && (
         <FooterActions host={actionsHost}>
+          {view.canDelete && onDelete && <Button type="button" variant="secondary" onClick={onDelete} className={grow}>Delete appointment</Button>}
           {view.canCancel && <Button type="button" variant="secondary" onClick={onCancel} className={grow}>Cancel appointment</Button>}
           {(view.canReschedule || view.isLocked) && (
             <Button type="button" onClick={onReschedule} disabled={!view.canReschedule} className={grow}>Reschedule</Button>
