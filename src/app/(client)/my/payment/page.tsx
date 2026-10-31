@@ -127,16 +127,19 @@ export default function Payment() {
               <SummaryRow label="Preferred artist" value={artistLabel} />
               <SummaryRow label="Date" value={dateLabel} />
               <SummaryRow label="Time" value={timeLabel} />
-              <SummaryRow label="Location" value={
-                  appointment.location_url && appointment.location_text ? (
-                    <a href={appointment.location_url} target="_blank" rel="noopener noreferrer" className="font-bold text-crimson-ink underline underline-offset-4 hover:text-gray-red">
-                      {appointment.location_text}
-                    </a>
-                  ) : (
-                    appointment.location_text || "No location available"
-                  )
-                }
-              />
+              {/* Left out when this step was opened from the appointments list, which doesn't carry the location */}
+              {appointment.location_text && (
+                <SummaryRow label="Location" value={
+                    appointment.location_url ? (
+                      <a href={appointment.location_url} target="_blank" rel="noopener noreferrer" className="font-bold text-crimson-ink underline underline-offset-4 hover:text-gray-red">
+                        {appointment.location_text}
+                      </a>
+                    ) : (
+                      appointment.location_text
+                    )
+                  }
+                />
+              )}
             </dl>
           </Card>
 

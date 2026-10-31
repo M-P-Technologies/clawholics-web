@@ -73,9 +73,9 @@ export function useCreateAppointment({ onCreated }: { onCreated: () => void }) {
   const selectedPrice = useMemo(() => {
     if (!selectedService || !selectedNailist) return 0;
 
-    return isMasterArtist(selectedNailist)
-      ? selectedService.master_price
-      : selectedService.junior_price;
+    // A tier the service doesn't offer (0) falls back to the other one, as the server prices it
+    const own = isMasterArtist(selectedNailist) ? selectedService.master_price : selectedService.junior_price;
+    return own > 0 ? own : selectedService.master_price || selectedService.junior_price;
   }, [selectedService, selectedNailist]);
 
   useEffect(() => {
