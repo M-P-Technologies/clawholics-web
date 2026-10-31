@@ -10,7 +10,8 @@ const SIZE = {
     button: "h-7 w-7 text-xs sm:h-8 sm:w-8 sm:text-[13px]",
     grid: "border-spacing-1 sm:border-spacing-1.5",
   },
-  md: { day: "h-9 w-9 p-0 text-center", button: "h-9 w-9 text-sm", grid: "border-spacing-1.5" },
+  // md shrinks on narrow phones, where seven 36px days and their gaps are wider than the card
+  md: { day: "p-0 text-center", button: "h-8 w-8 text-[13px] min-[400px]:h-9 min-[400px]:w-9 min-[400px]:text-sm", grid: "border-spacing-1 min-[400px]:border-spacing-1.5" },
 } as const;
 
 interface DayCalendarProps {

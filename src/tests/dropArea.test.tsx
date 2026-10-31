@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { DropArea } from "@/components/features/admin/cms/fields";
+import { DropArea } from "@/components/molecules/DropArea";
 
 const photo = (name: string) => new File(["x"], name, { type: "image/png" });
 const input = <input id="pick" type="file" className="sr-only" />;

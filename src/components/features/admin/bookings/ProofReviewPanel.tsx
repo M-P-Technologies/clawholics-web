@@ -1,3 +1,4 @@
+import { Textarea } from "@/components/atoms";
 import { useCallback,useEffect,useRef,useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { adminDataChanged, adminKeys } from "@/lib/adminQueries";
@@ -170,7 +171,7 @@ export default function ProofReviewPanel({
               <label htmlFor={`reject-note-${appointmentId}`} className="text-xs font-bold uppercase">
                 Reason for rejection
               </label>
-              <textarea
+              <Textarea
                 id={`reject-note-${appointmentId}`}
                 rows={2}
                 value={rejectNote}

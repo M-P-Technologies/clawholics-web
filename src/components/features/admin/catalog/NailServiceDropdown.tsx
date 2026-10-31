@@ -1,3 +1,4 @@
+import { Textarea } from "@/components/atoms";
 import { ChevronDown as DropdownIcon, Plus as PlusIcon, Star as StarIcon, X } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -79,7 +80,7 @@ const InputField = ({ label, value, onChange, isEditing }: InputFieldProps) => {
       </div>
 
 
-      <textarea
+      <Textarea
         ref={textareaRef}
         disabled={!isEditing}
         value={value}
@@ -91,7 +92,7 @@ const InputField = ({ label, value, onChange, isEditing }: InputFieldProps) => {
             32
           )}px`;
         }}
-        className="w-full min-h-9.5 rounded-md border border-crimson-light bg-milk px-3 py-2 text-sm text-gray-red outline-none resize-none overflow-hidden whitespace-pre-line focus:ring-2 focus:ring-crimson disabled:cursor-not-allowed disabled:opacity-70"
+        className="w-full min-h-9.5! rounded-md border border-crimson-light bg-milk px-3 py-2 text-sm text-gray-red outline-none overflow-auto whitespace-pre-line focus:ring-2 focus:ring-crimson disabled:cursor-not-allowed disabled:opacity-70"
       />
     </div>
   );

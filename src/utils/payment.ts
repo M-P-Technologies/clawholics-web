@@ -5,6 +5,12 @@ import { CLIENT_PATHS } from "../lib/client/clientNav";
 export interface AppointmentState {
   appointment_id: number;
   service_name: string;
+  /** What the booking step knew of the service and the salon, for the payment step's booking summary */
+  service_category?: string;
+  service_description?: string;
+  service_image?: string;
+  location_text?: string;
+  location_url?: string;
   nailist_name: string;
   nailist_category_id: number;
   nailist_is_master?: number | null;

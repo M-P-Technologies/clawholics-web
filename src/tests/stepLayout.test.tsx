@@ -40,9 +40,7 @@ describe("step layout", () => {
     expect(container.querySelector(".bg-light-orange")).toBeNull();
     expect(container.querySelector(".rounded-sm")).toBeNull();
     expect(container.querySelector(".label-caps")).toBeNull();
-    expect(screen.getByRole("heading", { name: "Booking summary" }).closest(".rounded-2xl")).not.toBeNull(); // surface.card
     expect(container.querySelector(".\\@container .\\@xl\\:flex-row")).not.toBeNull();
-    expect(screen.getByText("Gel")).toHaveClass("rounded-full"); // Badge
   });
 
   it("reschedule: cards, no public-site panels", () => {

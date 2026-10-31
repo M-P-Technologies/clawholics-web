@@ -125,7 +125,7 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
 
   it("TC-ADM-04: services validate pricing, create categories by name, and archive when booked", async () => {
     as("user_admin");
-    const badPrice = await call(catalog.createService, "/api/services", { method: "POST", body: { name: "X", master_price: 500 } });
+    const badPrice = await call(catalog.createService, "/api/services", { method: "POST", body: { name: "X" } });
     expect(badPrice).toEqual({ status: 400, body: { message: "Fields cannot be empty." } });
 
     const created = await call(catalog.createService, "/api/services", {

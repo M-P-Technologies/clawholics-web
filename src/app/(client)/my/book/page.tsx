@@ -1,22 +1,24 @@
 "use client";
 
-import { publicPosition } from "@/lib/artistRoles";
+import { BOOKING_STEPS } from "@/lib/client/bookingSteps";
 import Image from "next/image";
-import { Users } from "lucide-react";
+import { publicPosition } from "@/lib/artistRoles";
+import { ArrowRight, Users } from "lucide-react";
 import clsx from "clsx";
 import { AlertDialog } from "@/components/organisms";
 import { Avatar, Badge, Button, Card, Select } from "@/components/atoms";
-import { SectionHeader, EmptyState, SummaryRow, TimeSlotList } from "@/components/molecules";
+import { SectionHeader, EmptyState, StepBar, StickyActionBar, SummaryRow, TimeSlotList } from "@/components/molecules";
 import DayCalendar from "@/components/molecules/DayCalendar";
 import { surface } from "@/components/tokens";
 import BookingOptions from "@/components/features/client/booking/BookingOptions";
 import ContactHandlesFields from "@/components/features/client/booking/ContactHandlesFields";
 import ClientScreen from "@/components/features/client/shell/ClientScreen";
 import { BookingStepSkeleton, FieldSkeleton } from "@/components/features/client/skeletons/skeletons";
+import { CLIENT_PATHS } from "@/lib/client/clientNav";
 import { useBooking } from "@/hooks/client/useBooking";
 
 export default function Booking() {
-  const { anyArtist, canChooseAnyArtist, artistLabel, loadingAnyDays, rulesHint, monthsAhead, priceLabel, pageData, isPageLoading, pageError, nailists, loadingArtists, selectedNailist, selectedDate, selectedTime, setSelectedTime, timeSlots, month, setMonth, modalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, locationUrl, locationText, isDisabledDate, formatSlot, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage, contactFields, contact } = useBooking();
+  const { artistLabel, priceLabel, service_category, service_description, service_name, service_image, locationUrl, locationText, anyArtist, canChooseAnyArtist, loadingAnyDays, rulesHint, monthsAhead, pageData, isPageLoading, pageError, nailists, loadingArtists, selectedNailist, selectedDate, selectedTime, setSelectedTime, timeSlots, month, setMonth, modalOpen, modalTitle, modalMessage, modalAction, modalButtonText, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, isDisabledDate, formatSlot, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage, contactFields, contact } = useBooking();
 
   // Inside the same frame as the loaded step, so the top bar and its back button stay put
   if (isPageLoading) {
@@ -51,8 +53,8 @@ export default function Booking() {
   return (
     <ClientScreen title="Book" back="history">
       <div className="flex flex-col gap-6">
-        {/* The form takes two thirds and the summary one third; both cards stretch to the row's
-            height, so they always end level */}
+        <div className="lg:hidden"><StepBar steps={BOOKING_STEPS} current={0} label="Booking steps" /></div>
+        {/* The form takes two thirds and the summary one third from `lg`; on phones the summary is on the payment step */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-6">
           {/* BOOKING FORM */}
           <Card className="flex flex-col gap-6 lg:col-span-2">
@@ -83,7 +85,11 @@ export default function Booking() {
                 <FieldSkeleton label="Loading artists" />
               ) : nailists.length === 0 ? (
                 <p className={clsx(surface.tint, "px-3 py-3 text-sm text-gray-red")}>
-                  No available artists for this service.
+                  No available artists for this service right now.{" "}
+                  <Button variant="bare" to={CLIENT_PATHS.explore} className="font-bold text-crimson-ink underline underline-offset-4 hover:text-gray-red">
+                    Check out our other services
+                  </Button>{" "}
+                  to find one you can book.
                 </p>
               ) : (
                 // Each artist's face beside their name, and their title underneath
@@ -163,7 +169,7 @@ export default function Booking() {
           </Card>
 
           {/* SUMMARY */}
-          <Card as="aside" className="flex flex-col gap-3">
+          <Card as="aside" className="hidden flex-col gap-3 lg:flex">
             <SectionHeader size="card" title="Booking summary" />
             {service_image && (
               <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-crimson-light/15">
@@ -198,17 +204,16 @@ export default function Booking() {
           </Card>
         </div>
 
-        {/* On phones the action stays at the bottom of the screen while the page scrolls under it */}
-        <div className="sticky bottom-0 z-30 -mx-3 flex justify-center border-t border-crimson-light/40 bg-milk/95 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_20px_-10px] shadow-crimson/25 backdrop-blur-md sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none">
+        <StickyActionBar>
           <Button
             onClick={handleContinue}
             disabled={isSubmitting}
             aria-busy={isSubmitting}
             className="w-full sm:w-auto disabled:cursor-wait disabled:opacity-60"
           >
-            {isSubmitting ? "Reserving your slot..." : "Continue to payment"}
+            {isSubmitting ? "Reserving your slot..." : (<>Continue to payment<ArrowRight size={16} aria-hidden="true" /></>)}
           </Button>
-        </div>
+        </StickyActionBar>
       </div>
 
       <AlertDialog

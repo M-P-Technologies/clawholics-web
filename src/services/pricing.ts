@@ -35,7 +35,8 @@ export const estimateTotal = (input: {
   } else if (service.pricing_type === "flat") {
     base = service.price ?? 0;
   } else {
-    base = input.isMaster ? service.master_price : service.junior_price;
+    const own = input.isMaster ? service.master_price : service.junior_price;
+    base = own > 0 ? own : service.master_price || service.junior_price;
   }
 
   if (!(base > 0)) return null;

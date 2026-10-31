@@ -89,7 +89,7 @@ describe("the Complete visit form", () => {
     uploadVisitPhoto.mockResolvedValue({ photo_url: "https://images.test/x.webp" });
     const { user, onSaved } = renderForm(visit());
     const photo = new File(["x"], "nails.jpg", { type: "image/jpeg" });
-    await user.upload(screen.getByLabelText("Nail photo"), photo);
+    await user.upload(screen.getByLabelText("Visit photo"), photo);
     expect(screen.getByText("nails.jpg")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Complete visit" }));
     await waitFor(() => expect(uploadVisitPhoto).toHaveBeenCalledWith(7, photo, { token: "tok", clerkId: "admin_1" }));
@@ -100,7 +100,7 @@ describe("the Complete visit form", () => {
   it("still completes the visit when the photo can't be uploaded, and says so", async () => {
     uploadVisitPhoto.mockRejectedValue(new Error("too big"));
     const { user, onSaved } = renderForm(visit());
-    await user.upload(screen.getByLabelText("Nail photo"), new File(["x"], "nails.jpg", { type: "image/jpeg" }));
+    await user.upload(screen.getByLabelText("Visit photo"), new File(["x"], "nails.jpg", { type: "image/jpeg" }));
     await user.click(screen.getByRole("button", { name: "Complete visit" }));
     await waitFor(() => expect(onSaved).toHaveBeenCalled());
     expect(show).toHaveBeenCalledWith("error", "Photo not added", expect.stringContaining("Add photo"));
@@ -108,7 +108,7 @@ describe("the Complete visit form", () => {
 
   it("refuses a file that isn't a JPG, PNG or WEBP", async () => {
     const { user } = renderForm(visit());
-    fireEvent.change(screen.getByLabelText("Nail photo"), { target: { files: [new File(["x"], "nails.gif", { type: "image/gif" })] } });
+    fireEvent.change(screen.getByLabelText("Visit photo"), { target: { files: [new File(["x"], "nails.gif", { type: "image/gif" })] } });
     expect(screen.getByRole("alert")).toHaveTextContent("Choose a JPG, PNG or WEBP photo.");
     await user.click(screen.getByRole("button", { name: "Complete visit" }));
     expect(saveCompletion).not.toHaveBeenCalled();
@@ -151,7 +151,7 @@ describe("the Complete visit form", () => {
 
   it("asks for the visit's photo when it was completed without one, with a link that opens the upload window", async () => {
     const { user } = renderForm(visit({ status: "COMPLETED", completion: { balance_amount: 1000, payment_method: "Cash", nailist_id: 1, nailist_name: "Miss Max", photos_added: 0 } }));
-    expect(screen.getByText(/Nail photo still to add/)).toBeInTheDocument();
+    expect(screen.getByText(/Photo still to add/)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Add photo" }));
     expect(screen.getByRole("dialog", { name: "Add a visit photo" })).toBeInTheDocument();
   });

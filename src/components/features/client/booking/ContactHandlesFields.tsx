@@ -55,7 +55,7 @@ export default function ContactHandlesFields({ contact, fields }: { contact: Con
             onChange={(e) => contact.choose(e.target.value)}
             className="min-w-0 flex-1"
           />
-          <span aria-live="polite" className="flex size-6 shrink-0 items-center justify-center">
+          <span aria-live="polite" className={clsx("flex size-6 shrink-0 items-center justify-center", contact.status === "idle" && "max-sm:hidden")}>
             {contact.status === "saving" && <Loader2 aria-label="Saving" className="size-4 animate-spin text-gray-red" />}
             {contact.status === "saved" && (
               <span className="flex size-5 items-center justify-center rounded-full bg-success/25 text-success-ink" title="Saved to your profile">

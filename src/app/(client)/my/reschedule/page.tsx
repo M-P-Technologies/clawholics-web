@@ -3,7 +3,7 @@
 import clsx from "clsx";
 import { AlertDialog } from "@/components/organisms";
 import { Button, Card } from "@/components/atoms";
-import { SectionHeader, SummaryRow, TimeSlotList } from "@/components/molecules";
+import { SectionHeader, SummaryRow, TimeSlotList, StickyActionBar } from "@/components/molecules";
 import DayCalendar from "@/components/molecules/DayCalendar";
 import { surface } from "@/components/tokens";
 import ClientScreen from "@/components/features/client/shell/ClientScreen";
@@ -94,7 +94,7 @@ export default function Reschedule() {
           </Card>
         </div>
 
-        <div className="flex justify-center">
+        <StickyActionBar>
           <Button
             onClick={handleConfirmReschedule}
             disabled={!selectedDate || !selectedTime || isSubmitting}
@@ -103,7 +103,7 @@ export default function Reschedule() {
           >
             {isSubmitting ? "Processing..." : "Confirm reschedule"}
           </Button>
-        </div>
+        </StickyActionBar>
       </div>
 
       <AlertDialog

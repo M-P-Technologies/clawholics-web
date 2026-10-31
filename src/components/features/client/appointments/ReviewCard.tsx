@@ -1,5 +1,7 @@
-import { ImagePlus, X } from "lucide-react";
-import { useEffect, useState, type ChangeEvent } from "react";
+import { Textarea } from "@/components/atoms";
+import { DropArea } from "@/components/molecules/DropArea";
+import { X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { validateProofFile } from "@/services/proofService";
 import type { Review, ReviewDraft } from "@/services/reviewService";
 import { Button, StarPicker, Stars } from "@/components/atoms";
@@ -41,9 +43,7 @@ export default function ReviewCard({ appointmentId, review, onSubmit }: ReviewCa
     );
   }
 
-  const pickPhoto = (event: ChangeEvent<HTMLInputElement>) => {
-    const picked = event.target.files?.[0] ?? null;
-    event.target.value = "";
+  const pickPhoto = (picked?: File) => {
     if (!picked) return;
     const problem = validateProofFile(picked);
     setError(problem);
@@ -78,7 +78,7 @@ export default function ReviewCard({ appointmentId, review, onSubmit }: ReviewCa
         <p className="text-xs opacity-70">We may show your review on our website, with your first name and the initial of your last name.</p>
       </div>
       <StarPicker value={rating} onChange={setRating} />
-      <textarea
+      <Textarea
         aria-label="Your review"
         rows={3}
         maxLength={1000}
@@ -96,12 +96,8 @@ export default function ReviewCard({ appointmentId, review, onSubmit }: ReviewCa
           </Button>
         </div>
       ) : (
-        <label htmlFor={inputId} className="flex cursor-pointer items-center gap-3 self-start text-sm font-bold text-berry underline underline-offset-4">
-          <ImagePlus size={16} aria-hidden="true" />
-          Add a photo
-        </label>
+        <DropArea id={inputId} inputLabel="Review photo" label="Add a photo" hint="JPG, PNG or WEBP. Click, or drop it here." onFile={pickPhoto} />
       )}
-      <input id={inputId} type="file" accept="image/jpeg,image/png,image/webp" onChange={pickPhoto} className="sr-only" />
       {error && <p role="alert" className="text-sm text-danger-ink">{error}</p>}
       <Button type="button" onClick={send} loading={busy} disabled={rating === 0} className="w-full">
         Send review

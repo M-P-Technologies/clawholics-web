@@ -44,7 +44,7 @@ export default function CompleteVisitForm({ visit, artists, onSaved, onCancelLat
           </Button>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          {form.photosMissing && <p className="text-xs font-bold text-warning-ink">Nail photo still to add, for the artist&apos;s gallery.</p>}
+          {form.photosMissing && <p className="text-xs font-bold text-warning-ink">Photo still to add, for the artist&apos;s gallery.</p>}
           <button type="button" onClick={form.openPhoto} className="text-xs font-bold text-crimson-ink underline underline-offset-2">
             {form.hasPhoto ? "Change photo" : "Add photo"}
           </button>
@@ -164,7 +164,7 @@ export default function CompleteVisitForm({ visit, artists, onSaved, onCancelLat
         </div>
       </div>
       <div className="flex flex-col gap-1">
-        <span className="text-xs font-bold text-gray-red">Nail photo (optional)</span>
+        <span className="text-xs font-bold text-gray-red">Photo (optional)</span>
         <VisitPhotoDropzone
           id={`${id}-photo`}
           file={form.photo.file}

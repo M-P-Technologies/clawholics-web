@@ -26,12 +26,14 @@ export interface ProfilePanelProps {
   rows: ProfileRow[];
   /** Actions under the rows, e.g. Edit details */
   children?: ReactNode;
+  /** Extra classes for the actions' row, e.g. `max-lg:hidden` when they're drawn elsewhere on phones */
+  actionsClassName?: string;
   className?: string;
 }
 
 // A person's panel (the admin's client page, the client's own profile): who they are, a highlighted
 // box such as their next visit, their details, and actions.
-export default function ProfilePanel({ label, name, imageUrl, badges, highlight, rowsTitle, rows, children, className }: ProfilePanelProps) {
+export default function ProfilePanel({ label, name, imageUrl, badges, highlight, rowsTitle, rows, children, actionsClassName, className }: ProfilePanelProps) {
   const HighlightIcon = highlight?.icon;
   return (
     <aside aria-label={label} className={clsx("flex min-w-0 flex-col gap-6 p-6", surface.card, className)}>
@@ -91,7 +93,7 @@ export default function ProfilePanel({ label, name, imageUrl, badges, highlight,
         </dl>
       </div>
 
-      {children && <div className="flex flex-col gap-3 border-t border-crimson-light/50 pt-3">{children}</div>}
+      {children && <div className={clsx("flex flex-col gap-3 border-t border-crimson-light/50 pt-3", actionsClassName)}>{children}</div>}
     </aside>
   );
 }

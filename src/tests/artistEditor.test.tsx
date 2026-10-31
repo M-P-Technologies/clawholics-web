@@ -125,7 +125,7 @@ describe("artist editor", () => {
     expect(screen.getByText("Time Slots")).toBeInTheDocument();
     expect(screen.getByText("08:00 AM")).toBeInTheDocument();
     expect(screen.getByText("10:00 AM")).toBeInTheDocument();
-    expect(screen.getByText("Photo")).toBeInTheDocument();
+    expect(screen.getByText("Profile photo")).toBeInTheDocument();
     expect(screen.getByText("mara.webp")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Edit" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Delete" })).toBeInTheDocument();
@@ -480,7 +480,7 @@ describe("artist editor", () => {
       expect(screen.queryByText("Add a photo")).not.toBeInTheDocument();
       removePhoto();
       expect(screen.queryByText("mara.webp")).not.toBeInTheDocument();
-      expect(screen.getByText("Add a photo")).toBeInTheDocument();
+      expect(screen.getByText("Add a profile photo")).toBeInTheDocument();
       uploadImage.mockResolvedValue({ key: "k", imageUrl: "https://img/nailists/new.webp" });
       const file = new File(["x"], "new.png", { type: "image/png" });
       fireEvent.change(document.querySelector('input[type="file"]') as HTMLInputElement, { target: { files: [file] } });
@@ -496,7 +496,7 @@ describe("artist editor", () => {
       const file = new File(["x"], "new.png", { type: "image/png" });
       fireEvent.change(document.querySelector('input[type="file"]') as HTMLInputElement, { target: { files: [file] } });
       await waitFor(() => expect(show).toHaveBeenCalledWith("error", "Photo not uploaded", expect.any(String)));
-      expect(screen.getByText("Add a photo")).toBeInTheDocument();
+      expect(screen.getByText("Add a profile photo")).toBeInTheDocument();
     });
   });
 });

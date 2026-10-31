@@ -86,7 +86,7 @@ describe("day calendar", () => {
     const { rerender } = render(<DayCalendar {...base} size="sm" />);
     expect(day(10)).toHaveClass("h-7", "w-7");
     rerender(<DayCalendar {...base} />);
-    expect(day(10)).toHaveClass("h-9", "w-9");
+    expect(day(10)).toHaveClass("min-[400px]:h-9", "min-[400px]:w-9");
   });
 
   it("can stop at the next month", () => {

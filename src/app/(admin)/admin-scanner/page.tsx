@@ -62,12 +62,12 @@ export default function AdminScanner() {
 
             <div className="mt-auto">
               {!isScanning ? (
-                <Button onClick={startScanner} className="w-full">
+                <Button onClick={startScanner} className="w-full sm:w-auto sm:self-end">
                   <Camera size={16} aria-hidden="true" />
                   Start scanner
                 </Button>
               ) : (
-                <Button variant="secondary" onClick={stopScanner} className="w-full">
+                <Button variant="secondary" onClick={stopScanner} className="w-full sm:w-auto sm:self-end">
                   Stop scanner
                 </Button>
               )}

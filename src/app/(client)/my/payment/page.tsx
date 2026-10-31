@@ -1,11 +1,13 @@
 "use client";
 
+import { BOOKING_STEPS } from "@/lib/client/bookingSteps";
 import Image from "next/image";
+import { ArrowRight } from "lucide-react";
 import clsx from "clsx";
 import qrPhLogo from "@/assets/logo/qr_ph.png";
 import { AlertDialog } from "@/components/organisms";
-import { Button, Card } from "@/components/atoms";
-import { ChoiceRow, SectionHeader, SummaryRow } from "@/components/molecules";
+import { Badge, Button, Card } from "@/components/atoms";
+import { ChoiceRow, SectionHeader, StepBar, StickyActionBar, SummaryRow } from "@/components/molecules";
 import { surface } from "@/components/tokens";
 import ClientScreen from "@/components/features/client/shell/ClientScreen";
 import { BookingStepSkeleton } from "@/components/features/client/skeletons/skeletons";
@@ -50,8 +52,8 @@ export default function Payment() {
   return (
     <ClientScreen title="Payment" back="history">
       <div className="flex flex-col gap-6">
-        {/* As on the Book step: the form takes two thirds and the summary one third, and both cards
-            stretch to the row's height, so they always end level */}
+        <div className="lg:hidden"><StepBar steps={BOOKING_STEPS} current={1} label="Booking steps" /></div>
+        {/* The form takes two thirds; the booking summary and the payment summary stack in the third */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-6">
           {/* PAYMENT FORM */}
           <Card className="flex flex-col gap-6 lg:col-span-2">
@@ -105,14 +107,47 @@ export default function Payment() {
             </div>
           </Card>
 
-          {/* SUMMARY */}
+          <div className="flex flex-col gap-3 md:gap-6">
+          {/* BOOKING SUMMARY: what was chosen on the Book step */}
+          <Card as="aside" className="flex flex-col gap-3 lg:hidden">
+            <SectionHeader size="card" title="Booking summary" />
+            {appointment.service_image && (
+              <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-crimson-light/15">
+                <Image src={appointment.service_image} alt={appointment.service_name} fill sizes="(max-width: 1024px) 100vw, 33vw" className="object-cover" />
+              </div>
+            )}
+            <div className="flex flex-col items-start gap-3">
+              {appointment.service_category && <Badge tone="brand">{appointment.service_category}</Badge>}
+              <p className="font-display text-2xl text-gray-red">{appointment.service_name}</p>
+              {appointment.service_description && (
+                <p className="line-clamp-3 text-sm text-gray-red" title={appointment.service_description}>{appointment.service_description}</p>
+              )}
+            </div>
+            <dl className="border-t border-crimson-light/40 pt-2">
+              <SummaryRow label="Preferred artist" value={artistLabel} />
+              <SummaryRow label="Date" value={dateLabel} />
+              <SummaryRow label="Time" value={timeLabel} />
+              <SummaryRow label="Location" value={
+                  appointment.location_url && appointment.location_text ? (
+                    <a href={appointment.location_url} target="_blank" rel="noopener noreferrer" className="font-bold text-crimson-ink underline underline-offset-4 hover:text-gray-red">
+                      {appointment.location_text}
+                    </a>
+                  ) : (
+                    appointment.location_text || "No location available"
+                  )
+                }
+              />
+            </dl>
+          </Card>
+
+          {/* PAYMENT SUMMARY */}
           <Card as="aside" className="flex flex-col gap-3">
             <SectionHeader size="card" title="Payment summary" />
             <dl>
               <SummaryRow label="Service" value={appointment.service_name} />
-              <SummaryRow label="Preferred artist" value={artistLabel} />
-              <SummaryRow label="Date" value={dateLabel} />
-              <SummaryRow label="Time" value={timeLabel} />
+              <SummaryRow label="Preferred artist" value={artistLabel} className="hidden lg:flex" />
+              <SummaryRow label="Date" value={dateLabel} className="hidden lg:flex" />
+              <SummaryRow label="Time" value={timeLabel} className="hidden lg:flex" />
               <SummaryRow label="Price" value={priceLabel} />
               <SummaryRow label="Deductible from total" value={deposit ? peso(deposit.deductible) : "–"} />
               <SummaryRow label="Reservation fee" value={deposit ? peso(deposit.fee) : "–"} />
@@ -123,13 +158,15 @@ export default function Payment() {
               <span className="text-crimson-ink">{deposit ? peso(deposit.total) : "–"}</span>
             </p>
           </Card>
+          </div>
         </div>
 
-        <div className="flex justify-center">
-          <Button id="pay-button" onClick={handlePay}>
+        <StickyActionBar>
+          <Button id="pay-button" onClick={handlePay} className="w-full sm:w-auto">
             Pay downpayment
+            <ArrowRight size={16} aria-hidden="true" />
           </Button>
-        </div>
+        </StickyActionBar>
       </div>
 
       <AlertDialog
