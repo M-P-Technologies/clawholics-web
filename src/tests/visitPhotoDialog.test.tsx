@@ -34,7 +34,7 @@ describe("the visit photo window", () => {
     expect(screen.getByRole("dialog", { name: "Add a visit photo" })).toBeInTheDocument();
     expect(screen.getByText(/One photo, up to 5 MB/)).toBeInTheDocument();
     const photo = new File(["x"], "nails.jpg", { type: "image/jpeg" });
-    await user.upload(screen.getByLabelText("Nail photo"), photo);
+    await user.upload(screen.getByLabelText("Visit photo"), photo);
     await user.click(screen.getByRole("button", { name: "Upload photo" }));
     await waitFor(() => expect(uploadVisitPhoto).toHaveBeenCalledWith(7, photo, { token: "tok", clerkId: "admin_1" }));
     expect(onDone).toHaveBeenCalled();
@@ -43,7 +43,7 @@ describe("the visit photo window", () => {
   it("refuses a photo over 5 MB, before uploading anything", async () => {
     const { user } = open();
     const big = new File([new Uint8Array(5 * 1024 * 1024 + 1)], "big.jpg", { type: "image/jpeg" });
-    await user.upload(screen.getByLabelText("Nail photo"), big);
+    await user.upload(screen.getByLabelText("Visit photo"), big);
     expect(screen.getByRole("alert")).toHaveTextContent("5 MB or smaller");
     expect(screen.getByRole("button", { name: "Upload photo" })).toBeDisabled();
     expect(uploadVisitPhoto).not.toHaveBeenCalled();

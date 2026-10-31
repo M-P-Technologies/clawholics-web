@@ -348,6 +348,11 @@ export function useBooking() {
       state: {
         appointment_id: result.appointment_id,
         service_name,
+        service_category,
+        service_description,
+        service_image,
+        location_text: locationText,
+        location_url: locationUrl,
         service_price: result.total_price ?? selectedPrice ?? 0,
         // For any artist, the one the salon assigned (the server says who)
         nailist_name: result.nailist_name ?? selectedNailist?.name ?? "",

@@ -62,7 +62,7 @@ export default function ImageCard({
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col gap-3 p-3 max-sm:pl-2 md:p-6">
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-1">
           <h2 id={titleId} className="font-display text-xl font-normal uppercase tracking-widest text-gray-red">
             {title}
           </h2>

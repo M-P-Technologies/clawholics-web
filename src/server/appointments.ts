@@ -10,7 +10,7 @@ import { PHOTOS_TO_ADD_SQL, TO_COMPLETE_SQL, manilaNow } from "./visitsToComplet
 // Price for a service (alias s) done by an artist whose category is joined as nc. 'single'
 // services cost master_price with every artist.
 export const SERVICE_PRICE_SQL =
-  "case when s.pricing_mode = 'single' or nc.is_master = 1 then s.master_price else s.junior_price end";
+  "case when s.pricing_mode = 'single' then s.master_price when nc.is_master = 1 then coalesce(nullif(s.master_price, 0), s.junior_price) else coalesce(nullif(s.junior_price, 0), s.master_price) end";
 
 // The Worker's appointmentSelect: the appointment plus client, artist, price and its latest
 // (paid first) payment.

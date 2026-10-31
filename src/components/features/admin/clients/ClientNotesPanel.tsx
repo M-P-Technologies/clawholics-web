@@ -1,3 +1,4 @@
+import { Textarea } from "@/components/atoms";
 import { useCallback,useEffect,useRef,useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { adminKeys, adminQueries } from "@/lib/adminQueries";
@@ -134,7 +135,7 @@ export default function ClientNotesPanel({ clientUserId, tokenFetcher, clerkId }
             <label htmlFor={`next-steps-${clientUserId}`} className="text-xs font-bold uppercase">
               Next steps
             </label>
-            <textarea
+            <Textarea
               id={`next-steps-${clientUserId}`}
               rows={2}
               value={nextSteps}
@@ -156,7 +157,7 @@ export default function ClientNotesPanel({ clientUserId, tokenFetcher, clerkId }
             <label htmlFor={`new-note-${clientUserId}`} className="text-xs font-bold uppercase">
               New note
             </label>
-            <textarea
+            <Textarea
               id={`new-note-${clientUserId}`}
               rows={2}
               value={newNote}
@@ -188,7 +189,7 @@ export default function ClientNotesPanel({ clientUserId, tokenFetcher, clerkId }
                 <li key={n.id} className="rounded-xl bg-milk px-3 py-2">
                   {editingId === n.id ? (
                     <div className="flex flex-col gap-3">
-                      <textarea
+                      <Textarea
                         aria-label="Edit note"
                         rows={3}
                         value={editText}

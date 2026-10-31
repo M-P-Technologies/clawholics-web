@@ -8,13 +8,14 @@ interface SummaryRowProps {
   icon?: ReactNode;
   /** The total: bigger and in the brand colour */
   strong?: boolean;
+  className?: string;
 }
 
 // One label and value line in a summary list (a booking, a payment, an appointment's details), divided
 // from the row above by a dotted line. Goes inside a <dl>. A long value wraps.
-export default function SummaryRow({ label, value, icon, strong = false }: SummaryRowProps) {
+export default function SummaryRow({ label, value, icon, strong = false, className }: SummaryRowProps) {
   return (
-    <div className="flex items-baseline justify-between gap-3 border-t border-dotted border-crimson-light py-2 first:border-t-0 first:pt-0">
+    <div className={clsx("flex items-baseline justify-between gap-3 border-t border-dotted border-crimson-light py-2 first:border-t-0 first:pt-0", className)}>
       <dt className="flex shrink-0 items-center gap-3 text-[13px] text-gray-red">
         {icon && (
           <span aria-hidden="true" className="shrink-0 text-crimson">

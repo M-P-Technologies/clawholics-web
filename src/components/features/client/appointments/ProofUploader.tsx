@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useState } from "react";
 import {
   isProofApiUnavailable,
   uploadProof,
@@ -6,6 +6,7 @@ import {
   type PaymentProof,
 } from "@/services/proofService";
 import { Button } from "@/components/atoms";
+import { DropArea } from "@/components/molecules/DropArea";
 
 interface ProofUploaderProps {
   appointmentId: number;
@@ -26,7 +27,6 @@ export default function ProofUploader({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
   const inputId = `proof-file-${appointmentId}`;
 
   useEffect(() => {
@@ -35,8 +35,7 @@ export default function ProofUploader({
     };
   }, [previewUrl]);
 
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const picked = event.target.files?.[0] ?? null;
+  const handleFile = (picked: File | null) => {
     setError(null);
 
     if (!picked) {
@@ -67,7 +66,6 @@ export default function ProofUploader({
       const proof = await uploadProof(appointmentId, file, { token, clerkId });
       setFile(null);
       setPreviewUrl(null);
-      if (inputRef.current) inputRef.current.value = "";
       onUploaded(proof);
     } catch (err) {
       setError(
@@ -84,20 +82,15 @@ export default function ProofUploader({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-col gap-3 rounded-xl border-2 border-dashed border-crimson-light bg-crimson-light/10 p-4">
-        <label htmlFor={inputId} className="text-[13px] font-bold text-gray-red">
-          Payment screenshot <span className="font-normal">(JPG, PNG or WEBP)</span>
-        </label>
-        <input
-          ref={inputRef}
-          id={inputId}
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          onChange={handleChange}
-          disabled={busy}
-          className="w-full min-w-0 text-sm text-gray-red file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-crimson file:px-4 file:py-2 file:text-[13px] file:font-bold file:text-on-crimson hover:file:bg-crimson-ink hover:file:text-pearl"
-        />
-      </div>
+      <DropArea
+        id={inputId}
+        disabled={busy}
+        inputLabel="Payment screenshot"
+        label={file ? "Choose another screenshot" : "Add your payment screenshot"}
+        hint="JPG, PNG or WEBP. Click, or drop it here."
+        onFile={(f) => handleFile(f ?? null)}
+      />
+      {file && <p className="truncate text-xs font-bold text-gray-red">{file.name}</p>}
 
       {previewUrl && (
         <img

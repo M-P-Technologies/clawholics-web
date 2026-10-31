@@ -1,8 +1,9 @@
 "use client";
 
+import { BOOKING_STEPS } from "@/lib/client/bookingSteps";
 import { CircleCheckBig as CheckIcon } from "lucide-react";
 import { Button, Card, LoadingBar } from "@/components/atoms";
-import { SectionHeader, EmptyState, SummaryRow } from "@/components/molecules";
+import { SectionHeader, EmptyState, SummaryRow, StepBar, StickyActionBar } from "@/components/molecules";
 import AddToCalendarButton from "@/components/features/client/appointments/AddToCalendarButton";
 import ClientScreen from "@/components/features/client/shell/ClientScreen";
 import { ConfirmationSkeleton } from "@/components/features/client/skeletons/skeletons";
@@ -100,6 +101,9 @@ export default function PaymentConfirmation() {
   return (
     <ClientScreen title="Payment" back={CLIENT_PATHS.appointments}>
       <div className="mx-auto flex min-h-[60vh] w-full max-w-3xl flex-col items-center gap-3 text-center md:gap-6">
+        <div className="w-full max-w-xl lg:hidden">
+          <StepBar steps={BOOKING_STEPS} current={3} label="Booking steps" />
+        </div>
         <CheckIcon size={56} className="text-crimson" strokeWidth={1.5} aria-hidden="true" />
 
         <SectionHeader size="section" title="Booking confirmed" className="items-center" />
@@ -144,10 +148,12 @@ export default function PaymentConfirmation() {
           />
         )}
 
-        <Button to={CLIENT_PATHS.home}>
+      </div>
+      <StickyActionBar>
+        <Button to={CLIENT_PATHS.home} className="w-full sm:w-auto">
           Back to home
         </Button>
-      </div>
+      </StickyActionBar>
     </ClientScreen>
   );
 }

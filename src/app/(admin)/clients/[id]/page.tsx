@@ -1,3 +1,4 @@
+import { Badge, Button, Textarea } from "@/components/atoms";
 "use client";
 
 import { CalendarCheck, Stamp, Wallet } from "lucide-react";
@@ -7,7 +8,6 @@ import BookingTracker from "@/components/features/admin/clients/BookingTracker";
 import ClientAppointments from "@/components/features/admin/clients/ClientAppointments";
 import NoteItem from "@/components/features/admin/clients/NoteItem";
 import { StatCard, TabSection, Tabs, EmptyState } from "@/components/molecules";
-import { Badge, Button } from "@/components/atoms";
 import { ProfilePanel } from "@/components/organisms";
 import { ClientPageSkeleton } from "@/components/features/admin/skeletons/skeletons";
 import { useClientPage } from "@/hooks/admin/useClientPage";
@@ -93,7 +93,7 @@ export default function ClientPage() {
                       <label className="sr-only" htmlFor="new-client-note">
                         New note
                       </label>
-                      <textarea
+                      <Textarea
                         id="new-client-note"
                         aria-label="New note"
                         rows={3}
@@ -120,7 +120,7 @@ export default function ClientPage() {
                     )}
                   </TabSection>
                   <TabSection title="Next steps" description="What to do next for this client.">
-                    <textarea
+                    <Textarea
                       aria-label="Next steps"
                       rows={5}
                       value={page.steps}

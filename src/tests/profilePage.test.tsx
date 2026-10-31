@@ -77,7 +77,7 @@ describe("MyProfile", () => {
     expect(panel.getByText("Next visit")).toBeInTheDocument();
     fireEvent.click(panel.getByRole("button", { name: "Edit details" }));
     expect(hook.handleEditClick).toHaveBeenCalled();
-    fireEvent.click(panel.getByRole("button", { name: "Log out" }));
+    fireEvent.click(screen.getByRole("button", { name: "Log out" }));
     expect(signOut).toHaveBeenCalledWith({ redirectUrl: "/" });
   });
 

@@ -300,7 +300,7 @@ export const deleteCategory = changesCatalog(ported<IdContext>(async (req, { par
 
 const PRICING_MODES = ["tiered", "single"];
 
-// 'tiered' services need both prices; 'single' ones take master_price for every artist and
+// 'tiered' services need at least one tier's price (the other may stay empty = 0); 'single' ones take master_price for every artist and
 // store junior_price equal to it. pricing_mode is kept as-is on update when it isn't sent. The
 // admin form sends pricing_type ('flat' = 'single') and a flat service's price as price.
 // A service with options may leave its prices empty: they're then its cheapest option's.
@@ -313,11 +313,13 @@ function resolvePricing(body: Body, variants: Variant[], currentMode = "tiered")
   const given = (value: unknown) => (value === undefined || value === null || value === "" || Number(value) === 0 ? null : Number(value));
   const masterSent = given(mode === "single" ? (body.price ?? body.master_price) : body.master_price);
   const juniorSent = given(body.junior_price);
-  // With options, a tier left empty takes the other tier's price, or else the cheapest option's
-  const master = masterSent ?? juniorSent ?? (cheapest || null);
-  const junior = mode === "single" ? master : juniorSent ?? (variants.length ? masterSent ?? cheapest : null);
+  // A tier left empty stays empty (0: not offered, e.g. one lash artist with no Master/Junior split); the artist's
+  // price then falls back to the tier that is set. Only when both are empty do the options (or nothing) fill in.
+  const bothEmpty = masterSent === null && juniorSent === null;
+  const master = mode === "single" ? masterSent ?? (cheapest || null) : bothEmpty ? (cheapest || null) : masterSent ?? 0;
+  const junior = mode === "single" ? master : bothEmpty ? (cheapest || null) : juniorSent ?? 0;
   if (master === null || junior === null) return { error: "Fields cannot be empty." };
-  if (!Number.isInteger(master) || master <= 0 || !Number.isInteger(junior) || junior <= 0) return { error: "Invalid price." };
+  if (!Number.isInteger(master) || master < 0 || !Number.isInteger(junior) || junior < 0 || (master === 0 && junior === 0)) return { error: "Invalid price." };
   return { mode, master, junior };
 }
 

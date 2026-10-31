@@ -15,7 +15,10 @@ export { default as SortableList } from "./SortableList";
 export type { SortableHandleProps } from "./SortableList";
 export { default as DragHandle } from "./DragHandle";
 export { default as EditActions } from "./EditActions";
+export { DropArea } from "./DropArea";
 export { default as SummaryRow } from "./SummaryRow";
+export { default as StepBar } from "./StepBar";
+export { default as StickyActionBar } from "./StickyActionBar";
 export { default as StepTracker } from "./StepTracker";
 export { default as TimeSlotList } from "./TimeSlotList";
 // DayCalendar is imported from "@/components/molecules/DayCalendar", not from here: it brings

@@ -112,7 +112,7 @@ export function useCompleteVisit(visit: VisitToComplete, onSaved?: () => void) {
       setEditing(false);
       const name = visit.label ?? "The visit";
       let photoFailed = false;
-      let photoNote = saved?.photo_url ? "" : " Add the nail photo when you have it.";
+      let photoNote = saved?.photo_url ? "" : " Add the photo when you have it.";
       if (pick.file) {
         try {
           await uploadVisitPhoto(visit.id, pick.file, { token: await getToken(), clerkId: userId });

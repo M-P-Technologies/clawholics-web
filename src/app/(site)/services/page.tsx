@@ -4,15 +4,14 @@ import { Clock } from "lucide-react";
 import CtaBand from "@/components/home/CtaBand";
 import ImageCard from "@/components/home/ImageCard";
 import { Button, LoadingBar } from "@/components/atoms";
-import { LoadError, SectionHeader, SegmentedControl, Pagination, EmptyState } from "@/components/molecules";
+import { LoadError, SectionHeader, SegmentedControl, Pagination, EmptyState, SearchBar } from "@/components/molecules";
 import PageShell from "@/components/layout/PageShell";
 import Section from "@/components/layout/Section";
-import { inputClass } from "@/components/tokens";
 import { servicePath } from "@/utils/slug";
 import { useServices } from "@/hooks/useServices";
 
 export default function Services() {
-  const { resetFilters, cards, error, reload, content, banner, primary, secondary, category, setCategory, search, categoryOptions, handleSearchChange, page, totalPages, pageItems, listRef, goToPage, emptyMessage } = useServices();
+  const { setSearch, resetFilters, cards, error, reload, content, banner, primary, secondary, category, setCategory, search, categoryOptions, page, totalPages, pageItems, listRef, goToPage, emptyMessage } = useServices();
 
   if (error && !content) return <LoadError what="services" onRetry={reload} />;
   if (!content) return <LoadingBar label="Loading services" />;
@@ -28,17 +27,9 @@ export default function Services() {
             </div>
 
             {/* SEARCH */}
-            <label htmlFor="service-search" className="sr-only">
-              Search services
-            </label>
-            <input
-              id="service-search"
-              type="search"
-              placeholder="Search services"
-              value={search}
-              onChange={handleSearchChange}
-              className={`${inputClass} lg:max-w-xs`}
-            />
+            <div className="w-full lg:max-w-xs">
+              <SearchBar look="outline" value={search} onChange={setSearch} />
+            </div>
           </div>
         </SectionHeader>
 

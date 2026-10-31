@@ -2,7 +2,7 @@
 
 import { CalendarCheck, CalendarHeart, Stamp } from "lucide-react";
 import { Badge, Button, Card } from "@/components/atoms";
-import { StatCard, StepTracker, TabSection, Tabs } from "@/components/molecules";
+import { StatCard, StepTracker, TabSection, Tabs, StickyActionBar } from "@/components/molecules";
 import NotificationsPanel from "@/components/features/client/profile/NotificationsPanel";
 import LoyaltyCard from "@/components/features/client/profile/LoyaltyCard";
 import { ProfilePanel } from "@/components/organisms";
@@ -31,12 +31,12 @@ export default function MyProfile() {
           highlight={p.highlight}
           rowsTitle="Your details"
           rows={p.rows}
+          actionsClassName="max-lg:hidden"
         >
-          {/* Edit and Manage side by side while they fit; Log out only on phones (from `sm` it's in the sidebar), on its own row */}
+          {/* From `lg` the actions sit in the panel; on phones they're pinned to the bottom of the screen (below) */}
           <div className="flex flex-wrap gap-3">
             <Button type="button" onClick={a.handleEditClick} className="grow">Edit details</Button>
             <Button variant="secondary" type="button" onClick={p.manageAccount} className="grow">Manage account</Button>
-            <Button variant="secondary" type="button" onClick={p.logOut} className="w-full sm:hidden">Log out</Button>
           </div>
         </ProfilePanel>
 
@@ -88,6 +88,15 @@ export default function MyProfile() {
             </nav>
           </div>
         </Card>
+      </div>
+      <div className="lg:hidden">
+        <StickyActionBar card>
+          <div className="flex w-full flex-wrap justify-end gap-3">
+            <Button type="button" onClick={a.handleEditClick} className="grow sm:grow-0">Edit details</Button>
+            <Button variant="secondary" type="button" onClick={p.manageAccount} className="grow sm:grow-0">Manage account</Button>
+            <Button variant="secondary" type="button" onClick={p.logOut} className="w-full sm:hidden">Log out</Button>
+          </div>
+        </StickyActionBar>
       </div>
     </ClientScreen>
   );

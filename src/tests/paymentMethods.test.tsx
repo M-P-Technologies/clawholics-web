@@ -84,7 +84,7 @@ describe("payment step", () => {
   it("shows the summary, the fees and the countdown", () => {
     hook.mockReturnValue(base);
     render(<Payment />);
-    expect(screen.getByText("★ Max")).toBeInTheDocument();
+    expect(screen.getAllByText("★ Max").length).toBeGreaterThan(0);
     expect(screen.getByText("Starts at ₱650")).toBeInTheDocument();
     expect(screen.getByText("₱400")).toBeInTheDocument();
     expect(screen.getByText("₱100")).toBeInTheDocument();

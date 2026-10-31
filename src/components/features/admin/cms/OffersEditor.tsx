@@ -1,4 +1,5 @@
 import { Plus, X } from "lucide-react";
+import { DropArea } from "@/components/molecules/DropArea";
 import { MAX_OFFERS, type HomeOffer } from "@/lib/homeSections";
 import { serviceDetailPath } from "@/lib/client/clientNav";
 import type { NailService } from "@/services/serviceService";
@@ -43,21 +44,16 @@ export default function OffersEditor({ offers, services, onChange, upload, uploa
             {field("Small print", "note")}
             {field("Button text", "buttonLabel")}
             <SelectField label="Button opens" value={offer.link} options={linkOptions} onChange={(value) => update(i, { link: value })} />
-            <label className={`inline-flex w-fit cursor-pointer items-center rounded-md border border-crimson-light px-3 py-1 text-xs font-bold text-gray-red hover:bg-crimson-light/30 ${uploading[slot] ? "pointer-events-none opacity-50" : ""}`}>
-              {uploading[slot] ? "Uploading…" : offer.image ? "Replace photo" : "Add a photo"}
-              <input
-                type="file"
-                accept="image/png, image/jpeg, image/webp"
-                className="sr-only"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  e.target.value = "";
-                  if (!file) return;
-                  const url = await upload(slot, file);
-                  if (url) update(i, { image: url });
-                }}
-              />
-            </label>
+            <DropArea
+              id={`offer-photo-${i}`}
+              uploading={!!uploading[slot]}
+              label={offer.image ? "Replace the photo" : "Add a photo"}
+              onFile={async (file) => {
+                if (!file) return;
+                const url = await upload(slot, file);
+                if (url) update(i, { image: url });
+              }}
+            />
             {offer.image && (
               <Button type="button" variant="bare" onClick={() => update(i, { image: "" })} className="w-fit rounded-md px-3 py-1 text-sm font-bold text-gray-red hover:bg-crimson-light/30">
                 Remove photo

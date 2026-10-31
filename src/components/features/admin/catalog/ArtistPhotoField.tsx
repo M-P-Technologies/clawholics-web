@@ -2,7 +2,7 @@ import { useId } from "react";
 import { X } from "lucide-react";
 import { SectionHeader } from "@/components/molecules";
 import { Button, IconButton } from "@/components/atoms";
-import { DropArea } from "@/components/features/admin/cms/fields";
+import { DropArea } from "@/components/molecules/DropArea";
 
 type ArtistPhotoFieldProps = {
   image: string;
@@ -18,7 +18,7 @@ const ArtistPhotoField = ({ image, isEditing, isUploading, onPreview, onRemove, 
   const id = useId();
   return (
     <div className="flex flex-col gap-1.5">
-      <SectionHeader size="label" title="Photo" />
+      <SectionHeader size="label" title="Profile photo" />
 
       {image && (
         <div className="flex items-center justify-between w-full min-h-9 bg-milk rounded-md px-3 py-1 mt-3 mb-1 overflow-visible border border-crimson-light">
@@ -32,7 +32,7 @@ const ArtistPhotoField = ({ image, isEditing, isUploading, onPreview, onRemove, 
           </Button>
 
           {isEditing && (
-            <IconButton size="sm" icon={X} label="Remove photo" onClick={onRemove} disabled={isUploading} />
+            <IconButton size="sm" icon={X} label="Remove profile photo" onClick={onRemove} disabled={isUploading} />
           )}
         </div>
       )}
@@ -42,7 +42,7 @@ const ArtistPhotoField = ({ image, isEditing, isUploading, onPreview, onRemove, 
           <DropArea
             id={id}
             uploading={isUploading}
-            label="Add a photo"
+            label="Add a profile photo"
             onFile={(file) => file && void onUpload(file)}
             input={
               <input

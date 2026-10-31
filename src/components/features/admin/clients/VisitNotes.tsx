@@ -1,3 +1,4 @@
+import { Textarea } from "@/components/atoms";
 import { dateLabel, noteFieldClass } from "@/lib/admin/clientPage";
 import type { ClientAppointment, ClientNote } from "@/services/clientNotesService";
 import type { VisitDraft } from "@/hooks/admin/useClientPage";
@@ -27,7 +28,7 @@ export default function VisitNotes({ appointment, notes, draft, busy, onDraft, o
         </ul>
       )}
       {writing && (
-        <textarea
+        <Textarea
           aria-label={`Note about ${dateLabel(appointment.appointment_date)}`}
           rows={3}
           value={draft.text}

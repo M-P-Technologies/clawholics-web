@@ -1,3 +1,4 @@
+import { Textarea } from "@/components/atoms";
 import { ChevronDown as DropdownIcon, List as ListIcon, Plus as PlusIcon } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { DragHandle, useToast, EditActions } from "@/components/molecules";
@@ -167,13 +168,13 @@ const InputField = ({
       </div>
 
 
-      <textarea
+      <Textarea
         ref={textareaRef}
         disabled={!isEditing}
         value={value}
         onChange={onChange}
         onKeyDown={handleKeyDown}
-        className="w-full min-h-9.5 rounded-md border border-crimson-light bg-milk px-3 py-2 text-sm text-gray-red outline-none resize-none overflow-hidden whitespace-pre-line focus:ring-2 focus:ring-crimson disabled:cursor-not-allowed disabled:opacity-70"
+        className="w-full min-h-9.5! rounded-md border border-crimson-light bg-milk px-3 py-2 text-sm text-gray-red outline-none overflow-auto whitespace-pre-line focus:ring-2 focus:ring-crimson disabled:cursor-not-allowed disabled:opacity-70"
       />
     </div>
   );

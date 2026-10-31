@@ -1,5 +1,8 @@
-import { ChoiceRow } from "@/components/molecules";
+import { useState } from "react";
+import { ChoiceRow, Pagination, paginate } from "@/components/molecules";
 import { field } from "@/components/tokens";
+
+const OPTIONS_PER_PAGE = 5;
 
 type Props = {
   variants: { id: number; name: string; price: number }[];
@@ -11,7 +14,9 @@ type Props = {
 };
 
 export default function BookingOptions({ variants, addons, variantId, addonIds, onVariantChange, onAddonsChange }: Props) {
+  const [page, setPage] = useState(1);
   if (variants.length === 0 && addons.length === 0) return null;
+  const shown = paginate(variants, page, OPTIONS_PER_PAGE);
 
   return (
     <div className="flex flex-col gap-6">
@@ -19,7 +24,7 @@ export default function BookingOptions({ variants, addons, variantId, addonIds, 
         <fieldset>
           <legend className={`mb-3 ${field.label}`}>Choose an option</legend>
           <div className="flex flex-col gap-3">
-            {variants.map((variant) => (
+            {shown.rows.map((variant) => (
               <ChoiceRow
                 key={variant.id}
                 selected={variantId === variant.id}
@@ -29,6 +34,9 @@ export default function BookingOptions({ variants, addons, variantId, addonIds, 
                 <span className="font-bold">{variant.name}</span>
               </ChoiceRow>
             ))}
+          </div>
+          <div className="mt-3">
+            <Pagination page={shown.current} totalPages={shown.pages} onPageChange={setPage} />
           </div>
         </fieldset>
       )}

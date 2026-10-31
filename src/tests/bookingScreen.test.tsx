@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import Booking from "@/app/(client)/my/book/page";
 
@@ -62,18 +62,10 @@ describe("booking step", () => {
     expect(screen.getByRole("status", { name: "Loading artists" })).toBeInTheDocument();
   });
 
-  it("shows the choices in the summary", () => {
+  it("shows the booking form and the steps", () => {
     render(<Booking />);
     expect(screen.getByRole("heading", { name: "Book your visit" })).toBeInTheDocument();
-    expect(screen.getByText("Hard Gel")).toBeInTheDocument();
-    expect(screen.getByText("Gel")).toBeInTheDocument();
-    expect(screen.getByText("Long-lasting gel")).toBeInTheDocument();
-    const summary = screen.getByText("Preferred artist", { selector: "dt" }).closest("dl")!;
-    expect(within(summary).getByText("Max")).toBeInTheDocument();
-    expect(within(summary).getByText("2026-10-20")).toBeInTheDocument();
-    expect(within(summary).getByText("9:00 AM - 11:00 AM")).toBeInTheDocument();
-    expect(within(summary).getByText("₱650")).toBeInTheDocument();
-    expect(within(summary).getByRole("link", { name: "Cagayan de Oro" })).toHaveAttribute("href", "https://maps.example/salon");
+    expect(screen.getByRole("list", { name: "Booking steps" })).toBeInTheDocument();
   });
 
   it("offers the free time slots and blocks the taken one", () => {
@@ -120,11 +112,9 @@ describe("booking step", () => {
     expect(screen.queryByRole("option", { name: /Any available artist/ })).toBeNull();
   });
 
-  it("names any available artist in the summary, and says the times are being found", () => {
+  it("says the times are being found for any available artist, and says the times are being found", () => {
     s = { ...s, anyArtist: true, selectedNailist: null as never, artistLabel: "Any available artist", loadingAnyDays: true };
     render(<Booking />);
-    const summary = screen.getByText("Preferred artist", { selector: "dt" }).closest("dl")!;
-    expect(within(summary).getByText("Any available artist")).toBeInTheDocument();
     expect(screen.getByText(/Finding the times our artists have free/)).toBeInTheDocument();
   });
 
@@ -133,7 +123,7 @@ describe("booking step", () => {
     s.loadingArtists = true;
     render(<Booking />);
     expect(screen.getByText("Loading artists…")).toBeInTheDocument();
-    expect(screen.queryByText("No available artists for this service.")).toBeNull();
+    expect(screen.queryByText(/No available artists for this service/)).toBeNull();
   });
 
   it("asks for a date before saying there is no schedule, and says it once a date is picked", () => {
@@ -150,7 +140,7 @@ describe("booking step", () => {
   it("says when no artist does this service", () => {
     s.nailists = [];
     render(<Booking />);
-    expect(screen.getByText("No available artists for this service.")).toBeInTheDocument();
+    expect(screen.getByText(/No available artists for this service/)).toBeInTheDocument();
   });
 
   it("continues to payment, and can't be pressed twice while reserving", () => {

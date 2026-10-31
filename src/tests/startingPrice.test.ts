@@ -51,9 +51,9 @@ describe("estimateTotal", () => {
     expect(estimateTotal({ service: flat, isMaster: false, variantId: null, addons: [], addonIds: [] })).toBe(650);
   });
 
-  it("returns null when the artist tier is not offered", () => {
+  it("uses the tier that is set when the artist's own tier is not offered", () => {
     const noMaster = { pricing_type: "tiered" as const, master_price: 0, junior_price: 250, price: 0, variants: [] };
-    expect(estimateTotal({ service: noMaster, isMaster: true, variantId: null, addons: [], addonIds: [] })).toBeNull();
+    expect(estimateTotal({ service: noMaster, isMaster: true, variantId: null, addons: [], addonIds: [] })).toBe(250);
   });
 
   it("adds a variant and an add-on together for a flat service", () => {

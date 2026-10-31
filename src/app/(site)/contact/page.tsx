@@ -1,4 +1,5 @@
 "use client";
+import { Textarea } from "@/components/atoms";
 
 import { Mail,MapPin,Phone } from "lucide-react";
 import { Button, LoadingBar } from "@/components/atoms";
@@ -60,7 +61,7 @@ export default function ContactUs() {
                     {descriptionLength}/500
                   </span>
                 </div>
-                <textarea
+                <Textarea
                   id="description"
                   name="description"
                   value={formData.description}
@@ -68,7 +69,7 @@ export default function ContactUs() {
                   maxLength={500}
                   required
                   rows={4}
-                  className={`${inputClass} resize-none`}
+                  className={`${inputClass}`}
                 />
               </div>
 

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button, Checkbox, Input } from "@/components/atoms";
 import { Dialog } from "@/components/organisms";
+import { FOOTER_ACTIONS_CLASS } from "@/components/organisms/FooterActions";
 import { useArtistRoles } from "@/hooks/admin/useArtistRoles";
 import type { ArtistRole } from "@/services/nailistService";
 
@@ -57,7 +58,11 @@ const ArtistRolesDialog = ({ open, onClose }: ArtistRolesDialogProps) => {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} title="Manage roles" footer={<Button type="button" onClick={onClose}>Done</Button>}>
+    <Dialog open={open} onClose={onClose} title="Manage roles" footer={
+        <div className={FOOTER_ACTIONS_CLASS}>
+          <Button type="button" onClick={onClose}>Done</Button>
+        </div>
+      }>
       <div className="flex flex-col gap-4">
         <p className="text-sm text-gray-red">
           Roles are what the Position list offers. Each one charges either the Master Technician price or the Junior Technician price of a service. A role can be removed once no artist has it.
