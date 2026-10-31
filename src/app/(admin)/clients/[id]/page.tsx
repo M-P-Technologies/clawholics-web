@@ -1,5 +1,5 @@
-import { Badge, Button, Textarea } from "@/components/atoms";
 "use client";
+import { Badge, Button, Textarea } from "@/components/atoms";
 
 import { CalendarCheck, Stamp, Wallet } from "lucide-react";
 import AdminShell from "@/components/features/admin/shell/AdminShell";
