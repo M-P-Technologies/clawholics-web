@@ -26,6 +26,8 @@ import ServicePricingFields, {
 } from "@/components/features/admin/catalog/ServicePricingFields";
 
 import { DragHandle, useToast, EditActions, SectionHeader } from "@/components/molecules";
+import { DropArea } from "@/components/molecules/DropArea";
+import { PHOTO_UPLOAD_OPTIONS, uploadImage } from "@/services/uploadService";
 import { itemName, upperFirst } from "@/lib/itemName";
 import type { SortableHandleProps } from "@/components/molecules";
 import { Button, IconButton } from "@/components/atoms";
@@ -131,6 +133,9 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
   const [gallery, setGallery] = useState<ServiceGalleryImage[]>([]);
   // The photo that stands for the service on the site; null means "the first one"
   const [starredUrl, setStarredUrl] = useState<string | null>(service?.image ?? null);
+  // The service's own photo, uploaded here: stands in on the site until visit photos are added to the gallery
+  const [coverUrl, setCoverUrl] = useState<string>(service?.image ?? "");
+  const [coverUploading, setCoverUploading] = useState(false);
 
   const [originalName, setOriginalName] = useState(service?.name ?? "");
   const [originalDescription, setOriginalDescription] = useState(
@@ -208,6 +213,7 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
     setDuration(originalDuration);
     setGallery(originalGallery);
     setStarredUrl(service?.image ?? null);
+    setCoverUrl(service?.image ?? "");
     setIsEditing(false);
   };
 
@@ -247,13 +253,28 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
   const mainPhotoUrl = pickMainPhoto(gallery.map((image) => image.image_url), starredUrl);
   const isMain = (image: ServiceGalleryImage) => image.image_url === mainPhotoUrl;
 
+  const uploadCover = async (file?: File) => {
+    if (!file) return;
+    try {
+      setCoverUploading(true);
+      const token = tokenFetcher ? await tokenFetcher() : null;
+      const data = await uploadImage(file, "services", token, clerkId, PHOTO_UPLOAD_OPTIONS);
+      setCoverUrl(data.imageUrl);
+    } catch (error) {
+      console.error("Failed to upload service photo:", error);
+      toast.show("error", "Photo not uploaded", `We couldn't upload that photo for ${who}. Please check that it is a JPG, PNG or WEBP image and try again.`);
+    } finally {
+      setCoverUploading(false);
+    }
+  };
+
   const handleSave = async () => {
     const trimmedName = name.trim();
     const trimmedDescription = description.trim();
     const trimmedDuration = duration.trim();
 
     const target = itemName(trimmedName, "this service");
-    if (!trimmedName || !trimmedDescription || !trimmedDuration || gallery.length === 0) {
+    if (!trimmedName || !trimmedDescription || !trimmedDuration || (gallery.length === 0 && !coverUrl)) {
       toast.show("error", "Some fields are empty", `Please fill in every field${trimmedName ? ` for ${target}` : ""} before saving. Nothing was saved.`);
       return;
     }
@@ -268,7 +289,8 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
       setIsSaving(true);
       const token = tokenFetcher ? await tokenFetcher() : null;
 
-      const mainImage = pickMainPhoto(gallery.map((image) => image.image_url), starredUrl)!;
+      // The starred gallery photo when there is one, else the service's own uploaded photo
+      const mainImage = gallery.length > 0 ? pickMainPhoto(gallery.map((image) => image.image_url), starredUrl)! : coverUrl;
 
       if (isCreateMode) {
         const createdService = await createService(
@@ -338,6 +360,7 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
       setDuration(updatedService.duration);
       setGallery(sortedGallery);
       setStarredUrl(updatedService.image ?? null);
+      setCoverUrl(updatedService.image ?? "");
       setPricing(draftFromService(updatedService));
       setOriginalPricing(draftFromService(updatedService));
 
@@ -456,6 +479,28 @@ const NailServiceDropdown: React.FC<NailServiceDropdownProps> = ({
               onChange={(e) => setDuration(e.target.value)}
               isEditing={isEditing}
             />
+
+            {/* The service's own photo, so its card isn't empty before any visit photo exists; once the gallery has
+                photos, the starred one is shown instead */}
+            {gallery.length === 0 && (
+              <div className="flex flex-col gap-1.5">
+                <SectionHeader size="label" title="Service photo" />
+                <p className="text-[13px] text-gray-red">Shown for this service on the website until photos from completed visits are added below.</p>
+                {coverUrl && (
+                  <div className="flex items-center gap-3 rounded-lg border border-crimson-light/60 bg-milk p-2">
+                    <Button variant="bare" type="button" aria-label="Preview the service photo" onClick={() => setPreviewImageUrl(coverUrl)} className="shrink-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element -- R2 images, sized by CSS like the rest of the admin */}
+                      <img src={coverUrl} alt="" className="h-12 w-16 rounded-md object-cover" />
+                    </Button>
+                    <span className="min-w-0 flex-1 truncate text-[13px] text-gray-red">{coverUrl.split("/").pop()}</span>
+                    {isEditing && <IconButton size="sm" icon={X} label="Remove the service photo" onClick={() => setCoverUrl("")} disabled={coverUploading} />}
+                  </div>
+                )}
+                {isEditing && !coverUrl && (
+                  <DropArea id={`service-photo-${service?.id ?? "new"}`} uploading={coverUploading} inputLabel="Service photo" label="Add a service photo" onFile={uploadCover} />
+                )}
+              </div>
+            )}
 
             <div className="flex flex-col gap-1.5">
               <SectionHeader size="label" title={`Photos (${gallery.length}/${MAX_IMAGES})`} />
