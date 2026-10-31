@@ -6,7 +6,7 @@ import { Button, IconButton, Select } from "@/components/atoms";
 type VariantDraft = { name: string; price: string };
 
 const variantInputClass =
-  "min-w-0 flex-1 bg-milk rounded-md px-3 py-1.5 text-sm text-gray-red outline-none focus:ring-2 focus:ring-crimson disabled:opacity-70 border border-crimson-light";
+  "min-w-0 flex-1 bg-milk rounded-md px-3 py-1.5 text-sm text-gray-red outline-none placeholder:text-gray-red placeholder:italic focus:ring-2 focus:ring-crimson disabled:opacity-70 border border-crimson-light";
 
 export type PricingDraft = {
   categoryId: number | null;
@@ -169,6 +169,7 @@ export default function ServicePricingFields({ draft, onChange, isEditing, categ
             <div key={index} className="flex items-center gap-2">
               <input
                 aria-label={`Option ${index + 1} name`}
+                placeholder="Option name, e.g. Cat Eye - Volume"
                 className={variantInputClass}
                 disabled={!isEditing}
                 value={variant.name}
@@ -176,6 +177,7 @@ export default function ServicePricingFields({ draft, onChange, isEditing, categ
               />
               <input
                 aria-label={`Option ${index + 1} price`}
+                placeholder="Price"
                 className={`${variantInputClass} w-20 flex-none`}
                 disabled={!isEditing}
                 inputMode="numeric"
