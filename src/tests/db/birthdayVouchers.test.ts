@@ -40,6 +40,9 @@ describe.skipIf(!TEST_DATABASE_URL)("birthday vouchers (Postgres)", () => {
     process.env.RESEND_API_KEY = "re_test";
     process.env.CRON_SECRET = "s3cret";
     vi.stubGlobal("fetch", resend);
+    // The handlers read the real clock; pin it to the same day the vouchers are issued on, so the test doesn't
+    // start failing when the real month moves on
+    vi.useFakeTimers({ toFake: ["Date"], now: OCT_14 });
     vouchers = await import("../../server/birthdayVouchers");
     handlers = await import("../../server/handlers/birthdayVouchers");
   });
@@ -47,6 +50,7 @@ describe.skipIf(!TEST_DATABASE_URL)("birthday vouchers (Postgres)", () => {
   beforeEach(() => resend.mockClear());
 
   afterAll(async () => {
+    vi.useRealTimers();
     vi.unstubAllGlobals();
     await db?.end();
     const { getSql } = await import("../../server/db");
