@@ -17,7 +17,8 @@ export default function Explore() {
       {/* As in the Admin Directory: the list (2/3) and the chosen service (1/3); below `lg` the panel
           is hidden and a clicked row opens the service in a bottom sheet */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-6">
-      <Card className="flex min-w-0 flex-col gap-3 lg:col-span-2">
+      {/* Below `md` the list sits straight on the page (the service cards are the containers) */}
+      <Card className="flex min-w-0 flex-col gap-3 max-md:rounded-none max-md:border-0 max-md:bg-transparent max-md:p-0 max-md:shadow-none lg:col-span-2">
         {/* The search and category sit on the list they filter (kept when nothing matches, to change them) */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           {/* Like the admin search: full width on phones, at most w-72 from sm */}

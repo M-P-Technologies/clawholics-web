@@ -65,8 +65,9 @@ export default function Services() {
                   title={s.name}
                   subtitle={
                     <div className="flex items-center justify-between gap-3">
-                      <span>{s.priceLabel}</span>
-                      <span className="inline-flex items-center gap-1.5 font-normal text-gray-red">
+                      <span className="text-crimson">{s.priceLabel}</span>
+                      {/* On a phone the duration moves down beside the button */}
+                      <span className="inline-flex items-center gap-1.5 font-normal text-gray-red max-sm:hidden">
                         <Clock size={16} aria-hidden="true" focusable="false" />
                         {s.duration}
                       </span>
@@ -74,9 +75,15 @@ export default function Services() {
                   }
                   description={s.description}
                   footer={
-                    <Button to={servicePath(s)}>
-                      Learn more<span className="sr-only"> about {s.name}</span>
-                    </Button>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="inline-flex items-center gap-1.5 text-sm font-normal text-gray-red sm:hidden">
+                        <Clock size={16} aria-hidden="true" focusable="false" />
+                        {s.duration}
+                      </span>
+                      <Button to={servicePath(s)}>
+                        Learn more<span className="sr-only"> about {s.name}</span>
+                      </Button>
+                    </div>
                   }
                 />
               ))}

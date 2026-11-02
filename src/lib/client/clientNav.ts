@@ -8,6 +8,7 @@ export const CLIENT_PATHS = {
   explore: "/my/explore",
   profile: "/my/profile",
   book: "/my/book",
+  summary: "/my/summary",
   payment: "/my/payment",
   confirmation: "/my/confirmation",
   reschedule: "/my/reschedule",
@@ -41,7 +42,7 @@ export function isTabActive(tab: ClientTab, pathname: string): boolean {
   return pathname === tab.href || pathname.startsWith(`${tab.href}/`);
 }
 
-const STEP_PATHS: string[] = [CLIENT_PATHS.book, CLIENT_PATHS.payment, CLIENT_PATHS.confirmation, CLIENT_PATHS.reschedule];
+const STEP_PATHS: string[] = [CLIENT_PATHS.book, CLIENT_PATHS.summary, CLIENT_PATHS.payment, CLIENT_PATHS.confirmation, CLIENT_PATHS.reschedule];
 
 /** Screens with a back arrow instead of the tab bar: the booking steps */
 export function isInnerScreen(pathname: string): boolean {

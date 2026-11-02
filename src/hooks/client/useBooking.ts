@@ -344,7 +344,9 @@ export function useBooking() {
         `Something went wrong while holding ${itemName(selectedNailist?.name, "your artist")} for your ${itemName(service_name, "service")}, so nothing was booked and you have not been charged. Please try again in a moment.`,
       );
 
-    navigate(CLIENT_PATHS.payment, {
+    // On a phone the booking summary has a page of its own before the payment; from `lg` it sits beside the payment
+    const wide = window.matchMedia?.("(min-width: 64rem)")?.matches ?? true;
+    navigate(wide ? CLIENT_PATHS.payment : CLIENT_PATHS.summary, {
       state: {
         appointment_id: result.appointment_id,
         service_name,

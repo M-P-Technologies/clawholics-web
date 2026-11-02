@@ -1,1 +1,1 @@
-export const BOOKING_STEPS = ["Book", "Payment", "Confirmed"];
+export const BOOKING_STEPS = ["Book", "Summary", "Payment", "Confirmed"];
