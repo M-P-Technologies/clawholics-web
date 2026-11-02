@@ -4,14 +4,14 @@ import { useState } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { useToast } from "@/components/molecules";
 import { EMPTY_HOME_CONTENT, normalizeHomeContent, trimHomeSections } from "../../lib/admin/homeEditor";
-import { CLIENT_APP_KEYS, homeSectionsProblem, homeSectionsToContent, readHomeSections, type HomeFeature, type HomeOffer, type HomeSections, type HomeTextKey, type StripSlide } from "../../lib/homeSections";
+import { CLIENT_APP_KEYS, MAX_STRIP_SLIDES, homeSectionsProblem, homeSectionsToContent, readHomeSections, type HomeFeature, type HomeOffer, type HomeSections, type HomeTextKey, type StripSlide } from "../../lib/homeSections";
 import { fetchHomeContent, updateHomeContent, type HomeCMSContent } from "../../services/contentService";
 import { fetchServices, type NailService } from "../../services/serviceService";
 import { PHOTO_UPLOAD_OPTIONS, uploadImage } from "../../services/uploadService";
 import { useEditorSource } from "./useEditorSource";
 
 /** The two pictures kept with the sections rather than as plain content keys */
-type SectionImage = "offerImage" | "footerLogo";
+type SectionImage = "offerImage" | "footerLogo" | "navLogo";
 
 // The Homepage editor: the home content and its sections (words, cards, strip, look), loaded,
 // edited and saved together, and the photo uploads
@@ -113,6 +113,8 @@ export function useHomeEditor() {
     loadFailed: source.failed,
     retry: source.retry,
     content,
+    /** "3/6" once the strip has its own slides; none while it shows every service */
+    stripCountLabel: sections.strip ? `${sections.strip.length}/${MAX_STRIP_SLIDES}` : undefined,
     sections,
     services,
     set,

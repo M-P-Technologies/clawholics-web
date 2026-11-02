@@ -3,15 +3,18 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/components/molecules";
+import { pageView, useToast } from "@/components/molecules";
 import { adminDataChanged, adminKeys, adminQueries } from "../../lib/adminQueries";
 import { isDesktopWidth } from "../../lib/viewport";
 import { useStampTarget } from "../useStampTarget";
 import { manilaTimeOfDay } from "../../lib/timeFormat";
+import { useFitRows } from "./useFitRows";
 import { fetchScannedClient, recordScanAction, type ScanPage, type ScanRecord, type ScannedClient } from "../../services/scanService";
 
-/** Scans to a page of the Recent scans */
-const SCANS_PAGE_SIZE = 5;
+/** Put on each of the Recent scans' rows, so they can be measured */
+export const SCAN_ROW = "data-scan-row";
+/** Scans to a page of the Recent scans when it's stacked under the camera; side by side, as many as keep it level with the camera card (2 to 15) */
+const STACKED_SCANS = 5;
 
 /** What the last scanned code turned out to be: a client, or why it couldn't be used */
 interface LastScan {
@@ -33,10 +36,14 @@ export function useAdminScanner() {
   const [lastScan, setLastScan] = useState<LastScan | null>(null);
   // One page of the recent scans at a time, cached: coming back to the scanner shows them at once
   // (and the page before stays up while the next loads)
-  const [page, setPage] = useState(1);
+  const [paged, setPaged] = useState({ pageSize: 0, page: 1 });
+  const { columnRef, besideRef, rows: pageSize } = useFitRows({ rowAttribute: SCAN_ROW, fallback: STACKED_SCANS, fewest: 2, most: 15, sideBySide: "(min-width: 80rem)", natural: true });
+  // A new page size starts again at page 1, since the page asked for may no longer exist
+  const page = paged.pageSize === pageSize ? paged.page : 1;
+  const setPage = (next: number) => setPaged({ pageSize, page: next });
   const session = { getToken, clerkId: currentUser?.id };
   const historyQuery = useQuery({
-    ...adminQueries.scanHistory(page, SCANS_PAGE_SIZE, session),
+    ...adminQueries.scanHistory(page, pageSize, session),
     enabled: isLoaded,
     placeholderData: keepPreviousData,
   });
@@ -45,8 +52,8 @@ export function useAdminScanner() {
   const loading = historyQuery.isPending;
   // The newest page, as the scanner changes it: a scan lands first on page 1
   const setNewest = (update: (page: ScanPage) => ScanPage) =>
-    queryClient.setQueryData<ScanPage | null>(adminKeys.scanHistory(1, SCANS_PAGE_SIZE), (p) =>
-      update(p ?? { rows: [], total: 0, page: 1, pageSize: SCANS_PAGE_SIZE }),
+    queryClient.setQueryData<ScanPage | null>(adminKeys.scanHistory(1, pageSize), (p) =>
+      update(p ?? { rows: [], total: 0, page: 1, pageSize }),
     );
   const [cameraError, setCameraError] = useState<string | null>(null);
   const resultRef = useRef<HTMLDivElement | null>(null);
@@ -115,7 +122,7 @@ export function useAdminScanner() {
       time: manilaTimeOfDay(),
     };
     setPage(1);
-    setNewest((p) => ({ ...p, rows: [record, ...p.rows].slice(0, SCANS_PAGE_SIZE), total: p.total + 1 }));
+    setNewest((p) => ({ ...p, rows: [record, ...p.rows].slice(0, pageSize), total: p.total + 1 }));
     setLastScan({ ...lastScan, client: { ...lastScan.client, stamps: action === "stamp" ? lastScan.client.stamps + 1 : 0 } });
 
     try {
@@ -152,7 +159,12 @@ export function useAdminScanner() {
     lastScan,
     history,
     /** The page of recent scans shown, the scans in all, and moving to another page */
-    historyPage: { page, pageSize: SCANS_PAGE_SIZE, total: historyTotal, onPage: setPage },
+    /** Measured: the Recent scans' column and the camera card it is kept level with */
+    columnRef,
+    besideRef,
+    historyPage: { page, pageSize, total: historyTotal, onPage: setPage },
+    /** The pager's view of the history: current page, pages, and the first and last row shown */
+    scans: pageView(history, page, pageSize, historyTotal),
     cameraError,
     resultRef,
     handleResult,

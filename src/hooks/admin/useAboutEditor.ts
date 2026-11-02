@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
-import { normalizeCarousel } from "@/components/features/admin/cms/CarouselEditor";
+import { MAX_CAROUSEL_IMAGES, normalizeCarousel } from "@/components/features/admin/cms/CarouselEditor";
 import { useToast } from "@/components/molecules";
 import { EMPTY_ABOUT_CONTENT, aboutWithDefaults } from "../../lib/admin/aboutEditor";
 import { fetchAboutContent, updateAboutContent, uploadAboutImage, type AboutContent } from "../../services/aboutService";
@@ -88,6 +88,8 @@ export function useAboutEditor() {
     content,
     set,
     gallery,
+    /** "3/12": the studio gallery's photos against its limit */
+    galleryCountLabel: `${gallery.length}/${MAX_CAROUSEL_IMAGES}`,
     setGallery,
     dirty,
     isSaving,

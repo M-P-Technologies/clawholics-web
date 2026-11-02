@@ -197,6 +197,12 @@ export const deleteServiceGalleryImage = async (id: number, token?: string | nul
 
 // Through the admin editor's live preview (see lib/cmsPreview); a plain fetch everywhere else
 export const fetchServices = () => previewed("services", () => loadServices());
+/** The ids of the services booked most, most first (public) */
+export const fetchPopularServiceIds = async (): Promise<number[]> => {
+  const res = await fetch(`${API_BASE_URL}/services/popular`, { headers: { "x-clawholics-origin": "frontend" } });
+  if (!res.ok) throw new Error("Failed to fetch the popular services");
+  return ((await res.json()) as { ids: number[] }).ids;
+};
 export const fetchServiceById = (id: number) => previewed(`service:${id}`, () => loadServiceById(id));
 export const fetchServiceGallery = (serviceId: number) => previewed(`serviceGallery:${serviceId}`, () => loadServiceGallery(serviceId));
 

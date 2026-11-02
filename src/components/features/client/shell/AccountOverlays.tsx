@@ -140,11 +140,11 @@ export default function AccountOverlays({ account: a, openId, setOpenId }: Accou
             </p>
             {a.isLateCancellation ? (
               <p className="rounded-xl border border-danger/40 bg-danger/10 p-3 text-sm text-gray-red">
-                <strong>Late cancellation.</strong> This is within 3 days of your appointment. Per our salon policy,
+                <strong>Late cancellation.</strong> This is within {a.changeWindowLabel} of your appointment. Per our salon policy,
                 this cancellation is non-refundable. If you go ahead, your slot is forfeited.
               </p>
             ) : (
-              <p className="text-sm text-gray-red">Cancellations made at least 3 days in advance are eligible for a refund.</p>
+              <p className="text-sm text-gray-red">Cancellations made at least {a.changeWindowLabel} in advance are eligible for a refund.</p>
             )}
             {a.actionError && (
               <p role="alert" className="rounded-xl border border-danger/40 bg-danger/10 p-3 text-sm text-danger-ink">{a.actionError}</p>

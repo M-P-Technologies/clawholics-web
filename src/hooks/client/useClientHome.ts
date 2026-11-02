@@ -15,12 +15,16 @@ import { publicQueries } from "../../lib/publicQueries";
 import { useBirthdayVoucher } from "../useBirthdayVoucher";
 import { useServicePhotos } from "../useServicePhotos";
 import { useStartBooking } from "../useStartBooking";
+import { popularServices } from "../../lib/client/popularServices";
+import { usePolicy } from "../usePolicy";
+import { useStandingCardsLayout } from "../useMinWidth";
 import { useMyAccount } from "./useMyAccount";
 
-const POPULAR_COUNT = 8;
+const POPULAR_COUNT = 4;
 
-// The Home tab: the greeting, popular services (in the admin's order), offers, next visit
+// The Home tab: the greeting, popular services (the ones booked most), offers, next visit
 const NO_SERVICES: NailService[] = [];
+const NO_IDS: number[] = [];
 
 export function useClientHome() {
   const account = useMyAccount();
@@ -35,15 +39,23 @@ export function useClientHome() {
   // a failed load leaves it as it was, not an error page
   const services = useQuery(publicQueries.services()).data ?? NO_SERVICES;
   const home = useQuery(publicQueries.home()).data ?? null;
+  // The services booked most, most first; until they load (or if they can't) the admin's order
+  const rankedIds = useQuery(publicQueries.popularServiceIds()).data ?? NO_IDS;
 
   const firstName = account.dbUser?.first_name || account.clerkUser?.firstName || "";
   const next = account.nextAppointment;
+  // How close to a visit it can still be changed
+  const { changeWindowLabel } = usePolicy();
+  // Below `md` the popular services are cards lying down
+  const rowCards = !useStandingCardsLayout();
 
   // This month's birthday voucher, if the client has one: claim it, or show its code
   const birthday = useBirthdayVoucher();
 
   return {
     account,
+    changeWindowLabel,
+    rowCards,
     birthdayVoucher: birthday.voucher,
     /** Claimed: the card shows its code instead of the Claim button */
     voucherClaimed: birthday.voucher?.status === "CLAIMED",
@@ -59,10 +71,11 @@ export function useClientHome() {
     /** The upcoming appointment, and its status badge's colour */
     next,
     nextStatusTone: next ? statusDotTone(next.displayStatus) : undefined,
-    popular: services.slice(0, POPULAR_COUNT),
+    popular: popularServices(services, rankedIds, POPULAR_COUNT),
     book: (service: NailService) => startBooking(service),
     /** Completed visits */
     visits: completedVisits(account.appointments),
+    visitsLabel: String(completedVisits(account.appointments)),
     /** "4 / 10": the stamps on the card, capped at the salon's target */
     stampsValue: `${Math.min(account.stamps, account.stampTarget)} / ${account.stampTarget}`,
     nextVisitLabel: next ? next.dateLabel : "None booked",

@@ -75,7 +75,7 @@ export default function ClientPage() {
                 <>
                   <TabSection title="At a glance" description="Their visits, what they've spent and their loyalty card.">
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                      <StatCard size="compact" icon={CalendarCheck} label="Visits" value={String(summary.visits)} hint="completed" />
+                      <StatCard size="compact" icon={CalendarCheck} label="Visits" value={page.visitsLabel} hint="completed" />
                       <StatCard size="compact" icon={Wallet} label="Total spent" value={peso(summary.totalSpent)} hint="list price of visits" />
                       <StatCard size="compact" icon={Stamp} label="Loyalty stamps" value={page.stampsValue} className="col-span-2 sm:col-span-1" />
                     </div>
@@ -102,7 +102,7 @@ export default function ClientPage() {
                         placeholder="Allergies, preferences, anything to remember…"
                         className={noteFieldClass}
                       />
-                      <Button type="button" loading={page.busy} disabled={!page.draft.trim()} onClick={page.addGeneralNote} className="self-end">
+                      <Button type="button" loading={page.busy} disabled={!page.canAddNote} onClick={page.addGeneralNote} className="self-end">
                         Add note
                       </Button>
                     </div>

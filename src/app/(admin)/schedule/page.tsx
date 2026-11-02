@@ -22,17 +22,6 @@ export default function Schedule() {
 
   if (s.isLoading) return <ScheduleSkeleton />;
 
-  const artistOptions = s.artistNames.map((artist) => (
-    <option key={artist.id} value={artist.name}>
-      {artist.name}
-    </option>
-  ));
-
-  const phoneFilters = [
-    { key: "service", title: "Service", value: s.service, options: [{ value: "All", label: "All Services" }, ...s.serviceNames.map((name) => ({ value: name, label: name }))], pick: s.setService },
-    { key: "artist", title: "Artist", value: s.filterBy, options: [{ value: "All", label: "All Artists" }, ...s.artistNames.map((a) => ({ value: a.name, label: a.name }))], pick: s.setFilterBy },
-  ];
-
   return (
     <AdminShell title="Schedule">
       <div className="flex flex-1 flex-col overflow-y-auto pb-2">
@@ -41,7 +30,7 @@ export default function Schedule() {
           <div className="mb-3 flex flex-col gap-3 lg:hidden">
             <SegmentedControl label="View" options={PHONE_VIEWS} value={s.phoneView} onChange={s.showPhoneView} className="w-fit" />
             <SearchBar look="outline" label="Search clients or services" placeholder="Search clients or services…" value={s.query} onChange={s.setQuery} />
-            <FilterSheets filters={phoneFilters} />
+            <FilterSheets filters={s.phoneFilters} />
           </div>
         )}
 
@@ -91,7 +80,11 @@ export default function Schedule() {
               {/* With the other filters, in one row */}
               <Select className="w-48" aria-label="Artist" value={s.filterBy} onChange={(e) => s.setFilterBy(e.target.value)}>
                 <option value="All">All Artists</option>
-                {artistOptions}
+                {s.artistNames.map((artist) => (
+                  <option key={artist.id} value={artist.name}>
+                    {artist.name}
+                  </option>
+                ))}
               </Select>
             </div>
             {s.scheduleData && (

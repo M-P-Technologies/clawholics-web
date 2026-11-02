@@ -1,6 +1,6 @@
 "use client";
 
-import { publicPosition } from "@/lib/artistRoles";
+import { artistPhotoAlt, publicPosition } from "@/lib/artistRoles";
 import { AlertDialog } from "@/components/organisms";
 import ArtistOverview from "@/components/booking/ArtistOverview";
 import PhotoCarousel from "@/components/booking/PhotoCarousel";
@@ -104,7 +104,7 @@ export default function ArtistDetail() {
           <div className="hidden overflow-hidden rounded-2xl border border-crimson-light/40 bg-light-orange p-2 shadow-petal lg:block">
             <img
               src={nailist.image}
-              alt={`${nailist.name}${publicPosition(nailist) ? `, ${publicPosition(nailist)}` : ""}`}
+              alt={artistPhotoAlt(nailist)}
               className="aspect-3/4 w-full rounded-xl object-cover object-top"
             />
           </div>

@@ -4,6 +4,7 @@ import { SummaryRow } from "@/components/molecules";
 import { FooterActions } from "@/components/organisms";
 import { statusDotTone } from "@/utils/profileView";
 import { isCompleted } from "@/lib/client/appointments";
+import { usePolicy } from "@/hooks/usePolicy";
 import ReviewCard from "@/components/features/client/appointments/ReviewCard";
 import AddToCalendarButton from "@/components/features/client/appointments/AddToCalendarButton";
 import { manilaToday } from "@/lib/bookingNotice";
@@ -35,6 +36,7 @@ export const appointmentHasActions = (view: AppointmentView) => Boolean(view.can
 // One appointment in full: what, who, when, its payment proof and every action that applies. Shown
 // in the drawer (AppointmentSheet) and in the panel beside the Appointments list (AppointmentPanel).
 export default function AppointmentDetails({ view, now, tokenFetcher, clerkId, onPay, onReschedule, onCancel, onDelete, onProofUploaded, review, onSubmitReview, actionsHost }: AppointmentDetailsProps) {
+  const { changeWindowLabel } = usePolicy();
   const grow = actionsHost === undefined ? "grow" : undefined;
   return (
     <div className="flex flex-col gap-3">
@@ -77,7 +79,7 @@ export default function AppointmentDetails({ view, now, tokenFetcher, clerkId, o
 
       {isCompleted(view) && <ReviewCard appointmentId={view.appt.id} review={review} onSubmit={onSubmitReview} />}
 
-      {view.isLocked && <p className="text-xs text-gray-red">Changes close 3 days before your appointment.</p>}
+      {view.isLocked && <p className="text-xs text-gray-red">Changes close {changeWindowLabel} before your appointment.</p>}
 
       {/* In the sheet they're in its sticky footer; in the panel they sit here, side by side while they
           fit, each at least as wide as its words, wrapping rather than shrinking */}

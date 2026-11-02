@@ -1,8 +1,11 @@
 import "server-only";
+import type { Metadata } from "next";
 import { publicPosition } from "../lib/artistRoles";
 import { readSocialLinks } from "@/lib/socialLinkData";
-import { OG_IMAGE, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/seo";
-import { servicePath, artistPath } from "@/utils/slug";
+import { NOT_FOUND_METADATA, PAGES, SITE_NAME, SITE_URL, pageMetadata, pageSeo, seoMetadata, shortDescription, siteOgImage, type PageKey, type SeoContent } from "@/lib/seo";
+import { servicePath, artistPath, findBySlugOrId } from "@/utils/slug";
+import type { NailService } from "@/services/serviceService";
+import type { Nailist } from "@/services/nailistService";
 import { splitSpecialties } from "@/lib/specialties";
 import { publicReads } from "./publicCache";
 import { readOrNull } from "./timeLimit";
@@ -46,6 +49,7 @@ const settled = <T>(read: () => Promise<T>): Promise<T | null> => readOrNull(rea
 
 /** The salon: name, address, phone, hours, prices and social profiles */
 export async function salonSchema(): Promise<Json | null> {
+  const seo = await readSeoContent();
   const [home, about, services] = await Promise.all([
     settled(() => publicReads.content("home") as Promise<Row>),
     settled(() => publicReads.content("about") as Promise<Row>),
@@ -69,9 +73,9 @@ export async function salonSchema(): Promise<Json | null> {
     "@id": SALON_ID,
     name: SITE_NAME,
     url: SITE_URL,
-    description: SITE_DESCRIPTION,
-    image: absolute(OG_IMAGE.url),
-    logo: absolute(OG_IMAGE.url),
+    description: pageSeo("home", seo).description,
+    image: absolute(siteOgImage(seo).url),
+    logo: absolute(siteOgImage(seo).url),
     foundingDate: "2023",
     ...(text(h.contact_phone) && { telephone: text(h.contact_phone) }),
     ...(text(h.contact_email) && { email: text(h.contact_email) }),
@@ -163,4 +167,82 @@ export function breadcrumbSchema(trail: { name: string; path: string }[]): Json 
     "@type": "BreadcrumbList",
     itemListElement: trail.map((step, i) => ({ "@type": "ListItem", position: i + 1, name: step.name, item: `${SITE_URL}${step.path}` })),
   };
+}
+
+// A service's page and an artist's page: the record behind the address, its metadata and its schema
+// markup, for the segment layouts (which can only export what these return, the pages being client components)
+
+/** The service an address names (its slug, or an old numeric id); null when none, or when the read is slow or fails */
+export async function findService(param: string): Promise<NailService | null> {
+  const list = await readOrNull(() => publicReads.services() as unknown as Promise<NailService[]>, "Service lookup");
+  return list ? findBySlugOrId(list, decodeURIComponent(param)) : null;
+}
+
+/** The artist an address names (their slug, or an old numeric id); null when none, or when the read is slow or fails */
+export async function findArtist(param: string): Promise<Nailist | null> {
+  const list = await readOrNull(() => publicReads.nailists() as unknown as Promise<Nailist[]>, "Artist lookup");
+  return list ? findBySlugOrId(list, decodeURIComponent(param)) : null;
+}
+
+/** A service's title, description (with its lowest price), photo and canonical address */
+export async function serviceMetadata(service: NailService | null): Promise<Metadata> {
+  if (!service) return NOT_FOUND_METADATA("Service");
+  const content = await readSeoContent();
+  const prices = [service.junior_price, service.master_price].filter((p) => Number(p) > 0).map(Number);
+  const from = prices.length ? ` From ₱${Math.min(...prices).toLocaleString("en-PH")}.` : "";
+  return seoMetadata({
+    path: servicePath(service),
+    title: service.name,
+    description: shortDescription(
+      service.description && `${service.description}${from}`,
+      `${service.name} at Clawholics by Max, a nail art studio in Cagayan de Oro.${from} Book online.`,
+    ),
+    image: service.image,
+    content,
+  });
+}
+
+/** An artist's title (name and role), description, photo and canonical address */
+export async function artistMetadata(artist: Nailist | null): Promise<Metadata> {
+  if (!artist) return NOT_FOUND_METADATA("Artist");
+  const content = await readSeoContent();
+  const role = publicPosition(artist) || "Nail technician";
+  return seoMetadata({
+    path: artistPath(artist),
+    title: `${artist.name}, ${role}`,
+    description: shortDescription(artist.bio, `${artist.name} is a ${role.toLowerCase()} at Clawholics by Max in Cagayan de Oro. See their work and book with them.`),
+    image: artist.image,
+    content,
+  });
+}
+
+/** A service's schema markup with its breadcrumbs */
+export const serviceSchemas = (service: NailService): Json[] => [
+  serviceSchema(service as unknown as Row),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Services", path: PAGES.services.path },
+    { name: service.name, path: servicePath(service) },
+  ]),
+];
+
+/** An artist's schema markup with its breadcrumbs */
+export const artistSchemas = (artist: Nailist): Json[] => [
+  artistSchema(artist as unknown as Row),
+  breadcrumbSchema([
+    { name: "Home", path: "/" },
+    { name: "Artists", path: PAGES.artists.path },
+    { name: artist.name, path: artistPath(artist) },
+  ]),
+];
+
+// The saved search and sharing text (Admin > Search & Sharing): a slow or failed read leaves the
+// defaults, so a page never loses its metadata
+export async function readSeoContent(): Promise<SeoContent> {
+  return (await readOrNull(() => publicReads.content("seo") as Promise<SeoContent>, "SEO content")) ?? {};
+}
+
+/** A page's metadata with its saved title, description and link preview picture */
+export async function metadataFor(key: PageKey): Promise<Metadata> {
+  return pageMetadata(key, await readSeoContent());
 }

@@ -5,6 +5,7 @@ import { fetchCarousel, type CarouselItem } from "../services/carouselService";
 import {
   fetchServiceById,
   fetchServiceGallery,
+  fetchPopularServiceIds,
   fetchServices,
   type NailService,
   type ServiceGalleryImage,
@@ -21,7 +22,7 @@ import {
 } from "../services/nailistService";
 import { fetchPublicReviews, type PublicReview } from "../services/reviewService";
 import { fetchPaymentSettings } from "../services/paymentService";
-import { fetchBookingSettings, fetchLoyaltySettings } from "../services/settingsService";
+import { fetchBookingSettings, fetchPolicySettings, fetchLoyaltySettings } from "../services/settingsService";
 import type { HomeContent, TeamContent } from "../types";
 import { PUBLIC, publicKeys } from "./publicKeys";
 
@@ -56,6 +57,8 @@ export const publicQueries = {
   about: () => queryOptions({ queryKey: publicKeys.about, queryFn: (): Promise<AboutContent> => fetchAboutContent() }),
   carousel: () => queryOptions({ queryKey: publicKeys.carousel, queryFn: (): Promise<CarouselItem[]> => fetchCarousel() }),
   services: () => queryOptions({ queryKey: publicKeys.services, queryFn: (): Promise<NailService[]> => fetchServices() }),
+  /** The ids of the services booked most, most first */
+  popularServiceIds: () => queryOptions({ queryKey: publicKeys.popularServices, queryFn: fetchPopularServiceIds, staleTime: 5 * 60_000 }),
   service: (id: number) =>
     queryOptions({
       queryKey: publicKeys.service(id),
@@ -96,4 +99,6 @@ export const publicQueries = {
   loyaltySettings: () => queryOptions({ queryKey: [PUBLIC, "loyaltySettings"], queryFn: fetchLoyaltySettings }),
   /** The notice a booking needs, in hours */
   bookingSettings: () => queryOptions({ queryKey: publicKeys.bookingSettings, queryFn: fetchBookingSettings }),
+  /** The change window and the late fees */
+  policySettings: () => queryOptions({ queryKey: publicKeys.policySettings, queryFn: fetchPolicySettings }),
 };

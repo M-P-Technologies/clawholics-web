@@ -1,4 +1,5 @@
 import { GOOD_TO_KNOW } from "../../data/home";
+import { ABOUT_TITLE_DEFAULT } from "../homeSections";
 import type { AboutContent } from "../../services/aboutService";
 
 // The About Us editor's constants and the shape its form starts from
@@ -6,6 +7,7 @@ import type { AboutContent } from "../../services/aboutService";
 export const ABOUT_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] as const;
 
 export const EMPTY_ABOUT_CONTENT: AboutContent = {
+  about_title: "",
   about_description: "",
   about_image: "",
   about_location: "",
@@ -24,6 +26,7 @@ export const EMPTY_ABOUT_CONTENT: AboutContent = {
 export const aboutWithDefaults = (data: Partial<AboutContent>): AboutContent => ({
   ...EMPTY_ABOUT_CONTENT,
   ...data,
+  about_title: data.about_title?.trim() ? data.about_title : ABOUT_TITLE_DEFAULT,
   about_good_to_know: data.about_good_to_know?.trim() ? data.about_good_to_know : GOOD_TO_KNOW.join("\n"),
 });
 

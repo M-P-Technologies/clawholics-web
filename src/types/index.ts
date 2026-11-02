@@ -1,8 +1,6 @@
 export interface HomeContent {
   home_title: string;
   home_services_subtitle: string;
-  home_about_subtitle: string;
-  home_about_image: string;
   /** Not sent by older backends; the home page falls back to DEFAULT_HERO_IMAGE */
   home_hero_image?: string;
 }

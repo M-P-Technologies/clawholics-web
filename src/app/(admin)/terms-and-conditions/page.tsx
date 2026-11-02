@@ -1,7 +1,7 @@
 "use client";
 
 import CmsEditor from "@/components/features/admin/cms/CmsEditor";
-import { ItemsNote, PanelSection } from "@/components/features/admin/cms/fields";
+import { ItemsNote, PanelSection, SaveBar, TextField } from "@/components/features/admin/cms/fields";
 import { SortableList } from "@/components/molecules";
 import TACDropdown from "@/components/features/admin/cms/TACDropdown";
 import { CmsEditorSkeleton } from "@/components/features/admin/skeletons/skeletons";
@@ -11,7 +11,8 @@ import { TERMS_PREVIEW_PAGES } from "@/lib/admin/cmsPages";
 // The Terms & Conditions sections, edited beside a live preview. Its state and saving are in
 // hooks/admin/useTermsEditor.
 export default function TermsAndConditions() {
-  const { list, getToken, clerkId, newTac } = useTermsEditor();
+  const { list, page, getToken, clerkId, newTac } = useTermsEditor();
+  const { words } = page;
   const tacs = list.items;
 
   if (list.loading) return <CmsEditorSkeleton title="Terms & Conditions" />;
@@ -20,9 +21,21 @@ export default function TermsAndConditions() {
     <CmsEditor
       title="Terms & Conditions"
       pages={TERMS_PREVIEW_PAGES}
+      drafts={words ? { home: words } : undefined}
       refreshKey={list.refreshKey}
-      header={<ItemsNote>Each section saves on its own. Drag the handles to change the order.</ItemsNote>}
+      header={
+        <>
+          {words && <SaveBar dirty={page.dirty} saving={page.saving} onSave={page.saveWords} onDiscard={page.discard} />}
+          <ItemsNote>Save is for the page&apos;s heading. Each section saves on its own; drag the handles to change the order.</ItemsNote>
+        </>
+      }
     >
+      {words && (
+        <PanelSection title="Page heading" description="The title at the top of the Terms & Conditions page." page="/terms">
+          <TextField label="Heading" value={words.home_terms_title} onChange={page.setWord("home_terms_title")} />
+        </PanelSection>
+      )}
+
       <PanelSection
         title="Sections"
         description="Each section's heading and text, in the order they're shown on the Terms & Conditions page. Open one to edit it, drag the handle to move it, or add a new section at the bottom."

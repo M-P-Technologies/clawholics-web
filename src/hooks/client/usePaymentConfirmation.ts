@@ -118,5 +118,5 @@ export function usePaymentConfirmation() {
 
   /** What was actually paid ("₱500"), or null when the payment details didn't say */
   const paid = payment?.payment_amount ? peso(payment.payment_amount) : null;
-  return { isFailed, isConfirmed, navigate, appointment_id, data, dateLabel, timeLabel, paid, payment, loading, paymentStatus, timedOut, checkAgain, instagram };
+  return { appointmentNumber: Number(appointment_id), isFailed, isConfirmed, navigate, appointment_id, data, dateLabel, timeLabel, paid, payment, loading, paymentStatus, timedOut, checkAgain, instagram };
 }

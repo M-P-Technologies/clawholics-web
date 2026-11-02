@@ -1,6 +1,6 @@
 "use client";
 
-import CarouselEditor, { MAX_CAROUSEL_IMAGES } from "@/components/features/admin/cms/CarouselEditor";
+import CarouselEditor from "@/components/features/admin/cms/CarouselEditor";
 import CmsEditor, { CmsLoadError } from "@/components/features/admin/cms/CmsEditor";
 import { ImageField, PanelSection, SaveBar, TextField } from "@/components/features/admin/cms/fields";
 import { CmsEditorSkeleton } from "@/components/features/admin/skeletons/skeletons";
@@ -28,11 +28,12 @@ export default function AboutUs() {
       header={<SaveBar dirty={editor.dirty} saving={editor.isSaving} busy={editor.isUploading} onSave={editor.save} onDiscard={editor.discard} />}
     >
       <PanelSection title="Story" description="The salon's story, at the top of the About page." page="/about">
+        <TextField label="Page heading" value={content.about_title} onChange={set("about_title")} />
         <TextField label="Description" value={content.about_description} onChange={set("about_description")} rows={8} />
         <ImageField label="Photo" value={content.about_image} uploading={editor.isUploading} onUpload={editor.uploadPhoto} onRemove={() => set("about_image")("")} />
       </PanelSection>
 
-      <PanelSection title="Studio gallery" description="The photos of the studio's work on the About page, chosen from the artists' work (the photos from completed visits). Drag to change the order." page="/about" aside={`${gallery.length}/${MAX_CAROUSEL_IMAGES}`}>
+      <PanelSection title="Studio gallery" description="The photos of the studio's work on the About page, chosen from the artists' work (the photos from completed visits). Drag to change the order." page="/about" aside={editor.galleryCountLabel}>
         <CarouselEditor photos={gallery} onChange={editor.setGallery} choices={workPhotos.photos} choicesLoading={workPhotos.isLoading} />
       </PanelSection>
 

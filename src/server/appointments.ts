@@ -1,4 +1,5 @@
 import "server-only";
+import { DEFAULT_POLICY } from "../lib/policy";
 import { getSql } from "./db";
 import { inBackground, toId } from "./http";
 import { PROOF_TO_REVIEW_SQL } from "./proofRules";
@@ -281,8 +282,8 @@ export async function nailistOffersService(nailistId: unknown, serviceId: unknow
   return Boolean(row);
 }
 
-/** At least 72 hours before the appointment (Manila time, UTC+8): refundable / changeable. */
-export function isEligibleForChanges(appointmentDate: string, appointmentTime: string, now = Date.now()) {
+/** At least the change window (72 hours unless the salon set another, lib/policy.ts) before the appointment (Manila time, UTC+8): refundable / changeable. */
+export function isEligibleForChanges(appointmentDate: string, appointmentTime: string, now = Date.now(), windowHours = DEFAULT_POLICY.change_window_hours) {
   const dateMatch = String(appointmentDate).match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (!dateMatch) return false;
   const timeMatch = String(appointmentTime).match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
@@ -295,7 +296,7 @@ export function isEligibleForChanges(appointmentDate: string, appointmentTime: s
   if (ampm === "AM" && hours === 12) hours = 0;
 
   const appointmentUtc = Date.UTC(Number(dateMatch[1]), Number(dateMatch[2]) - 1, Number(dateMatch[3]), hours - 8, minutes, 0);
-  return appointmentUtc - now >= 72 * 60 * 60 * 1000;
+  return appointmentUtc - now >= windowHours * 60 * 60 * 1000;
 }
 
 /** Postgres unique violation on the one-booking-per-slot index. */

@@ -71,18 +71,56 @@ export const PAGES = {
 
 export type PageKey = keyof typeof PAGES;
 
+// The text search engines and link previews show can be edited in Admin > Search & Sharing. It is
+// saved as content (the `seo` section): seo_<page>_title and seo_<page>_description for the pages
+// below, and seo_image for the link preview picture. A key that was never saved (or is empty)
+// keeps what is written in PAGES above.
+
+/** The pages whose title and description are editable (the account pages stay as written) */
+export const SEO_PAGE_KEYS = ["home", "services", "artists", "about", "contact", "faq", "terms", "privacy", "tou"] as const satisfies readonly PageKey[];
+export type SeoPageKey = (typeof SEO_PAGE_KEYS)[number];
+
+export const seoKey = (page: SeoPageKey, field: "title" | "description") => `seo_${page}_${field}`;
+export const SEO_IMAGE_KEY = "seo_image";
+
+/** The saved `seo` content: key to value */
+export type SeoContent = Record<string, string | null | undefined>;
+
+const seoText = (content: SeoContent | null | undefined, key: string, fallback: string) => {
+  const value = content?.[key];
+  return typeof value === "string" && value.trim() ? value.trim() : fallback;
+};
+
+/** A page's title and description as the site shows them: what was saved, else the default */
+export function pageSeo(key: PageKey, content?: SeoContent | null): { title: string; description: string } {
+  const page = PAGES[key];
+  if (!(SEO_PAGE_KEYS as readonly string[]).includes(key)) return { title: page.title, description: page.description };
+  return {
+    title: seoText(content, seoKey(key as SeoPageKey, "title"), page.title),
+    description: seoText(content, seoKey(key as SeoPageKey, "description"), page.description),
+  };
+}
+
+/** The picture link previews show: the one uploaded in Admin > Search & Sharing, else the studio banner */
+export function siteOgImage(content?: SeoContent | null): { url: string; width?: number; height?: number; alt: string } {
+  const url = seoText(content, SEO_IMAGE_KEY, "");
+  return url ? { url, alt: OG_IMAGE.alt } : OG_IMAGE;
+}
+
 /** Account pages: kept out of search results, but their links are still followed */
 const NOT_INDEXED: PageKey[] = ["login", "signup", "onboarding"];
 
 /** The metadata for a page: a full address, title, description and link preview */
-export function pageMetadata(key: PageKey): Metadata {
+export function pageMetadata(key: PageKey, content?: SeoContent | null): Metadata {
   const page = PAGES[key];
+  const { title, description } = pageSeo(key, content);
   return seoMetadata({
     path: page.path,
     // The home page's title already names the studio, so it skips the "| Clawholics by Max" template
-    title: key === "home" ? { absolute: page.title } : page.title,
-    description: page.description,
+    title: key === "home" ? { absolute: title } : title,
+    description,
     index: !NOT_INDEXED.includes(key),
+    content,
   });
 }
 
@@ -93,12 +131,14 @@ interface SeoInput {
   /** A page-specific preview image (a service's or artist's photo); the studio banner otherwise */
   image?: string | null;
   index?: boolean;
+  /** The saved search and sharing text, for the default link preview picture */
+  content?: SeoContent | null;
 }
 
 /** The metadata for any public page, including the service and artist pages */
-export function seoMetadata({ path, title, description, image, index = true }: SeoInput): Metadata {
+export function seoMetadata({ path, title, description, image, index = true, content }: SeoInput): Metadata {
   const shownTitle = typeof title === "string" ? `${title} | ${SITE_NAME}` : title.absolute;
-  const images = image ? [{ url: image, alt: shownTitle }] : [OG_IMAGE];
+  const images = image ? [{ url: image, alt: shownTitle }] : [siteOgImage(content)];
   return {
     // Written out in full: the root layout's "%s | Clawholics by Max" template doesn't reach a
     // page whose parent layout also sets a title (a service's page under /services)

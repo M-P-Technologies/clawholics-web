@@ -144,6 +144,14 @@ export function useSchedule() {
       ),
     }));
 
+  const artistNames = (scheduleData?.nailists ?? []).map((artist) => ({ id: artist.id, name: getArtistName(artist) }));
+  const serviceNames = serviceNamesOf(scheduleData);
+  /** The phone's two filters, each opening its options in a bottom drawer */
+  const phoneFilters = [
+    { key: "service", title: "Service", value: service, options: [{ value: "All", label: "All Services" }, ...serviceNames.map((name) => ({ value: name, label: name }))], pick: setService },
+    { key: "artist", title: "Artist", value: filterBy, options: [{ value: "All", label: "All Artists" }, ...artistNames.map((a) => ({ value: a.name, label: a.name }))], pick: setFilterBy },
+  ];
+
   const gridDays = weekDays(weekDate);
   const selectedDay = selectedDate ? parseLocalDate(selectedDate) : null;
   return {
@@ -152,8 +160,9 @@ export function useSchedule() {
     scheduleData,
     dayData: (date: Date) => narrow(buildDayData(scheduleData, date, filterBy)),
     /** The artists' names, for the artist filter */
-    artistNames: (scheduleData?.nailists ?? []).map((artist) => ({ id: artist.id, name: getArtistName(artist) })),
-    serviceNames: serviceNamesOf(scheduleData),
+    artistNames,
+    serviceNames,
+    phoneFilters,
     filterBy,
     setFilterBy,
     query,

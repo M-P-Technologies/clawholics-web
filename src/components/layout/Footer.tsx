@@ -31,16 +31,16 @@ export default function Footer() {
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <nav aria-label="Explore" className="flex flex-col gap-3">
             <p className={columnTitle}>{t.home_footer_explore_title}</p>
-            <Link to="/" className={linkClass}>Home</Link>
-            <Link to="/services" className={linkClass}>Services</Link>
-            <Link to="/artists" className={linkClass}>Artists</Link>
+            <Link to="/" className={linkClass}>{t.home_nav_home}</Link>
+            <Link to="/services" className={linkClass}>{t.home_nav_services}</Link>
+            <Link to="/artists" className={linkClass}>{t.home_nav_artists}</Link>
           </nav>
 
           <nav aria-label="Help" className="flex flex-col gap-3">
             <p className={columnTitle}>{t.home_footer_help_title}</p>
-            <Link to="/about" className={linkClass}>About us</Link>
-            <Link to="/contact" className={linkClass}>Contact us</Link>
-            <Link to="/faq" className={linkClass}>FAQ</Link>
+            <Link to="/about" className={linkClass}>{t.home_nav_about}</Link>
+            <Link to="/contact" className={linkClass}>{t.home_nav_contact}</Link>
+            <Link to="/faq" className={linkClass}>{t.home_nav_faq}</Link>
           </nav>
 
           <div className="flex flex-col gap-3">

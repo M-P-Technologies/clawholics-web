@@ -7,10 +7,10 @@ import { useEditorSource } from "./useEditorSource";
 import { useClientApp } from "./useClientApp";
 import { useToast } from "@/components/molecules";
 import { PUBLIC } from "../../lib/publicQueries";
-import { fromForm, sameForm, settingsProblem, toForm, type SettingsForm } from "../../lib/admin/settings";
+import { fromForm, sameForm, SETTINGS_TABS, settingsProblemIn, toForm, type SettingsForm, type SettingsTab } from "../../lib/admin/settings";
 import { fetchSettings, updateSettings, type SalonSettings } from "../../services/settingsService";
 
-const EMPTY_FORM: SettingsForm = { downpayment: "", methods: [], birthdayPct: "", stampsRequired: "", holdMinutes: "", noticeHours: "", advanceDays: "", reminders: true, rebookDays: "" };
+const EMPTY_FORM: SettingsForm = { downpayment: "", methods: [], birthdayPct: "", stampsRequired: "", holdMinutes: "", noticeHours: "", advanceDays: "", reminders: true, rebookDays: "", changeWindowHours: "", lateFee1Minutes: "", lateFee1Amount: "", lateFee2Minutes: "", lateFee2Amount: "", lateCancelMinutes: "" };
 
 // Admin > Settings: the salon's settings, loaded, edited in one form and saved together
 export function useSettings() {
@@ -20,6 +20,8 @@ export function useSettings() {
   const [form, setForm] = useState<SettingsForm>(EMPTY_FORM);
   const [saved, setSaved] = useState<SettingsForm>(EMPTY_FORM);
   const [isSaving, setIsSaving] = useState(false);
+  // One form, saved together, shown a tab at a time
+  const [tab, setTab] = useState<SettingsTab>("payments");
   const clientApp = useClientApp();
   const settingsDirty = !sameForm(form, saved);
   const dirty = settingsDirty || clientApp.dirty;
@@ -61,12 +63,15 @@ export function useSettings() {
 
   // One Save for the page: both parts are checked first, so nothing is saved when either is wrong
   const save = async () => {
-    const problem = settingsDirty ? settingsProblem(form) : null;
+    const problem = settingsDirty ? settingsProblemIn(form) : null;
     if (problem) {
-      toast.show("error", "Settings not saved", problem);
+      // Shown on the tab whose field it is, so the field can be fixed
+      setTab(problem.tab);
+      toast.show("error", "Settings not saved", problem.message);
       return;
     }
     if (clientApp.dirty && clientApp.problem()) {
+      setTab("client-app");
       await clientApp.save(); // shows why it can't be saved
       return;
     }
@@ -83,6 +88,9 @@ export function useSettings() {
     isLoading: source.isLoading,
     loadFailed: source.failed,
     retry: source.retry,
+    tab,
+    setTab,
+    tabs: SETTINGS_TABS,
     form,
     dirty,
     isSaving: isSaving || clientApp.isSaving,
@@ -95,6 +103,12 @@ export function useSettings() {
     setNoticeHours: (value: string) => set("noticeHours", value),
     setAdvanceDays: (value: string) => set("advanceDays", value),
     setRebookDays: (value: string) => set("rebookDays", value),
+    setChangeWindowHours: (value: string) => set("changeWindowHours", value),
+    setLateFee1Minutes: (value: string) => set("lateFee1Minutes", value),
+    setLateFee1Amount: (value: string) => set("lateFee1Amount", value),
+    setLateFee2Minutes: (value: string) => set("lateFee2Minutes", value),
+    setLateFee2Amount: (value: string) => set("lateFee2Amount", value),
+    setLateCancelMinutes: (value: string) => set("lateCancelMinutes", value),
     toggleReminders: () => setForm((f) => ({ ...f, reminders: !f.reminders })),
     toggleMethod,
     save,

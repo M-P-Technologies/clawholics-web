@@ -11,6 +11,7 @@ import {
   Mail,
   Palette,
   QrCode,
+  Search,
   ShieldCheck,
   TrendingUp,
   Wallet,
@@ -47,6 +48,7 @@ export const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
       { path: "/faqs", label: "FAQs", icon: CircleHelp },
       { path: "/terms-and-conditions", label: "Terms & Conditions", icon: FileText },
       { path: "/privacy-policy", label: "Privacy Policy", icon: Lock },
+      { path: "/search-and-sharing", label: "Search & Sharing", icon: Search },
     ],
   },
 ];

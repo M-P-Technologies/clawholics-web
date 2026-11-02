@@ -98,7 +98,7 @@ describe("Explore", () => {
   it("books from a row, and shows the service in the panel from its name", async () => {
     render(<Explore />);
     const rows = await screen.findAllByRole("listitem");
-    fireEvent.click(within(rows[0]).getByRole("button", { name: "Book Gel manicure" }));
+    fireEvent.click(within(rows[0]).getByRole("button", { name: "Book now" }));
     expect(startBooking).toHaveBeenCalledWith(services[0]);
     // Booking from the row doesn't open anything else
     expect(within(rows[0]).queryByRole("link")).toBeNull();

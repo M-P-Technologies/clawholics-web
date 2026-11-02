@@ -1,15 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { fromForm, sameForm, settingsProblem, toForm } from "@/lib/admin/settings";
+import { DEFAULT_POLICY as POLICY } from "@/lib/policy";
+import { fromForm, sameForm, settingsProblem, settingsProblemIn, toForm } from "@/lib/admin/settings";
 
 describe("admin settings form", () => {
-  const form = toForm({ downpayment_amount: 500, payment_methods: ["GCASH", "MANUAL", "QRPH"], birthday_discount_pct: 20, loyalty_stamps_required: 8, booking_hold_minutes: 5, booking_min_notice_hours: 2, booking_max_advance_days: 30, booking_reminders_enabled: true, rebook_nudge_days: 0 });
+  const form = toForm({ downpayment_amount: 500, payment_methods: ["GCASH", "MANUAL", "QRPH"], birthday_discount_pct: 20, loyalty_stamps_required: 8, booking_hold_minutes: 5, booking_min_notice_hours: 2, booking_max_advance_days: 30, booking_reminders_enabled: true, rebook_nudge_days: 0, ...POLICY });
 
   it("keeps only the ways to pay the site has screens for", () => {
-    expect(form).toEqual({ downpayment: "500", methods: ["QRPH", "MANUAL"], birthdayPct: "20", stampsRequired: "8", holdMinutes: "5", noticeHours: "2", advanceDays: "30", reminders: true, rebookDays: "0" });
+    expect(form).toEqual({ downpayment: "500", methods: ["QRPH", "MANUAL"], birthdayPct: "20", stampsRequired: "8", holdMinutes: "5", noticeHours: "2", advanceDays: "30", reminders: true, rebookDays: "0", changeWindowHours: "72", lateFee1Minutes: "15", lateFee1Amount: "100", lateFee2Minutes: "20", lateFee2Amount: "150", lateCancelMinutes: "25" });
   });
 
   it("turns the form back into the settings to save", () => {
-    expect(fromForm(form)).toEqual({ downpayment_amount: 500, payment_methods: ["QRPH", "MANUAL"], birthday_discount_pct: 20, loyalty_stamps_required: 8, booking_hold_minutes: 5, booking_min_notice_hours: 2, booking_max_advance_days: 30, booking_reminders_enabled: true, rebook_nudge_days: 0 });
+    expect(fromForm(form)).toEqual({ downpayment_amount: 500, payment_methods: ["QRPH", "MANUAL"], birthday_discount_pct: 20, loyalty_stamps_required: 8, booking_hold_minutes: 5, booking_min_notice_hours: 2, booking_max_advance_days: 30, booking_reminders_enabled: true, rebook_nudge_days: 0, ...POLICY });
   });
 
   it("treats the same ways to pay in another order as unchanged", () => {
@@ -20,6 +21,25 @@ describe("admin settings form", () => {
     expect(sameForm(form, { ...form, advanceDays: "60" })).toBe(false);
     expect(sameForm(form, { ...form, rebookDays: "14" })).toBe(false);
     expect(sameForm(form, { ...form, reminders: false })).toBe(false);
+  });
+
+  it("checks the policy numbers on their own tab", () => {
+    expect(settingsProblemIn({ ...form, changeWindowHours: "0" })?.tab).toBe("policies");
+    expect(settingsProblemIn({ ...form, lateFee2Minutes: "15" })?.message).toMatch(/second late fee must start later/);
+    expect(settingsProblemIn({ ...form, lateCancelMinutes: "20" })?.message).toMatch(/Cancelling for lateness/);
+    expect(settingsProblemIn({ ...form, lateFee2Amount: "50" })?.message).toMatch(/can't be lower/);
+    expect(sameForm(form, { ...form, changeWindowHours: "48" })).toBe(false);
+    expect(fromForm({ ...form, changeWindowHours: "48" }).change_window_hours).toBe(48);
+  });
+
+  it("says which tab a problem is on, so the page can show it", () => {
+    expect(settingsProblemIn({ ...form, downpayment: "0" })?.tab).toBe("payments");
+    expect(settingsProblemIn({ ...form, methods: [] })?.tab).toBe("payments");
+    expect(settingsProblemIn({ ...form, holdMinutes: "99" })?.tab).toBe("booking");
+    expect(settingsProblemIn({ ...form, rebookDays: "3" })?.tab).toBe("booking");
+    expect(settingsProblemIn({ ...form, birthdayPct: "0" })?.tab).toBe("rewards");
+    expect(settingsProblemIn({ ...form, stampsRequired: "99" })?.tab).toBe("rewards");
+    expect(settingsProblemIn(form)).toBeNull();
   });
 
   it("refuses a downpayment, ways to pay or discount the server would refuse", () => {

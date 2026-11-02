@@ -12,8 +12,10 @@ vi.mock("@clerk/nextjs/server", () => ({
 vi.mock("next/server", () => ({ after: () => {} }));
 // A real WEBP signature: uploads check the first bytes, not just the type
 const WEBP = new Uint8Array([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50, ...new Array(88).fill(0)]);
+// The test photos are a bare WEBP header, which no image decoder reads; re-encoding has its own test (imageEncode.test.ts)
+vi.mock("../../server/imageEncode", () => ({ toWebp: async (bytes: Uint8Array) => bytes }));
 const putObject = vi.fn(async (..._args: unknown[]) => {});
-vi.mock("../../server/r2", () => ({ putObject: (...args: unknown[]) => putObject(...args), publicBaseUrl: () => "https://images.test" }));
+vi.mock("../../server/r2", () => ({ putObject: (...args: unknown[]) => putObject(...args), deleteObject: async () => {}, publicBaseUrl: () => "https://images.test" }));
 
 const as = (clerkId: string | null) => authMock.mockResolvedValue({ userId: clerkId });
 

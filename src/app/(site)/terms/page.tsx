@@ -9,7 +9,7 @@ import Section from "@/components/layout/Section";
 import { useTermsAndConditions } from "@/hooks/useTermsAndConditions";
 
 export default function Terms() {
-  const { tacs, loading, error, reload } = useTermsAndConditions();
+  const { tacs, heading, loading, error, reload } = useTermsAndConditions();
 
   if (loading) return <LoadingBar label="Loading terms and conditions" />;
   if (error) return <LoadError what="terms and conditions" onRetry={reload} />;
@@ -18,7 +18,7 @@ export default function Terms() {
     <PageShell>
       <Section innerClassName="max-w-4xl gap-9!">
         <BackButton />
-        <SectionHeader title="Terms & conditions" />
+        <SectionHeader title={heading} />
 
         {tacs.length === 0 ? (
           <EmptyState

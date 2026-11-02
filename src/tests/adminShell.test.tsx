@@ -18,10 +18,9 @@ describe("AdminShell", () => {
     expect(screen.getByText("Content")).toBeInTheDocument();
   });
 
-  it("shows the welcome line on desktop only", () => {
+  it("has no welcome line over the title", () => {
     render(<AdminShell title="Schedule"><p>x</p></AdminShell>);
-    expect(screen.getByText("Welcome, Admin!").className).toContain("hidden");
-    expect(screen.getByText("Welcome, Admin!").className).toContain("lg:block");
+    expect(screen.queryByText(/^Welcome/)).toBeNull();
   });
 
   it("has a top bar with a link to the public site and who is signed in", () => {

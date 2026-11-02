@@ -26,16 +26,17 @@ describe("ServicesTable", () => {
     expect(onBook).toHaveBeenCalledWith(services[0]);
   });
 
-  it("is cards on a phone, with a placeholder for a service without a photo and no empty description", () => {
+  it("is cards on a phone, with a placeholder for a service without a photo", () => {
     layout.table = false;
     render(<ServicesTable label="Services" services={services} onBook={vi.fn()} />);
     const list = screen.getByRole("list", { name: "Services" });
     const cards = within(list).getAllByRole("listitem");
     expect(cards).toHaveLength(2);
     expect(within(cards[1]).getByTestId("no-photo")).toBeInTheDocument();
-    expect(cards[1].querySelector("[data-description]")).toBeNull();
-    expect(cards[0].querySelector("[data-description]")).toHaveTextContent("Strong and glossy");
-    expect(within(cards[0]).getByRole("button", { name: "Book Hard Gel" })).toBeInTheDocument();
+    // Each card lies down: the name, the price and Book (no description)
+    expect(within(cards[0]).getByRole("heading", { name: "Hard Gel" })).toBeInTheDocument();
+    expect(within(cards[0]).queryByText("Strong and glossy")).toBeNull();
+    expect(within(cards[0]).getByRole("button", { name: "Book now" })).toBeInTheDocument();
   });
 
   it("shows five rows a page on a computer, and starts a new list on page 1", () => {

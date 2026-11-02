@@ -85,6 +85,14 @@ export const HOME_TEXT_DEFAULTS = {
   home_cta_primary_link: "/services",
   home_cta_secondary_label: "Contact us",
   home_cta_secondary_link: "/contact",
+  // The menu: the top bar, the phone's tab bar and the footer's links
+  home_nav_home: "Home",
+  home_nav_services: "Services",
+  home_nav_artists: "Artists",
+  home_nav_about: "About Us",
+  home_nav_contact: "Contact Us",
+  home_nav_faq: "FAQ",
+  home_nav_book: "Book now",
   home_footer_explore_title: "Explore",
   home_footer_help_title: "Help",
   home_footer_follow_title: "Follow",
@@ -153,7 +161,7 @@ export const FAQ_PAGE_DEFAULTS = {
 type FaqPageKey = keyof typeof FAQ_PAGE_DEFAULTS;
 
 /** Saved words over their defaults: a key that was never saved (or is empty) shows the default */
-function readWords<K extends string>(defaults: Record<K, string>, content: object | null | undefined): Record<K, string> {
+export function readWords<K extends string>(defaults: Record<K, string>, content: object | null | undefined): Record<K, string> {
   const values = (content ?? {}) as Record<string, unknown>;
   return Object.fromEntries(
     (Object.entries(defaults) as [K, string][]).map(([key, fallback]) => {
@@ -168,6 +176,30 @@ export const readFaqPage = (content: object | null | undefined) => readWords(FAQ
 export function faqPageProblem(text: Record<FaqPageKey, string>): string | null {
   if (Object.values(text).some((value) => !value.trim())) return "The heading, intro and every field of the banner need something in them.";
   return linkProblem(text.home_faq_cta_primary_link, "The main button") ?? linkProblem(text.home_faq_cta_secondary_link, "The second button");
+}
+
+/** The Contact page's headings (contact_* content, edited in Admin > Contact Us) */
+export const CONTACT_PAGE_DEFAULTS = {
+  contact_title: "Contact us",
+  contact_form_title: "Any concerns? Message us!",
+  contact_social_title: "Connect with us on social media!",
+  contact_business_title: "Business information",
+};
+
+export type ContactPageKey = keyof typeof CONTACT_PAGE_DEFAULTS;
+
+export const readContactPage = (content: object | null | undefined) => readWords(CONTACT_PAGE_DEFAULTS, content);
+
+/** The About page's heading (about_title, edited in Admin > About Us) */
+export const ABOUT_TITLE_DEFAULT = "About us";
+
+/** The Terms & Conditions page's heading, saved apart from the Homepage's words (in Admin > Terms) */
+export const TERMS_PAGE_DEFAULTS = { home_terms_title: "Terms & conditions" };
+
+export const readTermsPage = (content: object | null | undefined) => readWords(TERMS_PAGE_DEFAULTS, content);
+
+export function termsPageProblem(text: Record<keyof typeof TERMS_PAGE_DEFAULTS, string>): string | null {
+  return text.home_terms_title.trim() ? null : "The heading needs something in it.";
 }
 
 /** The Artists page's words (team_* content, edited in Admin > Artists) */
@@ -263,6 +295,8 @@ export interface HomeSections {
   offerImage: string;
   /** An uploaded logo for the footer; empty shows the Clawholics logo */
   footerLogo: string;
+  /** An uploaded logo for the top bar; empty shows the Clawholics bow */
+  navLogo: string;
   /** The strip's slides; null shows every service that has a photo, as the site always did */
   strip: StripSlide[] | null;
   /** The client app's Special offers banners */
@@ -303,6 +337,7 @@ export function readHomeSections(content: object | null | undefined): HomeSectio
     })),
     offerImage: read("home_offer_image", ""),
     footerLogo: read("home_footer_logo", ""),
+    navLogo: read("home_nav_logo", ""),
     strip: readStrip(values.home_strip),
     offers: readOffers(values.home_offers),
   };
@@ -319,6 +354,7 @@ export function homeSectionsToContent(sections: HomeSections): Record<string, st
     ),
     home_offer_image: sections.offerImage,
     home_footer_logo: sections.footerLogo,
+    home_nav_logo: sections.navLogo,
     home_strip: sections.strip?.length ? JSON.stringify(sections.strip) : "",
     home_offers: sections.offers.length ? JSON.stringify(sections.offers) : "",
   };

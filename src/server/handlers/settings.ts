@@ -5,6 +5,8 @@ import { getBookingHoldMinutes, MAX_BOOKING_HOLD_MINUTES, MIN_BOOKING_HOLD_MINUT
 import { getBookingMinNoticeHours, MAX_MIN_NOTICE_HOURS, MIN_MIN_NOTICE_HOURS } from "../bookingNotice";
 import { getBookingMaxAdvanceDays, MAX_MAX_ADVANCE_DAYS, MIN_MAX_ADVANCE_DAYS } from "../bookingWindow";
 import { getSql } from "../db";
+import { getPolicy } from "../policy";
+import { POLICY_KEYS, policyProblem, type SalonPolicy } from "../../lib/policy";
 import { getRemindersEnabled } from "../reminders";
 import { getRebookNudgeDays } from "../rebookNudges";
 import { isRebookNudgeDays, MAX_REBOOK_NUDGE_DAYS, MIN_REBOOK_NUDGE_DAYS } from "../../lib/rebookNudge";
@@ -17,7 +19,7 @@ import { ported } from "../worker";
 // ones are also public through /settings/payment, and the loyalty card's through /settings/loyalty;
 // the booking hold is read by booking itself.
 
-export interface SalonSettings {
+export interface SalonSettings extends SalonPolicy {
   downpayment_amount: number;
   payment_methods: string[];
   birthday_discount_pct: number;
@@ -33,7 +35,7 @@ export interface SalonSettings {
 }
 
 async function getSalonSettings(): Promise<SalonSettings> {
-  const [payment, birthdayDiscountPct, stampsRequired, holdMinutes, minNoticeHours, maxAdvanceDays, remindersEnabled, rebookNudgeDays] = await Promise.all([
+  const [payment, birthdayDiscountPct, stampsRequired, holdMinutes, minNoticeHours, maxAdvanceDays, remindersEnabled, rebookNudgeDays, policy] = await Promise.all([
     getPaymentSettings(),
     getBirthdayDiscountPct(),
     getLoyaltyStampsRequired(),
@@ -42,9 +44,11 @@ async function getSalonSettings(): Promise<SalonSettings> {
     getBookingMaxAdvanceDays(),
     getRemindersEnabled(),
     getRebookNudgeDays(),
+    getPolicy(),
   ]);
   return {
     ...payment,
+    ...policy,
     birthday_discount_pct: birthdayDiscountPct,
     loyalty_stamps_required: stampsRequired,
     booking_hold_minutes: holdMinutes,
@@ -77,8 +81,13 @@ function validateSalonSettings(body: unknown): string | null {
   if (typeof rebook !== "number" || !isRebookNudgeDays(rebook)) {
     return `rebook_nudge_days must be 0 (off) or a whole number from ${MIN_REBOOK_NUDGE_DAYS} to ${MAX_REBOOK_NUDGE_DAYS}.`;
   }
-  return null;
+  const policy = Object.fromEntries(POLICY_KEYS.map((key) => [key, (body as Record<string, unknown>)[key]])) as unknown as SalonPolicy;
+  return policyProblem(policy);
 }
+
+// GET /settings/policy (public): the change window and the late fees, which the pages quote and the
+// forms apply
+export const getPolicySettings = ported(async () => Response.json(await getPolicy()));
 
 // GET /settings/loyalty (public): the stamps a loyalty card needs for a reward
 export const getLoyaltySettings = ported(async () => Response.json({ stamps_required: await getLoyaltyStampsRequired() }));
@@ -115,6 +124,7 @@ export const updateSettings = ported(async (req) => {
       ["booking_max_advance_days", String(body.booking_max_advance_days)],
       ["booking_reminders_enabled", body.booking_reminders_enabled ? "1" : "0"],
       ["rebook_nudge_days", String(body.rebook_nudge_days)],
+      ...POLICY_KEYS.map((key) => [key, String(body[key])] as [string, string]),
     ]) {
       await tx`
         insert into site_settings (key, value, updated_at) values (${key}, ${value}, clawholics_utc_now())

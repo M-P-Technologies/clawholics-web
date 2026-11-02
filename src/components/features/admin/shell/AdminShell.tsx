@@ -40,7 +40,6 @@ export default function AdminShell({ title, hideTitle, titleAside, leading, acti
         titleAside={titleAside}
         leading={leading}
         actions={actions}
-        greeting={`Welcome, ${account.firstName}!`}
         account={{ name: account.name, email: account.email || "Admin", imageUrl: account.imageUrl }}
         bell={
           <div className="flex items-center gap-3">

@@ -194,7 +194,7 @@ export default function CompleteVisitForm({ visit, artists, onSaved, onCancelLat
       {form.lateCancel && !form.completed && (
         <div role="note" className="flex flex-col gap-3 rounded-lg border border-warning/40 bg-warning/10 p-3">
           <p className="text-xs font-bold text-warning-ink">
-            25 minutes or more late: the terms cancel this visit and keep the downpayment. You can still serve them and complete it.
+            {form.lateCancelMinutes} minutes or more late: the terms cancel this visit and keep the downpayment. You can still serve them and complete it.
           </p>
           {onCancelLate && (
             <Button type="button" size="sm" variant="secondary" onClick={onCancelLate} disabled={form.busy} className="self-start">

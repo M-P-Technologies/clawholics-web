@@ -28,7 +28,7 @@ export default function Services() {
 
             {/* SEARCH */}
             <div className="w-full lg:max-w-xs">
-              <SearchBar look="outline" value={search} onChange={setSearch} />
+              <SearchBar look="outline" transparent value={search} onChange={setSearch} />
             </div>
           </div>
         </SectionHeader>

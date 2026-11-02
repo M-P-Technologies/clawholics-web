@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useState, useEffect } from "react";
+import { usePolicy } from "./usePolicy";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { useNavigate, useSearchParams } from "@/lib/router";
@@ -348,6 +349,8 @@ export function useProfile() {
     }
   };
 
+  // How close to a visit it can still be changed (Admin > Settings > Policies)
+  const policy = usePolicy();
   const isEligibleForChanges = (dateStr: string, timeStr: string) => {
     try {
       const startTime = timeStr.includes("-")
@@ -358,9 +361,7 @@ export function useProfile() {
       const now = new Date();
 
       const diffInMs = aptDate.getTime() - now.getTime();
-      const seventyTwoHoursInMs = 72 * 60 * 60 * 1000;
-
-      return diffInMs >= seventyTwoHoursInMs;
+      return diffInMs >= policy.change_window_hours * 60 * 60 * 1000;
     } catch {
       return false;
     }
@@ -524,7 +525,7 @@ export function useProfile() {
   // The stamp boxes of the loyalty card
   const stampCells = Array.from({ length: stampTarget }, (_, index) => ({ number: index + 1, isEarned: index + 1 <= stamps }));
 
-  // Cancelling a confirmed appointment less than 3 days ahead is not refundable
+  // Cancelling a confirmed appointment inside the change window is not refundable
   const isLateCancellation =
     !!selectedAppt &&
     selectedAppt.status.toLowerCase() === "confirmed" &&
@@ -542,5 +543,5 @@ export function useProfile() {
   const loadError = profileQuery.isError && !profileQuery.data;
   const retryLoad = () => void profileQuery.refetch();
 
-  return { loadError, retryLoad, toggleGender, toggleHistory, closeRewardModal, loyaltyCardNumber, isBusy, appointmentsLoading, genderLabel, history, hasMoreHistory, noHistory, stampCells, stampTarget, isLateCancellation, selectedApptDateLabel, profileFields, isLoaded, clerkUser, getToken, navigate, highlightedAppointmentId, upcoming, nextAppointment, pastViews, dbUser, isEditing, formData, error, appointments, setAppointments, stamps, isGenderOpen, setIsGenderOpen, showRewardModal, setShowRewardModal, selectedAppt, setSelectedAppt, isCancelModalOpen, setIsCancelModalOpen, actionError, setActionError, currentTime, showAllHistory, setShowAllHistory, isCancelling, historySortBy, setHistorySortBy, historyFilter, setHistoryFilter, processedPastAppointments, todayFormatted, formatDisplayDate, handleEditClick, genderOptions, handleGenderSelect, handleContactMethodSelect, formatTime, handleChange, handleSave, handleCancel, handleClientRedeem, handleCancelAppointment, isEligibleForChanges, formatSlot, todayIso, currentAppointments, payForAppointment, rescheduleAppointment, startCancel, closeCancelModal, deleteTarget, setDeleteTarget, closeDelete, confirmDelete, isDeleting, handleProofUploaded, handleHistoryFilterChange, handleHistorySortChange };
+  return { loadError, retryLoad, toggleGender, toggleHistory, closeRewardModal, loyaltyCardNumber, isBusy, appointmentsLoading, genderLabel, history, hasMoreHistory, noHistory, stampCells, stampTarget, isLateCancellation, changeWindowLabel: policy.changeWindowLabel, selectedApptDateLabel, profileFields, isLoaded, clerkUser, getToken, navigate, highlightedAppointmentId, upcoming, nextAppointment, pastViews, dbUser, isEditing, formData, error, appointments, setAppointments, stamps, isGenderOpen, setIsGenderOpen, showRewardModal, setShowRewardModal, selectedAppt, setSelectedAppt, isCancelModalOpen, setIsCancelModalOpen, actionError, setActionError, currentTime, showAllHistory, setShowAllHistory, isCancelling, historySortBy, setHistorySortBy, historyFilter, setHistoryFilter, processedPastAppointments, todayFormatted, formatDisplayDate, handleEditClick, genderOptions, handleGenderSelect, handleContactMethodSelect, formatTime, handleChange, handleSave, handleCancel, handleClientRedeem, handleCancelAppointment, isEligibleForChanges, formatSlot, todayIso, currentAppointments, payForAppointment, rescheduleAppointment, startCancel, closeCancelModal, deleteTarget, setDeleteTarget, closeDelete, confirmDelete, isDeleting, handleProofUploaded, handleHistoryFilterChange, handleHistorySortChange };
 }

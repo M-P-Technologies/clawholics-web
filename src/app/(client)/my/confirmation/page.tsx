@@ -11,7 +11,7 @@ import { usePaymentConfirmation } from "@/hooks/client/usePaymentConfirmation";
 import { CLIENT_PATHS } from "@/lib/client/clientNav";
 
 export default function PaymentConfirmation() {
-  const { isFailed, isConfirmed, appointment_id, data, dateLabel, timeLabel, paid, payment, loading, timedOut, checkAgain, instagram } = usePaymentConfirmation();
+  const { appointmentNumber, isFailed, isConfirmed, appointment_id, data, dateLabel, timeLabel, paid, payment, loading, timedOut, checkAgain, instagram } = usePaymentConfirmation();
 
   if (!appointment_id) {
     return (
@@ -140,7 +140,7 @@ export default function PaymentConfirmation() {
 
         {data && (
           <AddToCalendarButton
-            id={Number(appointment_id)}
+            id={appointmentNumber}
             service={data.service_name}
             artist={data.nailist_name}
             date={data.appointment_date}

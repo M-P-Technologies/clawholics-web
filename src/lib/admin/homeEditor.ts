@@ -7,8 +7,6 @@ import type { HomeSections, HomeTextKey } from "../homeSections";
 export const EMPTY_HOME_CONTENT: HomeCMSContent = {
   home_title: "",
   home_services_subtitle: "",
-  home_about_subtitle: "",
-  home_about_image: "",
   home_hero_image: "",
 };
 
@@ -17,8 +15,6 @@ export const normalizeHomeContent = (data: Partial<HomeCMSContent>): HomeCMSCont
   ...EMPTY_HOME_CONTENT,
   home_title: data.home_title || "",
   home_services_subtitle: data.home_services_subtitle || "",
-  home_about_subtitle: data.home_about_subtitle || "",
-  home_about_image: data.home_about_image || "",
   // Prefilled so a backend without the key can still be saved (every field is required)
   home_hero_image: data.home_hero_image || DEFAULT_HERO_IMAGE,
 });

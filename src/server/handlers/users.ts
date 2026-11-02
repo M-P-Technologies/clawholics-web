@@ -14,6 +14,7 @@ import {
 import { getSql } from "../db";
 import { sendLoyaltyRewardEmail } from "../email";
 import { inBackground, orNull, pgErrorCode, readJson, routeNotFound, toId } from "../http";
+import { releaseImages } from "../imageRefs";
 import { getLoyaltyStampsRequired } from "../loyalty";
 import { ported } from "../worker";
 import { manilaTimeOfDay } from "@/lib/timeFormat";
@@ -222,6 +223,11 @@ export const deleteDirectoryUser = ported<DirectoryContext>(async (_req, { param
     );
   }
 
+  // The photos of what goes with them (their reviews, visits and payment proofs), once nothing else shows those files
+  const photos = await sql<{ url: string | null }[]>`
+    select r.photo_url as url from reviews r where r.user_id = ${user.id}
+    union all select vc.photo_url from visit_completions vc join appointments a on a.id = vc.appointment_id where a.user_id = ${user.id}
+    union all select pp.image_url from payment_proofs pp where pp.user_id = ${user.id} or pp.appointment_id in (select id from appointments where user_id = ${user.id})`;
   await sql.begin(async (tx) => {
     await tx`delete from payment_proofs where user_id = ${user.id} or appointment_id in (select id from appointments where user_id = ${user.id})`;
     await tx`update payment_proofs set reviewed_by = null where reviewed_by = ${user.id}`;
@@ -231,6 +237,7 @@ export const deleteDirectoryUser = ported<DirectoryContext>(async (_req, { param
     // admin_profiles and customer_profiles go with the user (on delete cascade)
     await tx`delete from users where id = ${user.id}`;
   });
+  inBackground("image cleanup", () => releaseImages(photos.map((p) => p.url)));
 
   if (isAdminRole(user.role)) await syncUserToClerk(user.clerk_id, { role: "customer" });
   await deleteUserFromClerk(user.clerk_id);

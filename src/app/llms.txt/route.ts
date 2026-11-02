@@ -1,5 +1,6 @@
 import { publicPosition } from "@/lib/artistRoles";
-import { PAGES, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/seo";
+import { PAGES, SITE_NAME, SITE_URL, pageSeo } from "@/lib/seo";
+import { readSeoContent } from "@/server/seo";
 import { publicReads } from "@/server/publicCache";
 import { readOrNull } from "@/server/timeLimit";
 import { specialtiesOf } from "@/server/seo";
@@ -29,7 +30,7 @@ export async function GET() {
     read(() => publicReads.nailists() as Promise<Row[]>, []),
   ]);
 
-  const lines: string[] = [`# ${SITE_NAME}`, "", `> ${SITE_DESCRIPTION}`, ""];
+  const lines: string[] = [`# ${SITE_NAME}`, "", `> ${pageSeo("home", await readSeoContent()).description}`, ""];
 
   const address = text(about.about_location) || text(home.contact_location);
   const hours = DAYS.map((day) => text(about[`about_business_hours_${day}`])).filter(Boolean);

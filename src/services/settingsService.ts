@@ -1,9 +1,10 @@
 import { API_BASE_URL } from "../apiConfig";
+import type { SalonPolicy } from "../lib/policy";
 
 // The salon's settings (Admin > Settings): the online downpayment, how clients may pay it, and
 // the birthday voucher's discount, the loyalty card's stamps and how long a booking holds its slot
 
-export interface SalonSettings {
+export interface SalonSettings extends SalonPolicy {
   downpayment_amount: number;
   payment_methods: string[];
   birthday_discount_pct: number;
@@ -37,6 +38,13 @@ export const fetchLoyaltySettings = async (): Promise<{ stamps_required: number 
 export const fetchBookingSettings = async (): Promise<{ min_notice_hours: number; max_advance_days: number }> => {
   const res = await fetch(`${API_BASE_URL}/settings/booking`, { headers: getHeaders() });
   if (!res.ok) throw new Error("Failed to load the booking settings");
+  return res.json();
+};
+
+/** The change window and the late fees (public): the pages quote them and the forms apply them */
+export const fetchPolicySettings = async (): Promise<SalonPolicy> => {
+  const res = await fetch(`${API_BASE_URL}/settings/policy`, { headers: getHeaders() });
+  if (!res.ok) throw new Error("Failed to load the salon's policy");
   return res.json();
 };
 

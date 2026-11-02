@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
-import { pageMetadata } from "@/lib/seo";
+import { metadataFor } from "@/server/seo";
 
-export const metadata = pageMetadata("about");
+export async function generateMetadata() {
+  return metadataFor("about");
+}
 
 export default function Layout({ children }: { children: ReactNode }) {
   return children;
