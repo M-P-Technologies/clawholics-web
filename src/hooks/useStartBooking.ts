@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { accountQueries } from "@/lib/accountQueries";
 import { bookingStateFor } from "../utils/booking";
 import { CLIENT_PATHS } from "../lib/client/clientNav";
+import { withReturn } from "../lib/loginReturn";
 
 type ShowModal = (title: string, message: string, action?: () => void, buttonText?: string) => void;
 
@@ -23,7 +24,8 @@ export function useStartBooking(showModal: ShowModal) {
       showModal(
         "Login Required",
         "Please log in to book. Once you are signed in, you can pick your artist, date and time.",
-        () => navigate("/login"),
+        // After logging in, back to this page to carry on booking
+        () => navigate(withReturn("/login", window.location.pathname + window.location.search)),
         "Go to Login",
       );
       return;

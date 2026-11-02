@@ -29,18 +29,18 @@ function ServiceFacts({ service, small = false }: { service: NailService; small?
   return (
     <dl className="grid grid-cols-2 divide-x divide-crimson-light/60 rounded-xl bg-crimson-light/15 py-3 text-center">
       <div className="flex min-w-0 flex-col items-center gap-0.5 px-1">
-        <dt className={clsx("flex items-center gap-1 text-gray-red", small ? "text-[11px]" : "text-xs")}>
+        <dt className={clsx("flex items-center gap-1 text-gray-red", small ? "text-xs" : "text-sm")}>
           <Clock size={12} aria-hidden="true" />
           Duration
         </dt>
-        <dd className={clsx("font-bold text-gray-red", small ? "text-xs" : "text-sm")}>{service.duration || "Ask us"}</dd>
+        <dd className={clsx("font-bold text-gray-red", small ? "text-sm" : "text-base")}>{service.duration || "Ask us"}</dd>
       </div>
       <div className="flex min-w-0 flex-col items-center gap-0.5 px-1">
-        <dt className={clsx("flex items-center gap-1 text-gray-red", small ? "text-[11px]" : "text-xs")}>
+        <dt className={clsx("flex items-center gap-1 text-gray-red", small ? "text-xs" : "text-sm")}>
           <UsersRound size={12} aria-hidden="true" />
           Artists
         </dt>
-        <dd className={clsx("font-bold text-gray-red", small ? "text-xs" : "text-sm")}>{artistsFact(service)}</dd>
+        <dd className={clsx("font-bold text-gray-red", small ? "text-sm" : "text-base")}>{artistsFact(service)}</dd>
       </div>
     </dl>
   );
@@ -76,23 +76,19 @@ export default function ServicePanel({ service, onBook, inSheet = false, brief =
               service.name
             )}
           </h2>
-          <p className="font-display text-base text-berry">{priceLabel(service)}</p>
-          {/* Each fact is its icon and its value on a row, one under the other */}
-          <div className="flex flex-col gap-1 text-xs text-gray-red">
-            <p className="flex items-center gap-1.5">
+          <p className="text-sm font-bold text-crimson">{priceLabel(service)}</p>
+          {service.description && <p className="line-clamp-3 text-sm text-gray-red sm:line-clamp-5">{service.description}</p>}
+          {/* The duration and Book on one row at the card's foot */}
+          <div className="mt-auto flex w-full items-center justify-between gap-3 pt-1.5">
+            <p className="flex items-center gap-1.5 text-sm text-gray-red">
               <Clock size={12} aria-hidden="true" className="shrink-0" />
               <span className="sr-only">Duration: </span>
               {service.duration || "Ask us"}
             </p>
-            <p className="flex items-center gap-1.5">
-              <UsersRound size={12} aria-hidden="true" className="shrink-0" />
-              <span className="sr-only">Artists: </span>
-              {artistsFact(service)}
-            </p>
+            <Button type="button" onClick={() => onBook(service)}>
+              Book now
+            </Button>
           </div>
-          <Button type="button" onClick={() => onBook(service)} className="mt-auto">
-            Book now
-          </Button>
         </div>
       </article>
     );
@@ -118,13 +114,16 @@ export default function ServicePanel({ service, onBook, inSheet = false, brief =
         <div className="flex flex-col items-start gap-3">
           {service.category && <Badge tone="brand">{service.category}</Badge>}
           {/* Tighter between the name and the price on a list card */}
-          <div className={clsx("flex flex-col", brief ? "gap-0.5" : "gap-3")}>
+          <div className={clsx("flex flex-col lg:w-full lg:flex-row lg:flex-wrap lg:items-baseline lg:justify-between lg:gap-x-3", brief ? "gap-0.5" : "gap-3")}>
             <h2 className={clsx("font-display font-normal leading-tight text-gray-red", brief ? "text-xl" : "text-2xl")}>{service.name}</h2>
-            <p className={clsx("font-display text-berry", brief ? "text-lg" : "text-xl")}>{priceLabel(service)}</p>
+            <p className={clsx("font-display text-crimson", brief ? "text-lg" : "text-xl")}>{priceLabel(service)}</p>
           </div>
         </div>
 
         <ServiceFacts service={service} small={brief} />
+
+        {/* A list card shows the first lines of the description; the panel and the sheet show it all */}
+        {brief && service.description && <p className="line-clamp-5 text-sm text-gray-red">{service.description}</p>}
 
         {!brief && service.description && <p className="whitespace-pre-line text-sm leading-relaxed text-gray-red">{service.description}</p>}
 

@@ -6,7 +6,7 @@ import { ArrowRight } from "lucide-react";
 import clsx from "clsx";
 import qrPhLogo from "@/assets/logo/qr_ph.png";
 import { AlertDialog } from "@/components/organisms";
-import { Badge, Button, Card } from "@/components/atoms";
+import { Button, Card } from "@/components/atoms";
 import { ChoiceRow, SectionHeader, StepBar, StickyActionBar, SummaryRow } from "@/components/molecules";
 import { surface } from "@/components/tokens";
 import ClientScreen from "@/components/features/client/shell/ClientScreen";
@@ -52,7 +52,7 @@ export default function Payment() {
   return (
     <ClientScreen title="Payment" back="history">
       <div className="flex flex-col gap-6">
-        <div className="lg:hidden"><StepBar steps={BOOKING_STEPS} current={1} label="Booking steps" /></div>
+        <div className="lg:hidden"><StepBar steps={BOOKING_STEPS} current={2} label="Booking steps" /></div>
         {/* The form takes two thirds; the booking summary and the payment summary stack in the third */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-6">
           {/* PAYMENT FORM */}
@@ -122,41 +122,6 @@ export default function Payment() {
           </Card>
 
           <div className="flex flex-col gap-3 md:gap-6">
-          {/* BOOKING SUMMARY: what was chosen on the Book step */}
-          <Card as="aside" className="flex flex-col gap-3 lg:hidden">
-            <SectionHeader size="card" title="Booking summary" />
-            {appointment.service_image && (
-              <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-crimson-light/15">
-                <Image src={appointment.service_image} alt={appointment.service_name} fill sizes="(max-width: 1024px) 100vw, 33vw" className="object-cover" />
-              </div>
-            )}
-            <div className="flex flex-col items-start gap-3">
-              {appointment.service_category && <Badge tone="brand">{appointment.service_category}</Badge>}
-              <p className="font-display text-2xl text-gray-red">{appointment.service_name}</p>
-              {appointment.service_description && (
-                <p className="line-clamp-3 text-sm text-gray-red" title={appointment.service_description}>{appointment.service_description}</p>
-              )}
-            </div>
-            <dl className="border-t border-crimson-light/40 pt-2">
-              <SummaryRow label="Preferred artist" value={artistLabel} />
-              <SummaryRow label="Date" value={dateLabel} />
-              <SummaryRow label="Time" value={timeLabel} />
-              {/* Left out when this step was opened from the appointments list, which doesn't carry the location */}
-              {appointment.location_text && (
-                <SummaryRow label="Location" value={
-                    appointment.location_url ? (
-                      <a href={appointment.location_url} target="_blank" rel="noopener noreferrer" className="font-bold text-crimson-ink underline underline-offset-4 hover:text-gray-red">
-                        {appointment.location_text}
-                      </a>
-                    ) : (
-                      appointment.location_text
-                    )
-                  }
-                />
-              )}
-            </dl>
-          </Card>
-
           {/* PAYMENT SUMMARY: stretches to the form card's height from `lg`, the total at its foot */}
           <Card as="aside" className="flex flex-col gap-3 lg:grow">
             <SectionHeader size="card" title="Payment summary" />

@@ -1,9 +1,11 @@
 import clsx from "clsx";
 import { Link } from "@/lib/router";
+import { withReturn } from "@/lib/loginReturn";
 
 // The Login | Sign up switch above the sign-in and sign-up forms. Each side is its own page, so
 // moving between them keeps the address meaningful and the back button working.
-export default function AuthTabs({ current }: { current: "login" | "signup" }) {
+// `returnTo` is kept when switching sides, so the visitor still ends up back where they were.
+export default function AuthTabs({ current, returnTo = null }: { current: "login" | "signup"; returnTo?: string | null }) {
   const tab = (to: string, label: string, active: boolean) => (
     <Link
       to={to}
@@ -19,8 +21,8 @@ export default function AuthTabs({ current }: { current: "login" | "signup" }) {
 
   return (
     <nav aria-label="Account" className="flex w-full max-w-100 gap-1 rounded-md border border-crimson-light bg-light-orange p-1">
-      {tab("/login", "Login", current === "login")}
-      {tab("/signup", "Sign up", current === "signup")}
+      {tab(withReturn("/login", returnTo), "Login", current === "login")}
+      {tab(withReturn("/signup", returnTo), "Sign up", current === "signup")}
     </nav>
   );
 }

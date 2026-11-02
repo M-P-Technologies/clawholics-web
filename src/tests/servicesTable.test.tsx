@@ -33,9 +33,9 @@ describe("ServicesTable", () => {
     const cards = within(list).getAllByRole("listitem");
     expect(cards).toHaveLength(2);
     expect(within(cards[1]).getByTestId("no-photo")).toBeInTheDocument();
-    // Each card lies down: the name, the price and Book (no description)
+    // Each card lies down: the name, the price, the description and Book
     expect(within(cards[0]).getByRole("heading", { name: "Hard Gel" })).toBeInTheDocument();
-    expect(within(cards[0]).queryByText("Strong and glossy")).toBeNull();
+    expect(within(cards[0]).getByText("Strong and glossy")).toBeInTheDocument();
     expect(within(cards[0]).getByRole("button", { name: "Book now" })).toBeInTheDocument();
   });
 

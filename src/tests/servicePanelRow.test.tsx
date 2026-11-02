@@ -11,7 +11,7 @@ vi.mock("next/image", () => ({ default: ({ alt }: { alt: string }) => <img alt={
 const service = { id: 1, name: "Softgel Extensions", category: "Manicure", image: "https://img.test/a.webp", master_price: 800, junior_price: 650, pricing_mode: "tiered", duration: "2 hrs", description: "Long text", variants: [] } as unknown as NailService;
 
 describe("a popular service as a card lying down", () => {
-  it("shows the photo beside the category, name, price and Book, with the duration and artists as icon rows, and no description", () => {
+  it("shows the photo beside the category, name, price and Book, with the duration beside Book and the description, and no artists", () => {
     const onBook = vi.fn();
     const { container } = render(<ServicePanel service={service} onBook={onBook} brief row />);
     // The photo is decorative: the name is beside it
@@ -20,8 +20,8 @@ describe("a popular service as a card lying down", () => {
     expect(screen.getByRole("heading", { name: "Softgel Extensions" })).toBeInTheDocument();
     expect(screen.getByText(/Duration/)).toBeInTheDocument();
     expect(screen.getByText(/2 hrs/)).toBeInTheDocument();
-    expect(screen.getByText(/Artists/)).toBeInTheDocument();
-    expect(screen.queryByText("Long text")).toBeNull();
+    expect(screen.queryByText(/Artists/)).toBeNull();
+    expect(screen.getByText("Long text")).toHaveClass("line-clamp-3", "sm:line-clamp-5");
     // No carousel arrows or dots: one photo
     expect(screen.queryByRole("region", { name: /photos/ })).toBeNull();
     screen.getByRole("button", { name: "Book now" }).click();

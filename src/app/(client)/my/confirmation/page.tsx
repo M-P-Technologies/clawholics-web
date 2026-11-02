@@ -102,7 +102,7 @@ export default function PaymentConfirmation() {
     <ClientScreen title="Payment" back={CLIENT_PATHS.appointments}>
       <div className="mx-auto flex min-h-[60vh] w-full max-w-3xl flex-col items-center gap-3 text-center md:gap-6">
         <div className="w-full max-w-xl lg:hidden">
-          <StepBar steps={BOOKING_STEPS} current={3} label="Booking steps" />
+          <StepBar steps={BOOKING_STEPS} current={4} label="Booking steps" />
         </div>
         <CheckIcon size={56} className="text-crimson" strokeWidth={1.5} aria-hidden="true" />
 
