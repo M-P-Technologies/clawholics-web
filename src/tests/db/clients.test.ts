@@ -47,7 +47,7 @@ describe.skipIf(!TEST_DATABASE_URL)("client pages and notes (Postgres)", () => {
       a1: await appt(ana.id, "2026-08-01", "COMPLETED"),
       a2: await appt(ana.id, "2026-09-05", "COMPLETED"),
       a3: await appt(ana.id, "2026-09-20", "CANCELLED"),
-      a4: await appt(ana.id, "2026-11-02", "CONFIRMED"),
+      a4: await appt(ana.id, "2098-11-02", "CONFIRMED"),
       b1: await appt(bea.id, "2026-10-01", "COMPLETED"),
     });
     clients = await import("../../server/handlers/clients");
@@ -76,7 +76,7 @@ describe.skipIf(!TEST_DATABASE_URL)("client pages and notes (Postgres)", () => {
         instagram_handle: "@ana", preferred_contact_method: "Instagram", created_at: "2026-06-01 05:00:00",
       },
       // two completed Gels with a master: 800 each; the confirmed one is still to come
-      summary: { visits: 2, totalSpent: 1600, lastVisit: "2026-09-05", nextVisit: "2026-11-02", stamps: 3 },
+      summary: { visits: 2, totalSpent: 1600, lastVisit: "2026-09-05", nextVisit: "2098-11-02", stamps: 3 },
     });
     const appts = (body as { appointments: { id: number; status: string; price: number | null }[] }).appointments;
     expect(appts.map((a) => a.id)).toEqual([ids.a4, ids.a3, ids.a2, ids.a1]);

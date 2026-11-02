@@ -51,7 +51,7 @@ describe.skipIf(!TEST_DATABASE_URL)("reviews (Postgres)", () => {
       admin, ana, bea,
       done: await appt(ana, "2026-09-05", "COMPLETED"),
       done2: await appt(ana, "2026-08-01", "completed"),
-      ahead: await appt(ana, "2026-11-02", "CONFIRMED"),
+      ahead: await appt(ana, "2098-11-02", "CONFIRMED"),
       beas: await appt(bea, "2026-10-01", "COMPLETED"),
     });
     reviews = await import("../../server/handlers/reviews");
