@@ -5,7 +5,7 @@ import Home from "@/app/(site)/(home)/page";
 vi.mock("@/hooks/useHome", () => ({
   useHome: () => ({
     contentError: false, reloadContent: () => {},
-    content: { home_title: "Clawholics.", home_services_subtitle: "", home_about_subtitle: "", home_about_image: "", home_hero_image: "" },
+    content: { home_title: "Clawholics.", home_services_subtitle: "", home_hero_image: "" },
     faqs: [], nailists: [], about: null, stripItems: [],
   }),
 }));

@@ -8,6 +8,7 @@ import { withSalonLocation } from "../lib/homeSections";
 import { API_BASE_URL } from "../apiConfig";
 import type { ChangeEvent } from "react";
 import { CONTACT_FIELDS } from "../data/contactUs";
+import { readContactPage } from "../lib/homeSections";
 
 export function useContactUs() {
   const homeQuery = useQuery(publicQueries.home());
@@ -115,7 +116,10 @@ export function useContactUs() {
   const socialLinks = pageData
     ? readSocialLinks(pageData).map((link) => ({ name: link.name, href: socialHref(link), ...platformOf(link.platform) }))
     : [];
-  const heroImage = pageData?.home_hero_image || DEFAULT_HERO_IMAGE;
+  // Its own photo (Admin > Contact Us), else the homepage's hero photo
+  // The page's headings (Admin > Contact Us), or their defaults
+  const words = readContactPage(pageData);
+  const heroImage = pageData?.contact_image || pageData?.home_hero_image || DEFAULT_HERO_IMAGE;
   // The dialog after sending: its words, and whether it's an error
   const feedback = modalState.type ? CONTACT_FEEDBACK[modalState.type] : null;
   const feedbackDialog = {
@@ -125,5 +129,5 @@ export function useContactUs() {
     isError: modalState.type !== "success",
   };
 
-  return { socialLinks, heroImage, feedbackDialog, descriptionLength, isDescriptionFull, contactFields, pageData, isPageLoading, pageError, emailError, setEmailError, formData, modalState, isSubmitting, closeModal, handleChange, handleSubmit, handleEmailChange, reloadPage };
+  return { words, socialLinks, heroImage, feedbackDialog, descriptionLength, isDescriptionFull, contactFields, pageData, isPageLoading, pageError, emailError, setEmailError, formData, modalState, isSubmitting, closeModal, handleChange, handleSubmit, handleEmailChange, reloadPage };
 }

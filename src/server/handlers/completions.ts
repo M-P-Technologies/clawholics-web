@@ -1,11 +1,14 @@
 import "server-only";
 import { requireAdmin, requireUserRow } from "../auth";
 import { getSql } from "../db";
-import { toId } from "../http";
+import { inBackground, toId } from "../http";
 import { NOT_AN_IMAGE, imageBytes } from "../imageFiles";
 import { PROOF_EXTENSIONS, MAX_PROOF_SIZE } from "../payments";
 import { changesCatalog } from "../publicCache";
-import { createImageKey, publicBaseUrl, putObject } from "../r2";
+import { toWebp } from "../imageEncode";
+import { releaseImages } from "../imageRefs";
+import { getPolicy } from "../policy";
+import { createWebpImageKey, publicBaseUrl, putObject } from "../r2";
 import { ported } from "../worker";
 import { checkVoucherForVisit, releaseVoucherOf, useVoucherOn } from "../birthdayVouchers";
 import { BALANCE_METHODS, MAX_COMPLETION_PHOTOS, lateFee, minutesLate } from "../../lib/visitCompletion";
@@ -60,24 +63,28 @@ export const saveCompletion = changesCatalog(ported<IdContext>(async (req, { par
   if (voucher && "error" in voucher) return badRequest(voucher.error);
 
   // Every photo checked before any is stored
-  const photos: { bytes: Uint8Array; type: string; ext: string }[] = [];
+  // Stored as smaller WEBP (see imageEncode)
+  const photos: Uint8Array[] = [];
   for (const file of files) {
-    const ext = PROOF_EXTENSIONS[file.type];
-    if (!ext) return badRequest("Photos must be JPG, PNG or WEBP.");
+    if (!PROOF_EXTENSIONS[file.type]) return badRequest("Photos must be JPG, PNG or WEBP.");
     if (file.size > MAX_PROOF_SIZE) return badRequest("Each photo must be 1MB or smaller.");
     const bytes = await imageBytes(file);
     if (!bytes) return badRequest(NOT_AN_IMAGE);
-    photos.push({ bytes, type: file.type, ext });
+    const webp = await toWebp(bytes).catch(() => null);
+    if (!webp) return badRequest(NOT_AN_IMAGE);
+    photos.push(webp);
   }
   const urls: string[] = [];
   for (const [i, photo] of photos.entries()) {
-    const key = createImageKey("nailists", `visit-${id}-${i + 1}.${photo.ext}`);
-    await putObject(key, photo.bytes, photo.type);
+    const key = createWebpImageKey("nailists", `visit-${id}-${i + 1}.webp`);
+    await putObject(key, photo, "image/webp");
     urls.push(`${publicBaseUrl()}/${key}`);
   }
+  // The gallery's oldest photos that give way below
+  const dropped: string[] = [];
 
   // The late fee is worked out here, from the booked time, whatever the form showed
-  const fee = arrivedAt ? lateFee(minutesLate(appt.appointment_time, arrivedAt)).fee : 0;
+  const fee = arrivedAt ? lateFee(minutesLate(appt.appointment_time, arrivedAt), await getPolicy()).fee : 0;
   const adminRow = await requireUserRow();
   const completedBy = adminRow instanceof Response ? null : adminRow.id;
   const completion = await sql.begin(async (tx) => {
@@ -113,16 +120,22 @@ export const saveCompletion = changesCatalog(ported<IdContext>(async (req, { par
     }
     // The gallery keeps its first 10 (what the page and the admin's editor show): the oldest give way
     if (urls.length > 0) {
-      await tx`
+      const gone = await tx<{ image_url: string }[]>`
         delete from nailist_gallery where nailist_id = ${nailistId} and id not in (
-          select id from nailist_gallery where nailist_id = ${nailistId} order by position asc, id desc limit 10)`;
+          select id from nailist_gallery where nailist_id = ${nailistId} order by position asc, id desc limit 10)
+        returning image_url`;
+      dropped.push(...gone.map((g) => g.image_url));
     }
     return saved;
   }).catch((error) => {
+    // Nothing was saved, so this attempt's photos are only files
+    inBackground("image cleanup", () => releaseImages(urls));
     if (error instanceof NoLongerConfirmed) return null;
     if (error instanceof VoucherTaken) return "voucher-taken" as const;
     throw error;
   });
+  // Photos the gallery's limit pushed out, once nothing else (a visit, a service, the carousel) shows them
+  inBackground("image cleanup", () => releaseImages(dropped));
   if (completion === "voucher-taken") return Response.json({ message: "This voucher was just used on another visit." }, { status: 409 });
   if (!completion) return Response.json({ message: "Only a confirmed visit can be completed." }, { status: 409 });
   return Response.json({ completion, photos: urls.length });
@@ -139,10 +152,10 @@ export const saveVisitPhoto = changesCatalog(ported<IdContext>(async (req, { par
 
   const file = (await req.formData()).get("file");
   if (!file || typeof file === "string") return badRequest("Choose a photo.");
-  const ext = PROOF_EXTENSIONS[file.type];
-  if (!ext) return badRequest("Photos must be JPG, PNG or WEBP.");
+  if (!PROOF_EXTENSIONS[file.type]) return badRequest("Photos must be JPG, PNG or WEBP.");
   if (file.size > MAX_PROOF_SIZE) return badRequest("The photo must be 1MB or smaller.");
-  const bytes = await imageBytes(file);
+  const original = await imageBytes(file);
+  const bytes = original ? await toWebp(original).catch(() => null) : null;
   if (!bytes) return badRequest(NOT_AN_IMAGE);
 
   const sql = getSql();
@@ -152,22 +165,31 @@ export const saveVisitPhoto = changesCatalog(ported<IdContext>(async (req, { par
     where vc.appointment_id = ${id} and upper(trim(a.status)) = 'COMPLETED'`;
   if (!record) return Response.json({ message: "Complete the visit first, then add its photo." }, { status: 409 });
 
-  const key = createImageKey("nailists", `visit-${id}.${ext}`);
-  await putObject(key, bytes, file.type);
+  const key = createWebpImageKey("nailists", `visit-${id}.webp`);
+  await putObject(key, bytes, "image/webp");
   const url = `${publicBaseUrl()}/${key}`;
 
+  const dropped: string[] = [];
   await sql.begin(async (tx) => {
     if (record.photo_url) await tx`delete from nailist_gallery where nailist_id = ${record.nailist_id} and image_url = ${record.photo_url}`;
     await tx`
       insert into nailist_gallery (nailist_id, image_url, position)
       values (${record.nailist_id}, ${url}, (select coalesce(min(position), 1) - 1 from nailist_gallery where nailist_id = ${record.nailist_id}))`;
-    await tx`
+    const gone = await tx<{ image_url: string }[]>`
       delete from nailist_gallery where nailist_id = ${record.nailist_id} and id not in (
-        select id from nailist_gallery where nailist_id = ${record.nailist_id} order by position asc, id desc limit 10)`;
+        select id from nailist_gallery where nailist_id = ${record.nailist_id} order by position asc, id desc limit 10)
+      returning image_url`;
+    dropped.push(...gone.map((g) => g.image_url));
     await tx`
       update visit_completions set photo_url = ${url}, photos_added = greatest(photos_added, 1), updated_at = clawholics_utc_now()
       where appointment_id = ${id}`;
+  }).catch((error) => {
+    // Nothing was saved, so the new file is unused
+    inBackground("image cleanup", () => releaseImages([url]));
+    throw error;
   });
+  // The photo this one replaced, and any the gallery's limit pushed out, once nothing else shows them
+  inBackground("image cleanup", () => releaseImages([record.photo_url, ...dropped]));
   return Response.json({ photo_url: url });
 }));
 

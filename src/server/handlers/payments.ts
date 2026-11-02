@@ -36,7 +36,7 @@ export const createPayment = ported(async (req) => {
   const requester = await requireUserRow();
   if (requester instanceof Response) return requester;
 
-  const { appointment_id, payment_method } = await readJson<{ appointment_id?: unknown; payment_method?: string }>(req);
+  const { appointment_id, payment_method, retry } = await readJson<{ appointment_id?: unknown; payment_method?: string; retry?: unknown }>(req);
   const { downpayment_amount, payment_methods } = await getPaymentSettings();
   if (payment_method === "MANUAL") return errorBody("Manual payments are made by uploading a payment proof.", 400);
   if (!payment_method || !payment_methods.includes(payment_method)) return errorBody("This payment method is not available.", 400);
@@ -65,14 +65,16 @@ export const createPayment = ported(async (req) => {
   if (pendingProof) return errorBody("A payment proof for this appointment is awaiting review.", 409);
 
   // Reuse an open invoice for the same channel. Switching channels expires the open invoices
-  // first, so only one invoice for the appointment can be paid.
+  // first, so only one invoice for the appointment can be paid. A `retry` (the client's page
+  // failed on Xendit's side, which we can't see) skips the reuse: the open invoice is closed
+  // like on a switch, and a fresh one is made.
   const open = await sql<{ invoice_url: string | null; external_id: string; payment_method: string | null }[]>`
     select invoice_url, external_id, payment_method from payments
     where appointment_id = ${appointmentId} and upper(status) = 'PENDING'
     order by created_at desc
   `;
   const [existing] = open;
-  if (existing?.invoice_url && existing.payment_method === payment_method) {
+  if (retry !== true && existing?.invoice_url && existing.payment_method === payment_method) {
     return Response.json({ invoice_url: existing.invoice_url, external_id: existing.external_id });
   }
   if (open.length > 0) {

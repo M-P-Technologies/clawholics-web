@@ -16,7 +16,7 @@ import { CLIENT_PATHS } from "@/lib/client/clientNav";
 import { peso } from "@/lib/dashboardFormat";
 
 export default function Payment() {
-  const { artistLabel, priceLabel, dateLabel, timeLabel, deposit, methods, toggleAgree, method, setMethod, agree, loading, isInvalid, timeLeft, modalOpen, modalTitle, modalMessage, modalAction, modalButtonText, modalDismissible, appointment, handlePay, handleModalClose } = usePayment();
+  const { instagram, handleRetry, artistLabel, priceLabel, dateLabel, timeLabel, deposit, methods, toggleAgree, method, setMethod, agree, loading, isInvalid, timeLeft, modalOpen, modalTitle, modalMessage, modalAction, modalButtonText, modalDismissible, appointment, handlePay, handleModalClose } = usePayment();
 
   // If loading or invalid, show the placeholders (effectively hiding the pay UI)
   if (loading || isInvalid) {
@@ -104,6 +104,20 @@ export default function Payment() {
             <div className={clsx(surface.tint, "flex flex-col gap-1 p-3")}>
               <SectionHeader size="label" title="Reservation expires in" />
               <p className="font-display text-4xl text-crimson-ink">{timeLeft}</p>
+            </div>
+
+            {/* If the payment page itself failed (Xendit's side), the same invoice would fail again */}
+            <div className="flex flex-col gap-3">
+              <SectionHeader size="label" title="Trouble paying?" />
+              <p className="copy-note">
+                If the payment page showed an error or the QR code wouldn&apos;t load, you haven&apos;t been charged. Try again for a fresh payment page, or message us and we&apos;ll help you finish your booking. Your slot stays held until the timer runs out.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Button type="button" variant="secondary" onClick={handleRetry}>Try again</Button>
+                <Button type="button" variant="secondary" href={instagram}>
+                  Message us on Instagram<span className="sr-only"> (opens in a new tab)</span>
+                </Button>
+              </div>
             </div>
           </Card>
 

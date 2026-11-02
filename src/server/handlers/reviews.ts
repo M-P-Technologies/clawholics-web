@@ -1,9 +1,11 @@
 import "server-only";
 import { requireAdmin, requireUserRow, type RequesterUser } from "../auth";
 import { getSql } from "../db";
-import { pgErrorCode, readJson, toId } from "../http";
+import { inBackground, pgErrorCode, readJson, toId } from "../http";
 import { MAX_PROOF_SIZE, PROOF_EXTENSIONS } from "../payments";
 import { imageBytes, NOT_AN_IMAGE } from "../imageFiles";
+import { toWebp } from "../imageEncode";
+import { releaseImages } from "../imageRefs";
 import { publicBaseUrl, putObject } from "../r2";
 import { getPublicReviews } from "../catalog";
 import { ported } from "../worker";
@@ -51,10 +53,12 @@ export const createReview = ported(async (req) => {
   if (comment.length > MAX_COMMENT_LENGTH) return errorBody(`Keep the review under ${MAX_COMMENT_LENGTH} characters.`, 400);
 
   const photo = file && typeof file !== "string" && file.size > 0 ? file : null;
-  const ext = photo ? PROOF_EXTENSIONS[photo.type] : undefined;
-  if (photo && !ext) return errorBody("Only JPG, PNG, and WEBP files are allowed.", 400);
+  if (photo && !PROOF_EXTENSIONS[photo.type]) return errorBody("Only JPG, PNG, and WEBP files are allowed.", 400);
   if (photo && photo.size > MAX_PROOF_SIZE) return errorBody("Image must be 1MB or smaller.", 400);
-  const photoBytes = photo ? await imageBytes(photo) : null;
+  const original = photo ? await imageBytes(photo) : null;
+  if (photo && !original) return errorBody(NOT_AN_IMAGE, 400);
+  // Stored as a smaller WEBP, without the photo's metadata (its location)
+  const photoBytes = original ? await toWebp(original).catch(() => null) : null;
   if (photo && !photoBytes) return errorBody(NOT_AN_IMAGE, 400);
 
   const sql = getSql();
@@ -66,10 +70,10 @@ export const createReview = ported(async (req) => {
   if (existing) return errorBody("You've already reviewed this visit.", 409);
 
   let photoUrl: string | null = null;
-  if (photo && ext && photoBytes) {
-    // Random key so the public URL can't be guessed; the extension comes from the checked MIME type
-    const key = `reviews/${crypto.randomUUID()}.${ext}`;
-    await putObject(key, photoBytes, photo.type);
+  if (photo && photoBytes) {
+    // Random key so the public URL can't be guessed
+    const key = `reviews/${crypto.randomUUID()}.webp`;
+    await putObject(key, photoBytes, "image/webp");
     photoUrl = `${publicBaseUrl()}/${key}`;
   }
 
@@ -81,6 +85,8 @@ export const createReview = ported(async (req) => {
     return Response.json(row, { status: 201 });
   } catch (error) {
     // Two submits at once: the second loses on the unique appointment_id
+    // Not saved, so the photo is only a file
+    inBackground("image cleanup", () => releaseImages([photoUrl]));
     if (pgErrorCode(error) === "23505") return errorBody("You've already reviewed this visit.", 409);
     throw error;
   }

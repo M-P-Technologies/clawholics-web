@@ -6,6 +6,7 @@ import { Link, useLocation } from "@/lib/router";
 import { useScrolled } from "../../hooks/useScrolled";
 import { Button } from "@/components/atoms";
 import { CLIENT_PATHS } from "../../lib/client/clientNav";
+import { useSiteNav } from "../../hooks/useSiteNav";
 
 // The phone's main navigation: a bar fixed to the bottom of the screen (hidden from `lg` up,
 // where the top bar has the links). Four tabs go straight to a page and the middle one starts a
@@ -28,6 +29,7 @@ const sheetLink = (active: boolean) =>
 export default function MobileTabBar() {
   const { pathname } = useLocation();
   const clerk = useClerk();
+  const nav = useSiteNav();
   const [moreOpen, setMoreOpen] = useState(false);
   const scrolled = useScrolled(TAB_BAR_REVEAL_PX);
   // The footer has the links too, so the bar steps aside once the footer reaches it
@@ -93,9 +95,9 @@ export default function MobileTabBar() {
           ref={sheetRef}
           className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-40 max-h-[70vh] overflow-y-auto rounded-t-3xl border-t border-crimson-light/40 bg-light-orange px-3 py-2 shadow-2xl shadow-crimson/20 drawer-panel"
         >
-          <Link to="/about" className={sheetLink(pathname === "/about")}>About Us</Link>
-          <Link to="/faq" className={sheetLink(pathname === "/faq")}>FAQ</Link>
-          <Link to="/contact" className={sheetLink(pathname === "/contact")}>Contact Us</Link>
+          <Link to="/about" className={sheetLink(pathname === "/about")}>{nav.about}</Link>
+          <Link to="/faq" className={sheetLink(pathname === "/faq")}>{nav.faq}</Link>
+          <Link to="/contact" className={sheetLink(pathname === "/contact")}>{nav.contact}</Link>
 
           <div className="my-2 border-t border-crimson-light/70" />
 
@@ -143,8 +145,8 @@ export default function MobileTabBar() {
         )}
       >
         <div className="mx-auto flex h-16 max-w-md items-stretch px-2">
-          {tab("/", "Home", <House size={22} aria-hidden="true" />)}
-          {tab("/services", "Services", <Sparkles size={22} aria-hidden="true" />)}
+          {tab("/", nav.home, <House size={22} aria-hidden="true" />)}
+          {tab("/services", nav.services, <Sparkles size={22} aria-hidden="true" />)}
 
           <Link
             to="/services"
@@ -157,7 +159,7 @@ export default function MobileTabBar() {
             <span>Book</span>
           </Link>
 
-          {tab("/artists", "Artists", <Users size={22} aria-hidden="true" />)}
+          {tab("/artists", nav.artists, <Users size={22} aria-hidden="true" />)}
 
           <Button
             variant="bare"

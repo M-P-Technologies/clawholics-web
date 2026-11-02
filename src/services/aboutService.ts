@@ -2,6 +2,8 @@ import { previewed } from "../lib/cmsPreview";
 import { API_BASE_URL } from "../apiConfig";
 
 export type AboutContent = {
+  /** The page's heading; empty shows "About us" */
+  about_title: string;
   about_description: string;
   about_image: string;
   about_location: string;

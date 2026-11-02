@@ -3,6 +3,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/molecules";
 import { adminDataChanged } from "../../lib/adminQueries";
+import { usePolicy } from "../usePolicy";
 import { BALANCE_METHODS, RESERVATION_FEE, expectedBalance, lateFee, minutesLate, type BalanceMethod } from "../../lib/visitCompletion";
 import { saveCompletion, uploadVisitPhoto, type VisitToComplete } from "../../services/completionService";
 import { checkVoucherForVisit } from "../../services/voucherService";
@@ -54,8 +55,9 @@ export function useCompleteVisit(visit: VisitToComplete, onSaved?: () => void) {
   /** The downpayment taken off the bill (without the reservation fee), up to the price less the voucher */
   const credit = Math.min(Math.max(0, visit.paid_downpayment - RESERVATION_FEE), Math.max(0, (visit.price ?? 0) - discount));
 
+  const policy = usePolicy();
   const minutes = minutesLate(visit.appointment_time, arrivedAt);
-  const late = lateFee(minutes);
+  const late = lateFee(minutes, policy);
   const auto = base + late.fee;
   const balance = typedBalance ?? String(auto);
 
@@ -177,6 +179,8 @@ export function useCompleteVisit(visit: VisitToComplete, onSaved?: () => void) {
     lateLine: late.fee > 0 && minutes !== null ? `Late fee (${minutes} min late): ${peso(late.fee)}` : "",
     /** 25 minutes or more late: the terms cancel the visit */
     lateCancel: late.cancel,
+    /** The minutes late from which the terms cancel the visit */
+    lateCancelMinutes: policy.late_cancel_minutes,
     voucherInput,
     setVoucherInput,
     /** "K7MX4QPA applied: 20% off, −₱300 off the service price", once the server accepted the code */

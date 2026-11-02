@@ -460,11 +460,14 @@ export function useBooking() {
   const canChooseAnyArtist = nailists.length > 1;
   /** The artist for the summary: the one chosen, "Any available artist", or a dash */
   const artistLabel = anyArtist ? "Any available artist" : selectedNailist?.name ?? "-";
+  /** The summary's date and time, or a dash until chosen */
+  const dateSummary = selectedDate || "-";
+  const timeSummary = selectedTime ? formatSlot(selectedTime) : "-";
   /** Waiting for the times free with any artist */
   const loadingAnyDays = anyArtist && anyDaysQuery.isPending;
   const isSlotBlocked = (slot: string) => isTimeBlocked(slot) || isTooSoon(slot);
   const closeModal = () => setModalOpen(false);
   const reloadPage = () => window.location.reload();
 
-  return { anyArtist, canChooseAnyArtist, artistLabel, loadingAnyDays, priceLabel, pageData, isPageLoading, pageError, nailists, loadingArtists, selectedNailist, setSelectedNailist, selectedDate, setSelectedDate, selectedTime, setSelectedTime, timeSlots, fullyBookedDates, month, setMonth, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, pricing_type, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, selectedPrice, locationUrl, locationText, isDayFullyBooked, isDisabledDate, toLocalDate, toLocalDateString, isTimeBlocked, isTooSoon, rulesHint, monthsAhead, formatSlot, showModal, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage, contactFields, contact };
+  return { anyArtist, canChooseAnyArtist, artistLabel, loadingAnyDays, priceLabel, pageData, isPageLoading, pageError, nailists, loadingArtists, selectedNailist, setSelectedNailist, selectedDate, setSelectedDate, selectedTime, setSelectedTime, timeSlots, fullyBookedDates, month, setMonth, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, service_category, service_description, service_name, service_image, pricing_type, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, selectedPrice, locationUrl, locationText, isDayFullyBooked, isDisabledDate, toLocalDate, toLocalDateString, isTimeBlocked, isTooSoon, rulesHint, monthsAhead, formatSlot, showModal, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage, contactFields, contact, dateSummary, timeSummary };
 }

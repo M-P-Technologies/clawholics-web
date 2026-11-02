@@ -17,6 +17,8 @@ const CONTENT_PREFIXES = {
   // The legal pages' text (e.g. legal_privacy_html), apart from home so it isn't sent with every
   // page's content. New with the Next API: the Worker has no such section.
   legal: ["legal_%"],
+  // The search and sharing text (seo_*), edited in Admin > Search & Sharing
+  seo: ["seo_%"],
 } as const;
 
 export type ContentSection = keyof typeof CONTENT_PREFIXES;

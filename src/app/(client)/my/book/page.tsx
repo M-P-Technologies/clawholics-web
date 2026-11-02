@@ -2,14 +2,14 @@
 
 import { BOOKING_STEPS } from "@/lib/client/bookingSteps";
 import Image from "next/image";
-import { publicPosition } from "@/lib/artistRoles";
-import { ArrowRight, Users } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import clsx from "clsx";
 import { AlertDialog } from "@/components/organisms";
-import { Avatar, Badge, Button, Card, Select } from "@/components/atoms";
+import { Badge, Button, Card } from "@/components/atoms";
 import { SectionHeader, EmptyState, StepBar, StickyActionBar, SummaryRow, TimeSlotList } from "@/components/molecules";
 import DayCalendar from "@/components/molecules/DayCalendar";
 import { surface } from "@/components/tokens";
+import ArtistSelect from "@/components/features/client/booking/ArtistSelect";
 import BookingOptions from "@/components/features/client/booking/BookingOptions";
 import ContactHandlesFields from "@/components/features/client/booking/ContactHandlesFields";
 import ClientScreen from "@/components/features/client/shell/ClientScreen";
@@ -18,7 +18,7 @@ import { CLIENT_PATHS } from "@/lib/client/clientNav";
 import { useBooking } from "@/hooks/client/useBooking";
 
 export default function Booking() {
-  const { artistLabel, priceLabel, service_category, service_description, service_name, service_image, locationUrl, locationText, anyArtist, canChooseAnyArtist, loadingAnyDays, rulesHint, monthsAhead, pageData, isPageLoading, pageError, nailists, loadingArtists, selectedNailist, selectedDate, selectedTime, setSelectedTime, timeSlots, month, setMonth, modalOpen, modalTitle, modalMessage, modalAction, modalButtonText, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, isDisabledDate, formatSlot, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage, contactFields, contact } = useBooking();
+  const { artistLabel, priceLabel, service_category, service_description, service_name, service_image, locationUrl, locationText, anyArtist, canChooseAnyArtist, loadingAnyDays, rulesHint, monthsAhead, pageData, isPageLoading, pageError, nailists, loadingArtists, selectedNailist, selectedDate, selectedTime, setSelectedTime, timeSlots, month, setMonth, modalOpen, modalTitle, modalMessage, modalAction, modalButtonText, variants, selectedVariantId, setSelectedVariantId, selectedAddonIds, setSelectedAddonIds, addons, isDisabledDate, formatSlot, handleContinue, isSubmitting, handleArtistChange, handleDateSelect, selectedDay, isDateFullyBooked, isSlotBlocked, closeModal, reloadPage, contactFields, contact, dateSummary, timeSummary } = useBooking();
 
   // Inside the same frame as the loaded step, so the top bar and its back button stay put
   if (isPageLoading) {
@@ -92,43 +92,7 @@ export default function Booking() {
                   to find one you can book.
                 </p>
               ) : (
-                // Each artist's face beside their name, and their title underneath
-                <Select
-                  aria-label="Preferred artist"
-                  placeholder="Select artist"
-                  value={anyArtist ? "any" : selectedNailist?.id ?? ""}
-                  onChange={(e) => handleArtistChange(e.target.value === "any" ? "any" : Number(e.target.value))}
-                  options={[
-                    // The salon assigns a free artist when the time is booked
-                    ...(canChooseAnyArtist
-                      ? [{
-                          value: "any",
-                          label: (
-                            <span className="flex min-w-0 flex-col">
-                              <span className="truncate">Any available artist</span>
-                              <span className="truncate text-xs font-normal text-gray-red">We&apos;ll assign a free artist</span>
-                            </span>
-                          ),
-                          leading: (
-                            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-crimson-light/40 text-berry">
-                              <Users size={16} aria-hidden="true" />
-                            </span>
-                          ),
-                        }]
-                      : []),
-                    ...nailists.map((n) => ({
-                      value: String(n.id),
-                      label: (
-                        <span className="flex min-w-0 flex-col">
-                          <span className="truncate">{n.name}</span>
-                          <span className="truncate text-xs font-normal text-gray-red">{publicPosition(n)}</span>
-                        </span>
-                      ),
-                      leading: <Avatar name={n.name} imageUrl={n.image ?? ""} size="sm" cropTop decorative />,
-                    })),
-                  ]}
-                  triggerClassName="font-bold"
-                />
+                <ArtistSelect nailists={nailists} anyArtist={anyArtist} selectedId={selectedNailist?.id} canChooseAny={canChooseAnyArtist} onChange={handleArtistChange} />
               )}
             </div>
 
@@ -187,8 +151,8 @@ export default function Booking() {
 
             <dl className="border-t border-crimson-light/40 pt-2">
               <SummaryRow label="Preferred artist" value={artistLabel} />
-              <SummaryRow label="Date" value={selectedDate || "-"} />
-              <SummaryRow label="Time" value={selectedTime ? formatSlot(selectedTime) : "-"} />
+              <SummaryRow label="Date" value={dateSummary} />
+              <SummaryRow label="Time" value={timeSummary} />
               <SummaryRow label="Price" value={priceLabel} />
               <SummaryRow label="Location" value={
                   locationUrl && locationText ? (

@@ -4,7 +4,7 @@ import { Cake, CalendarCheck, CalendarClock, Stamp } from "lucide-react";
 import { Badge, Button, Card } from "@/components/atoms";
 import { SectionHeader, StatCard, StepTracker, SummaryRow } from "@/components/molecules";
 import { Link } from "@/lib/router";
-import ServicesTable from "@/components/features/client/explore/ServicesTable";
+import ServicePanel from "@/components/features/client/explore/ServicePanel";
 import ClientScreen from "@/components/features/client/shell/ClientScreen";
 import { SummaryRowsSkeleton } from "@/components/features/client/skeletons/skeletons";
 import { useClientHome } from "@/hooks/client/useClientHome";
@@ -44,7 +44,7 @@ export default function ClientHome() {
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
         <StatCard icon={CalendarClock} label="Next visit" value={h.nextVisitLabel} className="col-span-2 lg:col-span-1" />
         <StatCard icon={Stamp} label="Loyalty stamps" value={h.stampsValue} />
-        <StatCard icon={CalendarCheck} label="Visits" value={String(h.visits)} hint="completed" />
+        <StatCard icon={CalendarCheck} label="Visits" value={h.visitsLabel} hint="completed" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6">
@@ -74,7 +74,7 @@ export default function ClientHome() {
                   <Button type="button" variant="secondary" onClick={() => h.account.startCancel(next.appt)} className="grow sm:grow-0">Cancel</Button>
                 )}
               </div>
-              {next.isLocked && <p className="text-[13px] text-gray-red">Changes close 3 days before your appointment.</p>}
+              {next.isLocked && <p className="text-[13px] text-gray-red">Changes close {h.changeWindowLabel} before your appointment.</p>}
             </>
           ) : h.account.appointmentsLoading ? (
             <SummaryRowsSkeleton label="Loading your appointments" />
@@ -94,10 +94,15 @@ export default function ClientHome() {
         )}
       </div>
 
-      <Card as="section" aria-label="Popular services" className="flex flex-col gap-3">
-        <SectionHeader size="section" title="Popular services" action={<Link to={CLIENT_PATHS.explore}>See all</Link>} />
-        <ServicesTable label="Popular services" services={h.popular} onBook={h.book} paginateTable rowsPerPage={5} />
-      </Card>
+      <section aria-label="Popular services" className="flex flex-col gap-3">
+        <SectionHeader size="section" title="Popular services" action={<Button to={CLIENT_PATHS.explore} variant="secondary" size="sm">See all</Button>} />
+        {/* One card per service, as the Explore panel shows it but without the facts and the description: lying down below md, one to a row; standing up from md, two across, and four from xl */}
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-6 xl:grid-cols-4">
+          {h.popular.map((service) => (
+            <ServicePanel key={service.id} service={service} onBook={h.book} brief row={h.rowCards} />
+          ))}
+        </div>
+      </section>
 
       {h.offers.length > 0 && (
         <Card as="section" aria-label="Special offers" className="flex flex-col gap-3">

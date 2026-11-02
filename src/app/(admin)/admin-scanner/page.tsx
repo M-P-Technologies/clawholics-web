@@ -5,17 +5,15 @@ import { Camera, Check, History, QrCode, Stamp, XCircle } from "lucide-react";
 import AdminShell from "@/components/features/admin/shell/AdminShell";
 import { initialsOf, Button } from "@/components/atoms";
 import { ScannerSkeleton } from "@/components/features/admin/skeletons/skeletons";
-import { Pagination, pageView, SectionHeader } from "@/components/molecules";
+import { Pagination, SectionHeader } from "@/components/molecules";
 import { useAdminScanner } from "@/hooks/admin/useAdminScanner";
 
 // The loyalty QR scanner: the camera, the scanned client's card with its stamps, and the recent
 // scans. Its state and actions are in hooks/admin/useAdminScanner.
 export default function AdminScanner() {
-  const { loading, stampTarget, shownStamps, cardFull, isProcessing, isScanning, lastScan, history, historyPage, cameraError, resultRef, handleScan, handleScanError, recordAction, startScanner, stopScanner, scanAgain } = useAdminScanner();
+  const { loading, stampTarget, shownStamps, cardFull, isProcessing, isScanning, lastScan, history, historyPage, scans, columnRef, besideRef, cameraError, resultRef, handleScan, handleScanError, recordAction, startScanner, stopScanner, scanAgain } = useAdminScanner();
 
   if (loading) return <ScannerSkeleton />;
-
-  const scans = pageView(history, historyPage.page, historyPage.pageSize, historyPage.total);
 
   return (
     <AdminShell title="Loyalty QR Scanner">
@@ -23,7 +21,7 @@ export default function AdminScanner() {
         {/* Desktop: the camera (2/3) with the result and the recent scans beside it. Phone: camera,
             result, recent scans, one under the other. */}
         <div className="grid grid-cols-1 gap-3 md:gap-6 max-lg:flex max-lg:flex-col xl:grid-cols-3">
-          <div className="flex h-full flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-6 shadow-petal max-lg:order-1 xl:col-span-2">
+          <div ref={besideRef} className="flex flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-6 shadow-petal max-lg:order-1 xl:col-span-2">
             <SectionHeader size="card" icon={QrCode} title="Scanner" />
 
             {cameraError && (
@@ -60,7 +58,7 @@ export default function AdminScanner() {
               <span aria-hidden="true" className="pointer-events-none absolute bottom-4 right-4 h-8 w-8 rounded-br-xl border-b-4 border-r-4 border-crimson" />
             </div>
 
-            <div className="mt-auto">
+            <div>
               {!isScanning ? (
                 <Button onClick={startScanner} className="w-full sm:w-auto sm:self-end">
                   <Camera size={16} aria-hidden="true" />
@@ -74,7 +72,7 @@ export default function AdminScanner() {
             </div>
           </div>
 
-          <div className="flex min-h-0 flex-col gap-3 md:gap-6 max-lg:contents">
+          <div ref={columnRef} className="flex min-h-0 flex-col gap-3 md:gap-6 max-lg:contents">
             <div ref={resultRef} className="flex flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-6 shadow-petal max-lg:order-2">
               <SectionHeader size="card" icon={Stamp} title="Scan result" />
 
@@ -160,17 +158,17 @@ export default function AdminScanner() {
               )}
             </div>
 
-            <div className="flex min-h-75 flex-1 flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-6 shadow-petal max-xl:flex-none max-lg:order-3">
+            <div className="flex flex-col gap-3 rounded-2xl border border-crimson-light/40 bg-milk p-6 shadow-petal max-lg:order-3">
               <SectionHeader size="card" icon={History} title="Recent scans" />
 
-              {/* Five scans to a page, so the card just holds them: the page is the only thing that scrolls */}
+              {/* As many scans to a page as keep this column level with the camera card (five when stacked), so the card just holds them */}
               <div>
                 <ul>
                   {history.length === 0 ? (
                     <li className="py-3 text-center text-[13px] text-gray-red">No recent scans.</li>
                   ) : (
                     history.map((h) => (
-                      <li key={h.id} className="flex items-center gap-3 border-t border-dotted border-crimson-light py-3 first:border-t-0">
+                      <li key={h.id} data-scan-row className="flex items-center gap-3 border-t border-dotted border-crimson-light py-3 first:border-t-0">
                         <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-crimson-light/50 font-display text-sm text-berry">
                           {initialsOf(h.clientName)}
                         </span>

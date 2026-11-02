@@ -5,7 +5,8 @@ import clsx from "clsx";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/atoms";
 import { Pagination, paginate } from "@/components/molecules";
-import { CARDS_PER_PAGE, CardFields, RowCard, RowCards, TableFrame } from "@/components/organisms";
+import { CARDS_PER_PAGE, TableFrame } from "@/components/organisms";
+import ServicePanel from "@/components/features/client/explore/ServicePanel";
 import { useTableLayout } from "@/hooks/useMinWidth";
 import { useFitRows } from "@/hooks/useFitRows";
 import { shortPriceLabel } from "@/lib/client/servicePrice";
@@ -91,27 +92,14 @@ export default function ServicesTable({ services, onBook, label, paginateTable =
     const cards = paginate(services, page, CARDS_PER_PAGE);
     return (
       <>
-        <RowCards label={label}>
+        {/* Each service a card lying down, as on Home: the photo beside its category, name, price and Book */}
+        <ul aria-label={label} className="flex flex-col gap-3">
           {cards.rows.map((service) => (
-            <RowCard key={service.id} selected={onSelect !== undefined && service.id === selectedId}>
-              {nameControl(
-                service,
-                <>
-                  <Photo service={service} />
-                  <span className="min-w-0 truncate font-bold">{service.name}</span>
-                </>,
-                "flex min-w-0 items-center gap-3",
-              )}
-              {service.description && (
-                <p data-description className="line-clamp-2 text-[13px] text-gray-red">
-                  {service.description}
-                </p>
-              )}
-              <CardFields fields={[["Price", shortPriceLabel(service)]]} />
-              <BookButton service={service} onBook={onBook} className="self-end" />
-            </RowCard>
+            <li key={service.id}>
+              <ServicePanel service={service} onBook={onBook} onSelect={onSelect} selected={onSelect !== undefined && service.id === selectedId} brief row />
+            </li>
           ))}
-        </RowCards>
+        </ul>
         <Pagination page={cards.current} totalPages={cards.pages} onPageChange={setPage} summary={paginateTable ? cards : undefined} />
       </>
     );

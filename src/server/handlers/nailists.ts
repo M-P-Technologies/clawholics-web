@@ -2,7 +2,8 @@ import "server-only";
 import { requireAdmin } from "../auth";
 import { getNailistRow } from "../catalog";
 import { getSql } from "../db";
-import { orNull, pgErrorCode, readJson, routeNotFound, toId } from "../http";
+import { inBackground, orNull, pgErrorCode, readJson, routeNotFound, toId } from "../http";
+import { releaseImages } from "../imageRefs";
 import { changesCatalog, publicReads } from "../publicCache";
 import { ported } from "../worker";
 import { parseIdList } from "./catalog";
@@ -63,11 +64,15 @@ export const updateNailist = changesCatalog(ported<IdContext>(async (req, { para
   if (id === null) return routeNotFound();
   const body = await readJson<Body>(req);
   if (typeof body.name !== "string" || !body.name.trim()) return badRequest("Name is required.");
-  await getSql()`
+  const sql = getSql();
+  const [before] = await sql<{ image: string | null }[]>`select image from nailists where id = ${id}`;
+  await sql`
     update nailists set name = ${body.name}, category_id = ${await categoryIdFor(body.position)}, hide_position = ${body.hide_position ? 1 : 0},
       specialty = ${orNull(body.specialty)}, bio = ${orNull(body.bio)}, image = ${orNull(body.image)}
     where id = ${id}
   `;
+  // The photo this one replaced, once nothing else shows it
+  inBackground("image cleanup", () => releaseImages([before?.image]));
   const updated = await getNailistRow(id);
   return updated ? Response.json(updated) : routeNotFound();
 }));
@@ -79,10 +84,16 @@ export const deleteNailist = changesCatalog(ported<IdContext>(async (_req, { par
   if (admin instanceof Response) return admin;
   const id = toId((await params).id);
   if (id !== null) {
-    await getSql().begin(async (tx) => {
+    // Their photo and gallery (which goes with them), once nothing else shows those files
+    const photos = await getSql().begin(async (tx) => {
+      const rows = await tx<{ image: string | null }[]>`
+        select image from nailists where id = ${id}
+        union all select image_url from nailist_gallery where nailist_id = ${id}`;
       await tx`delete from nailist_time_slots where nailist_id = ${id}`;
       await tx`delete from nailists where id = ${id}`;
+      return rows.map((row) => row.image);
     });
+    inBackground("image cleanup", () => releaseImages(photos));
   }
   return Response.json({ message: "Nailist deleted" });
 }));
@@ -252,6 +263,9 @@ export const deleteGalleryImage = changesCatalog(ported<IdContext>(async (_req, 
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const id = toId((await params).id);
-  if (id !== null) await getSql()`delete from nailist_gallery where id = ${id}`;
+  if (id !== null) {
+    const [gone] = await getSql()<{ image_url: string }[]>`delete from nailist_gallery where id = ${id} returning image_url`;
+    inBackground("image cleanup", () => releaseImages([gone?.image_url]));
+  }
   return Response.json({ message: "Image deleted" });
 }));

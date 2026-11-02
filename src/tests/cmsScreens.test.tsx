@@ -23,8 +23,6 @@ vi.mock("@clerk/nextjs", () => {
 const home = {
   home_title: "Nails, done with love",
   home_services_subtitle: "Our menu",
-  home_about_subtitle: "About",
-  home_about_image: "https://img.test/about.jpg",
   home_hero_image: "https://img.test/hero.jpg",
   contact_subtitle: "Say hi",
   contact_phone: "09171234567",
@@ -112,7 +110,7 @@ describe("Homepage editor", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() => expect(updateHomeContent).toHaveBeenCalled());
-    expect(updateHomeContent.mock.calls[0][0]).toMatchObject({ home_title: "New headline", home_about_subtitle: "About" });
+    expect(updateHomeContent.mock.calls[0][0]).toMatchObject({ home_title: "New headline" });
     // Edited in Services, so the Homepage can't put an older one back
     expect(updateHomeContent.mock.calls[0][0]).not.toHaveProperty("home_services_subtitle");
     expect(updateCarousel).not.toHaveBeenCalled(); // the studio gallery is edited in About Us

@@ -13,6 +13,7 @@ import { paymentArtistLabel, paymentPriceLabel } from "@/lib/client/payment";
 import { longDateLabel, timeRangeLabel } from "@/lib/timeFormat";
 import { itemName } from "@/lib/itemName";
 import { depositTerms } from "@/lib/depositTerms";
+import { instagramUrl } from "@/lib/socialLinkData";
 
 /** How long the booking check may take before the page gives up and says so: past the server's
  *  own 30s limit (it answers a stalled request with a 503 then), so its retries get their chance */
@@ -189,7 +190,8 @@ export function usePayment() {
     setModalOpen(true);
   };
 
-  const handlePay = async () => {
+  // `retry`: Xendit's own page failed, so the open invoice is closed and a fresh one made
+  const startPayment = async (retry: boolean) => {
     if (isProcessing.current || !appointment) return;
 
     if (timeLeft === "00:00") {
@@ -226,6 +228,7 @@ export function usePayment() {
       const payload = {
         appointment_id: appointment.appointment_id,
         payment_method: method,
+        ...(retry ? { retry: true } : {}),
       };
 
       const token = await getToken();
@@ -254,6 +257,9 @@ export function usePayment() {
   };
 
 
+  const handlePay = () => startPayment(false);
+  const handleRetry = () => startPayment(true);
+
   // Closing the dialog also runs its follow-up action, so it cannot be dismissed without it.
   const handleModalClose = () => {
     setModalOpen(false);
@@ -271,5 +277,8 @@ export function usePayment() {
   const dateLabel = longDateLabel(appointment?.appointment_date);
   const timeLabel = timeRangeLabel(appointment?.appointment_time);
 
-  return { artistLabel, priceLabel, dateLabel, timeLabel, deposit, methods, toggleAgree, navigate, method, setMethod, agree, setAgree, loading, isInvalid, timeLeft, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, modalDismissible, appointment, handlePay, handleModalClose };
+  // Where a client who can't pay reaches the salon
+  const instagram = instagramUrl(useQuery(publicQueries.home()).data);
+
+  return { instagram, handleRetry, artistLabel, priceLabel, dateLabel, timeLabel, deposit, methods, toggleAgree, navigate, method, setMethod, agree, setAgree, loading, isInvalid, timeLeft, modalOpen, setModalOpen, modalTitle, modalMessage, modalAction, modalButtonText, modalDismissible, appointment, handlePay, handleModalClose };
 }

@@ -147,6 +147,8 @@ export function useClientPage() {
     /** The stamps a loyalty card needs for a reward */
     stampTarget,
     /** "4 / 10": the stamps on the card, capped at the target */
+    /** Completed visits, as the stat card shows them */
+    visitsLabel: String(details?.summary.visits ?? 0),
     stampsValue: `${Math.min(details?.summary.stamps ?? 0, stampTarget)} / ${stampTarget}`,
     notFound,
     failed,
@@ -180,6 +182,8 @@ export function useClientPage() {
     notesFor: (appointmentId: number) => notes.filter((n) => n.appointment_id === appointmentId),
     draft,
     setDraft,
+    /** The general note can be added once something is typed */
+    canAddNote: draft.trim() !== "",
     addGeneralNote,
     visitDraft,
     setVisitDraft,

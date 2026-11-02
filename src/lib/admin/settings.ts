@@ -1,4 +1,5 @@
 import type { SalonSettings } from "../../services/settingsService";
+import { MAX_CHANGE_WINDOW_HOURS, MAX_LATE_FEE, MAX_LATE_MINUTES, MIN_CHANGE_WINDOW_HOURS, MIN_LATE_MINUTES, policyProblem } from "../policy";
 import { MAX_BOOKING_HOLD_MINUTES as MAX_HOLD_MINUTES, MIN_BOOKING_HOLD_MINUTES as MIN_HOLD_MINUTES } from "../bookingHold";
 import { MAX_MIN_NOTICE_HOURS, MIN_MIN_NOTICE_HOURS } from "../bookingNotice";
 import { MAX_MAX_ADVANCE_DAYS, MIN_MAX_ADVANCE_DAYS } from "../bookingWindow";
@@ -19,7 +20,28 @@ export interface SettingsForm {
   reminders: boolean;
   /** Days after a completed visit that a client is asked to rebook; 0 is off */
   rebookDays: string;
+  /** Hours before a visit until which a client can still change it or be refunded */
+  changeWindowHours: string;
+  /** The late fees: minutes late and pesos, twice, and the minutes late that cancel the visit */
+  lateFee1Minutes: string;
+  lateFee1Amount: string;
+  lateFee2Minutes: string;
+  lateFee2Amount: string;
+  lateCancelMinutes: string;
 }
+
+/** The numbers each policy field accepts, for its hint */
+export const POLICY_LIMITS = { MIN_CHANGE_WINDOW_HOURS, MAX_CHANGE_WINDOW_HOURS, MIN_LATE_MINUTES, MAX_LATE_MINUTES, MAX_LATE_FEE };
+
+/** The page's tabs: Rewards holds the birthday voucher and the loyalty card */
+export type SettingsTab = "payments" | "booking" | "policies" | "rewards" | "client-app";
+export const SETTINGS_TABS: { value: SettingsTab; label: string }[] = [
+  { value: "payments", label: "Payments" },
+  { value: "booking", label: "Booking" },
+  { value: "policies", label: "Policies" },
+  { value: "rewards", label: "Rewards" },
+  { value: "client-app", label: "Client app" },
+];
 
 /** The ways to pay the downpayment the site has screens for, by their payment_methods code */
 export const PAYMENT_METHOD_CHOICES = [
@@ -50,31 +72,50 @@ export const toForm = (settings: SalonSettings): SettingsForm => ({
   advanceDays: String(settings.booking_max_advance_days),
   reminders: settings.booking_reminders_enabled,
   rebookDays: String(settings.rebook_nudge_days),
+  changeWindowHours: String(settings.change_window_hours),
+  lateFee1Minutes: String(settings.late_fee_1_minutes),
+  lateFee1Amount: String(settings.late_fee_1_amount),
+  lateFee2Minutes: String(settings.late_fee_2_minutes),
+  lateFee2Amount: String(settings.late_fee_2_amount),
+  lateCancelMinutes: String(settings.late_cancel_minutes),
 });
 
 export const sameForm = (a: SettingsForm, b: SettingsForm) =>
-  a.downpayment === b.downpayment && a.birthdayPct === b.birthdayPct && a.stampsRequired === b.stampsRequired && a.holdMinutes === b.holdMinutes && a.noticeHours === b.noticeHours && a.advanceDays === b.advanceDays && a.reminders === b.reminders && a.rebookDays === b.rebookDays && [...a.methods].sort().join() === [...b.methods].sort().join();
+  a.downpayment === b.downpayment && a.birthdayPct === b.birthdayPct && a.stampsRequired === b.stampsRequired && a.holdMinutes === b.holdMinutes && a.noticeHours === b.noticeHours && a.advanceDays === b.advanceDays && a.reminders === b.reminders && a.rebookDays === b.rebookDays && a.changeWindowHours === b.changeWindowHours && a.lateFee1Minutes === b.lateFee1Minutes && a.lateFee1Amount === b.lateFee1Amount && a.lateFee2Minutes === b.lateFee2Minutes && a.lateFee2Amount === b.lateFee2Amount && a.lateCancelMinutes === b.lateCancelMinutes && [...a.methods].sort().join() === [...b.methods].sort().join();
 
 const wholeNumber = (value: string) => (/^\d+$/.test(value.trim()) ? Number(value) : NaN);
 
-/** What's wrong with the form, or null when it can be saved */
-export function settingsProblem(form: SettingsForm): string | null {
+/** What's wrong with the form and the tab whose field it is, or null when it can be saved */
+export function settingsProblemIn(form: SettingsForm): { message: string; tab: SettingsTab } | null {
+  const problem = (tab: SettingsTab, message: string) => ({ tab, message });
   const amount = wholeNumber(form.downpayment);
-  if (!(amount >= 1 && amount <= MAX_DOWNPAYMENT)) return `The downpayment must be a whole number of pesos from 1 to ${MAX_DOWNPAYMENT.toLocaleString("en-PH")}.`;
-  if (!form.methods.includes("QRPH")) return "QR Ph must stay on: it's the only way to pay on the payment page.";
-  const pct = wholeNumber(form.birthdayPct);
-  if (!(pct >= 1 && pct <= 100)) return "The birthday discount must be a whole number from 1 to 100.";
-  const stamps = wholeNumber(form.stampsRequired);
-  if (!(stamps >= 1 && stamps <= MAX_LOYALTY_STAMPS)) return `The stamps for a reward must be a whole number from 1 to ${MAX_LOYALTY_STAMPS}.`;
+  if (!(amount >= 1 && amount <= MAX_DOWNPAYMENT)) return problem("payments", `The downpayment must be a whole number of pesos from 1 to ${MAX_DOWNPAYMENT.toLocaleString("en-PH")}.`);
+  if (!form.methods.includes("QRPH")) return problem("payments", "QR Ph must stay on: it's the only way to pay on the payment page.");
   const hold = wholeNumber(form.holdMinutes);
-  if (!(hold >= MIN_HOLD_MINUTES && hold <= MAX_HOLD_MINUTES)) return `The slot hold must be a whole number of minutes from ${MIN_HOLD_MINUTES} to ${MAX_HOLD_MINUTES}.`;
+  if (!(hold >= MIN_HOLD_MINUTES && hold <= MAX_HOLD_MINUTES)) return problem("booking", `The slot hold must be a whole number of minutes from ${MIN_HOLD_MINUTES} to ${MAX_HOLD_MINUTES}.`);
   const notice = wholeNumber(form.noticeHours);
-  if (!(notice >= MIN_MIN_NOTICE_HOURS && notice <= MAX_MIN_NOTICE_HOURS)) return `The notice for a booking must be a whole number of hours from ${MIN_MIN_NOTICE_HOURS} to ${MAX_MIN_NOTICE_HOURS}.`;
+  if (!(notice >= MIN_MIN_NOTICE_HOURS && notice <= MAX_MIN_NOTICE_HOURS)) return problem("booking", `The notice for a booking must be a whole number of hours from ${MIN_MIN_NOTICE_HOURS} to ${MAX_MIN_NOTICE_HOURS}.`);
   const advance = wholeNumber(form.advanceDays);
-  if (!(advance >= MIN_MAX_ADVANCE_DAYS && advance <= MAX_MAX_ADVANCE_DAYS)) return `How far ahead clients can book must be a whole number of days from ${MIN_MAX_ADVANCE_DAYS} to ${MAX_MAX_ADVANCE_DAYS}.`;
-  if (!isRebookNudgeDays(wholeNumber(form.rebookDays))) return `The rebooking email must be 0 (off) or a whole number of days from ${MIN_REBOOK_NUDGE_DAYS} to ${MAX_REBOOK_NUDGE_DAYS}.`;
+  if (!(advance >= MIN_MAX_ADVANCE_DAYS && advance <= MAX_MAX_ADVANCE_DAYS)) return problem("booking", `How far ahead clients can book must be a whole number of days from ${MIN_MAX_ADVANCE_DAYS} to ${MAX_MAX_ADVANCE_DAYS}.`);
+  if (!isRebookNudgeDays(wholeNumber(form.rebookDays))) return problem("booking", `The rebooking email must be 0 (off) or a whole number of days from ${MIN_REBOOK_NUDGE_DAYS} to ${MAX_REBOOK_NUDGE_DAYS}.`);
+  const policy = policyProblem({
+    change_window_hours: wholeNumber(form.changeWindowHours),
+    late_fee_1_minutes: wholeNumber(form.lateFee1Minutes),
+    late_fee_1_amount: wholeNumber(form.lateFee1Amount),
+    late_fee_2_minutes: wholeNumber(form.lateFee2Minutes),
+    late_fee_2_amount: wholeNumber(form.lateFee2Amount),
+    late_cancel_minutes: wholeNumber(form.lateCancelMinutes),
+  });
+  if (policy) return problem("policies", policy);
+  const pct = wholeNumber(form.birthdayPct);
+  if (!(pct >= 1 && pct <= 100)) return problem("rewards", "The birthday discount must be a whole number from 1 to 100.");
+  const stamps = wholeNumber(form.stampsRequired);
+  if (!(stamps >= 1 && stamps <= MAX_LOYALTY_STAMPS)) return problem("rewards", `The stamps for a reward must be a whole number from 1 to ${MAX_LOYALTY_STAMPS}.`);
   return null;
 }
+
+/** What's wrong with the form, or null when it can be saved */
+export const settingsProblem = (form: SettingsForm): string | null => settingsProblemIn(form)?.message ?? null;
 
 export const fromForm = (form: SettingsForm): SalonSettings => ({
   downpayment_amount: wholeNumber(form.downpayment),
@@ -86,4 +127,10 @@ export const fromForm = (form: SettingsForm): SalonSettings => ({
   booking_max_advance_days: wholeNumber(form.advanceDays),
   booking_reminders_enabled: form.reminders,
   rebook_nudge_days: wholeNumber(form.rebookDays),
+  change_window_hours: wholeNumber(form.changeWindowHours),
+  late_fee_1_minutes: wholeNumber(form.lateFee1Minutes),
+  late_fee_1_amount: wholeNumber(form.lateFee1Amount),
+  late_fee_2_minutes: wholeNumber(form.lateFee2Minutes),
+  late_fee_2_amount: wholeNumber(form.lateFee2Amount),
+  late_cancel_minutes: wholeNumber(form.lateCancelMinutes),
 });

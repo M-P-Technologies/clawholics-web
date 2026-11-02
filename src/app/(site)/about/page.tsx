@@ -9,6 +9,7 @@ import Panel from "@/components/layout/Panel";
 import Section from "@/components/layout/Section";
 import MapFrame from "@/components/home/MapFrame";
 import { useAbout } from "@/hooks/useAbout";
+import { ABOUT_TITLE_DEFAULT } from "@/lib/homeSections";
 
 export default function About() {
   const { gallery, galleryPhotos, error, reload, data, copied, handleCopyLocation, aboutHtml, businessHours } = useAbout();
@@ -19,7 +20,7 @@ export default function About() {
   return (
     <PageShell>
       <Section>
-        <SectionHeader title="About us" />
+        <SectionHeader title={data.about_title?.trim() || ABOUT_TITLE_DEFAULT} />
         <p className="sr-only">
           Learn more about Clawholics by Max, our nail studio location,
           operating hours, and salon philosophy.

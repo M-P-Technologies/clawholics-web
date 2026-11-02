@@ -21,8 +21,7 @@ interface ClientScreenProps {
 const backCircleClass =
   "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-crimson-light text-berry transition-colors hover:bg-crimson-light/30 focus-visible:outline-2 focus-visible:outline-crimson";
 
-// The page frame of every client screen, shaped like the admin's AdminShell: the top bar (a welcome,
-// the title, a link to the site and who is signed in) and the content below it with
+// The page frame of every client screen, shaped like the admin's AdminShell: the top bar (the title, a link to the site and who is signed in) and the content below it with
 // the admin's spacing.
 export default function ClientScreen({ title, actions, back, children }: ClientScreenProps) {
   const account = useMyAccount();
@@ -54,7 +53,6 @@ export default function ClientScreen({ title, actions, back, children }: ClientS
         leading={backCircle}
         actionsOnPhone={Boolean(actions)}
         actions={actions}
-        greeting={`Welcome back${firstName ? `, ${firstName}` : ""}!`}
         account={{ name, email: dbUser?.email ?? "", imageUrl }}
         // On phones it stays at the top as the tab bar stays at the bottom
         className={PHONE_STICKY_TOP_BAR}

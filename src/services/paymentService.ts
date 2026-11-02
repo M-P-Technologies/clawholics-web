@@ -16,6 +16,8 @@ export const createPayment = async (
   data: {
     appointment_id: number;
     payment_method: string;
+    /** Closes the open invoice and makes a new one, instead of reusing it */
+    retry?: boolean;
   },
   token?: string | null,
 ) => {

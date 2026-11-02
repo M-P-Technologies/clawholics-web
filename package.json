@@ -12,6 +12,7 @@
     "test:db": "node scripts/test-db.mjs",
     "db:export": "node supabase/export-d1.mjs",
     "db:copy": "node --env-file=.env.local supabase/copy-from-d1.mjs",
+    "r2:orphans": "node --env-file=.env.local scripts/r2-orphans.mjs",
     "test:watch": "vitest"
   },
   "dependencies": {
@@ -33,6 +34,7 @@
     "react-day-picker": "^9.14.0",
     "react-dom": "^19.3.0",
     "server-only": "^0.0.1",
+    "sharp": "^0.35.5",
     "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {

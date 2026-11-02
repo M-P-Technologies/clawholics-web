@@ -12,7 +12,9 @@ const services = Array.from({ length: 10 }, (_, i) => ({
   id: i + 1, name: `Service ${i + 1}`, description: "Nice set", pricing_type: "flat", price: 500 + i, master_price: 0, junior_price: 0, image: "", variants: [], category: "Nails",
 }));
 let home: Record<string, string> = {};
-vi.mock("@/services/serviceService", () => ({ fetchServices: () => Promise.resolve(services) }));
+// The ids of the services booked most, most first (what GET /services/popular answers)
+let popularIds: number[] = [];
+vi.mock("@/services/serviceService", () => ({ fetchServices: () => Promise.resolve(services), fetchPopularServiceIds: () => Promise.resolve(popularIds) }));
 vi.mock("@/services/contentService", () => ({ fetchHomeContent: () => Promise.resolve(home) }));
 let account: Record<string, unknown>;
 vi.mock("@/hooks/client/useMyAccount", () => ({ useMyAccount: () => account }));
@@ -20,6 +22,7 @@ let birthday: Record<string, unknown>;
 vi.mock("@/hooks/useBirthdayVoucher", () => ({ useBirthdayVoucher: () => birthday }));
 
 beforeEach(() => {
+  popularIds = [];
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(new Date("2026-10-14T08:00:00+08:00"));
   home = {};
@@ -51,18 +54,26 @@ describe("ClientHome", () => {
     expect(screen.queryByRole("search")).not.toBeInTheDocument();
   });
 
-  it("shows the first eight services in their admin order, five a page", async () => {
+  it("shows the first four services in their admin order, as cards with the duration and artists but no description", async () => {
     render(<ClientHome />);
     await waitFor(() => expect(screen.getByText("Service 1")).toBeInTheDocument());
-    expect(screen.getByText("Service 5")).toBeInTheDocument();
-    expect(screen.queryByText("Service 6")).not.toBeInTheDocument();
-    expect(screen.getByText("Showing 1–5 of 8")).toBeInTheDocument();
-    // The rows don't open anything: only See all (to Explore) and Book do
-    expect(screen.queryByRole("link", { name: /Service 1/ })).toBeNull();
-    expect(within(screen.getByRole("region", { name: "Popular services" })).getByRole("link", { name: "See all" })).toHaveAttribute("href", "/my/explore");
-    fireEvent.click(screen.getByRole("button", { name: /next/i }));
-    expect(screen.getByText("Service 8")).toBeInTheDocument();
-    expect(screen.queryByText("Service 9")).not.toBeInTheDocument();
+    expect(screen.getByText("Service 4")).toBeInTheDocument();
+    expect(screen.queryByText("Service 5")).not.toBeInTheDocument();
+    const region = within(screen.getByRole("region", { name: "Popular services" }));
+    expect(region.getAllByRole("button", { name: "Book now" })).toHaveLength(4);
+    // The card is the Explore panel's brief form: the facts, but not the description
+    expect(region.getAllByText("Duration")).toHaveLength(4);
+    expect(region.getAllByText("Artists")).toHaveLength(4);
+    expect(region.getByRole("link", { name: "See all" })).toHaveAttribute("href", "/my/explore");
+  });
+
+  it("puts the services booked most first, then the admin's order", async () => {
+    popularIds = [7, 3];
+    render(<ClientHome />);
+    await waitFor(() => expect(screen.getByText("Service 7")).toBeInTheDocument());
+    const region = within(screen.getByRole("region", { name: "Popular services" }));
+    // The first heading is the section's own title
+    expect(region.getAllByRole("heading", { level: 2 }).slice(1).map((h) => h.textContent)).toEqual(["Service 7", "Service 3", "Service 1", "Service 2"]);
   });
 
   it("leaves Special offers out when there are none", async () => {

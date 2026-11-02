@@ -100,7 +100,7 @@ export function explainPaymentFailure(error: unknown, label = "This appointment"
   if (text.includes("payment method is not available")) {
     return {
       title: "Payment method unavailable",
-      message: "This payment method can't be used right now. You haven't been charged, and your slot stays held until the timer runs out. Please choose another method and press Pay again.",
+      message: "This payment method can't be used right now. You haven't been charged, and your slot stays held until the timer runs out. Please press \"Try again\" in a moment, or message the salon on Instagram and we'll help you finish your booking.",
     };
   }
   if (text.includes("forbidden") || text.includes("unauthorized access")) {

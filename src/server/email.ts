@@ -4,6 +4,8 @@ import { WALKIN_EMAIL } from "@/lib/admin/walkin";
 import { withSalonLocation } from "@/lib/homeSections";
 import { googleCalendarUrl, icsContent, icsFilename, type CalendarEvent } from "@/lib/calendarEvent";
 import { publicReads } from "./publicCache";
+import { getPolicyOrDefault } from "./policy";
+import { hoursOnly, type SalonPolicy } from "@/lib/policy";
 
 // Resend emails, first ported from worker-api/src/index.ts. Every value is HTML-escaped: names
 // and other fields are typed by clients, so unescaped they could inject markup into the emails.
@@ -140,27 +142,32 @@ const DISPLAY_FONT = "Gloock, Georgia, 'Times New Roman', serif";
 const BODY_FONT = "'Noto Sans', 'Helvetica Neue', Arial, sans-serif";
 const LINK = `color: ${BRAND.ink}; text-decoration: underline; font-weight: bold;`;
 
-interface SalonLocation {
+interface LocationBase {
   text: string;
   url: string | null;
 }
-const DEFAULT_LOCATION: SalonLocation = {
+/** Where the salon is, and its policy numbers (the emails quote both) */
+interface SalonLocation extends LocationBase {
+  policy: SalonPolicy;
+}
+const DEFAULT_LOCATION: LocationBase = {
   text: "7th 3rd Street, Nazareth, Cagayan de Oro",
   url: "https://maps.app.goo.gl/HoFQm1ncohKwWHc9A",
 };
 
 /** The address and map link as the site shows them (withSalonLocation), or the old fixed one */
 async function salonLocation(): Promise<SalonLocation> {
+  const policy = await getPolicyOrDefault();
   try {
     const [home, about] = await Promise.all([publicReads.content("home"), publicReads.content("about")]);
     const { contact_location: text, contact_location_url: url } = withSalonLocation(
       (home ?? {}) as Record<string, string>,
       about as { about_location?: string; about_location_url?: string } | null,
     );
-    return text?.trim() ? { text: text.trim(), url: url?.trim() || null } : DEFAULT_LOCATION;
+    return text?.trim() ? { text: text.trim(), url: url?.trim() || null, policy } : { ...DEFAULT_LOCATION, policy };
   } catch (error) {
     console.error("[email] could not read the salon's address, using the default:", error);
-    return DEFAULT_LOCATION;
+    return { ...DEFAULT_LOCATION, policy };
   }
 }
 
@@ -230,25 +237,28 @@ const button = (label: string, href: string) => `
     </td></tr>
   </table>`;
 
-// Matches the salon's terms (lib/visitCompletion.ts's late fees, the 72-hour reschedule rule)
-const VISIT_REMINDERS = `
+// The salon's terms as the system enforces them (lib/policy.ts: the late fees, the change window)
+const lateFeeLine = (p: SalonPolicy) =>
+  `⏰ Please arrive on time. Arriving ${p.late_fee_1_minutes} minutes late adds a ₱${p.late_fee_1_amount} fee, and ${p.late_fee_2_minutes} minutes ₱${p.late_fee_2_amount}. From ${p.late_cancel_minutes} minutes late the visit may be cancelled, and the downpayment is kept.`;
+
+const visitReminders = (p: SalonPolicy) => `
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 28px; border-left: 4px solid ${BRAND.pinkLight};">
     <tr><td style="padding: 2px 0 2px 16px; font-size: 14px; line-height: 1.6;">
       <p style="margin: 0 0 6px 0; font-family: ${DISPLAY_FONT}; font-size: 17px; color: ${BRAND.onPink};">Before your visit</p>
-      <p style="margin: 0 0 6px 0;">⏰ Please arrive on time. Arriving 15 minutes late adds a ₱100 fee, and 20 minutes ₱150. From 25 minutes late the visit may be cancelled, and the downpayment is kept.</p>
-      <p style="margin: 0 0 6px 0;">📅 Need another day? Reschedule from your account up to 72 hours before your visit.</p>
+      <p style="margin: 0 0 6px 0;">${lateFeeLine(p)}</p>
+      <p style="margin: 0 0 6px 0;">📅 Need another day? Reschedule from your account up to ${hoursOnly(p.change_window_hours)} before your visit.</p>
       <p style="margin: 0;">💅 The rest of the price is paid at the salon after your visit.</p>
     </td></tr>
   </table>`;
 
-// The day-before reminder's version: the visit is tomorrow, so changing it in the account (72 hours
-// ahead) is no longer possible and it points to the salon instead
-const DAY_BEFORE_REMINDERS = `
+// The day-before reminder's version: the visit is tomorrow, so changing it in the account (past the
+// change window) is no longer possible and it points to the salon instead
+const dayBeforeReminders = (p: SalonPolicy) => `
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 28px; border-left: 4px solid ${BRAND.pinkLight};">
     <tr><td style="padding: 2px 0 2px 16px; font-size: 14px; line-height: 1.6;">
       <p style="margin: 0 0 6px 0; font-family: ${DISPLAY_FONT}; font-size: 17px; color: ${BRAND.onPink};">Before your visit</p>
-      <p style="margin: 0 0 6px 0;">⏰ Please arrive on time. Arriving 15 minutes late adds a ₱100 fee, and 20 minutes ₱150. From 25 minutes late the visit may be cancelled, and the downpayment is kept.</p>
-      <p style="margin: 0 0 6px 0;">📅 Plans changed? Changes close 72 hours before a visit, so please <a href="${SITE}/contact" style="${LINK}">contact us</a> as soon as you can.</p>
+      <p style="margin: 0 0 6px 0;">${lateFeeLine(p)}</p>
+      <p style="margin: 0 0 6px 0;">📅 Plans changed? Changes close ${hoursOnly(p.change_window_hours)} before a visit, so please <a href="${SITE}/contact" style="${LINK}">contact us</a> as soon as you can.</p>
       <p style="margin: 0;">💅 The rest of the price is paid at the salon after your visit.</p>
     </td></tr>
   </table>`;
@@ -284,7 +294,7 @@ function clientEmailHtml({ title, name, message, preview, details, cta, calendar
     ${detailsBox(details.heading, details.rows)}
     ${cta ? button(cta.label, cta.href) : ""}
     ${calendarUrl ? `<p style="margin: 14px 0 0 0; text-align: center; font-size: 14px; line-height: 1.6;">📅 <a href="${escapeHtml(calendarUrl)}" style="${LINK}">Add to Google Calendar</a>${calendarAttached ? ", or open the attached calendar file (.ics) for Apple Calendar or Outlook." : ""}</p>` : ""}
-    ${dayBefore ? DAY_BEFORE_REMINDERS : reminders ? VISIT_REMINDERS : ""}
+    ${dayBefore ? dayBeforeReminders(location.policy) : reminders ? visitReminders(location.policy) : ""}
     <p style="margin: 32px 0 0 0; font-size: 15px; line-height: 1.6;">See you soon,<br><span style="font-family: ${DISPLAY_FONT}; font-size: 18px; color: ${BRAND.ink};">Clawholics by Max</span> 💖</p>`;
   const footer = `
     <p style="margin: 0 0 6px 0;">📍 ${location.url ? `<a href="${escapeHtml(location.url)}" style="${LINK}">${address}</a>` : address}</p>
@@ -371,12 +381,13 @@ export async function sendCancellationEmails(data: {
 }) {
   if (!process.env.RESEND_API_KEY) return;
 
+  const policy = await getPolicyOrDefault();
   const refunded = data.status.toUpperCase() === "REFUNDED";
   const message =
     `Your appointment has been cancelled.` +
     (refunded ? " Your downpayment is being refunded; it can take a few business days to reach you." : "") +
     (data.isLateCancellation
-      ? `<br><br><span style="color: ${BRAND.danger};"><strong>Please note:</strong> it was cancelled less than 72 hours before the visit, so the downpayment is non-refundable under our cancellation policy.</span>`
+      ? `<br><br><span style="color: ${BRAND.danger};"><strong>Please note:</strong> it was cancelled less than ${hoursOnly(policy.change_window_hours)} before the visit, so the downpayment is non-refundable under our cancellation policy.</span>`
       : "") +
     "<br><br>We'd love to see you another time.";
   const rows: [string, unknown, boolean?][] = [

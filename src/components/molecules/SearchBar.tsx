@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import clsx from "clsx";
 import { Search } from "lucide-react";
 
 interface SearchBarProps {
@@ -16,10 +17,12 @@ interface SearchBarProps {
    *  light-pink border, the icon at the end), for a search that sits on a card; filters as you
    *  type, so it takes no onSubmit or trailing control */
   look?: "raised" | "outline";
+  /** With `outline`: no fill, so the page shows through (the public site's search, which sits on the page itself) */
+  transparent?: boolean;
 }
 
 // The rounded search box of the client app: an icon, the input, and a submit or extra control
-export default function SearchBar({ value, onChange, onSubmit, label = "Search services", placeholder = "Search services…", trailing, look = "raised" }: SearchBarProps) {
+export default function SearchBar({ value, onChange, onSubmit, label = "Search services", placeholder = "Search services…", trailing, look = "raised", transparent = false }: SearchBarProps) {
   if (look === "outline") {
     return (
       <label className="relative block w-full">
@@ -30,7 +33,7 @@ export default function SearchBar({ value, onChange, onSubmit, label = "Search s
           placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="h-9 w-full rounded-full border border-crimson-light bg-milk pl-3 pr-9 text-[13px] text-gray-red outline-none placeholder:text-gray-red placeholder:italic focus:ring-2 focus:ring-crimson"
+          className={clsx("h-9 w-full rounded-full border border-crimson-light pl-3 pr-9 text-[13px] text-gray-red outline-none placeholder:text-gray-red placeholder:italic focus:ring-2 focus:ring-crimson", transparent ? "bg-transparent" : "bg-milk")}
         />
         <Search size={16} aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-red" />
       </label>

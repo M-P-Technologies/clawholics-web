@@ -4,19 +4,12 @@ import { Show, UserButton } from "@clerk/nextjs";
 import { useNavIndicator } from "../../hooks/useNavIndicator";
 import { useScrolled } from "../../hooks/useScrolled";
 
-import Logo from "../../assets/logo/logo-primary.svg";
+import SiteLogo from "./SiteLogo";
+import { useSiteNav } from "../../hooks/useSiteNav";
 import { userButtonAppearance } from "@/lib/clerkAppearance";
 import { Button } from "@/components/atoms";
 import { CLIENT_PATHS } from "../../lib/client/clientNav";
 import { BACK_SLOT_ID } from "./BackButton";
-
-const NAV_LINKS = [
-  { to: "/", label: "Home" },
-  { to: "/services", label: "Services" },
-  { to: "/artists", label: "Artists" },
-  { to: "/about", label: "About Us" },
-  { to: "/contact", label: "Contact Us" },
-];
 
 // The round account button: Log in when signed out, My account (phones) when signed in
 const ACCOUNT_ICON =
@@ -24,6 +17,7 @@ const ACCOUNT_ICON =
 
 export default function Navbar() {
   const { pathname } = useLocation();
+  const { links: NAV_LINKS, navLogo, book } = useSiteNav();
   const activeLink = NAV_LINKS.find((link) => link.to === pathname)?.to;
   const { containerRef, setLinkRef, indicator } = useNavIndicator(activeLink);
   const scrolled = useScrolled();
@@ -45,9 +39,9 @@ export default function Navbar() {
       }`}
     >
       {/* DESKTOP */}
-      <div className="mx-auto hidden h-16 w-full max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-9 px-9 lg:grid">
-        <Link to="/" aria-label="Go to Clawholics by Max homepage" className="w-fit">
-          <Logo className="h-11 w-11 text-crimson" aria-hidden="true" focusable="false" />
+      <div className="mx-auto hidden h-16 w-full max-w-6xl items-center justify-between gap-9 px-9 lg:flex">
+        <Link to="/" aria-label="Go to Clawholics by Max homepage" className="w-fit shrink-0">
+          <SiteLogo src={navLogo} />
         </Link>
 
         <div ref={containerRef} className="relative flex items-center gap-9">
@@ -73,7 +67,7 @@ export default function Navbar() {
           )}
         </div>
 
-        <div className="flex items-center justify-end gap-3">
+        <div className="flex shrink-0 items-center gap-3">
           <Show when="signed-out">
             <Link aria-label="Log in" title="Log in" className={ACCOUNT_ICON} to="/login">
               <User size={18} aria-hidden="true" />
@@ -91,7 +85,7 @@ export default function Navbar() {
             </div>
           </Show>
           <Button to="/services" variant={solid ? "secondary" : "primary"}>
-            Book now
+            {book}
           </Button>
         </div>
       </div>
@@ -101,7 +95,7 @@ export default function Navbar() {
           (MobileTabBar). */}
       <div className="flex h-16 items-center justify-between gap-3 px-3 lg:hidden">
         <Link to="/" aria-label="Go to Clawholics by Max homepage">
-          <Logo className="h-11 w-11 text-crimson" aria-hidden="true" focusable="false" />
+          <SiteLogo src={navLogo} />
         </Link>
         <div className="flex items-center gap-3">
           <div id={BACK_SLOT_ID} className="flex items-center" />

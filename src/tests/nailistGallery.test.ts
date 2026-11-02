@@ -9,6 +9,12 @@ const results: unknown[] = [];
 const sql = vi.fn(async () => results.shift());
 vi.mock("../server/db", () => ({ getSql: () => sql }));
 
+// Deleting a photo also releases its file once nothing shows it (imageRefs.test.ts covers that); here
+// it only has to be asked for
+const releaseImages = vi.fn(async (_urls: unknown[]) => {});
+vi.mock("../server/imageRefs", () => ({ releaseImages: (urls: unknown[]) => releaseImages(urls) }));
+vi.mock("next/server", () => ({ after: (task: () => unknown) => void task() }));
+
 const { GET, POST } = await import("../app/api/nailists/[id]/gallery/route");
 const { DELETE } = await import("../app/api/nailist-gallery/[id]/route");
 
@@ -83,9 +89,11 @@ describe("artist gallery routes", () => {
     expect((await DELETE(new Request("http://localhost/api/nailist-gallery/5", { method: "DELETE", headers: ORIGIN }), ctx("5"))).status).toBe(403);
     expect(sql).not.toHaveBeenCalled();
 
-    results.push([]);
+    results.push([{ image_url: "https://img/old.webp" }]);
     const res = await DELETE(new Request("http://localhost/api/nailist-gallery/5", { method: "DELETE", headers: ORIGIN }), ctx("5"));
     expect(res.status).toBe(200);
     expect((sql.mock.calls.at(-1) as unknown as unknown[]).slice(1)).toEqual([5]);
+    // The file goes too, once nothing else shows it
+    expect(releaseImages).toHaveBeenCalledWith(["https://img/old.webp"]);
   });
 });

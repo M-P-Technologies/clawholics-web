@@ -1,9 +1,11 @@
 import type { ReactNode } from "react";
+import { metadataFor } from "@/server/seo";
 import { HydrationBoundary } from "@tanstack/react-query";
-import { pageMetadata } from "@/lib/seo";
 import { prefetchLegal } from "@/server/publicPrefetch";
 
-export const metadata = pageMetadata("privacy");
+export async function generateMetadata() {
+  return metadataFor("privacy");
+}
 
 // The legal text comes with the page, so it's in the first HTML
 export default async function Layout({ children }: { children: ReactNode }) {

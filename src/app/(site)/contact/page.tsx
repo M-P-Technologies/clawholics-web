@@ -12,7 +12,7 @@ import { contactLinkLightClass, inputClass, labelClass } from "@/components/toke
 import { useContactUs } from "@/hooks/useContactUs";
 
 export default function ContactUs() {
-  const { socialLinks, heroImage, feedbackDialog, descriptionLength, isDescriptionFull, contactFields, pageData, isPageLoading, pageError, formData, isSubmitting, closeModal, handleChange, handleSubmit, reloadPage } = useContactUs();
+  const { words, socialLinks, heroImage, feedbackDialog, descriptionLength, isDescriptionFull, contactFields, pageData, isPageLoading, pageError, formData, isSubmitting, closeModal, handleChange, handleSubmit, reloadPage } = useContactUs();
 
   if (isPageLoading) {
     return <LoadingBar label="Loading" />;
@@ -34,12 +34,12 @@ export default function ContactUs() {
   return (
     <PageShell>
       <Section>
-        <SectionHeader title="Contact us" subtitle={pageData.contact_subtitle} />
+        <SectionHeader title={words.contact_title} subtitle={pageData.contact_subtitle} />
 
         <Panel className="mx-auto w-full max-w-3xl">
           <div className="flex flex-col gap-3 md:gap-6">
             <h2 className="font-display text-xl font-normal uppercase tracking-widest text-gray-red">
-              Any concerns? Message us!
+              {words.contact_form_title}
             </h2>
 
             <form onSubmit={handleSubmit} aria-busy={isSubmitting} className="flex flex-col gap-3">
@@ -97,7 +97,7 @@ export default function ContactUs() {
         />
         <div aria-hidden="true" className="absolute inset-0 bg-gray-red/70" />
         <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-9 px-3 py-15 md:flex-row md:justify-between md:gap-12 md:px-9 lg:py-24">
-        <ContactGroup title="Connect with us on social media!">
+        <ContactGroup title={words.contact_social_title}>
           {/* As edited in Admin > Contact Us */}
           {socialLinks.map(({ name, href, label, Icon }, index) => (
             <a
@@ -114,7 +114,7 @@ export default function ContactUs() {
           ))}
         </ContactGroup>
 
-        <ContactGroup title="Business information">
+        <ContactGroup title={words.contact_business_title}>
           <a href={`tel:${pageData.contact_phone}`} className={contactLinkLightClass}>
             <Phone size={24} className="shrink-0 text-crimson" aria-hidden="true" />
             <span>{pageData.contact_phone}</span>

@@ -27,11 +27,11 @@ const renderWith = (a: MyAccount, ui: React.ReactElement) => {
 beforeEach(() => navigate.mockReset());
 
 describe("ClientScreen", () => {
-  it("has the screen's title, a welcome, the site link and who is signed in", () => {
+  it("has the screen's title, no welcome line, the site link and who is signed in", () => {
     renderWith(signedIn(), <ClientScreen title="My profile"><p>body</p></ClientScreen>);
     const bar = screen.getByRole("banner");
     expect(bar).toContainElement(screen.getByRole("heading", { level: 1, name: "My profile" }));
-    expect(screen.getByText("Welcome back, Ana!").className).toContain("lg:block");
+    expect(screen.queryByText(/^Welcome/)).toBeNull();
     const site = screen.getByRole("link", { name: /View site/ });
     expect(site).toHaveAttribute("href", "/");
     expect(site).toHaveAttribute("target", "_blank");

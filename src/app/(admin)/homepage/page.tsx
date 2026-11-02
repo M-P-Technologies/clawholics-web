@@ -9,7 +9,7 @@ import emblem from "@/assets/logo/emblem-pink.png";
 import footerLogo from "@/assets/logo/logo-pink-transparent.png";
 import { useHomeEditor } from "@/hooks/admin/useHomeEditor";
 import { HOME_PREVIEW_PAGES } from "@/lib/admin/cmsPages";
-import { FEATURE_ICONS, FEATURE_TEXT_MAX, FEATURE_TITLE_MAX, MAX_STRIP_SLIDES, SITE_LINK_OPTIONS } from "@/lib/homeSections";
+import { FEATURE_ICONS, FEATURE_TEXT_MAX, FEATURE_TITLE_MAX, SITE_LINK_OPTIONS } from "@/lib/homeSections";
 import { BODY_FONTS, DISPLAY_FONTS } from "@/lib/siteTheme";
 
 // Everything on the home page that isn't edited elsewhere, top to bottom, and the footer of every
@@ -74,7 +74,7 @@ export default function Homepage() {
         />
       </PanelSection>
 
-      <PanelSection title="Service photo strip" description="The sliding photos of services, each with its price, hours and a Book button." page="/#service-strip" aside={sections.strip ? `${sections.strip.length}/${MAX_STRIP_SLIDES}` : undefined}>
+      <PanelSection title="Service photo strip" description="The sliding photos of services, each with its price, hours and a Book button." page="/#service-strip" aside={editor.stripCountLabel}>
         <StripEditor services={services} strip={sections.strip} onChange={setStrip} />
       </PanelSection>
 
@@ -124,6 +124,25 @@ export default function Homepage() {
         </SubCard>
       </PanelSection>
 
+      <PanelSection title="Menu and logo" description="The names of the pages in the top bar, the phone's bottom bar and the footer, and the logo in the top bar." page="/">
+        <ImageField
+          label="Top bar logo"
+          value={sections.navLogo}
+          fit="contain"
+          uploading={!!uploading.navLogo}
+          onUpload={editor.uploadSectionImage("navLogo")}
+          onRemove={editor.clearSectionImage("navLogo")}
+          hint="Shown small, beside the menu. Without one the Clawholics bow shows. A square or wide logo on a clear background works best."
+        />
+        <TextField label="Home" value={t.home_nav_home} onChange={setText("home_nav_home")} />
+        <TextField label="Services" value={t.home_nav_services} onChange={setText("home_nav_services")} />
+        <TextField label="Artists" value={t.home_nav_artists} onChange={setText("home_nav_artists")} />
+        <TextField label="About" value={t.home_nav_about} onChange={setText("home_nav_about")} />
+        <TextField label="Contact" value={t.home_nav_contact} onChange={setText("home_nav_contact")} />
+        <TextField label="FAQ" value={t.home_nav_faq} onChange={setText("home_nav_faq")} />
+        <TextField label="Booking button" value={t.home_nav_book} onChange={setText("home_nav_book")} hint="The button at the right of the top bar." />
+      </PanelSection>
+
       <PanelSection title="Footer" description="At the bottom of every page." page="/#site-footer">
         <div className="grid grid-cols-2 gap-3">
           <TextField label="Column 1 title" value={t.home_footer_explore_title} onChange={setText("home_footer_explore_title")} />
@@ -149,11 +168,6 @@ export default function Homepage() {
         <ElsewhereNote to="/contact-info" screen="Contact Us">
           The social media links in the footer come from the Contact Us screen.
         </ElsewhereNote>
-      </PanelSection>
-
-      <PanelSection title="Not shown on the site" description="The current website doesn't show these two, but they're still saved with the homepage, so they can't be empty.">
-        <TextField label="About subtitle" value={content.home_about_subtitle} onChange={set("home_about_subtitle")} rows={2} />
-        <ImageField label="About photo" value={content.home_about_image} uploading={!!uploading.home_about_image} onUpload={uploadTo("home_about_image")} onRemove={() => set("home_about_image")("")} />
       </PanelSection>
     </CmsEditor>
   );

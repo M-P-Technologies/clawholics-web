@@ -3,9 +3,11 @@ import type { TransactionSql } from "postgres";
 import { requireAdmin } from "../auth";
 import { getService, isContentSection } from "../catalog";
 import { getSql } from "../db";
-import { orNull, pgErrorCode, readJson, routeNotFound, toId } from "../http";
+import { inBackground, orNull, pgErrorCode, readJson, routeNotFound, toId } from "../http";
 import { imageBytes, NOT_AN_IMAGE } from "../imageFiles";
-import { createImageKey, publicBaseUrl, putObject } from "../r2";
+import { toWebp } from "../imageEncode";
+import { releaseImages } from "../imageRefs";
+import { createWebpImageKey, publicBaseUrl, putObject } from "../r2";
 import { changesCatalog } from "../publicCache";
 import { forwardToWorker, ported } from "../worker";
 
@@ -64,12 +66,13 @@ export const uploadContentImage = ported<SectionContext>(async (req) => {
   }
   if (file.size > MAX_UPLOAD_SIZE) return Response.json({ error: "Image must be 4MB or smaller." }, { status: 400 });
 
-  const bytes = await imageBytes(file);
+  const original = await imageBytes(file);
+  const bytes = original ? await toWebp(original).catch(() => null) : null;
   if (!bytes) return Response.json({ error: NOT_AN_IMAGE }, { status: 400 });
 
-  const key = createImageKey("content", file.name);
+  const key = createWebpImageKey("content", file.name);
   const imageUrl = `${publicBaseUrl()}/${key}`;
-  await putObject(key, bytes, file.type);
+  await putObject(key, bytes, "image/webp");
   return Response.json({ imageUrl, key });
 });
 
@@ -86,12 +89,15 @@ export const updateCarousel = changesCatalog(ported(async (req) => {
     return message("Each image needs an image_url", 400);
   }
 
-  await getSql().begin(async (tx) => {
-    await tx`delete from home_carousel`;
+  const removed = await getSql().begin(async (tx) => {
+    const before = await tx<{ image_url: string }[]>`delete from home_carousel returning image_url`;
     for (const [i, img] of images.entries()) {
       await tx`insert into home_carousel (image_url, position) values (${img.image_url}, ${i + 1})`;
     }
+    return before.map((row) => row.image_url);
   });
+  // Photos taken out of the carousel, once nothing else shows them
+  inBackground("image cleanup", () => releaseImages(removed));
   return Response.json({ message: "Carousel updated" });
 }));
 
@@ -420,7 +426,7 @@ export const updateService = changesCatalog(ported<IdContext>(async (req, { para
   if (admin instanceof Response) return admin;
   const id = toId((await params).id);
   const sql = getSql();
-  const [existing] = id === null ? [] : await sql<{ pricing_mode: string }[]>`select pricing_mode from services where id = ${id}`;
+  const [existing] = id === null ? [] : await sql<{ pricing_mode: string; image: string | null }[]>`select pricing_mode, image from services where id = ${id}`;
   if (!existing) return serviceNotFound();
 
   const body = await readJson<Body>(req);
@@ -445,6 +451,8 @@ export const updateService = changesCatalog(ported<IdContext>(async (req, { para
     `;
     if (sent) await saveVariants(tx, id!, sent);
   });
+  // The photo this one replaced, once nothing else shows it
+  inBackground("image cleanup", () => releaseImages([existing.image]));
   const updated = await getService(id!, true);
   return updated ? Response.json(updated) : serviceNotFound();
 }));
@@ -461,7 +469,12 @@ export const deleteService = changesCatalog(ported<IdContext>(async (_req, { par
     await sql`update services set is_active = 0 where id = ${id}`;
     return Response.json({ message: "Service has bookings, so it was archived instead of deleted.", archived: true });
   }
+  // Its photos, once the service is gone (its gallery goes with it)
+  const photos = await sql<{ image: string | null }[]>`
+    select image from services where id = ${id}
+    union all select image_url from service_gallery where service_id = ${id}`;
   await sql`delete from services where id = ${id}`;
+  inBackground("image cleanup", () => releaseImages(photos.map((p) => p.image)));
   return Response.json({ message: "Service deleted", deleted: true });
 }));
 
@@ -519,6 +532,9 @@ export const deleteGalleryImage = changesCatalog(ported<IdContext>(async (_req, 
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const id = toId((await params).id);
-  if (id !== null) await getSql()`delete from service_gallery where id = ${id}`;
+  if (id !== null) {
+    const [gone] = await getSql()<{ image_url: string }[]>`delete from service_gallery where id = ${id} returning image_url`;
+    inBackground("image cleanup", () => releaseImages([gone?.image_url]));
+  }
   return Response.json({ message: "Image deleted" });
 }));

@@ -11,6 +11,8 @@ vi.mock("@clerk/nextjs/server", () => ({
 }));
 vi.mock("next/server", () => ({ after: () => {} }));
 vi.mock("next/cache", () => ({ unstable_cache: (fn: unknown) => fn, revalidateTag: () => {} }));
+// The test photos are a bare WEBP header, which no image decoder reads; re-encoding has its own test (imageEncode.test.ts)
+vi.mock("../../server/imageEncode", () => ({ toWebp: async (bytes: Uint8Array) => bytes }));
 const putObject = vi.fn(async () => {});
 vi.mock("../../server/r2", async (importOriginal) => ({
   ...(await importOriginal<object>()),

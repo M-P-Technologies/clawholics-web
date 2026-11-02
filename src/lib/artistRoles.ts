@@ -9,3 +9,9 @@ export const isMasterArtist = (artist: RoleFields | null | undefined) =>
 /** The role to show on the site: nothing when the artist hides it */
 export const publicPosition = (artist: { position?: string | null; hide_position?: number | boolean | null }) =>
   Number(artist.hide_position) === 1 ? "" : artist.position ?? "";
+
+/** An artist photo's alt text: their name, their role when shown, and an optional ending ("Ana, Master Artist at Clawholics by Max") */
+export const artistPhotoAlt = (artist: { name: string; position?: string | null; hide_position?: number | boolean | null }, ending = "") => {
+  const position = publicPosition(artist);
+  return `${artist.name}${position ? `, ${position}` : ""}${ending}`;
+};

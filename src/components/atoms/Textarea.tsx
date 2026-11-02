@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import type { PointerEvent, Ref, TextareaHTMLAttributes } from "react";
-import clsx from "clsx";
+import { twMerge } from "tailwind-merge";
 import { field } from "../tokens";
 
 const MIN_HEIGHT = 40;
@@ -37,7 +37,7 @@ export default function Textarea({ className, ref, ...rest }: TextareaHTMLAttrib
 
   return (
     <div className="relative">
-      <textarea ref={setRef} className={clsx(field.input, "min-h-20", className)} style={{ resize: "none" }} {...rest} />
+      <textarea ref={setRef} className={twMerge(field.input, "min-h-20", className)} style={{ resize: "none" }} {...rest} />
       {!rest.disabled && (
       <div
         role="separator"

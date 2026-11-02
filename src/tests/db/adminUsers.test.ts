@@ -4,6 +4,7 @@
 // emails are skipped.
 import type postgres from "postgres";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { DEFAULT_POLICY } from "../../lib/policy";
 import { TEST_DATABASE_URL, callRoute, resetTestDatabase } from "./testDatabase";
 
 const authMock = vi.fn(async () => ({ userId: null as string | null }));
@@ -38,6 +39,8 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
   beforeAll(async () => {
     db = await resetTestDatabase();
     delete process.env.RESEND_API_KEY;
+    // Deleting a photo asks the cleanup about its file, which needs to know where the bucket is served
+    process.env.R2_PUBLIC_URL = "https://images.test";
     await db`insert into users (clerk_id, email, role) values ('user_admin', 'admin@x.test', 'admin')`;
     const [customer] = await db<{ id: number }[]>`
       insert into users (clerk_id, email, role, created_at) values ('user_cust', 'cust@x.test', 'customer', '2026-03-05 08:00:00') returning id
@@ -296,6 +299,7 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
     const body = {
       downpayment_amount: 500, payment_methods: ["QRPH"], birthday_discount_pct: 20, loyalty_stamps_required: 3, booking_hold_minutes: 5,
       booking_min_notice_hours: 2, booking_max_advance_days: 30, booking_reminders_enabled: true, rebook_nudge_days: 0,
+      ...DEFAULT_POLICY,
     };
     as("user_cust");
     expect((await call(settings.updateSettings, "/api/settings", { method: "PUT", body })).status).toBe(403);
@@ -307,6 +311,16 @@ describe.skipIf(!TEST_DATABASE_URL)("admin, directory and loyalty routes (Postgr
     expect((await call(settings.updateSettings, "/api/settings", { method: "PUT", body })).body).toEqual(body);
     expect((await call(settings.getSettings, "/api/settings")).body).toEqual(body);
     expect((await call(settings.getLoyaltySettings, "/api/settings/loyalty")).body).toEqual({ stamps_required: 3 });
+
+    // The policy numbers: refused when they can't be right, otherwise saved and public
+    expect((await call(settings.getPolicySettings, "/api/settings/policy")).body).toEqual(DEFAULT_POLICY);
+    expect((await call(settings.updateSettings, "/api/settings", { method: "PUT", body: { ...body, change_window_hours: 0 } })).status).toBe(400);
+    expect((await call(settings.updateSettings, "/api/settings", { method: "PUT", body: { ...body, late_fee_2_minutes: 10 } })).status).toBe(400);
+    const custom = { ...DEFAULT_POLICY, change_window_hours: 48, late_fee_1_amount: 120, late_fee_2_amount: 200 };
+    expect((await call(settings.updateSettings, "/api/settings", { method: "PUT", body: { ...body, ...custom } })).status).toBe(200);
+    expect((await call(settings.getPolicySettings, "/api/settings/policy")).body).toEqual(custom);
+    expect((await call(settings.updateSettings, "/api/settings", { method: "PUT", body })).status).toBe(200);
+    expect((await call(settings.getPolicySettings, "/api/settings/policy")).body).toEqual(DEFAULT_POLICY);
 
     await db`update customer_profiles set stamps = 2 where user_id = ${customerId}`;
     as("user_cust");

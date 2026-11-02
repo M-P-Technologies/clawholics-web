@@ -24,6 +24,8 @@ import { createXenditRefund, expireXenditInvoice, getXenditInvoices } from "../p
 import { getBookingHoldMinutes } from "../bookingHold";
 import { getBookingMinNoticeHours } from "../bookingNotice";
 import { getBookingMaxAdvanceDays } from "../bookingWindow";
+import { getPolicy } from "../policy";
+import { hoursOnly } from "../../lib/policy";
 import { anyArtistCandidates, anyArtistDays } from "../anyArtist";
 import { notifyWaitlistSafely } from "../waitlist";
 import { manilaToday } from "../../lib/bookingNotice";
@@ -530,16 +532,17 @@ export const rescheduleAppointment = ported<IdContext>(async (req, { params }) =
 
   const isAdmin = requester.role === "admin";
   const status = statusOf(oldAppt.status);
+  const { change_window_hours: windowHours } = await getPolicy();
   const movable = isAdmin
     ? OPEN_STATUSES.includes(status)
-    : status === "CONFIRMED" && isEligibleForChanges(oldAppt.appointment_date, oldAppt.appointment_time);
+    : status === "CONFIRMED" && isEligibleForChanges(oldAppt.appointment_date, oldAppt.appointment_time, Date.now(), windowHours);
   if (!movable) {
     return Response.json(
       {
         code: "NOT_RESCHEDULABLE",
         message: isAdmin
           ? "Only a booking that's still to happen can be rescheduled."
-          : "Only a confirmed booking at least 72 hours away can be rescheduled. Please contact the salon.",
+          : `Only a confirmed booking at least ${hoursOnly(windowHours)} away can be rescheduled. Please contact the salon.`,
       },
       { status: 409 },
     );
@@ -581,8 +584,8 @@ export const rescheduleAppointment = ported<IdContext>(async (req, { params }) =
   return Response.json({ message: "Rescheduled", appointment: updated });
 });
 
-// POST /booking/:id/refund (owner or admin): cancel, refunding when it's at least 72 hours
-// before the appointment (Xendit refund, or a manual refund for payment-proof payments).
+// POST /booking/:id/refund (owner or admin): cancel, refunding when it's at least the change window
+// (72 hours unless the salon set another) before the appointment (Xendit refund, or a manual refund for payment-proof payments).
 export const refundAppointment = ported<IdContext>(async (req, { params }) => {
   const requester = await requireUserRow();
   if (requester instanceof Response) return requester;
@@ -591,7 +594,8 @@ export const refundAppointment = ported<IdContext>(async (req, { params }) => {
   const app = await getAppointment(id);
   if (!app) return Response.json({ message: "Appointment not found" }, { status: 404 });
   if (!canAccess(requester, app.user_id)) return Response.json({ error: "Forbidden" }, { status: 403 });
-  // An admin may refund inside the 72 hours as a goodwill exception (`refund_anyway`); a client never can
+  const { change_window_hours: windowHours } = await getPolicy();
+  // An admin may refund inside the change window as a goodwill exception (`refund_anyway`); a client never can
   const refundAnyway = requester.role === "admin" && (await readJson<{ refund_anyway?: unknown }>(req)).refund_anyway === true;
 
   // The appointment row stays locked while the refund runs, so a double click (or the client and
@@ -611,7 +615,7 @@ export const refundAppointment = ported<IdContext>(async (req, { params }) => {
       return Response.json({ message: "This appointment has already started. Please contact the salon." }, { status: 400 });
     }
 
-    const eligibleForRefund = refundAnyway || isEligibleForChanges(app.appointment_date, app.appointment_time);
+    const eligibleForRefund = refundAnyway || isEligibleForChanges(app.appointment_date, app.appointment_time, Date.now(), windowHours);
     // A payment proof approved by an admin has no Xendit invoice, so its refund is done manually
     const [manualPayment] = await tx<{ amount: number }[]>`
       select amount from payments where appointment_id = ${id} and payment_method = 'MANUAL' and upper(status) = 'PAID' limit 1
