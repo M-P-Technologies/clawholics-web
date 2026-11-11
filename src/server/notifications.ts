@@ -41,6 +41,10 @@ export async function notifyAdmins(kind: AdminNotificationKind, refId: number, a
   `;
 }
 
+// How often the bell's asks look for visits that just ended (they show within this much)
+const VISITS_RECORD_EVERY_MS = 3 * 60_000;
+let visitsRecordedAt = 0;
+
 /**
  * A page of notifications, newest first, each marked unread or not for this admin, how many are
  * unread, and whether there are older ones. Without `before` it's the newest page; with it, the
@@ -48,10 +52,17 @@ export async function notifyAdmins(kind: AdminNotificationKind, refId: number, a
  */
 export async function listAdminNotifications(adminUserId: number, { before = null as number | null, limit = NOTIFICATIONS_PAGE_SIZE } = {}) {
   const sql = getSql();
-  // Visits that just ended are recorded when the bell asks for its newest page (no cron needed);
-  // a failure here only delays them to the next ask
-  if (before === null) {
-    await recordVisitsToComplete().catch((error) => console.error("[notifications] visits to complete:", error));
+  // Visits that just ended are recorded when the bell asks for its newest page (no cron needed),
+  // at most every few minutes per server instance (every admin's bell asks); a failure here only
+  // delays them to the next ask
+  if (before === null && Date.now() - visitsRecordedAt >= VISITS_RECORD_EVERY_MS) {
+    // Counted from a recording that worked, so one that failed or stalled is tried again by the
+    // next ask (two at once are harmless: each visit is recorded once)
+    await recordVisitsToComplete()
+      .then(() => {
+        visitsRecordedAt = Date.now();
+      })
+      .catch((error) => console.error("[notifications] visits to complete:", error));
   }
   // One more than the page, to know whether there are older ones
   const found = await sql<AdminNotification[]>`

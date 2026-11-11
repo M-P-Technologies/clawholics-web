@@ -1,12 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type UIEvent } from "react";
-import { useInfiniteQuery, useQuery, useQueryClient, type InfiniteData } from "@tanstack/react-query";
+import { focusManager, useInfiniteQuery, useQuery, useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { useToast } from "@/components/molecules";
 import { adminDataChanged, adminKeys, adminQueries } from "../../lib/adminQueries";
 import { markAdminNotificationsRead, type AdminNotification, type AdminNotifications } from "../../services/notificationService";
 import { useNavigate } from "../../lib/router";
-import { NOTIFICATIONS_POLL_MS, notificationLine, notificationLink, notificationTitle } from "../../lib/admin/notifications";
+import { NOTIFICATIONS_BACKGROUND_POLL_MS, NOTIFICATIONS_POLL_MS, notificationLine, notificationLink, notificationTitle } from "../../lib/admin/notifications";
 import { useAdminSession } from "./useAdminSession";
 import { useBookingAlerts } from "./useBookingAlerts";
 
@@ -16,8 +16,8 @@ type Pages = InfiniteData<AdminNotifications, number | undefined>;
 const LOAD_MORE_WITHIN = 48;
 
 // The admin bell: the newest notifications of new bookings (paid online, or a payment proof sent),
-// asked for every 30 seconds while an admin screen is open (also while the tab is in the
-// background when a sound or desktop alert is on, so they reach an admin working elsewhere). A new one arriving while a screen
+// asked for every minute while an admin screen is open (every 3 minutes while the tab is in the
+// background, and then only when a sound or desktop alert is on, so they reach an admin working elsewhere). A new one arriving while a screen
 // is open shows a toast, plays a chime and, when the tab isn't in front, a desktop notification
 // (each as the admin chose), and refreshes the screens' appointment data; opening the bell marks
 // them all read for this admin. The list shows the newest 5 and loads 5 more each time the admin
@@ -31,8 +31,9 @@ export function useAdminNotifications() {
   const query = useInfiniteQuery({
     ...adminQueries.notifications(session),
     enabled: ready,
-    refetchInterval: NOTIFICATIONS_POLL_MS,
-    // In the background too, while a sound or desktop alert is on to tell the admin
+    // Every minute on screen; in the background (only while a sound or desktop alert is on to
+    // tell the admin) every 3 minutes. Picked again after each ask.
+    refetchInterval: () => (focusManager.isFocused() ? NOTIFICATIONS_POLL_MS : NOTIFICATIONS_BACKGROUND_POLL_MS),
     refetchIntervalInBackground: alerts.any,
   });
   const data = query.data;
