@@ -199,8 +199,10 @@ export default function AppointmentsTable({ clients = {} }: AppointmentsTablePro
     enabled: isAuthLoaded,
     // The page on screen stays (and a failed refresh keeps it) until the next one arrives
     placeholderData: keepPreviousData,
-    // Refreshes every 30 seconds, only while this tab is on screen
-    refetchInterval: 30_000,
+    // The bell refreshes it at once (adminDataChanged) when a new booking or proof comes in, and
+    // so does every admin change; this slower timer (only while on screen) picks up the rest:
+    // cancellations, holds running out, another admin's changes
+    refetchInterval: 120_000,
   });
   // The previous page shows while another loads; if that load fails it has no data, and the error shows
   const result = listQuery.data;

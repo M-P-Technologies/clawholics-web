@@ -5,7 +5,9 @@ import type { AdminNotification } from "../../services/notificationService";
 // What the admin bell says about each new booking, and where it leads
 
 /** How often the bell asks for new notifications while an admin screen is open (and visible) */
-export const NOTIFICATIONS_POLL_MS = 30_000;
+export const NOTIFICATIONS_POLL_MS = 60_000;
+/** How often it asks while the tab is in the background (only when a sound or desktop alert is on) */
+export const NOTIFICATIONS_BACKGROUND_POLL_MS = 180_000;
 
 const TITLES: Record<AdminNotification["kind"], string> = {
   booking_paid: "New booking paid",

@@ -36,7 +36,7 @@ const loaded = async () => {
   fetchProfile.mockResolvedValueOnce({ id: 7, first_name: "Ana", stamps: 2 });
   const hook = renderHook(() => useProfile());
   await waitFor(() => expect(hook.result.current.dbUser?.first_name).toBe("Ana"));
-  // A refresh of the loaded account (the same refetch the 30-second refresh runs)
+  // A refresh of the loaded account (the same refetch the timed refresh runs)
   const refresh = async () => {
     hook.result.current.retryLoad();
     await waitFor(() => expect(fetchProfile).toHaveBeenCalledTimes(2));

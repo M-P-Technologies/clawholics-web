@@ -16,6 +16,9 @@ import type { AppointmentView } from "@/types/profile";
 import { CLIENT_PATHS } from "../lib/client/clientNav";
 import { longDateLabel, timeRangeLabel } from "../lib/timeFormat";
 
+// How often the profile and appointments are asked for again while the tab is on screen
+const ACCOUNT_REFRESH_MS = 5 * 60_000;
+
 export function useProfile() {
   const { isLoaded, isSignedIn, user: clerkUser } = useUser();
   const { getToken } = useAuth();
@@ -35,9 +38,10 @@ export function useProfile() {
   const clerkId = clerkUser?.id ?? "";
   const isClient = isLoaded && !!isSignedIn && !!clerkUser && clerkUser.publicMetadata?.role !== "admin";
   // The profile and appointments are the cached queries other screens share (lib/accountQueries),
-  // refreshed every 30 seconds, only while this tab is on screen
-  const profileQuery = useQuery({ ...accountQueries.profile(clerkId, getToken), enabled: isClient, refetchInterval: 30_000 });
-  const appointmentsQuery = useQuery({ ...accountQueries.appointments(clerkId, getToken), enabled: isClient, refetchInterval: 30_000 });
+  // refreshed when the client comes back to the tab, and every 5 minutes while it's on screen
+  // (each ask is a server request, billed by CPU time, so not every 30 seconds)
+  const profileQuery = useQuery({ ...accountQueries.profile(clerkId, getToken), enabled: isClient, refetchInterval: ACCOUNT_REFRESH_MS });
+  const appointmentsQuery = useQuery({ ...accountQueries.appointments(clerkId, getToken), enabled: isClient, refetchInterval: ACCOUNT_REFRESH_MS });
   const dbUser = profileQuery.data ?? null;
   const stamps = dbUser?.stamps ?? 0;
   const stampTarget = useStampTarget();
