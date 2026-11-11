@@ -1,6 +1,6 @@
 // The admin bell: the unread count, the list of new bookings (opening it marks them read), where
 // each leads, and a toast when a new one arrives while a screen is open.
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { focusManager, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -263,6 +263,47 @@ describe("NotificationBell alerts", () => {
     await arrive();
     expect(showDesktopAlert).toHaveBeenCalledWith("New booking paid", expect.stringContaining("Cara Diaz"), "booking-3", expect.any(Function));
     visibility.mockRestore();
+  });
+});
+
+describe("NotificationBell polling", () => {
+  afterEach(() => {
+    focusManager.setFocused(undefined);
+    vi.useRealTimers();
+  });
+  // The asks for the newest page (not marking read, not the photos)
+  const asks = () => fetchMock.mock.calls.filter(([url]) => /\/notifications(\?|$)/.test(String(url))).length;
+  const pass = (ms: number) => act(() => vi.advanceTimersByTimeAsync(ms));
+
+  it("asks every minute on screen, and every 3 minutes in the background while an alert is on", async () => {
+    vi.useFakeTimers();
+    view();
+    await pass(0);
+    expect(asks()).toBe(1);
+    await pass(59_000);
+    expect(asks()).toBe(1);
+    await pass(1_000);
+    expect(asks()).toBe(2);
+
+    // Hidden (the sound is on by default): the ask already timed still runs, then every 3 minutes
+    focusManager.setFocused(false);
+    await pass(60_000);
+    expect(asks()).toBe(3);
+    await pass(179_000);
+    expect(asks()).toBe(3);
+    await pass(1_000);
+    expect(asks()).toBe(4);
+  });
+
+  it("doesn't ask in the background when the sound and desktop alerts are off", async () => {
+    window.localStorage.setItem("clawholics.admin.alertSound", "0");
+    vi.useFakeTimers();
+    view();
+    await pass(0);
+    expect(asks()).toBe(1);
+    focusManager.setFocused(false);
+    await pass(10 * 60_000);
+    expect(asks()).toBe(1);
   });
 });
 
