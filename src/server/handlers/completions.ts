@@ -4,7 +4,7 @@ import { getSql } from "../db";
 import { inBackground, toId } from "../http";
 import { NOT_AN_IMAGE, imageBytes } from "../imageFiles";
 import { PROOF_EXTENSIONS, MAX_PROOF_SIZE } from "../payments";
-import { changesCatalog } from "../publicCache";
+import { changesGallery } from "../publicCache";
 import { toWebp } from "../imageEncode";
 import { releaseImages } from "../imageRefs";
 import { getPolicy } from "../policy";
@@ -26,7 +26,7 @@ const manilaToday = () => new Date(Date.now() + 8 * 3600 * 1000).toISOString().s
 
 // PUT /appointments/:id/completion (multipart: balance_amount, payment_method, nailist_id, arrived_at,
 // voucher_code (empty: no voucher, and one used before is freed), file…)
-export const saveCompletion = changesCatalog(ported<IdContext>(async (req, { params }) => {
+export const saveCompletion = changesGallery(ported<IdContext>(async (req, { params }) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const id = toId((await params).id);
@@ -144,7 +144,7 @@ export const saveCompletion = changesCatalog(ported<IdContext>(async (req, { par
 // PUT /appointments/:id/photo (multipart: one `file`): the visit's nail photo, added after it was
 // completed. It goes first in the artist's gallery (kept to 10) and replaces the visit's earlier
 // one there. Photos come shrunk from the browser; 1MB at most here.
-export const saveVisitPhoto = changesCatalog(ported<IdContext>(async (req, { params }) => {
+export const saveVisitPhoto = changesGallery(ported<IdContext>(async (req, { params }) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;
   const id = toId((await params).id);

@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { revalidateTag } from "next/cache";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { CATALOG_TAG, changesCatalog } from "@/server/publicCache";
+import { CATALOG_TAG, changesCatalog, changesGallery, GALLERY_TAG } from "@/server/publicCache";
 
 const isAdmin = vi.fn();
 vi.mock("@/server/auth", () => ({ isAdmin: () => isAdmin() }));
@@ -39,6 +39,21 @@ describe("changesCatalog", () => {
       const write = changesCatalog(async () => Response.json({ error: "no" }, { status }));
       await write(new Request("http://x/api/faqs", { method: "POST" }), {});
     }
+    expect(revalidateTag).not.toHaveBeenCalled();
+  });
+});
+
+describe("changesGallery", () => {
+  it("drops only the gallery reads, not the whole site, once a write succeeds", async () => {
+    const write = changesGallery(async () => Response.json({ message: "ok" }));
+    await write(new Request("http://x/api/appointments/1/completion", { method: "PUT" }), {});
+    expect(revalidateTag).toHaveBeenCalledWith(GALLERY_TAG, { expire: 0 });
+    expect(revalidateTag).not.toHaveBeenCalledWith(CATALOG_TAG, expect.anything());
+  });
+
+  it("keeps them when the write fails", async () => {
+    const write = changesGallery(async () => Response.json({ error: "no" }, { status: 400 }));
+    await write(new Request("http://x/api/appointments/1/completion", { method: "PUT" }), {});
     expect(revalidateTag).not.toHaveBeenCalled();
   });
 });
