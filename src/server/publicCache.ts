@@ -25,21 +25,28 @@ import { getPaymentSettings } from "./payments";
 // - Every admin write to these tables is wrapped in `changesCatalog`, which drops the whole
 //   cache: the reads join across tables (services, categories, artists), so one tag for all of
 //   them can't miss a dependency, and writes are rare.
+// - The artists' galleries also carry GALLERY_TAG: completing a visit adds its photo to one, and
+//   that happens many times a day, so it drops only the gallery reads (and the artist pages built
+//   from them) through `changesGallery`, not every page of the site.
 // - Changes made around the API (the db:copy script, the Supabase dashboard) show after
-//   REVALIDATE_SECONDS at the latest.
+//   REVALIDATE_SECONDS plus the pages' hour (the site layout's `revalidate`) at the latest. It's
+//   long on purpose: every expiry reads the database again and stores the copy (an ISR write).
+//   A failed read isn't stored, so a database hiccup never sticks here.
 
 export const CATALOG_TAG = "catalog";
+export const GALLERY_TAG = "gallery";
 
-/** The longest a cached copy is kept without a write clearing it */
-const REVALIDATE_SECONDS = 60 * 60;
+/** The longest a cached copy is kept without a write clearing it (a day) */
+export const REVALIDATE_SECONDS = 24 * 60 * 60;
 
 // The rows are stored as JSON, which is also how the routes answer, so a cached answer is the
 // same as a fresh one
-const cached = <A extends unknown[], R>(name: string, read: (...args: A) => PromiseLike<R>) =>
+const cached = <A extends unknown[], R>(name: string, read: (...args: A) => PromiseLike<R>, tags = [CATALOG_TAG]) =>
   unstable_cache(async (...args: A) => await read(...args), ["public", name], {
-    tags: [CATALOG_TAG],
+    tags,
     revalidate: REVALIDATE_SECONDS,
   });
+const galleryTags = [CATALOG_TAG, GALLERY_TAG];
 
 export const publicReads = {
   content: cached("content", (section: ContentSection) => getContent(section)),
@@ -52,24 +59,27 @@ export const publicReads = {
   serviceGallery: cached("serviceGallery", getServiceGallery),
   nailists: cached("nailists", getNailists),
   nailist: cached("nailist", getNailist),
-  nailistGallery: cached("nailistGallery", getNailistGallery),
-  allNailistGalleries: cached("allNailistGalleries", getAllNailistGalleries),
+  nailistGallery: cached("nailistGallery", getNailistGallery, galleryTags),
+  allNailistGalleries: cached("allNailistGalleries", getAllNailistGalleries, galleryTags),
   /** The downpayment and payment methods: the pages quote the deposit, and an admin's save of the Settings drops this too */
   paymentSettings: cached("paymentSettings", getPaymentSettings),
 };
 
-/** Drops every cached public read, so the next request reads the database again. */
-function catalogChanged() {
-  // expire: 0, not "max": the admin's editor fetches again right after saving, and must not be
-  // answered with the copy from before the save
-  revalidateTag(CATALOG_TAG, { expire: 0 });
-}
+type Handler<C> = (req: Request, context: C) => Response | Promise<Response>;
 
-/** Wraps an admin write: once it succeeds, the cached public reads are dropped. */
-export function changesCatalog<C>(handler: (req: Request, context: C) => Response | Promise<Response>) {
+/** Wraps an admin write: once it succeeds, the cached reads under `tag` are dropped. */
+function dropsTag<C>(tag: string, handler: Handler<C>): Handler<C> {
   return async (req: Request, context: C) => {
     const res = await handler(req, context);
-    if (res.ok) catalogChanged();
+    // expire: 0, not "max": the admin's editor fetches again right after saving, and must not be
+    // answered with the copy from before the save
+    if (res.ok) revalidateTag(tag, { expire: 0 });
     return res;
   };
 }
+
+/** Wraps an admin write: once it succeeds, every cached public read is dropped. */
+export const changesCatalog = <C>(handler: Handler<C>) => dropsTag(CATALOG_TAG, handler);
+
+/** Wraps a write that only touches the artists' galleries (completing a visit, its photo). */
+export const changesGallery = <C>(handler: Handler<C>) => dropsTag(GALLERY_TAG, handler);
