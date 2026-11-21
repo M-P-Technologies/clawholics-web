@@ -13,8 +13,18 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "clawholics-api-staging.clawholicsdev.workers.dev" },
     ],
   },
-  // No webpack loaders (the brand SVGs are components in src/assets): Turbopack runs a loader
-  // in a child Node process, which shared hosting's process limit kills mid-build.
+  // Hostinger's build can't start child Node processes ("node process exited before we could
+  // connect to it"), so the build's extra work runs in worker threads of its own process:
+  experimental: {
+    // Turbopack's loaders (PostCSS/Tailwind for globals.css). Next keeps child processes on
+    // Node 24.13.1+, where a Node bug can crash worker threads; Hostinger builds on Node 22.
+    turbopackPluginRuntimeStrategy: "workerThreads",
+    // "Generating static pages" and the other build workers
+    workerThreads: true,
+  },
+  // The type-check runs `tsc` as a child process too, so the build skips it: CI's Lint job runs
+  // `next typegen && tsc --noEmit` on every PR and push to main instead.
+  typescript: { ignoreBuildErrors: true },
   // No "X-Powered-By: Next.js" header telling visitors what the site runs on
   poweredByHeader: false,
   async headers() {
