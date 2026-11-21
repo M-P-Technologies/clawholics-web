@@ -1,5 +1,5 @@
 import { Check, Lightbulb, Trophy, TriangleAlert, type LucideIcon } from "lucide-react";
-import Bow from "@/assets/bow.svg";
+import Bow from "@/assets/Bow";
 import { Link } from "@/lib/router";
 import { buildInsights, type Insight, type Tip } from "@/lib/dashboardInsights";
 import type { DashboardResponse } from "@/services/dashboardTypes";

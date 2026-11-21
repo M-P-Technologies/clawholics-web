@@ -3,7 +3,7 @@ import { ChevronLeft,ChevronRight } from "lucide-react";
 import { useEffect,useRef,useState } from "react";
 import Image from "next/image";
 import { canOptimizeImage } from "@/lib/imageHosts";
-import Bow from "../../assets/bow.svg";
+import Bow from "@/assets/Bow";
 import type { Nailist } from "../../types";
 import { Button } from "@/components/atoms";
 import SpecialtyList from "@/components/booking/SpecialtyList";

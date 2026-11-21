@@ -3,7 +3,7 @@
 import { PanelLeftClose, PanelLeftOpen, type LucideIcon } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import clsx from "clsx";
-import Bow from "@/assets/bow.svg";
+import Bow from "@/assets/Bow";
 import { useLocation, useNavigate } from "@/lib/router";
 import logo from "../../assets/logo/logo-pink-transparent.png";
 import emblem from "../../assets/logo/emblem-pink.png";

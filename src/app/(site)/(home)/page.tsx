@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { Link } from "@/lib/router";
-import Bow from "@/assets/bow.svg";
+import Bow from "@/assets/Bow";
 import emblem from "@/assets/logo/emblem-pink.png";
 import { Button, LoadingBar, Blush, Stars } from "@/components/atoms";
 import ArtistSpotlight from "@/components/home/ArtistSpotlight";

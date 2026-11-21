@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev -p 5174",
     "build": "next build",
-    "start": "next start -p 5174",
+    "start": "next start",
     "lint": "eslint .",
     "test": "vitest run",
     "test:db": "node scripts/test-db.mjs",
@@ -38,7 +38,6 @@
     "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {
-    "@svgr/webpack": "^8.1.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^6.9.1",

@@ -8,7 +8,7 @@ Clawholics: a nail salon appointment system (booking, Xendit payments, loyalty s
 
 ## Commands
 
-- `npm run dev` — `next dev` on :5174 (needs `.env.local`, see `.env.example`)
+- `npm run dev` — `next dev` on :5174 (needs `.env.local`, see `.env.example`); `npm start` — `next start` on `PORT` (the host's)
 - `npm run build` — `next build` (includes the type-check); `npm run lint` — ESLint (`eslint-config-next`)
 - `npm test` — Vitest (jsdom, `@` alias → `src/`); one pass: `npm test -- --run`; single file: `npx vitest run src/tests/contactUs.test.tsx`
 - `npm run test:db` — Postgres integration tests in `src/tests/db` against a throwaway Docker Postgres
@@ -18,7 +18,7 @@ Clawholics: a nail salon appointment system (booking, Xendit payments, loyalty s
 
 ### The old Worker is retired
 The app runs only on its own route handlers and Supabase Postgres. The Cloudflare Worker `clawholics-api-staging` and its D1 database are no longer used: build everything for Next and Supabase, with no Worker fallbacks or compatibility paths. Its source (`worker-api/`), the Express `backend/` and the Vite `frontend/` were removed from the repo; see git history before the move to a single app. What's left of it in the code:
-- `ported()` and `forwardToWorker` in `src/server/worker.ts`, and the `API_BACKEND` switch: the handlers only run when `API_BACKEND=next`, so it must be set to `next` in every environment (otherwise every request is forwarded to `API_PROXY_TARGET`).
+- `ported()` and `forwardToWorker` in `src/server/worker.ts`, and the `API_BACKEND` switch: the handlers run unless `API_BACKEND=worker`, which forwards every request to `API_PROXY_TARGET` (unset or `next` runs them).
 - `wrangler.toml` and `db:export`/`db:copy`, the one-off D1 → Supabase data copy (`copy-from-d1.mjs` also backfills what D1 migrations 001–004 would have added).
 
 ### App structure
@@ -48,7 +48,7 @@ The app was ported from a Vite SPA (`frontend/`, now removed), which is why the 
   - `QueryProvider` drops the account and admin queries when the signed-in user changes.
 - `src/lib/router.tsx` re-creates the react-router API the screens use (`Link`, `useNavigate`, `useLocation`, `useParams`, `useSearchParams`, `Navigate`) on `next/navigation`. Router `state` is kept in sessionStorage per target path (cleared on a fresh page load, kept on reload) and is null during server render/hydration, so screens that need it on first render (booking, payment, reschedule, profile) are wrapped in `components/guards/ClientOnly` in their `page.tsx`. Screens using `useSearchParams` need a `<Suspense>` there too.
 - With `NEXT_PUBLIC_API_BASE_URL=/api`, the browser stays same-origin and every `/api` path is answered by a route file under `src/app/api/`. The `fallback` rewrite in `next.config.ts` (to `API_PROXY_TARGET`, the old Worker) is left over from the migration and only applies when that variable is set.
-- SVGs import as React components via `@svgr/webpack`; static image imports are `StaticImageData`, so use `.src`.
+- No SVG loader: the brand SVGs are React components (`src/assets/Bow.tsx`, `src/assets/logo/LogoPrimary.tsx`), because Turbopack runs a webpack loader in a child Node process and shared hosting's process limit (Hostinger) kills it mid-build. Add a new icon the same way, not as an imported `.svg`. Static image imports are `StaticImageData`, so use `.src`.
 
 ### API on Supabase
 Every endpoint is a route handler in `src/app/api/` on Supabase Postgres. The ones that came from the Worker were ported in phases:
