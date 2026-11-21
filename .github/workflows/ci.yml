@@ -1,7 +1,8 @@
-# Checks every pull request and every push to main: lint, the unit tests and the Postgres
-# integration tests (src/tests/db). It never touches Supabase: the database tests run against a
+# Checks every pull request and every push to main: lint and the type-check, the unit tests and
+# the Postgres integration tests (src/tests/db). It never touches Supabase: the database tests run against a
 # throwaway Postgres service container, which they drop and rebuild (see src/tests/db/testDatabase.ts).
-# Vercel builds the app itself (`next build` includes the type-check), so there's neither here.
+# The host builds the app itself, but `next build` skips the type-check (Hostinger can't run its
+# `tsc` child process, see next.config.ts), so it's here.
 name: CI
 
 on:
@@ -85,3 +86,8 @@ jobs:
       - run: npm ci
 
       - run: npm run lint
+
+      # `next typegen` writes next-env.d.ts (image imports) and the route types, which a fresh
+      # checkout doesn't have
+      - name: Type-check
+        run: npx next typegen && npx tsc --noEmit
