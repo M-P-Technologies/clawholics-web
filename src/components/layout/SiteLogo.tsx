@@ -1,4 +1,4 @@
-import Logo from "../../assets/logo/logo-primary.svg";
+import Logo from "@/assets/logo/LogoPrimary";
 
 // The logo in the top bar: the one uploaded in Admin > Homepage, or the Clawholics bow
 export default function SiteLogo({ src }: { src: string }) {

@@ -8,8 +8,8 @@ import { DEFAULT_RANGE, isDashboardRange, manilaToday } from "../../lib/dashboar
 import { ported } from "../worker";
 
 // GET /dashboard?range=week|month|last30|last90|year (admin only): every number the dashboard
-// shows, for the range and the one before it. Not on the Worker: while API_BACKEND isn't
-// `next` the request is forwarded there and answered 404.
+// shows, for the range and the one before it. Not on the Worker: with
+// API_BACKEND=worker the request is forwarded there and answered 404.
 export const getDashboard = ported(async (req) => {
   const admin = await requireAdmin();
   if (admin instanceof Response) return admin;

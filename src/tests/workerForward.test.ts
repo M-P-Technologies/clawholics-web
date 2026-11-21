@@ -55,21 +55,23 @@ describe("ported", () => {
 
   afterEach(() => handler.mockClear());
 
-  it("TC-API-04: forwards to the Worker while API_BACKEND is not next", async () => {
+  it("TC-API-04: forwards to the Worker only when API_BACKEND=worker", async () => {
     vi.stubEnv("API_BACKEND", "worker");
     const res = await ported(handler)(new Request("http://localhost/api/faqs"), {});
     expect(handler).not.toHaveBeenCalled();
     expect(await res.json()).toEqual({ from: "worker" });
   });
 
-  it("TC-API-05: forwards when API_BACKEND is unset", async () => {
-    await ported(handler)(new Request("http://localhost/api/faqs"), {});
-    expect(handler).not.toHaveBeenCalled();
-    expect(fetchMock).toHaveBeenCalledOnce();
-  });
-
   const fromFrontend = (url = "http://localhost/api/faqs") =>
     new Request(url, { headers: { "x-clawholics-origin": "frontend" } });
+
+  it("TC-API-05: runs the Next handler when API_BACKEND is unset (the Worker is retired)", async () => {
+    vi.stubEnv("API_BACKEND", undefined);
+    expect(process.env.API_BACKEND).toBeUndefined();
+    const res = await ported(handler)(fromFrontend(), {});
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(await res.json()).toEqual({ from: "next" });
+  });
 
   it("TC-API-06: runs the Next handler when API_BACKEND=next", async () => {
     vi.stubEnv("API_BACKEND", "next");

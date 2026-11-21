@@ -56,7 +56,7 @@ export const checkVoucher = ported(async (req) => {
 // while emails are still going out. The run is safe to repeat, so a failed one waits for the next day.
 export async function runBirthdayVoucherCron(req: Request): Promise<Response> {
   if (!isCronCall(req)) return errorBody("Unauthorized", 401);
-  if (!nextApiEnabled()) return errorBody("API_BACKEND is not next", 503);
+  if (!nextApiEnabled()) return errorBody("API_BACKEND is worker", 503);
   try {
     const result = await issueBirthdayVouchers();
     console.log("[birthday] voucher run:", JSON.stringify(result));

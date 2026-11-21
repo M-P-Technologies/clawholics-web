@@ -5,9 +5,8 @@ import "server-only";
 // - Paths with no route file reach the Worker through the fallback rewrite in next.config.ts.
 // - A route file ports some methods; its other methods are `forwardToWorker`, so e.g. an
 //   admin POST to a path whose GET is ported still reaches the Worker.
-// - Ported handlers are wrapped in `ported()`. Until API_BACKEND=next (Phase 3 cutover, when
-//   the data has moved to Supabase) they also just forward, so production keeps reading the
-//   live D1 data.
+// - Ported handlers are wrapped in `ported()`. With API_BACKEND=worker they also just forward
+//   (the pre-cutover setup); unset or anything else runs them, since the Worker is retired.
 
 import { currentSql, logDatabaseActivity, resetSql, sqlResponds } from "./db";
 import { workingTimeWait } from "./loopTimer";
@@ -53,7 +52,9 @@ const HOP_BY_HOP_HEADERS = new Set([
   "content-length",
 ]);
 
-export const nextApiEnabled = () => process.env.API_BACKEND === "next";
+/** The Worker is retired, so the Next handlers run unless API_BACKEND=worker is set on purpose
+ * (a host missing the variable used to forward every request to the old Worker). */
+export const nextApiEnabled = () => process.env.API_BACKEND !== "worker";
 
 /** Sends the request to the Worker unchanged and returns its response. */
 export async function forwardToWorker(req: Request): Promise<Response> {
@@ -88,7 +89,7 @@ export async function forwardToWorker(req: Request): Promise<Response> {
 }
 
 /**
- * Runs the Next handler once API_BACKEND=next; before that, forwards to the Worker.
+ * Runs the Next handler unless API_BACKEND=worker, which forwards to the Worker.
  * Keeps the Worker's request gate (the x-clawholics-origin header) and its JSON 500.
  * `requireOrigin: false` is for callers that aren't the frontend (the Xendit webhook),
  * which the Worker also exempts.

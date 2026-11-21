@@ -15,7 +15,7 @@ const errorBody = (message: string, status: number) => Response.json({ error: me
 
 export async function runAppointmentReminderCron(req: Request): Promise<Response> {
   if (!isCronCall(req)) return errorBody("Unauthorized", 401);
-  if (!nextApiEnabled()) return errorBody("API_BACKEND is not next", 503);
+  if (!nextApiEnabled()) return errorBody("API_BACKEND is worker", 503);
 
   const result: { reminders?: unknown; rebook?: unknown; failed: string[] } = { failed: [] };
   try {

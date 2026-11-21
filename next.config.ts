@@ -13,26 +13,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "clawholics-api-staging.clawholicsdev.workers.dev" },
     ],
   },
-  turbopack: {
-    rules: {
-      // SVGs import as React components (replaces vite-plugin-svgr's `?react` imports).
-      "*.svg": {
-        loaders: [
-          {
-            loader: "@svgr/webpack",
-            options: {
-              // svgo's default strips the viewBox, so an icon can't scale to its CSS size
-              // and gets cropped instead (e.g. the bow). Keep it.
-              svgoConfig: {
-                plugins: [{ name: "preset-default", params: { overrides: { removeViewBox: false } } }],
-              },
-            },
-          },
-        ],
-        as: "*.js",
-      },
-    },
-  },
+  // No webpack loaders (the brand SVGs are components in src/assets): Turbopack runs a loader
+  // in a child Node process, which shared hosting's process limit kills mid-build.
   // No "X-Powered-By: Next.js" header telling visitors what the site runs on
   poweredByHeader: false,
   async headers() {
